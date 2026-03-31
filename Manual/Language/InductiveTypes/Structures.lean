@@ -664,7 +664,7 @@ structure B where
   foo : Nat
 structure C extends A where
   z : String
-/-- info: C.mk (toA : A) (z : String) : C -/
+/-- info: C.mk (toA : A) (z : String) : _root_.C -/
 #check_msgs in
 #check C.mk
 
@@ -677,7 +677,7 @@ def someC : C where
 error: Type mismatch
   someC
 has type
-  C
+  _root_.C
 but is expected to have type
   A
 -/

@@ -33,6 +33,7 @@ Diamonds occur regularly in practice when encoding mathematical concepts using t
 
 Instance synthesis can be tested using the {keywordOf Lean.Parser.Command.synth}`#synth` command.
 Additionally, {name}`inferInstance` and {name}`inferInstanceAs` can be used to synthesize an instance in a position where the instance itself is needed.
+{name}`inferInstance` with a type annotation and {name}`inferInstanceAs` are not equivalent; {name}`inferInstanceAs` {ref "instance-wrapping"}[preprocesses the synthesized instance] to prevent unintentional leakage of implementation details into interfaces.
 
 {docstring inferInstance}
 
@@ -92,53 +93,36 @@ This trace can be used to understand how instance synthesis succeeds and why it 
 Here, we can see the steps Lean takes to conclude that there exists an element of the type {lean}`(Nat ⊕ Empty)` (specifically the element {lean}`Sum.inl 0`):
 Clicking a `▶` symbol expands that branch of the trace, and clicking the `▼` collapses an expanded branch.
 
+```lean -show
+-- Hide Lake details that are intruding here
+attribute [-instance] Lake.inhabitedOfNilTrace
+```
+
 ```lean (name := trace)
 set_option pp.explicit true in
 set_option trace.Meta.synthInstance true in
 #synth Nonempty (Nat ⊕ Empty)
 ```
+
 ```comment
 IF THE LEAN OUTPUT BELOW CHANGES, IT MAY ALSO BE NECESSARY TO UPDATE THE NARRATIVE VERSION OF THIS STORY THAT FOLLOWS
 ```
 ```leanOutput trace (expandTrace := Meta.synthInstance) (expandTrace := Meta.synthInstance.resume)
 [Meta.synthInstance] ✅️ Nonempty (Sum Nat Empty)
-  [Meta.synthInstance] new goal Nonempty (Sum Nat Empty)
+  [Meta.synthInstance] ✅️ new goal Nonempty (Sum Nat Empty)
     [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad, @Sum.nonemptyLeft, @Sum.nonemptyRight]
-  [Meta.synthInstance] ✅️ apply @Sum.nonemptyRight to Nonempty (Sum Nat Empty)
-    [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
-    [Meta.synthInstance] new goal Nonempty Empty
-      [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
-  [Meta.synthInstance] ❌️ apply @instNonemptyOfMonad to Nonempty Empty
-    [Meta.synthInstance.tryResolve] ❌️ Nonempty Empty ≟ Nonempty (?m.5 ?m.6)
-  [Meta.synthInstance] ✅️ apply @instNonemptyOfInhabited to Nonempty Empty
-    [Meta.synthInstance.tryResolve] ✅️ Nonempty Empty ≟ Nonempty Empty
-    [Meta.synthInstance] new goal Inhabited Empty
-      [Meta.synthInstance.instances] #[@instInhabitedOfMonad, @Lake.inhabitedOfNilTrace, @instInhabitedOfApplicative_manual]
-  [Meta.synthInstance] ❌️ apply @instInhabitedOfApplicative_manual to Inhabited Empty
-    [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
-  [Meta.synthInstance] ✅️ apply @Lake.inhabitedOfNilTrace to Inhabited Empty
-    [Meta.synthInstance.tryResolve] ✅️ Inhabited Empty ≟ Inhabited Empty
-    [Meta.synthInstance] no instances for Lake.NilTrace Empty
-      [Meta.synthInstance.instances] #[]
-  [Meta.synthInstance] ❌️ apply @instInhabitedOfMonad to Inhabited Empty
-    [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
-  [Meta.synthInstance] ✅️ apply @Sum.nonemptyLeft to Nonempty (Sum Nat Empty)
-    [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
-    [Meta.synthInstance] new goal Nonempty Nat
-      [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
-  [Meta.synthInstance] ❌️ apply @instNonemptyOfMonad to Nonempty Nat
-    [Meta.synthInstance.tryResolve] ❌️ Nonempty Nat ≟ Nonempty (?m.5 ?m.6)
-  [Meta.synthInstance] ✅️ apply @instNonemptyOfInhabited to Nonempty Nat
-    [Meta.synthInstance.tryResolve] ✅️ Nonempty Nat ≟ Nonempty Nat
-    [Meta.synthInstance] new goal Inhabited Nat
-      [Meta.synthInstance.instances] #[@instInhabitedOfMonad, @Lake.inhabitedOfNilTrace, @instInhabitedOfApplicative_manual, instInhabitedNat]
-  [Meta.synthInstance] ✅️ apply instInhabitedNat to Inhabited Nat
-    [Meta.synthInstance.tryResolve] ✅️ Inhabited Nat ≟ Inhabited Nat
-    [Meta.synthInstance.answer] ✅️ Inhabited Nat
-  [Meta.synthInstance.resume] propagating Inhabited Nat to subgoal Inhabited Nat of Nonempty Nat
+  [Meta.synthInstance.apply] ✅️ apply @Sum.nonemptyRight to Nonempty (Sum Nat Empty)
+  [Meta.synthInstance.apply] ❌️ apply @instNonemptyOfMonad to Nonempty Empty
+  [Meta.synthInstance.apply] ✅️ apply @instNonemptyOfInhabited to Nonempty Empty
+  [Meta.synthInstance.apply] ❌️ apply @instInhabitedOfMonad to Inhabited Empty
+  [Meta.synthInstance.apply] ✅️ apply @Sum.nonemptyLeft to Nonempty (Sum Nat Empty)
+  [Meta.synthInstance.apply] ❌️ apply @instNonemptyOfMonad to Nonempty Nat
+  [Meta.synthInstance.apply] ✅️ apply @instNonemptyOfInhabited to Nonempty Nat
+  [Meta.synthInstance.apply] ✅️ apply instInhabitedNat to Inhabited Nat
+  [Meta.synthInstance.resume] ✅️ propagating Inhabited Nat to subgoal Inhabited Nat of Nonempty Nat
     [Meta.synthInstance.resume] size: 1
     [Meta.synthInstance.answer] ✅️ Nonempty Nat
-  [Meta.synthInstance.resume] propagating Nonempty Nat to subgoal Nonempty Nat of Nonempty (Sum Nat Empty)
+  [Meta.synthInstance.resume] ✅️ propagating Nonempty Nat to subgoal Nonempty Nat of Nonempty (Sum Nat Empty)
     [Meta.synthInstance.resume] size: 2
     [Meta.synthInstance.answer] ✅️ Nonempty (Sum Nat Empty)
   [Meta.synthInstance] result @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
@@ -155,20 +139,20 @@ In the example above, Lean follows these steps:
   - The {name}`Sum.nonemptyLeft` instance, which would create a sub-goal {lean}`Nonempty Nat`.
   - The {name}`instNonemptyOfMonad` instance, which would create two sub-goals {lean}`Monad (Sum Nat)` and {lean}`Nonempty Nat`.
   - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited (Sum Nat Empty)`.
+* It applies {name}`Sum.nonemptyRight`, which succeeds, leaving an new goal: {lean}`Nonempty Empty`.
 * The first sub-goal, {lean}`Nonempty Empty`, is considered. Lean sees two ways of possibly satisfying this goal:
   - The {name}`instNonemptyOfMonad` instance, which is rejected.
     It can't be used because the type {lean}`Empty` is not the application of a monad to a type.
-    Lean describes this as a failure of {option}`trace.Meta.synthInstance.tryResolve` to solve the equation `Nonempty Empty ≟ Nonempty (?m.5 ?m.6)`.
   - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited Empty`.
 * The newly-generated sub-goal, {lean}`Inhabited Empty`, is considered.
   Lean only sees one way of possibly satisfying this goal, {name}`instInhabitedOfMonad`, which is rejected.
   As before, this is because the type {lean}`Empty` is not the application of a monad to a type.
 * At this point, there are no remaining options for achieving the original first sub-goal.
-  The search backtracks to the second original sub-goal, {lean}`Nonempty Nat`.
-  This search eventually succeeds.
+  The search backtracks, using the instance {name}`Sum.nonemptyLeft`, which requires an instance of {lean}`Nonempty Nat`.
+  This search eventually succeeds, via the {inst}`Inhabited Nat` instance.
 :::
 
-The third and fourth original sub-goals are never considered.
+The third and fourth original candidates are never considered.
 Once the search for {lean}`Nonempty Nat` succeeds, the {keywordOf Lean.Parser.Command.synth}`#synth` command finishes and outputs the solution:
 ```leanOutput trace
 @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
@@ -455,6 +439,25 @@ Code that uses instance-implicit parameters should be prepared to consider all i
 In other words, it should be robust in the face of differences in synthesized instances.
 When the code relies on instances _in fact_ being equivalent, it should either explicitly manipulate instances (e.g. via local definitions, by saving them in structure fields, or having a structure inherit from the appropriate class) or it should make this dependency explicit in the type, so that different choices of instance lead to incompatible types.
 
+# Wrapping Synthesized Instances
+%%%
+tag := "instance-wrapping"
+%%%
+
+After {name}`inferInstanceAs` or the default {keywordOf Lean.Parser.Command.declaration}`deriving` handler synthesize an instance, the instance body is processed to ensure that its type and the types of its fields match the expected types at {name Lean.Meta.TransparencyMode.instances}`instances` transparency, which unfolds only {tech}[reducible] and {tech}[implicit reducible] definitions.
+This processing prevents the internals of the instance's definition from being leaked when the instance is reduced at lower than {tech}[semireducible] transparency, which could induce unintended dependencies between different parts of a code base.
+
+If the expected type is a proposition, the instance is wrapped in an auxiliary theorem.
+Otherwise, the synthesized instance is reduced to weak head normal form at {name Lean.Meta.TransparencyMode.instances}`instances` transparency.
+If the result is a constructor application, each field is processed:
+* Sub-instance fields are replaced by a freshly synthesized instance for their type when one can be found.
+  This ensures that the instance is the same as that which would be found by client code that synthesized the instance, avoiding a situation in which multiple paths to an instance (called _diamonds_) yield instances that are not {tech (key := "definitional equality")}[definitionally equal] to one another other.
+  When synthesis does not find an instance, the field is recursively wrapped using this procedure.
+* Proof fields whose types are not definitionally equal to the expected type are wrapped in auxiliary theorems that hide the difference in types.
+* Data fields whose types do not match the expected type are wrapped in auxiliary definitions with the appropriate reducibility.
+
+If the instance does not reduce to a constructor application and its type does not match the expected type, then it is wrapped in an auxiliary definition with the appropriate reducibility.
+
 # Options
 
 {optionDocs backward.synthInstance.canonInstances}
@@ -462,3 +465,11 @@ When the code relies on instances _in fact_ being equivalent, it should either e
 {optionDocs synthInstance.maxHeartbeats}
 
 {optionDocs synthInstance.maxSize}
+
+{optionDocs backward.inferInstanceAs.wrap}
+
+{optionDocs backward.inferInstanceAs.wrap.reuseSubInstances}
+
+{optionDocs backward.inferInstanceAs.wrap.instances}
+
+{optionDocs backward.inferInstanceAs.wrap.data}

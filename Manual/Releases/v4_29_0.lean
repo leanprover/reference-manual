@@ -13,13 +13,15 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.29.0-rc6 (2026-02-24)" =>
+set_option linter.typography.quotes false
+
+#doc (Manual) "Lean 4.29.0 (2026-03-27)" =>
 %%%
 tag := "release-v4.29.0"
 file := "v4.29.0"
 %%%
 
-For this release, 406 changes landed. In addition to the 107 feature additions and 92 fixes listed below there were 29 refactoring changes, 18 documentation improvements, 28 performance improvements, 26 improvements to the test suite and 104 other changes.
+For this release, 453 changes landed. In addition to the 112 feature additions and 107 fixes listed below there were 30 refactoring changes, 21 documentation improvements, 29 performance improvements, 26 improvements to the test suite and 115 other changes.
 
 # Highlights
 
@@ -365,6 +367,9 @@ There are also various additions to the library, including:
 
 * [#12324](https://github.com/leanprover/lean4/pull/12324) adds a default `Inhabited` instance to `Theorem` type.
 
+* [#12325](https://github.com/leanprover/lean4/pull/12325) adds a warning to any `def` of class type that does not also
+  declare an appropriate reducibility.
+
 * [#12329](https://github.com/leanprover/lean4/pull/12329) adds the option `doc.verso.module`. If set, it controls whether
   module docstrings use Verso syntax. If not set, it defaults to the value
   of the `doc.verso` option.
@@ -430,7 +435,7 @@ There are also various additions to the library, including:
     if r > 30 then return 12 else return r
 
   example : ⦃⌜True⌝⦄ foo bar ⦃⇓r => ⌜r % 2 = 0⌝⦄ := by
-    mvcgen [foo_spec, bar]
+    mvcgen [foo_spec, bar] -- unfold `bar` and automatically apply the spec for the higher-order argument `k`
   ```
 
 * [#12407](https://github.com/leanprover/lean4/pull/12407) is similar to #12403.
@@ -492,7 +497,7 @@ There are also various additions to the library, including:
 * [#12558](https://github.com/leanprover/lean4/pull/12558) fixes a `(kernel) declaration has metavariables` error that
   occurred when a `by` tactic was used in a dependent inductive type index
   that refers to a previous index:
-  
+
   ```
   axiom P : Prop
   axiom Q : P → Prop
@@ -554,6 +559,34 @@ There are also various additions to the library, including:
   heuristic comparison attempts in `isDefEqDelta` that cascaded through
   BitVec reductions, causing elaboration of `Lean.Data.Json.Parser` to
   double from ~3.6G to ~7.2G instructions.
+
+* [#12698](https://github.com/leanprover/lean4/pull/12698) adds a `result? : Option TraceResult` field to `TraceData` and
+  populates it in `withTraceNode` and `withTraceNodeBefore`, so that
+  metaprograms walking trace trees can determine success/failure
+  structurally instead of string-matching on emoji.
+
+* [#12699](https://github.com/leanprover/lean4/pull/12699) gives the `generate` function's "apply @Foo to Goal" trace nodes
+  their own trace sub-class `Meta.synthInstance.apply` instead of sharing
+  the parent `Meta.synthInstance` class.
+
+* [#12701](https://github.com/leanprover/lean4/pull/12701) fixes a gap in how `@[implicit_reducible]` is assigned to parent
+  projections during structure elaboration.
+
+* [#12778](https://github.com/leanprover/lean4/pull/12778) fixes an inconsistency in `getStuckMVar?` where the instance
+  argument to class projection functions and auxiliary parent projections
+  was not whnf-normalized before checking for stuck metavariables. Every
+  other case in `getStuckMVar?` (recursors, quotient recursors, `.proj`
+  nodes) normalizes the major argument via `whnf` before recursing — class
+  projection functions and aux parent projections were the exception.
+
+* [#13043](https://github.com/leanprover/lean4/pull/13043) fixes a bug where `inferInstanceAs` and the default `deriving`
+  handler, when used inside a `meta section`, would create auxiliary
+  definitions (via `normalizeInstance`) that were not marked as `meta`.
+  This caused the compiler to reject the parent `meta` definition with:
+
+  ```
+  Invalid `meta` definition `instEmptyCollectionNamePrefixRel`, `instEmptyCollectionNamePrefixRel._aux_1` not marked `meta`
+  ```
 
 # Library
 
@@ -812,6 +845,15 @@ There are also various additions to the library, including:
 * [#12651](https://github.com/leanprover/lean4/pull/12651) adds some missing lemmas about `min`, `minOn`, `List.min`,
   `List.minOn`.
 
+* [#12757](https://github.com/leanprover/lean4/pull/12757) marks `Id.run` as `[implicit_reducible]` to ensure that
+  `Id.instMonadLiftTOfPure` and `instMonadLiftT Id` are definitionally
+  equal when using `.implicitReducible` transparency setting.
+
+* [#12821](https://github.com/leanprover/lean4/pull/12821) removes the `@[grind →]` attribute from
+  `List.getElem_of_getElem?` and `Vector.getElem_of_getElem?`. These were
+  identified as problematic in Mathlib by
+  https://github.com/leanprover/lean4/issues/12805.
+
 # Tactics
 
 * [#11744](https://github.com/leanprover/lean4/pull/11744) fixes a bug where `lia` was incorrectly solving goals involving
@@ -1068,6 +1110,14 @@ There are also various additions to the library, including:
   evaluation
   (e.g. `evalEq`, `evalLT`) to recognize their values as literals.
 
+* [#12782](https://github.com/leanprover/lean4/pull/12782) adds high priority to instances for `OfSemiring.Q` in the grind
+  ring envelope. When Mathlib is imported, instance synthesis for types
+  like `OfSemiring.Q Nat` becomes very expensive because the solver
+  explores many irrelevant paths before finding the correct instances. By
+  marking these instances as high priority and adding shortcut instances
+  for basic operations (`Add`, `Sub`, `Mul`, `Neg`, `OfNat`, `NatCast`,
+  `IntCast`, `HPow`), instance synthesis resolves quickly.
+
 # Compiler
 
 * [#12044](https://github.com/leanprover/lean4/pull/12044) implements lazy initialization of closed terms. Previous work
@@ -1226,6 +1276,16 @@ There are also various additions to the library, including:
 
 * [#12644](https://github.com/leanprover/lean4/pull/12644) ports the toposorting pass from IR to LCNF.
 
+* [#12759](https://github.com/leanprover/lean4/pull/12759) replaces the `isImplicitReducible` check with `Meta.isInstance`
+  in the `shouldInline` function within `inlineCandidate?`.
+
+# Pretty Printing
+
+* [#12745](https://github.com/leanprover/lean4/pull/12745) fixes `pp.fvars.anonymous` to display loose free variables as
+  `_fvar._` instead of `_` when the option is set to `false`. This was the
+  intended behavior in https://github.com/leanprover/lean4/pull/12688 but
+  the fix was committed locally and not pushed before that PR was merged.
+
 # Documentation
 
 * [#12157](https://github.com/leanprover/lean4/pull/12157) updates #12137 with a link to the Lean reference manual.
@@ -1253,6 +1313,14 @@ There are also various additions to the library, including:
   `Meta/Tactic/Cbv/`. Module docstrings describe the evaluation strategy,
   limitations, attributes, and unfolding order. Function docstrings cover
   the public API and key internal simprocs.
+
+* [#13115](https://github.com/leanprover/lean4/pull/13115) updates the `inferInstanceAs` docstring to reflect current
+  behavior: it requires an
+  expected type from context and should not be used as a simple
+  `inferInstance` synonym. The
+  old example (`#check inferInstanceAs (Inhabited Nat)`) no longer works,
+  so it's replaced
+  with one demonstrating the intended transport use case.
 
 # Server
 
@@ -1322,6 +1390,11 @@ There are also various additions to the library, including:
   the cache. As a result, Lake would attempt to overwrite the read-only
   artifacts, causing a permission denied error.
 
+* [#12835](https://github.com/leanprover/lean4/pull/12835) changes Lake to only emit `.nobuild` traces (introduced in
+  #12076) if the normal trace file already exists. This fixes an issue
+  where a `lake build --no-build` would create the build directory and
+  thereby prevent a cloud release fetch in a future build.
+
 # Other
 
 * [#12351](https://github.com/leanprover/lean4/pull/12351) extends the `@[csimp]` attribute to be correctly tracked by
@@ -1344,7 +1417,7 @@ There are also various additions to the library, including:
 
 * [#12517](https://github.com/leanprover/lean4/pull/12517) adds tooling for profiling Lean programs with human-readable
   function names in Firefox Profiler:
-  
+
   - *`script/lean_profile.sh`* — One-command pipeline: record with
   samply, symbolicate, demangle, and open in Firefox Profiler
   - *`script/profiler/lean_demangle.py`* — Faithful port of
@@ -1361,4 +1434,3 @@ There are also various additions to the library, including:
 * [#12533](https://github.com/leanprover/lean4/pull/12533) adds human-friendly demangling of Lean symbol names in runtime
   backtraces. When a Lean program panics, stack traces now show readable
   names instead of mangled C identifiers.
-
