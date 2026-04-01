@@ -188,68 +188,120 @@ future stability.
 
 ## Changes to Instance and Reducibility Handling
 
-- [#12179](https://github.com/leanprover/lean4/pull/12179) ensures
-  `isDefEq` does not increase the transparency mode to `.default` when
-  checking whether implicit arguments are definitionally equal. The
-  previous behavior was creating scalability problems in Mathlib. That
-  said, this is a very disruptive change. The previous behavior can be
-  restored using the command
+v4.29.0 brings a significant and breaking change to the handling of reducibility settings.
+We address a longstanding problem: prior to v4.29.0, the `isDefEq` algorithm would bump the
+transparency level up to `.default` (i.e. become willing to unfold default transparency definitions)
+when comparing implicit arguments.
 
-    ```
-    set_option backward.isDefEq.respectTransparency false
-    ```
+This was a serious problem, causing both immediate unpredictable performance problems in
+`isDefEq`, and hiding many places where definitional abuse was occurring in downstream libraries.
 
-- [#12244](https://github.com/leanprover/lean4/pull/12244) and
-  [#12195](https://github.com/leanprover/lean4/pull/12195) make `simp`
-  and `dsimp` skip typeclass instances by default. Simplifying
-  instances produces non-standard instances and was causing problems
-  in Mathlib. The old behavior can be restored with
+In order to ensure scalability, and address these definitional abuse problems, we have
+made the quite disruptive change, in [#12179](https://github.com/leanprover/lean4/pull/12179),
+of removing this transparency level bump as the default path.
 
-    ```
-    set_option backward.dsimp.instances true
-    ```
+The changes to the transparency bump in comparing implicit arguments can be controlled in two ways:
+* Definitions can be tagged with the new `@[implicit_reducible]` attribute.
+  This is intermediate between `@[reducible]` and `@[semireducible]` (i.e. the default setting),
+  in that the definition is mostly treated as semireducible, which when `isDefEq` is processing
+  implicit arguments or match discriminants.
+  See [#12247](https://github.com/leanprover/lean4/pull/12247) and [#12567](https://github.com/leanprover/lean4/pull/12567).
+* The option `set_option backward.isDefEq.respectTransparency false` restores the previous behaviour prior to `v4.28.0`
+  (equivalently, all semireducible definitions are treated as `implicit_reducible`).
+  As a backward compatibility option, this may eventually be removed, but given how disruptive this change is we anticipate leaving the option available for the medium term.
 
-    or `simp +instances` for `simp`.
 
-- [#12247](https://github.com/leanprover/lean4/pull/12247) introduces
-  and [#12567](https://github.com/leanprover/lean4/pull/12567) renames
-  `@[implicit_reducible]` attribute, which provides an explicit way to
-  control reducibility during implicit argument checking.
+As a consequence of these changes to transparency handling, existing definitional abuse problems in downstream libraries now surface in places
+where previously they didn't. To help address these problems, which primarily, but not exclusively,
+are caused by incorrectly implemented typeclass instances, we have made changes in [#12897](https://github.com/leanprover/lean4/pull/12897)
+to `inferInstanceAs` and the default `deriving` handler.
+These ensure that instances created using them do not leak the definition of the types involved,
+when the instances are reduced at less than default transparency.
 
-- [#12172](https://github.com/leanprover/lean4/pull/12172) fixes how
-  we determine whether a function parameter is an instance.
+`inferInstanceAs α` synthesizes an instance of type `α` and then adjusts it to conform to the
+expected type `β`, which must be inferable from context.
 
-    *Potential regressions*: automation may now behave differently
-    in cases where it previously misidentified instance parameters.
-    For example, a rewrite rule in `simp` that was not firing due to
-    incorrect indexing may now fire.
+Example:
+```
+def D := Nat
+instance : Inhabited D := inferInstanceAs (Inhabited Nat)
+```
 
-- [#12340](https://github.com/leanprover/lean4/pull/12340) implements
-  better support for unfolding class fields marked as `reducible`.
-  [#12538](https://github.com/leanprover/lean4/pull/12538) enables
-  this feature.
+The adjustment will make sure that when the resulting instance will not leak the RHS `Nat` when
+reduced at transparency levels below `semireducible`, i.e. where `D` would not be unfolded either,
+preventing “̲defeq abuse”̲.
 
-- [#12719](https://github.com/leanprover/lean4/pull/12719) marks
-  `levelZero`, `levelOne`, and `Level.ofNat` as `@[implicit_reducible]`
-  so that `Level.ofNat 0 =?= Level.zero` succeeds when the
-  definitional equality checker respects transparency annotations.
+More specifically, given the source type (the argument) and target type (the expected type),
+`inferInstanceAs` synthesizes an instance for the source type and then unfolds and rewraps its
+components (fields, nested instances) as necessary to make them compatible with the target type. The
+individual steps are represented by the following options, which all default to enabled and can be
+disabled to help with porting:
 
-- [#12756](https://github.com/leanprover/lean4/pull/12756) adds
-  `deriving noncomputable instance` syntax so that delta-derived
-  instances can be marked noncomputable.
-  [#12789](https://github.com/leanprover/lean4/pull/12789) skips the
-  noncomputable pre-check for `Prop`-valued classes, since proofs are
-  erased by the compiler.
+* `backward.inferInstanceAs.wrap`: master switch for instance adjustment in both `inferInstanceAs`
+  and the default deriving handler
+* `backward.inferInstanceAs.wrap.reuseSubInstances`: reuse existing instances for the target type
+  for sub-instance fields to avoid non-defeq instance diamonds
+* `backward.inferInstanceAs.wrap.instances`: wrap non-reducible instances in auxiliary definitions
+* `backward.inferInstanceAs.wrap.data`: wrap data fields in auxiliary definitions (proof fields are
+  always wrapped)
 
-- [#12897](https://github.com/leanprover/lean4/pull/12897) adjusts
-  the results of `inferInstanceAs` and the `def` `deriving` handler
-  to conform to recently strengthened restrictions on reducibility,
-  ensuring that when deriving or inferring an instance for a
-  semireducible type definition, the definition's RHS is not leaked
-  when the instance is reduced at lower than semireducible
-  transparency.
-  [#13059](https://github.com/leanprover/lean4/pull/13059) fixes
-  the meta marking of auxiliary definitions created by this mechanism.
+If you just need to synthesize an instance without transporting between types, use `inferInstance`
+instead, potentially with a type annotation for the expected type.
+
+A third significant change in `v4.29.0` is that `simp` and `dsimp` no longer process typeclass instances.
+This behaviour was producing non-standard instances, and causing problems in Mathlib.
+See [#12244](https://github.com/leanprover/lean4/pull/12244) and [#12195](https://github.com/leanprover/lean4/pull/12195).
+The old behavior can be restored with
+
+```
+set_option backward.dsimp.instances true
+```
+
+or `simp +instances` for `simp`. Our experience so far however is that this is not often needed.
+
+Finally we have fixed in [#12172](https://github.com/leanprover/lean4/pull/12172) a problem with how
+we determine whether a function parameter is an instance, which has follow on effects in several algorithms whose behaviour is determined by this.
+This may cause potential regressions: automation may now behave differently
+in cases where it previously misidentified instance parameters.
+For example, a rewrite rule in `simp` that was not firing due to
+incorrect indexing may now fire.
+
+### Migration guide
+
+Any projects wanting to postpone dealing with the adaptations required by the changes to transparency level bumps can
+simply use `set_option backward.isDefEq.respectTransparency false`.
+
+This can be set on a project wide level in your `lakefile.toml`:
+```
+[leanOptions]
+backward.isDefEq.respectTransparency = false
+```
+
+However we encourage you to instead localize the option in the files that need it,
+or even on individual declarations using `set_option backward.isDefEq.respectTransparency false in ...`.
+This makes it easier to start identifying the definitional abuse problems in your code.
+
+If your project is downstream of Mathlib, you may find the following two scripts useful:
+* `scripts/add_set_option.py` (available in `.lake/packages/mathlib/scripts/add_set_option.py` if you have Mathlib as a dependency)
+  which tries compiling your project, and automatically wrapping any failing declaration with `set_option backward.isDefEq.respectTransparency false in ...`,
+  in those cases where doing so resolve the failure.
+* `scripts/rm_set_option.py`, which compiles your project and identifies all occurrences of `set_option backward.isDefEq.respectTransparency false in ...` which can be removed without causing a failure (in that same declaration).
+  This may happen because of earlier changes which resolve the definitional abuse problem.
+
+These scripts can also be copied out of Mathlib and run on any project.
+
+Again, when downstream of Mathlib you may also use the experimental `#defeq_abuse in ...` command,
+which attempts to identify and explain, or at least give clues to, the underlying definitional abuse problem that
+may explain why a declaration currently needs `set_option backward.isDefEq.respectTransparency false in ...`.
+We encourage users to report problems with this command on the [Zulip](https://leanprover.zulipchat.com/),
+and we hope that as this diagnostic command stabilizes we will be able to make it available as part of a future Lean toolchain.
+
+You are encouraged to review the construction of instances for all default transparency type synonyms in your project.
+Where possible, you should use the `deriving` handler, or the new `inferInstanceAs` elaborator,
+rather than writing term mode constructions which require unfolding the type synonym in order to typecheck.
+The `inferInstanceAs` command now *requires* an expected type.
+If you encounter errors where `inferInstanceAs` now gives an error because an expected type was not provided,
+you may find that you should simply be using `inferInstance` instead.
 
 ## Universe Levels as Output Parameters
 
