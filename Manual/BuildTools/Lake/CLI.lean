@@ -1117,6 +1117,11 @@ COMMANDS:
   clean                 removes ALL froms the local Lake cache
   services              print configured remote cache services
 
+STAGING COMMANDS:
+  stage <map> <dir>     copy build outputs from the cache to a directory
+  unstage <dir>         cache build outputs from a staging directory
+  put-staged <dir>      upload build outputs from a staging directory
+
 See `lake cache help <command>` for more information on a specific command.
 ```
 
@@ -1134,11 +1139,11 @@ OPTIONS:
   --platform=<target-triple>      with Reservoir or --repo, sets the platform
   --toolchain=<name>              with Reservoir or --repo, sets the toolchain
   --scope=<remote-scope>          scope for a custom endpoint
-  --download-arts                 download artifacts now, not on demand
+  --mappings-only                 only download mappings, delay artifacts
   --force-download                redownload existing files
 
 Downloads build outputs for packages in the workspace from a remote cache
-service. The cache service used can be specifed via the `--service` option.
+service. The cache service used can be specified via the `--service` option.
 Otherwise, Lake will the system default, or, if none is configured, Reservoir.
 See `lake cache services` for more information on how to configure services.
 
@@ -1165,17 +1170,16 @@ artifacts. If no mappings are found, Lake will backtrack the Git history up to
 `--max-revs`, looking for a revision with mappings. If `--max-revs` is 0, Lake
 will search the repository's entire history (or as far as Git will allow).
 
-With a named service and without a mappings file, Lake will only download
-the input-to-output mappings for packages. It will delay downloading of the
-corresponding artifacts to the next `lake build` that requires them. Using
-`--download-arts` will force Lake to download all artifacts eagerly.
+By default, Lake will download both the input-to-output mappings and the
+output artifacts for a package. By using `--mappings-onlys`, Lake will only
+download the mappings abd delay downloading artifacts until they are needed.
 
 If a download for an artifact fails or the download process for a whole
 package fails, Lake will report this and continue on to the next. Once done,
 if any download failed, Lake will exit with a nonzero status code.
 ```
 
-:::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--service=\" «name»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»] [\"--download-arts\"] [\"--force-download\"]"
+:::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--service=\" «name»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»] [\"--mappings-only\"] [\"--force-download\"]"
 Downloads build outputs for packages in the workspace from a remote cache service to the local Lake {tech (key:="local cache")}[artifact cache].
 The cache service used can be specified via the {lakeOpt}`--service` option.
 Otherwise, Lake will use the system default, or, if none is configured, Reservoir.
@@ -1195,9 +1199,8 @@ Lake will download the artifacts for the most recent commit with available mappi
 It will backtrack up to {lakeOptDef option}`--max-revs`, which defaults to 100.
 If set to 0, Lake will search the repository's whole history, or as far back as Git will allow.
 
-With a named service and without a mappings file, Lake will only download the input-to-output mappings for packages.
-It will delay downloading of the corresponding artifacts to the next `lake build` that requires them.
-Using {lakeOptDef option}`--download-arts` will force Lake to download all artifacts eagerly.
+By default, Lake will download both the input-to-output mappings and the output artifacts for packages.
+Using {lakeOptDef option}`--mappings-only` will cause Lake to only download the mappings and delay downloading artifacts until they are needed.
 Using {lakeOptDef option}`--force-download` will redownload existing files.
 
 While downloading, Lake will continue on when a download for an artifact fails or if the download process for a whole package fails.
@@ -1213,7 +1216,7 @@ USAGE:
 
 Uploads the input-to-output mappings contained in the specified file along
 with the corresponding output artifacts to a remote cache. The cache service
-used via be specified via `--service` option. If not specifed, Lake will used
+used can be specified via the `--service` option. If not specified, Lake will use
 the system default, or error if none is configured. See the help page of
 `lake cache services` for more information on how to configure services.
 
@@ -1282,7 +1285,7 @@ As such, the command will warn if the work tree currently has changes.
 ::::
 
 ```lakeCacheHelp add
-Addd input-to-output mappings to the Lake cache
+Add input-to-output mappings to the Lake cache
 
 USAGE:
   lake cache add <mappings>
@@ -1376,6 +1379,70 @@ revisionEndpoint = "https://my-s3.com/r0"
 If no `cache.defaultService` is configured, Lake will use Reservoir by default.
 :::
 ::::
+
+```lakeCacheHelp stage
+Copy build outputs from the cache to a staging directory
+
+USAGE:
+  lake cache stage <mappings> <staging-directory>
+
+Creates the staging directory and copies the mappings file to it. Then, it
+copies all artifacts described within the mappings file from the cache to the
+staging directory. Errors if any of the artifacts described cannot be found in
+the cache.
+```
+
+::::lake cache stage "mappings «staging-directory»"
+Creates {lakeMeta}`staging-directory` and copies the {lakeMeta}`mappings` file to it.
+After this, it copies all artifacts described within the mappings file from the cache to the
+staging directory.
+It is an error if any of the artifacts described cannot be found in the cache.
+::::
+
+```lakeCacheHelp unstage
+Cache build outputs from a staging directory
+
+USAGE:
+  lake cache unstage <staging-directory>
+
+Copies the mappings and artifacts stored in staging directory (e.g., via
+`lake cache stage`) back into the cache.
+
+Reads the mappings file located at `outputs.jsonl` within the staging
+directory and writes the mappings to the Lake cache. Then, it copies the
+described artifacts from the staging directory into the cache.
+```
+
+::::lake cache unstage "«staging-directory»"
+
+Copies the mappings and artifacts stored in {lakeMeta}`staging-directory` (e.g., via {lake}`cache stage`) back into the cache.
+
+Reads the mappings file located at `outputs.jsonl` within the staging
+directory and writes the mappings to the Lake cache. Then, it copies the
+described artifacts from the staging directory into the cache.
+::::
+
+
+```lakeCacheHelp "put-stage"
+Manage the Lake cache
+
+USAGE:
+  lake cache <COMMAND>
+
+COMMANDS:
+  get [<mappings>]      download build outputs into the local Lake cache
+  put <mappings>        upload build ouptuts to a remote cache
+  add <mappings>        add input-to-output mappings to the Lake cache
+  clean                 removes ALL froms the local Lake cache
+  services              print configured remote cache services
+
+STAGING COMMANDS:
+  stage <map> <dir>     copy build outputs from the cache to a directory
+  unstage <dir>         cache build outputs from a staging directory
+  put-staged <dir>      upload build outputs from a staging directory
+
+See `lake cache help <command>` for more information on a specific command.
+```
 
 
 # Configuration Files
