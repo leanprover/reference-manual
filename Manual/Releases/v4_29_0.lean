@@ -229,6 +229,28 @@ future stability.
   [#12538](https://github.com/leanprover/lean4/pull/12538) enables
   this feature.
 
+- [#12719](https://github.com/leanprover/lean4/pull/12719) marks
+  `levelZero`, `levelOne`, and `Level.ofNat` as `@[implicit_reducible]`
+  so that `Level.ofNat 0 =?= Level.zero` succeeds when the
+  definitional equality checker respects transparency annotations.
+
+- [#12756](https://github.com/leanprover/lean4/pull/12756) adds
+  `deriving noncomputable instance` syntax so that delta-derived
+  instances can be marked noncomputable.
+  [#12789](https://github.com/leanprover/lean4/pull/12789) skips the
+  noncomputable pre-check for `Prop`-valued classes, since proofs are
+  erased by the compiler.
+
+- [#12897](https://github.com/leanprover/lean4/pull/12897) adjusts
+  the results of `inferInstanceAs` and the `def` `deriving` handler
+  to conform to recently strengthened restrictions on reducibility,
+  ensuring that when deriving or inferring an instance for a
+  semireducible type definition, the definition's RHS is not leaked
+  when the instance is reduced at lower than semireducible
+  transparency.
+  [#13059](https://github.com/leanprover/lean4/pull/13059) fixes
+  the meta marking of auxiliary definitions created by this mechanism.
+
 ## Universe Levels as Output Parameters
 
 [#12423](https://github.com/leanprover/lean4/pull/12423) adds the
@@ -572,12 +594,30 @@ There are also various additions to the library, including:
 * [#12701](https://github.com/leanprover/lean4/pull/12701) fixes a gap in how `@[implicit_reducible]` is assigned to parent
   projections during structure elaboration.
 
+* [#12719](https://github.com/leanprover/lean4/pull/12719) marks `levelZero`, `levelOne`, and `Level.ofNat` as
+  `@[implicit_reducible]` so that `Level.ofNat 0 =?= Level.zero` succeeds when
+  the definitional equality checker respects transparency annotations.
+
+* [#12756](https://github.com/leanprover/lean4/pull/12756) adds `deriving noncomputable instance` syntax so that
+  delta-derived instances can be marked noncomputable.
+
+* [#12789](https://github.com/leanprover/lean4/pull/12789) skips the noncomputable pre-check in `deriving instance` when
+  the instance type is `Prop`, since proofs are erased by the compiler and
+  computability is irrelevant.
+
 * [#12778](https://github.com/leanprover/lean4/pull/12778) fixes an inconsistency in `getStuckMVar?` where the instance
   argument to class projection functions and auxiliary parent projections
   was not whnf-normalized before checking for stuck metavariables. Every
   other case in `getStuckMVar?` (recursors, quotient recursors, `.proj`
   nodes) normalizes the major argument via `whnf` before recursing — class
   projection functions and aux parent projections were the exception.
+
+* [#12897](https://github.com/leanprover/lean4/pull/12897) adjusts the results of `inferInstanceAs` and the `def` `deriving`
+  handler to conform to recently strengthened restrictions on reducibility.
+  When deriving or inferring an instance for a semireducible type definition,
+  the definition's RHS is no longer leaked when the instance is reduced at
+  lower than semireducible transparency. The synthesized instance's components
+  (fields, nested instances) are unfold and rewrapped as necessary.
 
 * [#13043](https://github.com/leanprover/lean4/pull/13043) fixes a bug where `inferInstanceAs` and the default `deriving`
   handler, when used inside a `meta section`, would create auxiliary
@@ -587,6 +627,11 @@ There are also various additions to the library, including:
   ```
   Invalid `meta` definition `instEmptyCollectionNamePrefixRel`, `instEmptyCollectionNamePrefixRel._aux_1` not marked `meta`
   ```
+
+* [#13059](https://github.com/leanprover/lean4/pull/13059) switches the meta marking of auxiliary definitions created by
+  `normalizeInstance` from using `isMetaSection` to the `declName?` pattern,
+  fixing a bug where `deriving` in meta sections would fail because aux defs
+  were incorrectly marked `meta` while the instance itself was not.
 
 # Library
 
@@ -1281,10 +1326,12 @@ There are also various additions to the library, including:
 
 # Pretty Printing
 
-* [#12745](https://github.com/leanprover/lean4/pull/12745) fixes `pp.fvars.anonymous` to display loose free variables as
-  `_fvar._` instead of `_` when the option is set to `false`. This was the
-  intended behavior in https://github.com/leanprover/lean4/pull/12688 but
-  the fix was committed locally and not pushed before that PR was merged.
+* [#12688](https://github.com/leanprover/lean4/pull/12688) adds the `pp.fvars.anonymous` option (default `true`) that
+  controls the display of loose free variables (fvars not in the local
+  context). When `false`, they display as `_fvar._` instead of their internal
+  name. This is useful for stabilizing output in `#guard_msgs`.
+  [#12745](https://github.com/leanprover/lean4/pull/12745) fixes the
+  behavior when the option is set to `false`.
 
 # Documentation
 
@@ -1394,6 +1441,11 @@ There are also various additions to the library, including:
   #12076) if the normal trace file already exists. This fixes an issue
   where a `lake build --no-build` would create the build directory and
   thereby prevent a cloud release fetch in a future build.
+
+* [#13141](https://github.com/leanprover/lean4/pull/13141) changes Lake to run `git clean -xf` when updating dependency
+  repositories, ensuring stale untracked files (such as `.hash` files) in the
+  source tree are removed. Stale `.hash` files could cause incorrect trace
+  computation and break builds.
 
 # Other
 
