@@ -203,10 +203,10 @@ of removing this transparency level bump as the default path.
 The changes to the transparency bump in comparing implicit arguments can be controlled in two ways:
 * Definitions can be tagged with the new `@[implicit_reducible]` attribute.
   This is intermediate between `@[reducible]` and `@[semireducible]` (i.e. the default setting),
-  in that the definition is mostly treated as semireducible, which when `isDefEq` is processing
+  in that the definition is mostly treated as semireducible, except when `isDefEq` is processing
   implicit arguments or match discriminants.
   See [#12247](https://github.com/leanprover/lean4/pull/12247) and [#12567](https://github.com/leanprover/lean4/pull/12567).
-* The option `set_option backward.isDefEq.respectTransparency false` restores the previous behaviour prior to `v4.28.0`
+* The option `set_option backward.isDefEq.respectTransparency false` restores the previous behaviour prior to `v4.29.0`
   (equivalently, all semireducible definitions are treated as `implicit_reducible`).
   As a backward compatibility option, this may eventually be removed, but given how disruptive this change is we anticipate leaving the option available for the medium term.
 
@@ -218,7 +218,7 @@ to `inferInstanceAs` and the default `deriving` handler.
 These ensure that instances created using them do not leak the definition of the types involved,
 when the instances are reduced at less than default transparency.
 
-`inferInstanceAs α` synthesizes an instance of type `α` and then adjusts it to conform to the
+`inferInstanceAs α` synthesizes an instance of type `α` but now adjusts it to conform to the
 expected type `β`, which must be inferable from context.
 
 Example:
@@ -228,8 +228,7 @@ instance : Inhabited D := inferInstanceAs (Inhabited Nat)
 ```
 
 The adjustment will make sure that when the resulting instance will not leak the RHS `Nat` when
-reduced at transparency levels below `semireducible`, i.e. where `D` would not be unfolded either,
-preventing “̲defeq abuse”̲.
+reduced at transparency levels below `semireducible`, i.e. where `D` would not be unfolded either.
 
 More specifically, given the source type (the argument) and target type (the expected type),
 `inferInstanceAs` synthesizes an instance for the source type and then unfolds and rewraps its
