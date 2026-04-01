@@ -1,4 +1,4 @@
-<!-- Generated from commit a9a9eb37292206b93bcd1541e15a31f322f30ff3 at 2026-03-31T18:14:23Z -->
+<!-- Generated from commit aeccfa72806adad385b88a5222a19216352d7820 at 2026-04-01T23:39:31Z -->
 <!DOCTYPE html><html>
   <head>
     <script>
@@ -2145,6 +2145,169 @@ a.technical-term:hover {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
+      
+window.addEventListener("load", () => {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
+});
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
       window.xref = {"Verso.Genre.Manual.section":
  {"title": "Sections or chapters of the manual",
   "description": null,
@@ -11835,7 +11998,7 @@ a.technical-term:hover {
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
-       {"title": "Tactics", "shortTitle": null, "number": "3"}]},
+       {"title": "Tactics", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Server":
    [{"id":
@@ -11850,7 +12013,7 @@ a.technical-term:hover {
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
-       {"title": "Server", "shortTitle": null, "number": "7"}]},
+       {"title": "Server", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Pretty-Printing":
    [{"id":
@@ -11865,7 +12028,7 @@ a.technical-term:hover {
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
-       {"title": "Pretty Printing", "shortTitle": null, "number": "5"}]},
+       {"title": "Pretty Printing", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Other":
    [{"id":
@@ -11880,7 +12043,7 @@ a.technical-term:hover {
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
-       {"title": "Other", "shortTitle": null, "number": "9"}]},
+       {"title": "Other", "shortTitle": null, "number": "10"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Library":
    [{"id":
@@ -11895,7 +12058,7 @@ a.technical-term:hover {
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
-       {"title": "Library", "shortTitle": null, "number": "2"}]},
+       {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Language":
    [{"id":
@@ -11910,7 +12073,7 @@ a.technical-term:hover {
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
-       {"title": "Language", "shortTitle": null, "number": "1"}]},
+       {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Lake":
    [{"id":
@@ -11925,7 +12088,237 @@ a.technical-term:hover {
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
-       {"title": "Lake", "shortTitle": null, "number": "8"}]},
+       {"title": "Lake", "shortTitle": null, "number": "9"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--mvcgen___-Specifications-in-the-Local-Context":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--mvcgen___-Specifications-in-the-Local-Context",
+     "data":
+     {"title": "mvcgen: Specifications in the Local Context",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "mvcgen: Specifications in the Local Context",
+        "shortTitle": null,
+        "number": "3"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--grind___-Higher-Order-Miller-Pattern-Support-in-E-matching":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--grind___-Higher-Order-Miller-Pattern-Support-in-E-matching",
+     "data":
+     {"title": "grind: Higher-Order Miller Pattern Support in E-matching",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "grind: Higher-Order Miller Pattern Support in E-matching",
+        "shortTitle": null,
+        "number": "4"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Universe-Levels-as-Output-Parameters":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Universe-Levels-as-Output-Parameters",
+     "data":
+     {"title": "Universe Levels as Output Parameters",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "Universe Levels as Output Parameters",
+        "shortTitle": null,
+        "number": "9"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Simpler--noncomputable--Semantics":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Simpler--noncomputable--Semantics",
+     "data":
+     {"title": "Simpler  noncomputable  Semantics",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "Simpler  noncomputable  Semantics",
+        "shortTitle": null,
+        "number": "7"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Performance-Improvements":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Performance-Improvements",
+     "data":
+     {"title": "Performance Improvements",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "Performance Improvements",
+        "shortTitle": null,
+        "number": "1"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--One-Axiom-per-Native-Computation":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--One-Axiom-per-Native-Computation",
+     "data":
+     {"title": "One Axiom per Native Computation",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "One Axiom per Native Computation",
+        "shortTitle": null,
+        "number": "5"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--New-Features-in-Lake":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--New-Features-in-Lake",
+     "data":
+     {"title": "New Features in Lake",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "New Features in Lake", "shortTitle": null, "number": "11"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--New-Extensible--do--Elaborator":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--New-Extensible--do--Elaborator",
+     "data":
+     {"title": "New Extensible  do  Elaborator",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "New Extensible  do  Elaborator",
+        "shortTitle": null,
+        "number": "2"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--More-Reliable-Universe-Level-Inference-in--inductive-___-structure--Commands":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--More-Reliable-Universe-Level-Inference-in--inductive-___-structure--Commands",
+     "data":
+     {"title":
+      "More Reliable Universe Level Inference in  inductive / structure  Commands",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title":
+        "More Reliable Universe Level Inference in  inductive / structure  Commands",
+        "shortTitle": null,
+        "number": "6"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Library-Highlights":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Library-Highlights",
+     "data":
+     {"title": "Library Highlights",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "Library Highlights", "shortTitle": null, "number": "10"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Changes-to-Instance-and-Reducibility-Handling--Migration-guide":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Changes-to-Instance-and-Reducibility-Handling--Migration-guide",
+     "data":
+     {"title": "Migration guide",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "Changes to Instance and Reducibility Handling",
+        "shortTitle": null,
+        "number": "8"},
+       {"title": "Migration guide", "shortTitle": null, "number": "1"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Changes-to-Instance-and-Reducibility-Handling":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--Changes-to-Instance-and-Reducibility-Handling",
+     "data":
+     {"title": "Changes to Instance and Reducibility Handling",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"},
+       {"title": "Changes to Instance and Reducibility Handling",
+        "shortTitle": null,
+        "number": "8"}]},
+     "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights",
+     "data":
+     {"title": "Highlights",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
+       {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Documentation":
    [{"id":
@@ -11940,7 +12333,7 @@ a.technical-term:hover {
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
-       {"title": "Documentation", "shortTitle": null, "number": "6"}]},
+       {"title": "Documentation", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Compiler":
    [{"id":
@@ -11955,7 +12348,7 @@ a.technical-term:hover {
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "1"},
-       {"title": "Compiler", "shortTitle": null, "number": "4"}]},
+       {"title": "Compiler", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Tactics":
    [{"id":
@@ -70383,169 +70776,6 @@ if (paramName) {
     });
 }
 </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-function liveLinkUrlOfCodez(codez) {
-  if (window.metadata !== undefined && window.metadata.stable) {
-    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
-  }
-  if (window.metadata !== undefined && window.metadata.latest) {
-    return "https://live.lean-lang.org/#codez=" + codez;
-  }
-  return undefined;
-}
-
-function maybeShowLiveLinks() {
-  if (liveLinkUrlOfCodez('') !== undefined) {
-    const style = document.createElement('style');
-    style.textContent = `.live-link { display: initial !important; }`;
-    document.head.appendChild(style);
-  }
-}
-
-function openLiveLink(codez) {
-  const url = liveLinkUrlOfCodez(codez);
-  if (url !== undefined) {
-    window.open(url, '_blank')
-  }
-  else {
-    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
-    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
-    // Just in case, throw up a dialog.
-    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
-  }
-}
-
-function pageInit() {
-  openDetailsForHashTarget();
-  maybeShowLiveLinks();
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', pageInit);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', pageInit);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', pageInit);
-} else {
-  pageInit();
-}
-</script>
-    <script>
-      
-window.addEventListener("load", () => {
-  const innerProps = {
-    onShow(inst) { console.log(inst); },
-    onHide(inst) { console.log(inst); },
-    content(tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  };
-  const outerProps = {
-    allowHtml: true,
-    theme: "lean",
-    placement: 'bottom-start',
-    maxWidth: "none",
-    delay: 100,
-    moveTransition: 'transform 0.2s ease-out',
-    onTrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-      ref.classList.add("active");
-    },
-    onUntrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-    }
-  };
-  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
-});
-</script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
     <script>
       
 window.addEventListener("load", () => {
