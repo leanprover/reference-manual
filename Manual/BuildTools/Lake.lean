@@ -375,6 +375,7 @@ module.input
 module.ir
 module.lean
 module.leanArts
+module.ltar
 module.o
 module.o.export
 module.o.noexport
@@ -476,6 +477,10 @@ The facets available for modules are:
 : `dynlib`
 
   A shared library (e.g., for the Lean option `--load-dynlib`){TODO}[Document Lean command line options, and cross-reference from here].
+
+: `ltar`
+
+  A compressed archive (produced via `leantar`) of the module's build artifacts. {TODO}[Document `leantar` in the manual as well]
 
 :::
 

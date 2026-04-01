@@ -161,7 +161,6 @@ name = "example-package"
           dynlibs := #[],
           plugins := #[] },
       bootstrap := false,
-      manifestFile := none,
       extraDepTargets := #[],
       precompileModules := false,
       moreGlobalServerArgs := #[],
@@ -190,7 +189,8 @@ name = "example-package"
       enableArtifactCache? := none,
       restoreAllArtifacts? := none,
       libPrefixOnWindows := false,
-      allowImportAll := false},
+      allowImportAll := false,
+      fixedToolchain := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -205,9 +205,7 @@ name = "example-package"
   postUpdateHooks := #[],
   buildArchive := ELIDED,
   testDriver := "",
-  lintDriver := "",
-  inputsRef? := none,
-  outputsRef? := none}
+  lintDriver := ""}
 ```
 ::::
 :::::
@@ -249,7 +247,6 @@ name = "Sorting"
           dynlibs := #[],
           plugins := #[] },
       bootstrap := false,
-      manifestFile := none,
       extraDepTargets := #[],
       precompileModules := false,
       moreGlobalServerArgs := #[],
@@ -278,7 +275,8 @@ name = "Sorting"
       enableArtifactCache? := none,
       restoreAllArtifacts? := none,
       libPrefixOnWindows := false,
-      allowImportAll := false},
+      allowImportAll := false,
+      fixedToolchain := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -365,9 +363,7 @@ name = "Sorting"
   postUpdateHooks := #[],
   buildArchive := ELIDED,
   testDriver := "",
-  lintDriver := "",
-  inputsRef? := none,
-  outputsRef? := none}
+  lintDriver := ""}
 ```
 ::::
 :::::
