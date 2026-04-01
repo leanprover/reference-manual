@@ -304,8 +304,10 @@ Single-character flags cannot be combined; `-HR` is not equivalent to `-H -R`.
 
 : {lakeOptDef option}`--packages=FILE`
 
-  Use the contents of `FILE` to specify the versions of some or all dependencies instead of the manifest.
-  `FILE` should be a syntactically valid manifest, but it does not need to be complete.
+  Uses the specified {tech}[package overrides] file.
+  Can be specified multiple times to add more overrides (with later overrides taking precedence).
+  The complete set of package overrides will also include those from `.lake/package-overrides.json` (if any).
+  However, the ones provided by this option take precedence.
 
 :  {lakeOptDef flag}`--reconfigure` or {lakeOptDef flag}`-R`
 

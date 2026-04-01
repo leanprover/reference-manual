@@ -375,7 +375,7 @@ htmlSplit := .never
 While checking proofs and programs, Lean takes {deftech}_reducibility_, also known as _transparency_, into account.
 A definition's reducibility controls the contexts in which it is unfolded during elaboration and proof execution.
 
-There are three levels of reducibility:
+There are four levels of reducibility:
 
 : {deftech}[Reducible]
 
@@ -387,6 +387,12 @@ There are three levels of reducibility:
 
   Semireducible definitions are not unfolded by potentially expensive automation such as type class instance synthesis or {tactic}`simp`, but they are unfolded while checking definitional equality and while resolving {tech}[generalized field notation].
   The {keywordOf Lean.Parser.Command.declaration}`def` command generally creates semireducible definitions unless a different reducibility level is specified with an attribute; however, definitions that use {tech}[well-founded recursion] are irreducible by default.
+
+: {deftech}[Implicit reducible]
+
+  Implicit-reducible definitions are unfolded during type class {tech (key := "synthesis")}[instance synthesis] and while checking {tech}[definitional equality] of implicit arguments to functions.
+  This includes ordinary {tech}[implicit] arguments, {tech}[instance implicit] arguments, and {tech}[strict implicit] arguments.
+  All type class instances should be instance-reducible or reducible, as should definitions that appear in the types of implicit arguments and are intended to reduce.
 
 : {deftech}[Irreducible]
 
@@ -474,10 +480,13 @@ of type `Sequence Nat`
 :::
 
 :::syntax attr (title := "Reducibility Annotations")
-A definition's reducibility can be set using one of the three reducibility attributes:
+A definition's reducibility can be set using one of the four reducibility attributes:
 
 ```grammar
 reducible
+```
+```grammar
+implicit_reducible
 ```
 ```grammar
 semireducible
@@ -491,8 +500,6 @@ These attributes can only be applied globally in the same file as the definition
 ## Reducibility and Tactics
 
 The tactics {tactic}`with_reducible`, {tactic}`with_reducible_and_instances`, and {tactic}`with_unfolding_all` control which definitions are unfolded by most tactics.
-
-
 
 :::example "Reducibility and Tactics"
 The functions {lean}`plus`, {lean}`sum`, and {lean}`tally` are all synonyms for {lean}`Nat.add` that are respectively reducible, semireducible, and irreducible:
@@ -531,6 +538,67 @@ Similarly, part of a proof can be instructed to ignore irreducibility by placing
 theorem tally_eq_add : tally x y = x + y := by with_unfolding_all rfl
 ```
 :::
+
+:::example "Reducibility and Implicit Arguments"
+The functions {lean}`plus`, {lean}`sum`, and {lean}`tally` are synonyms for {lean}`Nat.add` that are respectively reducible, implicit-reducible, and irreducible:
+```lean
+abbrev plus := Nat.add
+
+@[implicit_reducible]
+def sum := Nat.add
+
+def tally := Nat.add
+```
+
+An instances of {name}`Nonzero` contains a proof that the given number is not equal to zero.
+The function {name}`notZero` extracts this proof from a synthesized instance:
+```lean
+class Nonzero (n : Nat) where
+  non_zero : n ≠ 0
+
+instance Nonzero.instSucc : Nonzero (n + 1) where
+  non_zero := by grind
+
+def notZero (n : Nat) [Nonzero n] : n ≠ 0 := Nonzero.non_zero
+```
+
+The instance is found for the reducible definition {name}`plus`:
+```lean
+#check notZero (plus 2 2)
+```
+It is also found for the implicit-reducible definition {name}`sum`.
+This is because the type {lean}`Nonzero (sum 2 2)` is the type of an {tech}[instance implicit] parameter to {name}`notZero`.
+In particular, {name}`sum` is reduced to {name}`Nat.add` which is itself implicit-reducible, so the type is reduced to {lean}`Nonzero 4`:
+```lean
+#check notZero (sum 2 2)
+```
+
+Instance synthesis fails for {name}`tally` because it is not reduced:
+```lean +error (name := notZeroTally)
+#check notZero (tally 2 2)
+```
+```leanOutput notZeroTally
+failed to synthesize instance of type class
+  Nonzero (tally 2 2)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+```
+
+In other contexts, such as calls to {tactic}`simp`, {name}`plus` is unfolded:
+```lean
+theorem plus_eq_add : plus x y = x + y := by simp
+```
+
+The implicit reducible synonym is not, however, unfolded by {tactic}`simp`:
+```lean -keep +error (name := simpInst)
+theorem sum_eq_add : sum x y = x + y := by simp
+```
+```leanOutput simpInst
+`simp` made no progress
+```
+
+:::
+
 
 ## Modifying Reducibility
 
