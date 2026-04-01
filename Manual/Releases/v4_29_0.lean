@@ -216,7 +216,7 @@ where previously they didn't. To help address these problems, which primarily, b
 are caused by incorrectly implemented typeclass instances, we have made changes in [#12897](https://github.com/leanprover/lean4/pull/12897)
 to `inferInstanceAs` and the default `deriving` handler.
 These ensure that instances created using them do not leak the definition of the types involved,
-when the instances are reduced at less than default transparency.
+when the instances are reduced at less than semireducible transparency.
 
 `inferInstanceAs α` synthesizes an instance of type `α` but now adjusts it to conform to the
 expected type `β`, which must be inferable from context.
@@ -227,7 +227,7 @@ def D := Nat
 instance : Inhabited D := inferInstanceAs (Inhabited Nat)
 ```
 
-The adjustment will make sure that when the resulting instance will not leak the RHS `Nat` when
+The adjustment will make sure that the resulting instance will not leak the RHS `Nat` when
 reduced at transparency levels below `semireducible`, i.e. where `D` would not be unfolded either.
 
 More specifically, given the source type (the argument) and target type (the expected type),
@@ -256,10 +256,10 @@ The old behavior can be restored with
 set_option backward.dsimp.instances true
 ```
 
-or `simp +instances` for `simp`. Our experience so far however is that this is not often needed.
+or `simp +instances` for `simp`. Our experience so far, however, is that this is not often needed.
 
 Finally we have fixed in [#12172](https://github.com/leanprover/lean4/pull/12172) a problem with how
-we determine whether a function parameter is an instance, which has follow on effects in several algorithms whose behaviour is determined by this.
+we determine whether a function parameter is an instance, which has follow-on effects in several algorithms that depend on this classification.
 This may cause potential regressions: automation may now behave differently
 in cases where it previously misidentified instance parameters.
 For example, a rewrite rule in `simp` that was not firing due to
@@ -270,7 +270,7 @@ incorrect indexing may now fire.
 Any projects wanting to postpone dealing with the adaptations required by the changes to transparency level bumps can
 simply use `set_option backward.isDefEq.respectTransparency false`.
 
-This can be set on a project wide level in your `lakefile.toml`:
+This can be set on a project-wide level in your `lakefile.toml`:
 ```
 [leanOptions]
 backward.isDefEq.respectTransparency = false
@@ -283,7 +283,7 @@ This makes it easier to start identifying the definitional abuse problems in you
 If your project is downstream of Mathlib, you may find the following two scripts useful:
 * `scripts/add_set_option.py` (available in `.lake/packages/mathlib/scripts/add_set_option.py` if you have Mathlib as a dependency)
   which tries compiling your project, and automatically wrapping any failing declaration with `set_option backward.isDefEq.respectTransparency false in ...`,
-  in those cases where doing so resolve the failure.
+  in those cases where doing so resolves the failure.
 * `scripts/rm_set_option.py`, which compiles your project and identifies all occurrences of `set_option backward.isDefEq.respectTransparency false in ...` which can be removed without causing a failure (in that same declaration).
   This may happen because of earlier changes which resolve the definitional abuse problem.
 
@@ -668,7 +668,7 @@ There are also various additions to the library, including:
   When deriving or inferring an instance for a semireducible type definition,
   the definition's RHS is no longer leaked when the instance is reduced at
   lower than semireducible transparency. The synthesized instance's components
-  (fields, nested instances) are unfold and rewrapped as necessary.
+  (fields, nested instances) are unfolded and rewrapped as necessary.
 
 * [#13043](https://github.com/leanprover/lean4/pull/13043) fixes a bug where `inferInstanceAs` and the default `deriving`
   handler, when used inside a `meta section`, would create auxiliary
