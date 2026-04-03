@@ -1394,29 +1394,24 @@ structure OnlyThreeOrFive where
   ok : val = 3 ∨ val = 5 := by rfl
 
 
--- Default args are synthesized in patterns too!
-/--
-error: Tactic `rfl` failed: The left-hand side
-  n = 3
-is not definitionally equal to the right-hand side
-  n = 5
-
-x✝ : OnlyThreeOrFive
-n : Nat
-⊢ n = 3 ∨ n = 5
--/
+-- Default args are not synthesized in patterns. Ellipses allow missing fields.
+-- We would expect a `rfl` tactic error here otherwise.
+/-- error: Fields missing: `val2`, `ok` -/
 #check_msgs in
 def ggg : OnlyThreeOrFive → Nat
   | {val := n} => n
 
-/--
-error: Missing cases:
-(OnlyThreeOrFive.mk _ true (Or.inr Eq.refl))
-(OnlyThreeOrFive.mk _ true (Or.inl Eq.refl))
--/
+def ggg_ellipses : OnlyThreeOrFive → Nat
+  | {val := n, ..} => n
+
+-- We would expect a missing cases error otherwise
+/-- error: Fields missing: `val2` -/
 #check_msgs in
 def hhh : OnlyThreeOrFive → Nat
   | {val := n, ok := p} => n
+
+def hhh_ellipses : OnlyThreeOrFive → Nat
+  | {val := n, ok := p, ..} => n
 
 -- Ellipses don't synth default args in patterns
 def ggg' : OnlyThreeOrFive → Nat

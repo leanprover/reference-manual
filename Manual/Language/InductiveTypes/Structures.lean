@@ -267,7 +267,7 @@ Every field that does not have a default value must be provided.
 If a tactic is specified as the default argument, then it is run at elaboration time to construct the argument's value.
 
 In a pattern context, field names are mapped to patterns that match the corresponding projection, and field abbreviations bind a pattern variable that is the field's name.
-Default arguments are still present in patterns; if a pattern does not specify a value for a field with a default value, then the pattern only matches the default.
+Default field values are not used in patterns; if a pattern does not specify a value for a field with a default value, then Lean will report a missing field error unless the structure instance uses `..`.
 
 When a field definition contains the {keywordOf Lean.Parser.Term.stuctInstField}`private` modifier, the value is placed in the current module's {tech}[private scope], even if the structure value is itself in the public scope.
 The value is wrapped in a public but non-exposed helper definition.
@@ -285,16 +285,16 @@ structure AugmentedIntList where
   augmentation : String := ""
 ```
 
-When testing whether the list is empty, the function {name AugmentedIntList.isEmpty}`isEmpty` is also testing whether the {name AugmentedIntList.augmentation}`augmentation` field is empty, because the omitted field's default value is also used in pattern contexts:
+When testing whether the list is empty, the function {name AugmentedIntList.isEmpty}`isEmpty` is not checking whether or not the {name AugmentedIntList.augmentation}`augmentation` field is empty, because the omitted field's default value is ignored in pattern contexts:
 ```lean (name := isEmptyDefaults)
 def AugmentedIntList.isEmpty : AugmentedIntList → Bool
-  | {list := []} => true
+  | {list := [], ..} => true
   | _ => false
 
 #eval {list := [], augmentation := "extra" : AugmentedIntList}.isEmpty
 ```
 ```leanOutput isEmptyDefaults
-false
+true
 ```
 ::::
 
