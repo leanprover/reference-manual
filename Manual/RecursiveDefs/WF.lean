@@ -851,7 +851,7 @@ The definition of {name}`WellFounded` builds on the notion of _accessible elemen
 The definition of division by iterated subtraction can be written explicitly using well-founded recursion.
 ```lean
 noncomputable def div (n k : Nat) : Nat :=
-  (inferInstance : (WellFoundedRelation Nat)).wf.fix
+  (inferInstance : WellFoundedRelation Nat).wf.fix
     (fun n r =>
       if h : k = 0 then 0
       else if h : k > n then 0

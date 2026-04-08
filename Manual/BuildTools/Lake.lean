@@ -161,7 +161,7 @@ That tool's {tech}[manifest] thus looks something like this:
 
 ```lakeManifest
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "packagesDir": ".lake/packages",
   "packages": [{
     "url": "https://github.com/leanprover/lean4-cli",
@@ -176,7 +176,8 @@ That tool's {tech}[manifest] thus looks something like this:
     "configFile": "lakefile.toml"
   }],
   "name": "myTool",
-  "lakeDir": ".lake"
+  "lakeDir": ".lake",
+  "fixedToolchain": false
 }
 ```
 
@@ -186,7 +187,7 @@ This can be done with the following {tech}[package overrides] file:
 
 ```lakePackageOverrides
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "packages": [{
     "type": "path",
     "dir": "/etc/lean-packages/Cli",
@@ -449,6 +450,7 @@ module.input
 module.ir
 module.lean
 module.leanArts
+module.ltar
 module.o
 module.o.export
 module.o.noexport
@@ -550,6 +552,10 @@ The facets available for modules are:
 : `dynlib`
 
   A shared library (e.g., for the Lean option `--load-dynlib`){TODO}[Document Lean command line options, and cross-reference from here].
+
+: `ltar`
+
+  A compressed archive (produced via `leantar`) of the module's build artifacts. {TODO}[Document `leantar` in the manual as well]
 
 :::
 
