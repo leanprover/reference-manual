@@ -49,37 +49,8 @@ up to date.
 
 ## Building the Reference Manual Locally
 
-This reference manual contains figures that are built from LaTeX
-sources. To build them, you'll need the following:
-
-- A LaTeX installation, including LuaLaTeX and the following packages
-  from TeXLive:
-    - `scheme-minimal`
-    - `latex-bin`
-    - `fontspec`
-    - `standalone`
-    - `pgf`
-    - `pdftexcmds`
-    - `luatex85`
-    - `lualatex-math`
-    - `infwarerr`
-    - `ltxcmds`
-    - `xcolor`
-    - `fontawesome`
-    - `spath3`
-    - `inter`
-    - `epstopdf-pkg`
-    - `tex-gyre`
-    - `tex-gyre-math`
-    - `unicode-math`
-    - `amsmath`
-    - `sourcecodepro`
-- `pdftocairo`, which can be found in the `poppler-utils` package on
-  Debian-derived systems and the `poppler` package in Homebrew
-
-Additionally, to run the style checker locally, you'll need
-[Vale](https://vale.sh/). It runs in CI, so this is not a necessary
-step to contribute.
+To run the style checker locally, you'll need [Vale](https://vale.sh/).
+It runs in CI, so this is not a necessary step to contribute.
 
 Part of the manual deployment process adds JavaScript to each version
 that inserts metadata to both enable links to live.lean-lang.org and
