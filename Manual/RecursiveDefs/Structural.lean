@@ -577,7 +577,7 @@ set_option pp.all true in
 trace: [Elab.definition.body] half : Nat → Nat :=
     fun (x : Nat) =>
       half.match_1.{1} (fun (x : Nat) => Nat) x (fun (_ : Unit) => Nat.zero) (fun (_ : Unit) => Nat.zero)
-        fun (n : Nat) => Nat.succ (_root_.half n)
+        fun (n : Nat) => Nat.succ (half n)
 -/
 #guard_msgs in
 def half : Nat → Nat

@@ -22,6 +22,24 @@ namespace Manual
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab Term Tactic
+
+/--
+Sets `linter.unusedVariables` to `false` in all `CommandContextInfo.options` within an info tree.
+
+This prevents the outer unused variable linter from re-processing variables in partial proof states
+and generating spurious warnings. Mirrors `disableUnusedVarLinterInInfoTree` in Verso's
+`InlineLean.lean`.
+-/
+private partial def disableUnusedVarLinterInInfoTree : InfoTree → InfoTree
+  | .context (.commandCtx ci) child =>
+    .context (.commandCtx { ci with options := Lean.Linter.linter.unusedVariables.set ci.options false })
+      (disableUnusedVarLinterInInfoTree child)
+  | .context pci child =>
+    .context pci (disableUnusedVarLinterInInfoTree child)
+  | .node info children =>
+    .node info (children.map disableUnusedVarLinterInInfoTree)
+  | .hole id => .hole id
+
 open Verso.Genre.Manual.InlineLean.Scopes (runWithOpenDecls runWithVariables)
 open SubVerso.Highlighting
 open SubVerso.Examples.Messages
@@ -183,7 +201,8 @@ where
     ws.apply s1.trimAscii.copy == ws.apply s2.trimAscii.copy
 
   mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : TermElabM InfoTree := do
-    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx }) trees
+    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx })
+      (trees.map disableUnusedVarLinterInInfoTree)
     let ctx := PartialContextInfo.commandCtx {
       env := ← getEnv, fileMap := ← getFileMap, mctx := {}, currNamespace := ← getCurrNamespace,
       openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
@@ -374,7 +393,8 @@ def goal : RoleExpander
         pure #[]
 where
   mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : DocElabM InfoTree := do
-    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx }) trees
+    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx })
+      (trees.map disableUnusedVarLinterInInfoTree)
     let ctx := PartialContextInfo.commandCtx {
       env := ← getEnv, fileMap := ← getFileMap, mctx := {}, currNamespace := ← getCurrNamespace,
       openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
@@ -538,7 +558,8 @@ def proofState : CodeBlockExpander
 
 where
   mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : DocElabM InfoTree := do
-    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx }) trees
+    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx })
+      (trees.map disableUnusedVarLinterInInfoTree)
     let ctx := PartialContextInfo.commandCtx {
       env := ← getEnv, fileMap := ← getFileMap, mctx := {}, currNamespace := ← getCurrNamespace,
       openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen

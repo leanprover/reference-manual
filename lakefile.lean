@@ -8,9 +8,10 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require verso from git "https://github.com/leanprover/verso.git"@"main"
 require versowebcomponents from git "https://github.com/leanprover/verso-web-components"@"main"
 require illuminate from git "https://github.com/leanprover/illuminate"@"main"
+require verso from git "https://github.com/leanprover/verso.git"@"main"
+
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
