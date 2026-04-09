@@ -43,7 +43,15 @@ tag := "Thunk-runtime"
 %%%
 
 :::figure "Memory layout of thunks" (tag := "thunkffi")
-![Memory layout of thunks](/static/figures/thunk.svg)
+```diagram
+open Illuminate in
+open Manual.Diagram in
+layoutDiagram [
+  ("m_header", .header, txt "Lean object header"),
+  ("m_value", .object, twoLine "Saved value" "lean_object *"),
+  ("m_closure", .object, twoLine "Closure" "lean_object *")
+]
+```
 :::
 
 Thunks are one of the primitive object types supported by the Lean runtime.

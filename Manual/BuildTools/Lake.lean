@@ -79,7 +79,44 @@ Workspaces typically have the following layout:
 :::
 
 :::figure "Workspace Layout" (tag :="workspace-layout")
-![Lake Workspaces](/static/figures/lake-workspace.svg)
+```diagram
+open Illuminate in
+  let txt (s : String) (size : Float := 10) : Diagram SVG :=
+    .text s { fontSize := size, anchor := TextAnchor.start }
+  let bold (s : String) (size : Float := 11) : Diagram SVG :=
+    .text s { fontSize := size, bold := true, anchor := TextAnchor.start }
+  let mono (s : String) (size : Float := 10) : Diagram SVG :=
+    .text s { fontSize := size, fontFamily := "monospace", anchor := TextAnchor.start }
+  let items (ss : List String) (size : Float := 10) : Diagram SVG :=
+    Diagram.vsep 3 (ss.map fun s => txt s size) (align := .left)
+  let borderedBox (title : String) (content : Diagram SVG)
+      (titleSize : Float := 11) (pad : Float := 8) : Diagram SVG :=
+    Diagram.vsep 4 [bold title titleSize, content] (align := .left)
+      |>.pad pad |>.frame (padding := 2) (cornerRadius := 4)
+
+  let toolchain := mono "lean-toolchain"
+  let rootPkg := borderedBox "Root package" <|
+    items [
+      "Package configuration file (lakefile.lean)",
+      "Libraries",
+      "Executables",
+      "Manifest (lake-manifest.json)"
+    ]
+  let depItems := items ["Package configuration file", "Libraries", "Executables", "Artifacts"] 8
+  let dep1 := borderedBox "Dependency 1" depItems 9 6
+  let dep2 := borderedBox "Dependency 2" depItems 9 6
+  let dots : Diagram SVG := .text "⋯" { fontSize := 14 }
+  let packages := borderedBox "Packages" <|
+    Diagram.vsep 8 [Diagram.hsep 12 [dep1, dep2], dots] (align := .left)
+  let artifacts := borderedBox "Artifacts" <|
+    items ["Built libraries", "Built executables"]
+  let lakeDir := borderedBox "Lake Directory (.lake)" <|
+    Diagram.vsep 10 [packages, artifacts] (align := .left)
+  borderedBox "Workspace" <|
+    Diagram.vsep 10 [toolchain, rootPkg, lakeDir] (align := .left)
+
+
+```
 :::
 
 :::paragraph
