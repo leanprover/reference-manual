@@ -213,6 +213,9 @@ When following the gold standard of checking proofs using comparator, some assum
 * The safety of the sandbox used by `comparator`
 * No human error or misleading presentation of the theorem statement in the trusted challenge file.
 
+  If there are doubts that the theorem means what it is appears to mean, its statement and all referenced definitions must be investigated carefully, in particular with regard to overloaded notation and type classes.
+  Some external checkers offer raw pretty-printing capabilities that are not affected by changes to parser or notation in the source file.
+
 # On `Lean.trustCompiler`
 %%%
 tag := "validating-trustCompiler"
