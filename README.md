@@ -49,8 +49,9 @@ up to date.
 
 ## Building the Reference Manual Locally
 
-To run the style checker locally, you'll need [Vale](https://vale.sh/).
-It runs in CI, so this is not a necessary step to contribute.
+To run the style checker locally, you'll need
+[Vale](https://vale.sh/). It runs in CI, so this is not a necessary
+step to contribute.
 
 Part of the manual deployment process adds JavaScript to each version
 that inserts metadata to both enable links to live.lean-lang.org and
