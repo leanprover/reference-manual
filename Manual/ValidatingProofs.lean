@@ -201,7 +201,7 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 
 ## Comments
 
-At the time of writing, `comparator` supports using the official Lean kernel and the external checker[`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust. The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
+At the time of writing, `comparator` supports using the official Lean kernel and the external checker [`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust. The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
 
 # Remaining Issues
 
