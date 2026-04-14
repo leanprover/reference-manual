@@ -1,4 +1,4 @@
-<!-- Generated from commit 608d7cbb3de8f4fbcd3742c6180dadbdd9f4652b at 2026-04-14T14:45:39Z -->
+<!-- Generated from commit d2fdf5a99491166d610696ea8e6a2eeb79cf9469 at 2026-04-14T18:20:40Z -->
 <!DOCTYPE html><html>
   <head>
     <script>
@@ -2152,205 +2152,6 @@ a.technical-term:hover {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-function liveLinkUrlOfCodez(codez) {
-  if (window.metadata !== undefined && window.metadata.stable) {
-    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
-  }
-  if (window.metadata !== undefined && window.metadata.latest) {
-    return "https://live.lean-lang.org/#codez=" + codez;
-  }
-  return undefined;
-}
-
-function maybeShowLiveLinks() {
-  if (liveLinkUrlOfCodez('') !== undefined) {
-    const style = document.createElement('style');
-    style.textContent = `.live-link { display: initial !important; }`;
-    document.head.appendChild(style);
-  }
-}
-
-function openLiveLink(codez) {
-  const url = liveLinkUrlOfCodez(codez);
-  if (url !== undefined) {
-    window.open(url, '_blank')
-  }
-  else {
-    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
-    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
-    // Just in case, throw up a dialog.
-    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
-  }
-}
-
-function pageInit() {
-  openDetailsForHashTarget();
-  maybeShowLiveLinks();
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', pageInit);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', pageInit);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', pageInit);
-} else {
-  pageInit();
-}
-</script>
-    <script>
-      
-window.addEventListener("load", () => {
-  const innerProps = {
-    onShow(inst) { console.log(inst); },
-    onHide(inst) { console.log(inst); },
-    content(tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  };
-  const outerProps = {
-    allowHtml: true,
-    theme: "lean",
-    placement: 'bottom-start',
-    maxWidth: "none",
-    delay: 100,
-    moveTransition: 'transform 0.2s ease-out',
-    onTrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-      ref.classList.add("active");
-    },
-    onUntrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-    }
-  };
-  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
-});
-</script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      
-window.addEventListener("load", () => {
-  tippy('.keyword-of.hl.lean', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  });
-});
-</script>
-    <script>
       window.xref = {"Verso.Genre.Manual.section":
  {"title": "Sections or chapters of the manual",
   "description": null,
@@ -4433,7 +4234,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.9.0 (2024-07-01)",
         "shortTitle": null,
-        "number": "23"}]},
+        "number": "25"}]},
      "address": "/releases/v4.9.0/"}],
    "release-v4___8___0":
    [{"id": "release-v4___8___0",
@@ -4448,7 +4249,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.8.0 (2024-06-05)",
         "shortTitle": null,
-        "number": "24"}]},
+        "number": "26"}]},
      "address": "/releases/v4.8.0/"}],
    "release-v4___7___0":
    [{"id": "release-v4___7___0",
@@ -4463,7 +4264,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.7.0 (2024-04-03)",
         "shortTitle": null,
-        "number": "25"}]},
+        "number": "27"}]},
      "address": "/releases/v4.7.0/"}],
    "release-v4___6___0":
    [{"id": "release-v4___6___0",
@@ -4478,7 +4279,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.6.0 (2024-02-29)",
         "shortTitle": null,
-        "number": "26"}]},
+        "number": "28"}]},
      "address": "/releases/v4.6.0/"}],
    "release-v4___5___0":
    [{"id": "release-v4___5___0",
@@ -4493,7 +4294,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.5.0 (2024-02-01)",
         "shortTitle": null,
-        "number": "27"}]},
+        "number": "29"}]},
      "address": "/releases/v4.5.0/"}],
    "release-v4___4___0":
    [{"id": "release-v4___4___0",
@@ -4508,7 +4309,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.4.0 (2023-12-31)",
         "shortTitle": null,
-        "number": "28"}]},
+        "number": "30"}]},
      "address": "/releases/v4.4.0/"}],
    "release-v4___3___0":
    [{"id": "release-v4___3___0",
@@ -4523,7 +4324,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.3.0 (2023-11-30)",
         "shortTitle": null,
-        "number": "29"}]},
+        "number": "31"}]},
      "address": "/releases/v4.3.0/"}],
    "release-v4___30___0-rc1":
    [{"id": "release-v4___30___0-rc1",
@@ -4553,8 +4354,23 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.2.0 (2023-10-31)",
         "shortTitle": null,
-        "number": "30"}]},
+        "number": "32"}]},
      "address": "/releases/v4.2.0/"}],
+   "release-v4___29___1":
+   [{"id": "release-v4___29___1",
+     "data":
+     {"title": "Lean 4.29.1 (2026-04-14)",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.1 (2026-04-14)",
+        "shortTitle": null,
+        "number": "2"}]},
+     "address": "/releases/v4.29.1/"}],
    "release-v4___29___0":
    [{"id": "release-v4___29___0",
      "data":
@@ -4568,8 +4384,23 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.29.0 (2026-03-27)",
         "shortTitle": null,
-        "number": "2"}]},
+        "number": "3"}]},
      "address": "/releases/v4.29.0/"}],
+   "release-v4___28___1":
+   [{"id": "release-v4___28___1",
+     "data":
+     {"title": "Lean 4.28.1 (2026-04-14)",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.28.1 (2026-04-14)",
+        "shortTitle": null,
+        "number": "4"}]},
+     "address": "/releases/v4.28.1/"}],
    "release-v4___28___0":
    [{"id": "release-v4___28___0",
      "data":
@@ -4583,7 +4414,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.28.0 (2026-02-17)",
         "shortTitle": null,
-        "number": "3"}]},
+        "number": "5"}]},
      "address": "/releases/v4.28.0/"}],
    "release-v4___27___0":
    [{"id": "release-v4___27___0",
@@ -4598,7 +4429,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.27.0 (2026-01-24)",
         "shortTitle": null,
-        "number": "4"}]},
+        "number": "6"}]},
      "address": "/releases/v4.27.0/"}],
    "release-v4___26___0":
    [{"id": "release-v4___26___0",
@@ -4613,7 +4444,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.26.0 (2025-12-13)",
         "shortTitle": null,
-        "number": "5"}]},
+        "number": "7"}]},
      "address": "/releases/v4.26.0/"}],
    "release-v4___25___1":
    [{"id": "release-v4___25___1",
@@ -4628,7 +4459,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.25.1 (2025-11-18)",
         "shortTitle": null,
-        "number": "6"}]},
+        "number": "8"}]},
      "address": "/releases/v4.25.1/"}],
    "release-v4___25___0":
    [{"id": "release-v4___25___0",
@@ -4643,7 +4474,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.25.0 (2025-11-14)",
         "shortTitle": null,
-        "number": "7"}]},
+        "number": "9"}]},
      "address": "/releases/v4.25.0/"}],
    "release-v4___24___0":
    [{"id": "release-v4___24___0",
@@ -4658,7 +4489,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.24.0 (2025-10-14)",
         "shortTitle": null,
-        "number": "8"}]},
+        "number": "10"}]},
      "address": "/releases/v4.24.0/"}],
    "release-v4___23___0":
    [{"id": "release-v4___23___0",
@@ -4673,7 +4504,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.23.0 (2025-09-15)",
         "shortTitle": null,
-        "number": "9"}]},
+        "number": "11"}]},
      "address": "/releases/v4.23.0/"}],
    "release-v4___22___0":
    [{"id": "release-v4___22___0",
@@ -4688,7 +4519,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"}]},
+        "number": "12"}]},
      "address": "/releases/v4.22.0/"}],
    "release-v4___21___0":
    [{"id": "release-v4___21___0",
@@ -4703,7 +4534,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.21.0 (2025-06-30)",
         "shortTitle": null,
-        "number": "11"}]},
+        "number": "13"}]},
      "address": "/releases/v4.21.0/"}],
    "release-v4___20___0":
    [{"id": "release-v4___20___0",
@@ -4718,7 +4549,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"}]},
+        "number": "14"}]},
      "address": "/releases/v4.20.0/"}],
    "release-v4___1___0":
    [{"id": "release-v4___1___0",
@@ -4733,7 +4564,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.1.0 (2023-09-26)",
         "shortTitle": null,
-        "number": "31"}]},
+        "number": "33"}]},
      "address": "/releases/v4.1.0/"}],
    "release-v4___19___0":
    [{"id": "release-v4___19___0",
@@ -4748,7 +4579,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"}]},
+        "number": "15"}]},
      "address": "/releases/v4.19.0/"}],
    "release-v4___18___0":
    [{"id": "release-v4___18___0",
@@ -4763,7 +4594,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"}]},
+        "number": "16"}]},
      "address": "/releases/v4.18.0/"}],
    "release-v4___17___0":
    [{"id": "release-v4___17___0",
@@ -4778,7 +4609,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"}]},
+        "number": "17"}]},
      "address": "/releases/v4.17.0/"}],
    "release-v4___16___0":
    [{"id": "release-v4___16___0",
@@ -4793,7 +4624,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"}]},
+        "number": "18"}]},
      "address": "/releases/v4.16.0/"}],
    "release-v4___15___0":
    [{"id": "release-v4___15___0",
@@ -4808,7 +4639,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.15.0 (2025-01-04)",
         "shortTitle": null,
-        "number": "17"}]},
+        "number": "19"}]},
      "address": "/releases/v4.15.0/"}],
    "release-v4___14___0":
    [{"id": "release-v4___14___0",
@@ -4823,7 +4654,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.14.0 (2024-12-02)",
         "shortTitle": null,
-        "number": "18"}]},
+        "number": "20"}]},
      "address": "/releases/v4.14.0/"}],
    "release-v4___13___0":
    [{"id": "release-v4___13___0",
@@ -4838,7 +4669,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.13.0 (2024-11-01)",
         "shortTitle": null,
-        "number": "19"}]},
+        "number": "21"}]},
      "address": "/releases/v4.13.0/"}],
    "release-v4___12___0":
    [{"id": "release-v4___12___0",
@@ -4853,7 +4684,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.12.0 (2024-10-01)",
         "shortTitle": null,
-        "number": "20"}]},
+        "number": "22"}]},
      "address": "/releases/v4.12.0/"}],
    "release-v4___11___0":
    [{"id": "release-v4___11___0",
@@ -4868,7 +4699,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.11.0 (2024-09-02)",
         "shortTitle": null,
-        "number": "21"}]},
+        "number": "23"}]},
      "address": "/releases/v4.11.0/"}],
    "release-v4___10___0":
    [{"id": "release-v4___10___0",
@@ -4883,7 +4714,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.10.0 (2024-07-31)",
         "shortTitle": null,
-        "number": "22"}]},
+        "number": "24"}]},
      "address": "/releases/v4.10.0/"}],
    "release-v4___0___0-m5":
    [{"id": "release-v4___0___0-m5",
@@ -4898,7 +4729,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.0.0-m5 (2022-08-22)",
         "shortTitle": null,
-        "number": "33"}]},
+        "number": "35"}]},
      "address": "/releases/v4.0.0-m5/"}],
    "release-v4___0___0-m4":
    [{"id": "release-v4___0___0-m4",
@@ -4913,7 +4744,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.0.0-m4 (2022-03-27)",
         "shortTitle": null,
-        "number": "34"}]},
+        "number": "36"}]},
      "address": "/releases/v4.0.0-m4/"}],
    "release-v4___0___0-m3":
    [{"id": "release-v4___0___0-m3",
@@ -4928,7 +4759,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.0.0-m3 (2022-01-31)",
         "shortTitle": null,
-        "number": "35"}]},
+        "number": "37"}]},
      "address": "/releases/v4.0.0-m3/"}],
    "release-v4___0___0-m2":
    [{"id": "release-v4___0___0-m2",
@@ -4943,7 +4774,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.0.0-m2 (2021-03-02)",
         "shortTitle": null,
-        "number": "36"}]},
+        "number": "38"}]},
      "address": "/releases/v4.0.0-m2/"}],
    "release-v4___0___0-m1":
    [{"id": "release-v4___0___0-m1",
@@ -4958,7 +4789,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.0.0-m1 (2021-01-04)",
         "shortTitle": null,
-        "number": "37"}]},
+        "number": "39"}]},
      "address": "/releases/v4.0.0-m1/"}],
    "release-v4___0___0":
    [{"id": "release-v4___0___0",
@@ -4973,7 +4804,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.0.0 (2023-09-08)",
         "shortTitle": null,
-        "number": "32"}]},
+        "number": "34"}]},
      "address": "/releases/v4.0.0/"}],
    "release-notes":
    [{"id": "release-notes",
@@ -11870,7 +11701,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "23"},
+       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "25"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.9.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___9___0-_LPAR_2024-07-01_RPAR_--Lean-internals":
@@ -11885,7 +11716,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "23"},
+       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "25"},
        {"title": "Lean internals", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.9.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___9___0-_LPAR_2024-07-01_RPAR_--Language-server___-widgets___-and-IDE-extensions":
@@ -11900,7 +11731,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "23"},
+       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "25"},
        {"title": "Language server, widgets, and IDE extensions",
         "shortTitle": null,
         "number": "2"}]},
@@ -11917,7 +11748,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "23"},
+       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "25"},
        {"title": "Language features, tactics, and metaprograms",
         "shortTitle": null,
         "number": "1"}]},
@@ -11934,7 +11765,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "23"},
+       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "25"},
        {"title": "Lake", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.9.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___9___0-_LPAR_2024-07-01_RPAR_--DevOps":
@@ -11949,7 +11780,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "23"},
+       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "25"},
        {"title": "DevOps", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.9.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___9___0-_LPAR_2024-07-01_RPAR_--Compiler___-runtime___-and-FFI":
@@ -11964,7 +11795,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "23"},
+       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "25"},
        {"title": "Compiler, runtime, and FFI",
         "shortTitle": null,
         "number": "5"}]},
@@ -11981,7 +11812,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "23"},
+       {"title": "Lean 4.9.0 (2024-07-01)", "shortTitle": null, "number": "25"},
        {"title": "Breaking changes", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.9.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___8___0-_LPAR_2024-06-05_RPAR_--Pretty-printing":
@@ -11996,7 +11827,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "24"},
+       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "26"},
        {"title": "Pretty printing", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.8.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___8___0-_LPAR_2024-06-05_RPAR_--Library":
@@ -12011,7 +11842,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "24"},
+       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "26"},
        {"title": "Library", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.8.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___8___0-_LPAR_2024-06-05_RPAR_--Lean-internals":
@@ -12026,7 +11857,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "24"},
+       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "26"},
        {"title": "Lean internals", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.8.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___8___0-_LPAR_2024-06-05_RPAR_--Language-server-and-IDE-extensions":
@@ -12041,7 +11872,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "24"},
+       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "26"},
        {"title": "Language server and IDE extensions",
         "shortTitle": null,
         "number": "2"}]},
@@ -12058,7 +11889,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "24"},
+       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "26"},
        {"title": "Language features, tactics, and metaprograms",
         "shortTitle": null,
         "number": "1"}]},
@@ -12075,7 +11906,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "24"},
+       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "26"},
        {"title": "Lake", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.8.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___8___0-_LPAR_2024-06-05_RPAR_--DevOps":
@@ -12090,7 +11921,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "24"},
+       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "26"},
        {"title": "DevOps", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.8.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___8___0-_LPAR_2024-06-05_RPAR_--Compiler___-runtime___-and-FFI":
@@ -12105,7 +11936,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "24"},
+       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "26"},
        {"title": "Compiler, runtime, and FFI",
         "shortTitle": null,
         "number": "6"}]},
@@ -12122,7 +11953,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "24"},
+       {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "26"},
        {"title": "Breaking changes", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.8.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___30___0-rc1-_LPAR_2026-04-01_RPAR_--Tactics":
@@ -12278,6 +12109,21 @@ window.addEventListener("load", () => {
         "number": "1"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.30.0-rc1/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___29___1-_LPAR_2026-04-14_RPAR_--Compiler":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___29___1-_LPAR_2026-04-14_RPAR_--Compiler",
+     "data":
+     {"title": "Compiler",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.29.1 (2026-04-14)", "shortTitle": null, "number": "2"},
+       {"title": "Compiler", "shortTitle": null, "number": "1"}]},
+     "address": "/releases/v4.29.1/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Tactics":
    [{"id":
      "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Tactics",
@@ -12290,7 +12136,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Tactics", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Server":
@@ -12305,7 +12151,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Server", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Pretty-Printing":
@@ -12320,7 +12166,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Other":
@@ -12335,7 +12181,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Other", "shortTitle": null, "number": "10"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Library":
@@ -12350,7 +12196,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Language":
@@ -12365,7 +12211,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Lake":
@@ -12380,7 +12226,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Lake", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Highlights--mvcgen___-Specifications-in-the-Local-Context":
@@ -12395,7 +12241,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "mvcgen: Specifications in the Local Context",
         "shortTitle": null,
@@ -12413,7 +12259,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "grind: Higher-Order Miller Pattern Support in E-matching",
         "shortTitle": null,
@@ -12431,7 +12277,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Universe Levels as Output Parameters",
         "shortTitle": null,
@@ -12449,7 +12295,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Simpler  noncomputable  Semantics",
         "shortTitle": null,
@@ -12467,7 +12313,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Performance Improvements",
         "shortTitle": null,
@@ -12485,7 +12331,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "One Axiom per Native Computation",
         "shortTitle": null,
@@ -12503,7 +12349,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New Features in Lake", "shortTitle": null, "number": "11"}]},
      "address": "/releases/v4.29.0/"}],
@@ -12519,7 +12365,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New Extensible  do  Elaborator",
         "shortTitle": null,
@@ -12538,7 +12384,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title":
         "More Reliable Universe Level Inference in  inductive / structure  Commands",
@@ -12557,7 +12403,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Highlights", "shortTitle": null, "number": "10"}]},
      "address": "/releases/v4.29.0/"}],
@@ -12573,7 +12419,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Changes to Instance and Reducibility Handling",
         "shortTitle": null,
@@ -12592,7 +12438,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Changes to Instance and Reducibility Handling",
         "shortTitle": null,
@@ -12610,7 +12456,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Documentation":
@@ -12625,7 +12471,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Documentation", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.29.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___29___0-_LPAR_2026-03-27_RPAR_--Compiler":
@@ -12640,9 +12486,24 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "2"},
+       {"title": "Lean 4.29.0 (2026-03-27)", "shortTitle": null, "number": "3"},
        {"title": "Compiler", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.29.0/"}],
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___1-_LPAR_2026-04-14_RPAR_--Compiler":
+   [{"id":
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___1-_LPAR_2026-04-14_RPAR_--Compiler",
+     "data":
+     {"title": "Compiler",
+      "shortTitle": null,
+      "sectionNum": null,
+      "context":
+      [{"title": "The Lean Language Reference",
+        "shortTitle": null,
+        "number": null},
+       {"title": "Release Notes", "shortTitle": null, "number": null},
+       {"title": "Lean 4.28.1 (2026-04-14)", "shortTitle": null, "number": "4"},
+       {"title": "Compiler", "shortTitle": null, "number": "1"}]},
+     "address": "/releases/v4.28.1/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Tactics":
    [{"id":
      "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Tactics",
@@ -12655,7 +12516,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Tactics", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Server":
@@ -12670,7 +12531,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Other":
@@ -12685,7 +12546,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Library":
@@ -12700,7 +12561,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Language":
@@ -12715,7 +12576,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Lake":
@@ -12730,7 +12591,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Highlights--User-Defined-Grind-Attributes":
@@ -12745,7 +12606,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "User-Defined Grind Attributes",
         "shortTitle": null,
@@ -12763,7 +12624,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Symbolic Simulation Framework",
         "shortTitle": null,
@@ -12781,7 +12642,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Solver Mode in  bv_decide",
         "shortTitle": null,
@@ -12799,7 +12660,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Parallel Tactic Combinator",
         "shortTitle": null,
@@ -12817,7 +12678,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Local Definitions in Grind and Simp",
         "shortTitle": null,
@@ -12835,7 +12696,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Highlights", "shortTitle": null, "number": "9"},
        {"title": "Ranges", "shortTitle": null, "number": "1"}]},
@@ -12852,7 +12713,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Highlights", "shortTitle": null, "number": "9"},
        {"title": "Iterators", "shortTitle": null, "number": "2"}]},
@@ -12869,7 +12730,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Highlights", "shortTitle": null, "number": "9"},
        {"title": "Bitvectors", "shortTitle": null, "number": "3"}]},
@@ -12886,7 +12747,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Highlights", "shortTitle": null, "number": "9"},
        {"title": "Async Framework", "shortTitle": null, "number": "4"}]},
@@ -12903,7 +12764,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Highlights", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.28.0/"}],
@@ -12919,7 +12780,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "External Checker", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.28.0/"}],
@@ -12935,7 +12796,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Dependency Management Tools",
         "shortTitle": null,
@@ -12953,7 +12814,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Configurable Normalization and Preprocessing in Grind",
         "shortTitle": null,
@@ -12971,7 +12832,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Ffi":
@@ -12986,7 +12847,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Ffi", "shortTitle": null, "number": "10"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Documentation":
@@ -13001,7 +12862,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-02-17_RPAR_--Compiler":
@@ -13016,7 +12877,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "3"},
+       {"title": "Lean 4.28.0 (2026-02-17)", "shortTitle": null, "number": "5"},
        {"title": "Compiler", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Tactics":
@@ -13031,7 +12892,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Tactics", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.27.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Server":
@@ -13046,7 +12907,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.27.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Other":
@@ -13061,7 +12922,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.27.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Library":
@@ -13076,7 +12937,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.27.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Language":
@@ -13091,7 +12952,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.27.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Lake":
@@ -13106,7 +12967,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.27.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Highlights--Well-Founded-Recursion-on--Nat":
@@ -13121,7 +12982,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Well-Founded Recursion on  Nat",
         "shortTitle": null,
@@ -13139,7 +13000,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Performance Gains", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.27.0/"}],
@@ -13155,7 +13016,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New Features in Grind", "shortTitle": null, "number": "5"},
        {"title": "Supplying Arbitrary Parameters",
@@ -13174,7 +13035,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New Features in Grind", "shortTitle": null, "number": "5"},
        {"title": "Other New Features in Grind",
@@ -13193,7 +13054,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New Features in Grind", "shortTitle": null, "number": "5"},
        {"title": "Grind Revert", "shortTitle": null, "number": "4"}]},
@@ -13210,7 +13071,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New Features in Grind", "shortTitle": null, "number": "5"},
        {"title": "Function-Valued Congruence Closure",
@@ -13229,7 +13090,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New Features in Grind", "shortTitle": null, "number": "5"},
        {"title": "Controlling Theorem Instantiation",
@@ -13248,7 +13109,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New Features in Grind", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.27.0/"}],
@@ -13264,7 +13125,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Module System Stabilized",
         "shortTitle": null,
@@ -13282,7 +13143,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Highlights", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.27.0/"}],
@@ -13298,7 +13159,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Error Messages", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.27.0/"}],
@@ -13314,7 +13175,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Breaking Changes", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.27.0/"}],
@@ -13330,7 +13191,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Backward Compatibility Options",
         "shortTitle": null,
@@ -13348,7 +13209,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.27.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Documentation":
@@ -13363,7 +13224,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.27.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Compiler":
@@ -13378,7 +13239,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "4"},
+       {"title": "Lean 4.27.0 (2026-01-24)", "shortTitle": null, "number": "6"},
        {"title": "Compiler", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.27.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___26___0-_LPAR_2025-12-13_RPAR_--Tactics":
@@ -13393,7 +13254,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Tactics", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.26.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___26___0-_LPAR_2025-12-13_RPAR_--Server":
@@ -13408,7 +13269,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.26.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___26___0-_LPAR_2025-12-13_RPAR_--Other":
@@ -13423,7 +13284,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.26.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___26___0-_LPAR_2025-12-13_RPAR_--Library":
@@ -13438,7 +13299,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.26.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___26___0-_LPAR_2025-12-13_RPAR_--Language":
@@ -13453,7 +13314,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.26.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___26___0-_LPAR_2025-12-13_RPAR_--Lake":
@@ -13468,7 +13329,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.26.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___26___0-_LPAR_2025-12-13_RPAR_--Highlights--User-Extensions-in-try___":
@@ -13483,7 +13344,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "User Extensions in try?",
         "shortTitle": null,
@@ -13501,7 +13362,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Match Compilation", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.26.0/"}],
@@ -13517,7 +13378,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Suggestions", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.26.0/"}],
@@ -13533,7 +13394,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Highlights", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.26.0/"}],
@@ -13549,7 +13410,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind", "shortTitle": null, "number": "2"},
        {"title": "Grind Pattern", "shortTitle": null, "number": "1"}]},
@@ -13566,7 +13427,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind", "shortTitle": null, "number": "2"},
        {"title": "Grind Lint", "shortTitle": null, "number": "2"}]},
@@ -13583,7 +13444,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind", "shortTitle": null, "number": "2"},
        {"title": "Grind Interactive Mode", "shortTitle": null, "number": "3"}]},
@@ -13600,7 +13461,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.26.0/"}],
@@ -13616,7 +13477,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Dependencies by Semantic Version",
         "shortTitle": null,
@@ -13634,7 +13495,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Breaking Changes", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.26.0/"}],
@@ -13650,7 +13511,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.26.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___26___0-_LPAR_2025-12-13_RPAR_--Documentation":
@@ -13665,7 +13526,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.26.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___26___0-_LPAR_2025-12-13_RPAR_--Compiler":
@@ -13680,7 +13541,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "5"},
+       {"title": "Lean 4.26.0 (2025-12-13)", "shortTitle": null, "number": "7"},
        {"title": "Compiler", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.26.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___25___0-_LPAR_2025-11-14_RPAR_--Tactics":
@@ -13695,7 +13556,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Tactics", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.25.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___25___0-_LPAR_2025-11-14_RPAR_--Server":
@@ -13710,7 +13571,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Server", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.25.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___25___0-_LPAR_2025-11-14_RPAR_--Pretty-Printing":
@@ -13725,7 +13586,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.25.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___25___0-_LPAR_2025-11-14_RPAR_--Other":
@@ -13740,7 +13601,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Other", "shortTitle": null, "number": "10"}]},
      "address": "/releases/v4.25.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___25___0-_LPAR_2025-11-14_RPAR_--Library":
@@ -13755,7 +13616,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.25.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___25___0-_LPAR_2025-11-14_RPAR_--Language":
@@ -13770,7 +13631,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.25.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___25___0-_LPAR_2025-11-14_RPAR_--Lake":
@@ -13785,7 +13646,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Lake", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.25.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___25___0-_LPAR_2025-11-14_RPAR_--Highlights--Specifications-Derivation":
@@ -13800,7 +13661,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Specifications Derivation",
         "shortTitle": null,
@@ -13818,7 +13679,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Remote Caching with Lake",
         "shortTitle": null,
@@ -13836,7 +13697,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Porting to the Module System",
         "shortTitle": null,
@@ -13854,7 +13715,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Overhaul of the String Type",
         "shortTitle": null,
@@ -13872,7 +13733,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Mvcgen Invariants Suggestions",
         "shortTitle": null,
@@ -13890,7 +13751,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Linear Construction of Instances",
         "shortTitle": null,
@@ -13908,7 +13769,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Iterators", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.25.0/"}],
@@ -13924,7 +13785,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "InfoView Trace Search", "shortTitle": null, "number": "10"}]},
      "address": "/releases/v4.25.0/"}],
@@ -13940,7 +13801,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind", "shortTitle": null, "number": "5"},
        {"title": "Non-commutative (semi)ring normalization",
@@ -13959,7 +13820,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind", "shortTitle": null, "number": "5"},
        {"title": "New pattern inference heuristic",
@@ -13978,7 +13839,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind", "shortTitle": null, "number": "5"},
        {"title": "Interactive mode", "shortTitle": null, "number": "1"}]},
@@ -13995,7 +13856,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind", "shortTitle": null, "number": "5"},
        {"title": "Injective functions", "shortTitle": null, "number": "3"}]},
@@ -14012,7 +13873,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind", "shortTitle": null, "number": "5"},
        {"title": "Grind order solver", "shortTitle": null, "number": "4"}]},
@@ -14029,7 +13890,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.25.0/"}],
@@ -14045,7 +13906,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Coinductive Predicates", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.25.0/"}],
@@ -14061,7 +13922,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Breaking Changes", "shortTitle": null, "number": "13"}]},
      "address": "/releases/v4.25.0/"}],
@@ -14077,7 +13938,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Async Framework", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.25.0/"}],
@@ -14093,7 +13954,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Apply \"try this\" Suggestions",
         "shortTitle": null,
@@ -14111,7 +13972,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.25.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___25___0-_LPAR_2025-11-14_RPAR_--Documentation":
@@ -14126,7 +13987,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Documentation", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.25.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___25___0-_LPAR_2025-11-14_RPAR_--Compiler":
@@ -14141,7 +14002,7 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "7"},
+       {"title": "Lean 4.25.0 (2025-11-14)", "shortTitle": null, "number": "9"},
        {"title": "Compiler", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.25.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___24___0-_LPAR_2025-10-14_RPAR_--Server":
@@ -14156,7 +14017,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.24.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___24___0-_LPAR_2025-10-14_RPAR_--Pretty-Printing":
@@ -14171,7 +14034,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.24.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___24___0-_LPAR_2025-10-14_RPAR_--Other":
@@ -14186,7 +14051,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.24.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___24___0-_LPAR_2025-10-14_RPAR_--Library":
@@ -14201,7 +14068,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.24.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___24___0-_LPAR_2025-10-14_RPAR_--Language":
@@ -14216,7 +14085,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.24.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___24___0-_LPAR_2025-10-14_RPAR_--Lake":
@@ -14231,7 +14102,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.24.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___24___0-_LPAR_2025-10-14_RPAR_--Highlights--invariants-and-with-sections-in-mvcgen":
@@ -14246,7 +14119,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "invariants and with sections in mvcgen",
         "shortTitle": null,
@@ -14264,7 +14139,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "\"Try this\" suggestions are rendered under 'Messages'",
         "shortTitle": null,
@@ -14282,7 +14159,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Metaprogramming notes", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.24.0/"}],
@@ -14298,7 +14177,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library: Dyadic rationals",
         "shortTitle": null,
@@ -14316,7 +14197,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind AC solver", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.24.0/"}],
@@ -14332,7 +14215,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Breaking changes", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.24.0/"}],
@@ -14348,7 +14233,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.24.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___24___0-_LPAR_2025-10-14_RPAR_--Documentation":
@@ -14363,7 +14250,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.24.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___24___0-_LPAR_2025-10-14_RPAR_--Compiler":
@@ -14378,7 +14267,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.24.0 (2025-10-14)", "shortTitle": null, "number": "8"},
+       {"title": "Lean 4.24.0 (2025-10-14)",
+        "shortTitle": null,
+        "number": "10"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.24.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Server":
@@ -14393,7 +14284,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.23.0 (2025-09-15)", "shortTitle": null, "number": "9"},
+       {"title": "Lean 4.23.0 (2025-09-15)",
+        "shortTitle": null,
+        "number": "11"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.23.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Pretty-Printing":
@@ -14408,7 +14301,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.23.0 (2025-09-15)", "shortTitle": null, "number": "9"},
+       {"title": "Lean 4.23.0 (2025-09-15)",
+        "shortTitle": null,
+        "number": "11"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.23.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Other":
@@ -14423,7 +14318,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.23.0 (2025-09-15)", "shortTitle": null, "number": "9"},
+       {"title": "Lean 4.23.0 (2025-09-15)",
+        "shortTitle": null,
+        "number": "11"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.23.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Library":
@@ -14438,7 +14335,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.23.0 (2025-09-15)", "shortTitle": null, "number": "9"},
+       {"title": "Lean 4.23.0 (2025-09-15)",
+        "shortTitle": null,
+        "number": "11"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.23.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Language":
@@ -14453,7 +14352,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.23.0 (2025-09-15)", "shortTitle": null, "number": "9"},
+       {"title": "Lean 4.23.0 (2025-09-15)",
+        "shortTitle": null,
+        "number": "11"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.23.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Lake":
@@ -14468,7 +14369,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.23.0 (2025-09-15)", "shortTitle": null, "number": "9"},
+       {"title": "Lean 4.23.0 (2025-09-15)",
+        "shortTitle": null,
+        "number": "11"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.23.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Highlights--Breaking-Changes":
@@ -14483,7 +14386,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.23.0 (2025-09-15)", "shortTitle": null, "number": "9"},
+       {"title": "Lean 4.23.0 (2025-09-15)",
+        "shortTitle": null,
+        "number": "11"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Breaking Changes", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.23.0/"}],
@@ -14499,7 +14404,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.23.0 (2025-09-15)", "shortTitle": null, "number": "9"},
+       {"title": "Lean 4.23.0 (2025-09-15)",
+        "shortTitle": null,
+        "number": "11"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.23.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Documentation":
@@ -14514,7 +14421,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.23.0 (2025-09-15)", "shortTitle": null, "number": "9"},
+       {"title": "Lean 4.23.0 (2025-09-15)",
+        "shortTitle": null,
+        "number": "11"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.23.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Compiler":
@@ -14529,7 +14438,9 @@ window.addEventListener("load", () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.23.0 (2025-09-15)", "shortTitle": null, "number": "9"},
+       {"title": "Lean 4.23.0 (2025-09-15)",
+        "shortTitle": null,
+        "number": "11"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.23.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Server":
@@ -14546,7 +14457,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.22.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Pretty-Printing":
@@ -14563,7 +14474,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.22.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Other":
@@ -14580,7 +14491,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.22.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Library":
@@ -14597,7 +14508,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.22.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Language":
@@ -14614,7 +14525,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.22.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Lake":
@@ -14631,7 +14542,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.22.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--finally-section":
@@ -14648,7 +14559,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "finally section", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.22.0/"}],
@@ -14666,7 +14577,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Warnings about sorrys", "shortTitle": null, "number": "15"}]},
      "address": "/releases/v4.22.0/"}],
@@ -14684,7 +14595,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Simp", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.22.0/"}],
@@ -14702,7 +14613,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Signature help", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.22.0/"}],
@@ -14720,7 +14631,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Refactor of have/let semantics",
         "shortTitle": null,
@@ -14740,7 +14651,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Polymorphic ranges and slices",
         "shortTitle": null,
@@ -14760,7 +14671,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New math project template",
         "shortTitle": null,
@@ -14780,7 +14691,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New compiler", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.22.0/"}],
@@ -14798,7 +14709,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Named errors with explanations",
         "shortTitle": null,
@@ -14818,7 +14729,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library highlights", "shortTitle": null, "number": "11"}]},
      "address": "/releases/v4.22.0/"}],
@@ -14836,7 +14747,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Grind is released!", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.22.0/"}],
@@ -14855,7 +14766,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title":
         "Experimental: sharing oleans between different checkouts of the same repository",
@@ -14876,7 +14787,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Experimental: monadic verification framework",
         "shortTitle": null,
@@ -14896,7 +14807,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Experimental: module system",
         "shortTitle": null,
@@ -14916,7 +14827,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Displaying import hierarchy",
         "shortTitle": null,
@@ -14936,7 +14847,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Breaking changes", "shortTitle": null, "number": "16"}]},
      "address": "/releases/v4.22.0/"}],
@@ -14954,7 +14865,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.22.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Documentation":
@@ -14971,7 +14882,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.22.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Compiler":
@@ -14988,7 +14899,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.22.0 (2025-08-14)",
         "shortTitle": null,
-        "number": "10"},
+        "number": "12"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.22.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___21___0-_LPAR_2025-06-30_RPAR_--Server":
@@ -15005,7 +14916,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.21.0 (2025-06-30)",
         "shortTitle": null,
-        "number": "11"},
+        "number": "13"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.21.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___21___0-_LPAR_2025-06-30_RPAR_--Pretty-Printing":
@@ -15022,7 +14933,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.21.0 (2025-06-30)",
         "shortTitle": null,
-        "number": "11"},
+        "number": "13"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.21.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___21___0-_LPAR_2025-06-30_RPAR_--Other":
@@ -15039,7 +14950,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.21.0 (2025-06-30)",
         "shortTitle": null,
-        "number": "11"},
+        "number": "13"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.21.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___21___0-_LPAR_2025-06-30_RPAR_--Library":
@@ -15056,7 +14967,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.21.0 (2025-06-30)",
         "shortTitle": null,
-        "number": "11"},
+        "number": "13"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.21.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___21___0-_LPAR_2025-06-30_RPAR_--Language":
@@ -15073,7 +14984,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.21.0 (2025-06-30)",
         "shortTitle": null,
-        "number": "11"},
+        "number": "13"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.21.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___21___0-_LPAR_2025-06-30_RPAR_--Lake":
@@ -15090,7 +15001,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.21.0 (2025-06-30)",
         "shortTitle": null,
-        "number": "11"},
+        "number": "13"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.21.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___21___0-_LPAR_2025-06-30_RPAR_--Highlights":
@@ -15107,7 +15018,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.21.0 (2025-06-30)",
         "shortTitle": null,
-        "number": "11"},
+        "number": "13"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.21.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___21___0-_LPAR_2025-06-30_RPAR_--Documentation":
@@ -15124,7 +15035,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.21.0 (2025-06-30)",
         "shortTitle": null,
-        "number": "11"},
+        "number": "13"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.21.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___21___0-_LPAR_2025-06-30_RPAR_--Compiler":
@@ -15141,7 +15052,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.21.0 (2025-06-30)",
         "shortTitle": null,
-        "number": "11"},
+        "number": "13"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.21.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___20___0-_LPAR_2025-06-02_RPAR_--Server":
@@ -15158,7 +15069,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.20.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___20___0-_LPAR_2025-06-02_RPAR_--Pretty-Printing":
@@ -15175,7 +15086,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.20.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___20___0-_LPAR_2025-06-02_RPAR_--Other":
@@ -15192,7 +15103,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.20.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___20___0-_LPAR_2025-06-02_RPAR_--Library":
@@ -15209,7 +15120,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.20.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___20___0-_LPAR_2025-06-02_RPAR_--Language":
@@ -15226,7 +15137,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.20.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___20___0-_LPAR_2025-06-02_RPAR_--Lake":
@@ -15243,7 +15154,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.20.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___20___0-_LPAR_2025-06-02_RPAR_--Highlights--Library-Highlights":
@@ -15260,7 +15171,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Highlights", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.20.0/"}],
@@ -15278,7 +15189,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Language Features", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.20.0/"}],
@@ -15296,7 +15207,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Lake", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.20.0/"}],
@@ -15314,7 +15225,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Breaking Changes", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.20.0/"}],
@@ -15332,7 +15243,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.20.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___20___0-_LPAR_2025-06-02_RPAR_--Documentation":
@@ -15349,7 +15260,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.20.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___20___0-_LPAR_2025-06-02_RPAR_--Compiler":
@@ -15366,7 +15277,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.20.0 (2025-06-02)",
         "shortTitle": null,
-        "number": "12"},
+        "number": "14"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.20.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___19___0-_LPAR_2025-05-01_RPAR_--Server":
@@ -15383,7 +15294,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.19.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___19___0-_LPAR_2025-05-01_RPAR_--Pretty-Printing":
@@ -15400,7 +15311,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.19.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___19___0-_LPAR_2025-05-01_RPAR_--Other":
@@ -15417,7 +15328,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.19.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___19___0-_LPAR_2025-05-01_RPAR_--Library--Tree-Map":
@@ -15434,7 +15345,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Library", "shortTitle": null, "number": "3"},
        {"title": "Tree Map", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15452,7 +15363,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Library", "shortTitle": null, "number": "3"},
        {"title": "Finite Types", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15470,7 +15381,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Library", "shortTitle": null, "number": "3"},
        {"title": "Bitwuzla Rewrite Rules", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15488,7 +15399,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Library", "shortTitle": null, "number": "3"},
        {"title": "BitVec API", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15506,7 +15417,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Library", "shortTitle": null, "number": "3"},
        {"title": "Async", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15524,7 +15435,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.19.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___19___0-_LPAR_2025-05-01_RPAR_--Language--bv_decide":
@@ -15541,7 +15452,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "bv_decide", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15559,7 +15470,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "Structures", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15577,7 +15488,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "Parallel Elaboration", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15595,7 +15506,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "Grind", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15613,7 +15524,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "CutSat", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15631,7 +15542,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.19.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___19___0-_LPAR_2025-05-01_RPAR_--Lake":
@@ -15648,7 +15559,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.19.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___19___0-_LPAR_2025-05-01_RPAR_--Highlights--Updates-to-structures-and-classes":
@@ -15665,7 +15576,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Updates to structures and classes",
         "shortTitle": null,
@@ -15685,7 +15596,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Parallel Elaboration", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15703,7 +15614,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Other Highlights", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15721,7 +15632,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New Decorations in VS Code",
         "shortTitle": null,
@@ -15741,7 +15652,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library Updates", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15759,7 +15670,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Language Features", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.19.0/"}],
@@ -15777,7 +15688,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.19.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___19___0-_LPAR_2025-05-01_RPAR_--Documentation":
@@ -15794,7 +15705,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.19.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___19___0-_LPAR_2025-05-01_RPAR_--Compiler":
@@ -15811,7 +15722,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.19.0 (2025-05-01)",
         "shortTitle": null,
-        "number": "13"},
+        "number": "15"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.19.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Server":
@@ -15828,7 +15739,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.18.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Pretty-Printing":
@@ -15845,7 +15756,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.18.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Other":
@@ -15862,7 +15773,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.18.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Library":
@@ -15879,7 +15790,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.18.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Language--grind-Tactic--Cutsat-Procedure-_LPAR_Solver-for-Linear-Integer-Arithmetic-Problems_RPAR_":
@@ -15897,7 +15808,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "grind Tactic", "shortTitle": null, "number": "6"},
        {"title":
@@ -15919,7 +15830,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "grind Tactic", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.18.0/"}],
@@ -15937,7 +15848,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "bv_decide Tactic", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.18.0/"}],
@@ -15955,7 +15866,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "Updates to the try? Tactic",
         "shortTitle": null,
@@ -15975,7 +15886,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "Parallelizing Elaboration",
         "shortTitle": null,
@@ -15995,7 +15906,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "Linear Integer Normalization in simp +arith",
         "shortTitle": null,
@@ -16015,7 +15926,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Language", "shortTitle": null, "number": "2"},
        {"title": "Functional Induction Tactic",
         "shortTitle": null,
@@ -16035,7 +15946,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.18.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Lake":
@@ -16052,7 +15963,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.18.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Highlights":
@@ -16069,7 +15980,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.18.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Documentation":
@@ -16086,7 +15997,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.18.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Compiler":
@@ -16103,7 +16014,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.18.0 (2025-04-02)",
         "shortTitle": null,
-        "number": "14"},
+        "number": "16"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.18.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___17___0-_LPAR_2025-03-03_RPAR_--Server":
@@ -16120,7 +16031,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.17.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___17___0-_LPAR_2025-03-03_RPAR_--Pretty-Printing":
@@ -16137,7 +16048,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.17.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___17___0-_LPAR_2025-03-03_RPAR_--Other":
@@ -16154,7 +16065,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.17.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___17___0-_LPAR_2025-03-03_RPAR_--Library":
@@ -16171,7 +16082,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.17.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___17___0-_LPAR_2025-03-03_RPAR_--Language":
@@ -16188,7 +16099,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.17.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___17___0-_LPAR_2025-03-03_RPAR_--Lake":
@@ -16205,7 +16116,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.17.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___17___0-_LPAR_2025-03-03_RPAR_--Highlights--New-Language-Features":
@@ -16222,7 +16133,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New Language Features", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.17.0/"}],
@@ -16240,7 +16151,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "New CLI Features", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.17.0/"}],
@@ -16258,7 +16169,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Breaking Changes", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.17.0/"}],
@@ -16276,7 +16187,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.17.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___17___0-_LPAR_2025-03-03_RPAR_--Documentation":
@@ -16293,7 +16204,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.17.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___17___0-_LPAR_2025-03-03_RPAR_--Compiler":
@@ -16310,7 +16221,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.17.0 (2025-03-03)",
         "shortTitle": null,
-        "number": "15"},
+        "number": "17"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.17.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___16___0-_LPAR_2025-02-03_RPAR_--Server":
@@ -16327,7 +16238,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Server", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.16.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___16___0-_LPAR_2025-02-03_RPAR_--Pretty-Printing":
@@ -16344,7 +16255,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.16.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___16___0-_LPAR_2025-02-03_RPAR_--Other":
@@ -16361,7 +16272,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Other", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.16.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___16___0-_LPAR_2025-02-03_RPAR_--Library":
@@ -16378,7 +16289,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Library", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.16.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___16___0-_LPAR_2025-02-03_RPAR_--Language":
@@ -16395,7 +16306,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Language", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.16.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___16___0-_LPAR_2025-02-03_RPAR_--Lake":
@@ -16412,7 +16323,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Lake", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.16.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___16___0-_LPAR_2025-02-03_RPAR_--Highlights--Unique-sorrys":
@@ -16429,7 +16340,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Unique sorrys", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.16.0/"}],
@@ -16447,7 +16358,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Separators in numeric literals",
         "shortTitle": null,
@@ -16467,7 +16378,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Library updates", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.16.0/"}],
@@ -16485,7 +16396,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Breaking changes", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.16.0/"}],
@@ -16503,7 +16414,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Highlights", "shortTitle": null, "number": "1"},
        {"title": "Additional new features",
         "shortTitle": null,
@@ -16523,7 +16434,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Highlights", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.16.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___16___0-_LPAR_2025-02-03_RPAR_--Documentation":
@@ -16540,7 +16451,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Documentation", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.16.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___16___0-_LPAR_2025-02-03_RPAR_--Compiler":
@@ -16557,7 +16468,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.16.0 (2025-02-03)",
         "shortTitle": null,
-        "number": "16"},
+        "number": "18"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.16.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___15___0-_LPAR_2025-01-04_RPAR_--Server":
@@ -16574,7 +16485,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.15.0 (2025-01-04)",
         "shortTitle": null,
-        "number": "17"},
+        "number": "19"},
        {"title": "Server", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.15.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___15___0-_LPAR_2025-01-04_RPAR_--Pretty-Printing":
@@ -16591,7 +16502,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.15.0 (2025-01-04)",
         "shortTitle": null,
-        "number": "17"},
+        "number": "19"},
        {"title": "Pretty Printing", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.15.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___15___0-_LPAR_2025-01-04_RPAR_--Other":
@@ -16608,7 +16519,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.15.0 (2025-01-04)",
         "shortTitle": null,
-        "number": "17"},
+        "number": "19"},
        {"title": "Other", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.15.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___15___0-_LPAR_2025-01-04_RPAR_--Library":
@@ -16625,7 +16536,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.15.0 (2025-01-04)",
         "shortTitle": null,
-        "number": "17"},
+        "number": "19"},
        {"title": "Library", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.15.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___15___0-_LPAR_2025-01-04_RPAR_--Language":
@@ -16642,7 +16553,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.15.0 (2025-01-04)",
         "shortTitle": null,
-        "number": "17"},
+        "number": "19"},
        {"title": "Language", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.15.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___15___0-_LPAR_2025-01-04_RPAR_--Lake":
@@ -16659,7 +16570,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.15.0 (2025-01-04)",
         "shortTitle": null,
-        "number": "17"},
+        "number": "19"},
        {"title": "Lake", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.15.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___15___0-_LPAR_2025-01-04_RPAR_--Documentation":
@@ -16676,7 +16587,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.15.0 (2025-01-04)",
         "shortTitle": null,
-        "number": "17"},
+        "number": "19"},
        {"title": "Documentation", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.15.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___15___0-_LPAR_2025-01-04_RPAR_--Compiler":
@@ -16693,7 +16604,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.15.0 (2025-01-04)",
         "shortTitle": null,
-        "number": "17"},
+        "number": "19"},
        {"title": "Compiler", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.15.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___14___0-_LPAR_2024-12-02_RPAR_--Pretty-printing":
@@ -16710,7 +16621,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.14.0 (2024-12-02)",
         "shortTitle": null,
-        "number": "18"},
+        "number": "20"},
        {"title": "Pretty printing", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.14.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___14___0-_LPAR_2024-12-02_RPAR_--Library":
@@ -16727,7 +16638,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.14.0 (2024-12-02)",
         "shortTitle": null,
-        "number": "18"},
+        "number": "20"},
        {"title": "Library", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.14.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___14___0-_LPAR_2024-12-02_RPAR_--Language-server___-widgets___-and-IDE-extensions":
@@ -16744,7 +16655,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.14.0 (2024-12-02)",
         "shortTitle": null,
-        "number": "18"},
+        "number": "20"},
        {"title": "Language server, widgets, and IDE extensions",
         "shortTitle": null,
         "number": "2"}]},
@@ -16763,7 +16674,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.14.0 (2024-12-02)",
         "shortTitle": null,
-        "number": "18"},
+        "number": "20"},
        {"title": "Language features, tactics, and metaprograms",
         "shortTitle": null,
         "number": "1"}]},
@@ -16782,7 +16693,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.14.0 (2024-12-02)",
         "shortTitle": null,
-        "number": "18"},
+        "number": "20"},
        {"title": "Lake", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.14.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___14___0-_LPAR_2024-12-02_RPAR_--Documentation":
@@ -16799,7 +16710,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.14.0 (2024-12-02)",
         "shortTitle": null,
-        "number": "18"},
+        "number": "20"},
        {"title": "Documentation", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.14.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___14___0-_LPAR_2024-12-02_RPAR_--Compiler___-runtime___-and-FFI":
@@ -16816,7 +16727,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.14.0 (2024-12-02)",
         "shortTitle": null,
-        "number": "18"},
+        "number": "20"},
        {"title": "Compiler, runtime, and FFI",
         "shortTitle": null,
         "number": "5"}]},
@@ -16835,7 +16746,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.14.0 (2024-12-02)",
         "shortTitle": null,
-        "number": "18"},
+        "number": "20"},
        {"title": "Breaking changes", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.14.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___13___0-_LPAR_2024-11-01_RPAR_--Pretty-printing":
@@ -16852,7 +16763,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.13.0 (2024-11-01)",
         "shortTitle": null,
-        "number": "19"},
+        "number": "21"},
        {"title": "Pretty printing", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.13.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___13___0-_LPAR_2024-11-01_RPAR_--Library":
@@ -16869,7 +16780,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.13.0 (2024-11-01)",
         "shortTitle": null,
-        "number": "19"},
+        "number": "21"},
        {"title": "Library", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.13.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___13___0-_LPAR_2024-11-01_RPAR_--Language-server___-widgets___-and-IDE-extensions":
@@ -16886,7 +16797,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.13.0 (2024-11-01)",
         "shortTitle": null,
-        "number": "19"},
+        "number": "21"},
        {"title": "Language server, widgets, and IDE extensions",
         "shortTitle": null,
         "number": "2"}]},
@@ -16905,7 +16816,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.13.0 (2024-11-01)",
         "shortTitle": null,
-        "number": "19"},
+        "number": "21"},
        {"title": "Language features, tactics, and metaprograms",
         "shortTitle": null,
         "number": "1"}]},
@@ -16924,7 +16835,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.13.0 (2024-11-01)",
         "shortTitle": null,
-        "number": "19"},
+        "number": "21"},
        {"title": "Lake", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.13.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___13___0-_LPAR_2024-11-01_RPAR_--Documentation-fixes":
@@ -16941,7 +16852,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.13.0 (2024-11-01)",
         "shortTitle": null,
-        "number": "19"},
+        "number": "21"},
        {"title": "Documentation fixes", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.13.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___13___0-_LPAR_2024-11-01_RPAR_--Compiler___-runtime___-and-FFI":
@@ -16958,7 +16869,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.13.0 (2024-11-01)",
         "shortTitle": null,
-        "number": "19"},
+        "number": "21"},
        {"title": "Compiler, runtime, and FFI",
         "shortTitle": null,
         "number": "5"}]},
@@ -16977,7 +16888,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.13.0 (2024-11-01)",
         "shortTitle": null,
-        "number": "19"},
+        "number": "21"},
        {"title": "Changes to CI", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.13.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___12___0-_LPAR_2024-10-01_RPAR_--Pretty-printing":
@@ -16994,7 +16905,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.12.0 (2024-10-01)",
         "shortTitle": null,
-        "number": "20"},
+        "number": "22"},
        {"title": "Pretty printing", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.12.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___12___0-_LPAR_2024-10-01_RPAR_--Library":
@@ -17011,7 +16922,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.12.0 (2024-10-01)",
         "shortTitle": null,
-        "number": "20"},
+        "number": "22"},
        {"title": "Library", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.12.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___12___0-_LPAR_2024-10-01_RPAR_--Lean-internals":
@@ -17028,7 +16939,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.12.0 (2024-10-01)",
         "shortTitle": null,
-        "number": "20"},
+        "number": "22"},
        {"title": "Lean internals", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.12.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___12___0-_LPAR_2024-10-01_RPAR_--Language-server___-widgets___-and-IDE-extensions":
@@ -17045,7 +16956,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.12.0 (2024-10-01)",
         "shortTitle": null,
-        "number": "20"},
+        "number": "22"},
        {"title": "Language server, widgets, and IDE extensions",
         "shortTitle": null,
         "number": "2"}]},
@@ -17064,7 +16975,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.12.0 (2024-10-01)",
         "shortTitle": null,
-        "number": "20"},
+        "number": "22"},
        {"title": "Language features, tactics, and metaprograms",
         "shortTitle": null,
         "number": "1"}]},
@@ -17083,7 +16994,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.12.0 (2024-10-01)",
         "shortTitle": null,
-        "number": "20"},
+        "number": "22"},
        {"title": "Lake", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.12.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___12___0-_LPAR_2024-10-01_RPAR_--DevOps___CI":
@@ -17100,7 +17011,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.12.0 (2024-10-01)",
         "shortTitle": null,
-        "number": "20"},
+        "number": "22"},
        {"title": "DevOps/CI", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.12.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___12___0-_LPAR_2024-10-01_RPAR_--Compiler___-runtime___-and-FFI":
@@ -17117,7 +17028,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.12.0 (2024-10-01)",
         "shortTitle": null,
-        "number": "20"},
+        "number": "22"},
        {"title": "Compiler, runtime, and FFI",
         "shortTitle": null,
         "number": "6"}]},
@@ -17136,7 +17047,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.12.0 (2024-10-01)",
         "shortTitle": null,
-        "number": "20"},
+        "number": "22"},
        {"title": "Breaking changes", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.12.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___11___0-_LPAR_2024-09-02_RPAR_--Pretty-printing":
@@ -17153,7 +17064,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.11.0 (2024-09-02)",
         "shortTitle": null,
-        "number": "21"},
+        "number": "23"},
        {"title": "Pretty printing", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.11.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___11___0-_LPAR_2024-09-02_RPAR_--Library":
@@ -17170,7 +17081,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.11.0 (2024-09-02)",
         "shortTitle": null,
-        "number": "21"},
+        "number": "23"},
        {"title": "Library", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.11.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___11___0-_LPAR_2024-09-02_RPAR_--Lean-internals":
@@ -17187,7 +17098,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.11.0 (2024-09-02)",
         "shortTitle": null,
-        "number": "21"},
+        "number": "23"},
        {"title": "Lean internals", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.11.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___11___0-_LPAR_2024-09-02_RPAR_--Language-server___-widgets___-and-IDE-extensions":
@@ -17204,7 +17115,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.11.0 (2024-09-02)",
         "shortTitle": null,
-        "number": "21"},
+        "number": "23"},
        {"title": "Language server, widgets, and IDE extensions",
         "shortTitle": null,
         "number": "2"}]},
@@ -17223,7 +17134,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.11.0 (2024-09-02)",
         "shortTitle": null,
-        "number": "21"},
+        "number": "23"},
        {"title": "Language features, tactics, and metaprograms",
         "shortTitle": null,
         "number": "1"}]},
@@ -17242,7 +17153,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.11.0 (2024-09-02)",
         "shortTitle": null,
-        "number": "21"},
+        "number": "23"},
        {"title": "Lake", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.11.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___11___0-_LPAR_2024-09-02_RPAR_--DevOps___CI":
@@ -17259,7 +17170,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.11.0 (2024-09-02)",
         "shortTitle": null,
-        "number": "21"},
+        "number": "23"},
        {"title": "DevOps/CI", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.11.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___11___0-_LPAR_2024-09-02_RPAR_--Compiler___-runtime___-and-FFI":
@@ -17276,7 +17187,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.11.0 (2024-09-02)",
         "shortTitle": null,
-        "number": "21"},
+        "number": "23"},
        {"title": "Compiler, runtime, and FFI",
         "shortTitle": null,
         "number": "6"}]},
@@ -17295,7 +17206,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.11.0 (2024-09-02)",
         "shortTitle": null,
-        "number": "21"},
+        "number": "23"},
        {"title": "Breaking changes", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.11.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___10___0-_LPAR_2024-07-31_RPAR_--Pretty-printing":
@@ -17312,7 +17223,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.10.0 (2024-07-31)",
         "shortTitle": null,
-        "number": "22"},
+        "number": "24"},
        {"title": "Pretty printing", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.10.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___10___0-_LPAR_2024-07-31_RPAR_--Library":
@@ -17329,7 +17240,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.10.0 (2024-07-31)",
         "shortTitle": null,
-        "number": "22"},
+        "number": "24"},
        {"title": "Library", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.10.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___10___0-_LPAR_2024-07-31_RPAR_--Lean-internals":
@@ -17346,7 +17257,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.10.0 (2024-07-31)",
         "shortTitle": null,
-        "number": "22"},
+        "number": "24"},
        {"title": "Lean internals", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.10.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___10___0-_LPAR_2024-07-31_RPAR_--Language-server___-widgets___-and-IDE-extensions":
@@ -17363,7 +17274,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.10.0 (2024-07-31)",
         "shortTitle": null,
-        "number": "22"},
+        "number": "24"},
        {"title": "Language server, widgets, and IDE extensions",
         "shortTitle": null,
         "number": "2"}]},
@@ -17382,7 +17293,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.10.0 (2024-07-31)",
         "shortTitle": null,
-        "number": "22"},
+        "number": "24"},
        {"title": "Language features, tactics, and metaprograms",
         "shortTitle": null,
         "number": "1"}]},
@@ -17401,7 +17312,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.10.0 (2024-07-31)",
         "shortTitle": null,
-        "number": "22"},
+        "number": "24"},
        {"title": "Lake", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.10.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___10___0-_LPAR_2024-07-31_RPAR_--DevOps___CI":
@@ -17418,7 +17329,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.10.0 (2024-07-31)",
         "shortTitle": null,
-        "number": "22"},
+        "number": "24"},
        {"title": "DevOps/CI", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.10.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___10___0-_LPAR_2024-07-31_RPAR_--Compiler___-runtime___-and-FFI":
@@ -17435,7 +17346,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.10.0 (2024-07-31)",
         "shortTitle": null,
-        "number": "22"},
+        "number": "24"},
        {"title": "Compiler, runtime, and FFI",
         "shortTitle": null,
         "number": "6"}]},
@@ -17454,7 +17365,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.10.0 (2024-07-31)",
         "shortTitle": null,
-        "number": "22"},
+        "number": "24"},
        {"title": "Breaking changes", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.10.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___0___0-m1-_LPAR_2021-01-04_RPAR_--Acknowledgements":
@@ -17471,7 +17382,7 @@ window.addEventListener("load", () => {
        {"title": "Release Notes", "shortTitle": null, "number": null},
        {"title": "Lean 4.0.0-m1 (2021-01-04)",
         "shortTitle": null,
-        "number": "37"},
+        "number": "39"},
        {"title": "Acknowledgements", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.0.0-m1/"}],
    "The-Lean-Language-Reference--Notations-and-Macros--Elaborators--Term-Elaborators":
@@ -71685,6 +71596,205 @@ if (paramName) {
         }
     });
 }
+</script>
+    <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
+      
+window.addEventListener("load", () => {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
+});
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
 </script>
     <script>
       
