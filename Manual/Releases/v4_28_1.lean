@@ -19,6 +19,17 @@ tag := "release-v4.28.1"
 file := "v4.28.1"
 %%%
 
+For this release, 2 changes landed.
+In addition to the 0 feature additions,
+and 1 fix listed below,
+there were 0 refactoring changes,
+0 documentation improvements,
+0 performance improvements,
+0 improvements to the test suite,
+and 1 other change.
+
+# Compiler
+
 ```markdown
 
 - [#13392](https://github.com/leanprover/lean4/pull/13392)
