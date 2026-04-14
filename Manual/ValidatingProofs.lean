@@ -184,7 +184,7 @@ In a trusted environment, write the theorem *statement* (the “challenge”), a
 
 Comparator will build the proof in a sandboxed environment, to protect against {tech}[malicious] code in the build step.
 The proof term is exported to a serialized format.
-Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, replays the proofs using both Lean's kernel and/or an external checker and also ensures that the proved theorem statements matche those in the trusted challenge file.
+Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, replays the proofs using both Lean's kernel and/or an external checker and also ensures that the proved theorem statements match those in the trusted challenge file.
 
 ## Trust
 
