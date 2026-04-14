@@ -196,7 +196,7 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 (In addition to the list above)
 
 * Actively {tech}[malicious] proofs
-* Implementation bugs present in some (but simulatenously in all) of the used checkers.
+* Implementation bugs present in some (but not simulatenously in all) of the used checkers.
 :::
 
 ## Comments
