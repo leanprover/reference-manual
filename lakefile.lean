@@ -13,6 +13,7 @@ require illuminate from git "https://github.com/leanprover/illuminate"@"main"
 require verso from git "https://github.com/leanprover/verso.git"@"nightly-testing"
 
 
+
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
   moreLeancArgs := #["-O0"]
