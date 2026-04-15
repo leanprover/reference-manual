@@ -41,7 +41,7 @@ The {keywordOf Lean.Parser.Command.declaration}`coinductive` command defines the
 It additionally generates constructors and a case analysis principle, much like an ordinary {keywordOf Lean.Parser.Command.declaration}`inductive` declaration.
 
 :::example "Coinductive Predicate via `coinductive`"
-The predicate {lean}`InfSeq` from the {ref "coinductive-predicates"}[running example] can equivalently be defined using the {keywordOf Lean.Parser.Command.declaration}`coinductive` command:
+The predicate {lean}`InfSeq` from prior examples can equivalently be defined using the {keywordOf Lean.Parser.Command.coinductive}`coinductive` command:
 
 ```lean
 variable (α : Type)
@@ -59,14 +59,16 @@ InfSeq.step (α : Type) (r : α → α → Prop) {a b : α} :
 
 ```signature
 InfSeq.coinduct (α : Type) (r : α → α → Prop) (pred : α → Prop) :
-  (∀ (a : α), pred a → ∃ b, r a b ∧ pred b) → ∀ (a : α), pred a → InfSeq α r a
+  (∀ (a : α), pred a → ∃ b, r a b ∧ pred b) →
+  ∀ (a : α), pred a → InfSeq α r a
 ```
 
-A case analysis principle is also available:
+A case analysis principle is also generated:
 ```signature
 InfSeq.casesOn (α : Type) (r : α → α → Prop)
     {motive : (a : α) → InfSeq α r a → Prop} {a : α} (t : InfSeq α r a) :
-  (∀ {a b : α} (a_1 : r a b) (a_2 : InfSeq α r b), motive a (InfSeq.step α r a_1 a_2)) →
+  (∀ {a b} (a_1 : r a b) (a_2 : InfSeq α r b),
+    motive a (InfSeq.step α r a_1 a_2)) →
   motive a t
 ```
 
@@ -93,16 +95,16 @@ Before registering the types with the kernel, however, a {deftech}_flat inductiv
 
 
 :::example "Flat Inductive"
-```lean
+This example uses the coinductive specification of infinite sequences:
+```lean -show
 variable (α : Type)
+```
+```lean
 coinductive InfSeq (r : α → α → Prop) : α → Prop where
   | step : r a b → InfSeq r b → InfSeq r a
 ```
 For {lean}`InfSeq`, the generated flat inductive is:
 
-```lean (name := checkFunctor) -keep
-#check @InfSeq._functor
-```
 ```signature
 InfSeq._functor : (α : Type) → (α → α → Prop) → (α → Prop) → α → Prop
 ```
@@ -127,8 +129,10 @@ An equivalent {deftech}_existential form_ is then constructed, expressing each c
 This form is used for monotonicity checking and for generating readable coinduction principles.
 
 :::example "Existential Form"
-```lean
+```lean -show
 variable (α : Type)
+```
+```lean
 coinductive InfSeq (r : α → α → Prop) : α → Prop where
   | step : r a b → InfSeq r b → InfSeq r a
 ```
@@ -175,7 +179,7 @@ The following declarations are generated for a coinductive predicate named `P`:
 tag := "mutual-coinductive-syntax"
 %%%
 
-In a {tech}[mutual block] containing {keywordOf Lean.Parser.Command.declaration}`coinductive` definitions, the {keywordOf Lean.Parser.Command.declaration}`inductive` keyword is reinterpreted: instead of being registered as an ordinary kernel inductive type, it is elaborated via the lattice-theoretic {tech (key := "lattice-theoretic inductive predicate")}[inductive fixpoint] machinery.
+In a {tech}[mutual block] containing {keywordOf Lean.Parser.Command.coinductive}`coinductive` definitions, the {keywordOf Lean.Parser.Command.inductive}`inductive` keyword is reinterpreted: instead of being registered as an ordinary kernel inductive type, it is elaborated via the lattice-theoretic {tech (key := "lattice-theoretic inductive predicate")}[inductive fixpoint] machinery.
 This allows mixing coinductive and inductive predicates in the same mutual block.
 
 :::example "Mutual Coinductive-Inductive Block"

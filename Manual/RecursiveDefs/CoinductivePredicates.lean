@@ -363,8 +363,9 @@ languageEquivalent.coinduct  {Q A Q' : Type} (M : DFA Q A) (M' : DFA Q' A) (pred
     ∀ (q : Q) (q' : Q'), pred q q' → languageEquivalent M M' q q'
 ```
 
-It can be used to prove that these two DFAs have equivalent languages
-```diagram
+It can be used to prove that these two DFAs have equivalent languages:
+:::row (align := "top")
+```diagram (scale := "0.1") +inline
 open Illuminate in
 let cfg : StateDiagramConfig := {}
 cfg.start 0 |>.atop
@@ -375,7 +376,7 @@ cfg.start 0 |>.atop
 (cfg.edge 0 1 "b")
 ```
 
-```diagram
+```diagram (scale := "0.1") +inline
 open Illuminate in
 let cfg : StateDiagramConfig := {}
 cfg.start 0 |>.atop
@@ -388,6 +389,7 @@ cfg.start 0 |>.atop
 (cfg.arc 0 2 "b" (-140)) |>.atop
 (cfg.loop 2 "a, b")
 ```
+:::
 
 These DFAs can be represented using the following definitions:
 ```lean
@@ -428,9 +430,7 @@ theorem loop_equiv_cycle :
   | .fail, .fail => True
   | _, _ => False
   apply languageEquivalent.coinduct (pred := r)
-  . intro q q'
-    cases q <;> cases q' <;>
-    simp only [loop, cycle] <;>
+  . simp only [loop, cycle] <;>
     grind
   . simp [r, loop, cycle]
 ```
@@ -474,7 +474,8 @@ inductive_fixpoint
 An induction principle is generated:
 ```signature
 StarInd.induct (tr : α → α → Prop) (q₂ : α) (pred : α → Prop)
-  (hyp : ∀ (q₁ : α), (q₁ = q₂ ∨ ∃ z, tr q₁ z ∧ pred z) → pred q₁) (q₁ : α) :
+  (hyp : ∀ (q₁ : α), (q₁ = q₂ ∨ ∃ z, tr q₁ z ∧ pred z) → pred q₁)
+  (q₁ : α) :
   StarInd tr q₁ q₂ → pred q₁
 ```
 
@@ -499,11 +500,12 @@ tag := "mixed-mutual-fixpoint"
 
 A {tech}[mutual block] can mix {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` and {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint` clauses.
 Every definition in the block must use one of these two clauses.
-The construction uses two {ref "lattice-prop"}[lattice structures on `Prop`]: {name}`Lean.Order.ImplicationOrder` for inductive definitions and {name}`Lean.Order.ReverseImplicationOrder` for coinductive definitions.
+The construction uses two {ref "lattice-prop"}[lattice structures on `Prop`]: {name Lean.Order.ImplicationOrder}`ImplicationOrder` for inductive definitions and {name Lean.Order.ReverseImplicationOrder}`ReverseImplicationOrder` for coinductive definitions.
 In both cases, the least fixpoint of the corresponding lattice is computed; using the reverse implication order, the least fixpoint coincides with the greatest fixpoint in the standard order.
 This is possible because {ref "coinductive-monotonicity"}[monotonicity] lemmas flip between the two orders when negation or implication is encountered.
 
 :::example "Mixed Inductive-Coinductive Mutual Block"
+This mutual block contains mutually-recursive coinductive and inductive predicates:
 ```lean
 mutual
   def tick : Prop :=
@@ -525,39 +527,41 @@ tick.mutual_induct (pred_1 pred_2 : Prop) :
 :::
 
 
-# Examples
+# Further Examples
 %%%
 tag := "coinductive-predicate-examples"
 %%%
 
+:::example "Infinite Chains from Universal Reachability" (open := true)
 ```lean -show
-namespace ProofTechniques
+variable {a : α}
 ```
-
-:::example "Infinite Chains from Universal Reachability"
-If every state reachable from `a` via the reflexive transitive closure has a successor, then there is an infinite chain from `a`:
-
+The reflexive transitive closure of a relation is specified inductively:
 ```lean
 inductive Star (R : α → α → Prop) : α → α → Prop where
   | refl : ∀ x : α, Star R x x
   | step : ∀ x y z, R x y → Star R y z → Star R x z
 ```
-
+Infinite sequences are specified coinductively:
 ```lean
 def InfSeq (R : α → α → Prop) (a : α) : Prop :=
   ∃ b, R a b ∧ InfSeq R b
 coinductive_fixpoint
 ```
 
+If every state reachable from a starting state {lean}`a` via the reflexive transitive closure has a successor, then there is an infinite chain from {lean}`a`.
+The predicate {lean}`AllSeqInf` states that every reachable state has a successor:
 ```lean
-def allSeqInf (R : α → α → Prop) (x : α) : Prop :=
+def AllSeqInf (R : α → α → Prop) (x : α) : Prop :=
   ∀ y : α, Star R x y → ∃ z, R y z
-
+```
+Proving that this implies that there is an infinite chain is done via coinduction:
+```lean
 theorem infSeq_of_allSeqInf (R : α → α → Prop) :
-    ∀ x, allSeqInf R x → InfSeq R x := by
+    ∀ x, AllSeqInf R x → InfSeq R x := by
   apply InfSeq.coinduct
   intro x H
-  unfold allSeqInf at H
+  unfold AllSeqInf at H
   have H' := H x (.refl x)
   obtain ⟨y, Rxy⟩ := H'
   exact ⟨y, Rxy,
@@ -567,7 +571,7 @@ theorem infSeq_of_allSeqInf (R : α → α → Prop) :
 :::
 
 
-:::example "Coinduction Up-To Transitive Closure"
+:::example "Coinduction Up-To Transitive Closure" (open := true)
 A strengthened coinduction principle allows the coinduction hypothesis to be applied up to transitive closure.
 Given a predicate {lean}`X` such that every {lean}`X`-state leads via one-or-more {lean}`R`-steps to another {lean}`X`-state, then every {lean}`X`-state satisfies {lean}`InfSeq R`:
 
@@ -586,31 +590,31 @@ coinductive_fixpoint
 ```lean
 variable {α : Sort _} {R : α → α → Prop}
 
-inductive plus (R : α → α → Prop) :
+inductive Plus (R : α → α → Prop) :
     α → α → Prop where
   | left : ∀ a b c,
-      R a b → Star R b c → plus R a c
+      R a b → Star R b c → Plus R a c
 
 theorem plusStar (a b : α) :
-    plus R a b → Star R a b := by
+    Plus R a b → Star R a b := by
   intro h; cases h
   case left _ h₂ h₃ =>
     exact Star.step _ _ _ h₂ h₃
 
 theorem plusStarTrans (a b c : α) :
-    Star R a b → plus R b c →
-    plus R a c := by
+    Star R a b → Plus R b c →
+    Plus R a c := by
   intro s p; induction s
   case refl => exact p
   case step d e _ rel _ ih =>
-    exact plus.left _ _ _ rel
+    exact Plus.left _ _ _ rel
       (plusStar _ _ (ih p))
 
 variable (X : α → Prop)
 
 theorem infSeqCoinductionUpTo :
     (∀ (a : α), X a →
-      ∃ b, plus R a b ∧ X b) →
+      ∃ b, Plus R a b ∧ X b) →
     ∀ (a : α), X a → InfSeq R a := by
   intro h₁ a rel
   apply @InfSeq.coinduct _ _
@@ -628,9 +632,6 @@ theorem infSeqCoinductionUpTo :
 ```
 :::
 
-```lean -show
-end ProofTechniques
-```
 
 
 {include 0 Manual.RecursiveDefs.CoinductivePredicates.CoinductiveSyntax}
