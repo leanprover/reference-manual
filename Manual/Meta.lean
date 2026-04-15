@@ -39,6 +39,7 @@ import Manual.Meta.Markdown
 import Manual.Meta.Namespace
 import Manual.Meta.SectionNotes
 import Manual.Meta.ConfigFile
+import Manual.Meta.Diagram
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets

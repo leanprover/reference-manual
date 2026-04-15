@@ -865,3 +865,9 @@ Mutual inductive types are represented identically to {ref "run-time-inductives"
 The restrictions on mutual inductive types exist to ensure Lean's consistency as a logic, and do not impact compiled code.
 
 {include 2 Manual.Language.InductiveTypes.Nested}
+
+## Lattice-Theoretic Inductive and Coinductive Predicates
+
+The syntax of inductive type declarations can be used to specify both inductive and coinductive predicates.
+These are not a built-in feature of Lean's type system, but are instead elaborated to a suitable encoding.
+They are described in {ref "coinductive-predicates"}[a dedicated section].
