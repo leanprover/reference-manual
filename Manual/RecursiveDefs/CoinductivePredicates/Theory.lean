@@ -84,17 +84,13 @@ tag := "coinductive-monotonicity"
 %%%
 
 Defining a predicate as a fixpoint requires the defining equation to be monotone with respect to the appropriate order.
-
-For the {keywordOf Lean.Parser.Command.declaration}`coinductive` command, monotonicity is guaranteed by construction: the kernel's strict positivity check on the underlying {ref "coinductive-elaboration"}[flat inductive] ensures that every accepted definition is monotone.
-Users do not need to concern themselves with monotonicity when using this syntax.
-
-For the {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` and {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint` termination clauses, the monotonicity requirement is semantic rather than syntactic.
+For both the {keywordOf Lean.Parser.Command.declaration}`coinductive` command and the {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` and {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint` termination clauses, the monotonicity requirement is semantic rather than syntactic.
 The {tactic}`monotonicity` tactic proves monotonicity by composing lemmas registered with the {attr}`partial_fixpoint_monotone` attribute.
 This approach is more permissive than strict positivity.
 For example, negation and implication are handled correctly by flipping the order between {name}`Lean.Order.ImplicationOrder` and {name}`Lean.Order.ReverseImplicationOrder`.
 This is what allows mixing inductive and coinductive fixpoints in the same {tech}[mutual block].
 
 The set of constructs handled by the {tactic}`monotonicity` tactic is extensible: registering additional {attr}`partial_fixpoint_monotone` lemmas teaches the tactic to handle new logical connectives or higher-order functions.
-Alternatively, an explicit monotonicity proof term can be provided.
+Alternatively, an explicit monotonicity proof term can be provided when using {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` via a {keyword}`monotonicity` clause.
 
 See the {ref "partial-fixpoint-theory"}[theory section of partial fixpoints] for the full list of registered monotonicity lemmas and for more detail on the monotonicity tactic.

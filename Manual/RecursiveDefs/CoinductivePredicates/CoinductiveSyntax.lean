@@ -159,7 +159,6 @@ InfSeq._functor.existential_equiv : ∀ (α : Type) (r : α → α → Prop) (In
 :::
 
 The existential form is then registered as a coinductive predicate using the {ref "partial-fixpoint"}[partial fixpoint] machinery with the {name}`Lean.Order.ReverseImplicationOrder` complete lattice instance.
-Because the flat inductive has already been checked for strict positivity by the kernel, monotonicity of the resulting functor is guaranteed.
 Using the correspondence between the flat inductive and the existential form, constructors and a case analysis eliminator are generated, just as for regular inductive types.
 
 :::paragraph
@@ -231,8 +230,6 @@ The {keywordOf Lean.Parser.Command.declaration}`coinductive` command has the fol
    Attempting to define a coinductive type in {lean}`Type` or higher universes results in an error.
 
  * The predicate being defined may not have {tech}[macro scopes].
-
- * The name of a coinductive predicate must not conflict with the name of one of its constructors. {TODO}[What does this mean?]
 
  * Pattern matching via {keywordOf Lean.Parser.Term.match}`match` is not yet supported; use the {tactic}`cases` tactic instead.
 

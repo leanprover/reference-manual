@@ -27,13 +27,21 @@ set_option maxRecDepth 600
 tag := "coinductive-predicates"
 %%%
 
+:::paragraph
 Lean's type theory does not support coinductive types directly.
 However, {deftech (key := "lattice-theoretic coinductive predicate")}[coinductive predicates], that is, recursive definitions valued in {lean}`Prop`, can be defined using the complete lattice structure on propositions.
-These predicates provide a coinductive reasoning principle, in which a universally quantified instance of a predicate is shown to be true by demonstrating that its truth for a larger structure implies its truth for smaller structures.
-This is the opposite of inductive reasoning, in which the truth of a predicate for smaller values is shown to guarantee its truth for larger values.
+These predicates provide a coinductive reasoning principle, where something can be shown to satisfy a predicate by showing that it satisfies some smaller predicate that is itself consistent with the definition of the coinductive predicate.
+This is the dual of inductive reasoning, in which a known fact can be decomposed via a potentially recursive case analysis.
 Coinductive predicates allow infinite domains to be specified and reasoned about.
+Some examples from computer science include:
+
+ * Bisimilarity of state transition systems that admit cycles
+ * Divergence of small-step operational semantics
+ * Liveness properties
+
 Dually, {deftech (key := "lattice-theoretic inductive predicate")}[inductive predicates] can also be defined via least fixpoints using the same machinery.
 Because it uses the same underlying mechanisms, this alternative to ordinary {tech}[inductive types] is compatible with mixed inductive-coinductive mutual blocks.
+:::
 
 ::::::example "Infinite Sequences" (open := true)
 
@@ -358,9 +366,13 @@ coinductive_fixpoint
 
 The coinduction principle captures the standard notion of bisimulation of deterministic automata:
 ```signature
-languageEquivalent.coinduct  {Q A Q' : Type} (M : DFA Q A) (M' : DFA Q' A) (pred : Q → Q' → Prop) :
-  (∀ (q : Q) (q' : Q'), pred q q' → M.accepting q = M'.accepting q' ∧ ∀ (a : A), pred (M.δ q a) (M'.δ q' a)) →
-    ∀ (q : Q) (q' : Q'), pred q q' → languageEquivalent M M' q q'
+languageEquivalent.coinduct {Q A Q' : Type}
+  (M : DFA Q A) (M' : DFA Q' A) (pred : Q → Q' → Prop) :
+  (∀ (q : Q) (q' : Q'), pred q q' →
+    M.accepting q = M'.accepting q' ∧
+    ∀ (a : A), pred (M.δ q a) (M'.δ q' a)) →
+  ∀ (q : Q) (q' : Q'), pred q q' →
+    languageEquivalent M M' q q'
 ```
 
 It can be used to prove that these two DFAs have equivalent languages:
