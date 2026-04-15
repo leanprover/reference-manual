@@ -828,6 +828,8 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
         baseName := name
         wsIdx := 0
         origName := name
+        keyName := name
+        relManifestFile := Lake.defaultManifestFile
       }
 
     .ok <$> report pkg errs

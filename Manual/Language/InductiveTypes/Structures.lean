@@ -285,10 +285,10 @@ structure AugmentedIntList where
   augmentation : String := ""
 ```
 
-When testing whether the list is empty, the function {name AugmentedIntList.isEmpty}`isEmpty` is also testing whether the {name AugmentedIntList.augmentation}`augmentation` field is empty, because the omitted field's default value is also used in pattern contexts:
+When testing whether the list is empty, the function {name AugmentedIntList.isEmpty}`isEmpty` must explicitly match the {name AugmentedIntList.augmentation}`augmentation` field, even though it has a default value:
 ```lean (name := isEmptyDefaults)
 def AugmentedIntList.isEmpty : AugmentedIntList → Bool
-  | {list := []} => true
+  | {list := [], augmentation := ""} => true
   | _ => false
 
 #eval {list := [], augmentation := "extra" : AugmentedIntList}.isEmpty

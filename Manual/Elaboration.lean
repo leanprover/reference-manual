@@ -250,7 +250,7 @@ info: third_of_five.eq_def.{u_1} {α : Type u_1} (x✝ : List α) :
 #check third_of_five.eq_def
 
 /--
-info: def third_of_five.match_1.{u_1, u_2} : {α : Type u_1} →
+info: @[implicit_reducible] def third_of_five.match_1.{u_1, u_2} : {α : Type u_1} →
   (motive : List α → Sort u_2) →
     (x : List α) →
       ((head head_1 x head_2 head_3 : α) → motive [head, head_1, x, head_2, head_3]) →
