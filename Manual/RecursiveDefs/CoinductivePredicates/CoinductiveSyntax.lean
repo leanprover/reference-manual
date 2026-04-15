@@ -25,8 +25,8 @@ set_option maxRecDepth 600
 tag := "coinductive-command"
 %%%
 
-The {keywordOf Lean.Parser.Command.declaration}`coinductive` command provides a declarative syntax for defining coinductive predicates that mirrors the syntax of {keywordOf Lean.Parser.Command.declaration}`inductive` declarations.
-Rather than writing a recursive function with {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint`, users specify constructors just as they would for an inductive type.
+The {keywordOf Lean.Parser.Command.declaration}`coinductive` command provides a syntax for defining {tech (key := "lattice-theoretic coinductive predicate")}[coinductive predicates] that mirrors the syntax of {keywordOf Lean.Parser.Command.declaration}`inductive` declarations.
+Rather than writing a recursive function with {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint`, the declaration is written in terms of constructors, just as it would be for an inductive type.
 
 :::syntax command (title := "Coinductive Predicates")
 ```grammar
@@ -37,44 +37,37 @@ The {keywordOf Lean.Parser.Command.declaration}`coinductive` command defines a c
 It can only be used to define predicates, that is, types valued in {lean}`Prop`.
 :::
 
-The {keywordOf Lean.Parser.Command.declaration}`coinductive` command defines the same predicate as a corresponding {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` definition, but additionally generates constructors and a case analysis principle, much like an ordinary {keywordOf Lean.Parser.Command.declaration}`inductive` declaration.
+The {keywordOf Lean.Parser.Command.declaration}`coinductive` command defines the same predicate as the corresponding {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` definition.
+It additionally generates constructors and a case analysis principle, much like an ordinary {keywordOf Lean.Parser.Command.declaration}`inductive` declaration.
 
 :::example "Coinductive Predicate via `coinductive`"
 The predicate {lean}`InfSeq` from the {ref "coinductive-predicates"}[running example] can equivalently be defined using the {keywordOf Lean.Parser.Command.declaration}`coinductive` command:
 
 ```lean
-section
 variable (α : Type)
 
 coinductive InfSeq (r : α → α → Prop) : α → Prop where
   | step : r a b → InfSeq r b → InfSeq r a
 ```
 
-This generates a constructor and a coinduction principle:
+This generates a constructor and a {tech}[coinduction principle]:
 
-```lean (name := checkInfSeqStep)
-#check @InfSeq.step
-```
-```leanOutput checkInfSeqStep
-InfSeq.step : ∀ (α : Type) (r : α → α → Prop) {a b : α}, r a b → InfSeq α r b → InfSeq α r a
+```signature
+InfSeq.step (α : Type) (r : α → α → Prop) {a b : α} :
+  r a b → InfSeq α r b → InfSeq α r a
 ```
 
-```lean (name := checkInfSeqCoinduct)
-#check @InfSeq.coinduct
-```
-```leanOutput checkInfSeqCoinduct
-InfSeq.coinduct : ∀ (α : Type) (r : α → α → Prop) (pred : α → Prop),
+```signature
+InfSeq.coinduct (α : Type) (r : α → α → Prop) (pred : α → Prop) :
   (∀ (a : α), pred a → ∃ b, r a b ∧ pred b) → ∀ (a : α), pred a → InfSeq α r a
 ```
 
 A case analysis principle is also available:
-
-```lean (name := checkInfSeqCasesOn)
-#check @InfSeq.casesOn
-```
-```leanOutput checkInfSeqCasesOn
-InfSeq.casesOn : ∀ (α : Type) (r : α → α → Prop) {motive : (a : α) → InfSeq α r a → Prop} {a : α} (t : InfSeq α r a),
-  (∀ {a b : α} (a_1 : r a b) (a_2 : InfSeq α r b), motive a ⋯) → motive a t
+```signature
+InfSeq.casesOn (α : Type) (r : α → α → Prop)
+    {motive : (a : α) → InfSeq α r a → Prop} {a : α} (t : InfSeq α r a) :
+  (∀ {a b : α} (a_1 : r a b) (a_2 : InfSeq α r b), motive a (InfSeq.step α r a_1 a_2)) →
+  motive a t
 ```
 
 Case analysis can be used in proofs via the {tactic}`cases` tactic:
@@ -85,10 +78,6 @@ theorem InfSeq.casesOnTest (r : α → α → Prop)
   intro h
   cases h
   case step b _ hr => exists b
-```
-
-```lean
-end
 ```
 :::
 
@@ -102,37 +91,35 @@ Under the hood, the {keywordOf Lean.Parser.Command.declaration}`coinductive` com
 First, it is processed as if it were an ordinary {keywordOf Lean.Parser.Command.declaration}`inductive` declaration.
 Before registering the types with the kernel, however, a {deftech}_flat inductive_ (also called a _functor_) is created: each recursive occurrence of the coinductive predicate in the premises of a constructor is replaced by an explicit parameter.
 
-```lean -show
-section
-variable (α : Type)
-coinductive InfSeqF (r : α → α → Prop) : α → Prop where
-  | step : r a b → InfSeqF r b → InfSeqF r a
-end
-```
 
 :::example "Flat Inductive"
-For {lean}`InfSeqF`, the generated flat inductive is:
+```lean
+variable (α : Type)
+coinductive InfSeq (r : α → α → Prop) : α → Prop where
+  | step : r a b → InfSeq r b → InfSeq r a
+```
+For {lean}`InfSeq`, the generated flat inductive is:
 
 ```lean (name := checkFunctor) -keep
-#check @InfSeqF._functor
+#check @InfSeq._functor
 ```
-```leanOutput checkFunctor
-InfSeqF._functor : (α : Type) → (α → α → Prop) → (α → Prop) → α → Prop
+```signature
+InfSeq._functor : (α : Type) → (α → α → Prop) → (α → Prop) → α → Prop
 ```
 
 Its constructor takes the predicate parameter in place of recursive calls:
 
 ```lean (name := printFunctor) -keep
 set_option pp.proofs true in
-#print InfSeqF._functor
+#print InfSeq._functor
 ```
 
 ```leanOutput printFunctor
-inductive InfSeqF._functor : (α : Type) → (α → α → Prop) → (α → Prop) → α → Prop
+inductive InfSeq._functor : (α : Type) → (α → α → Prop) → (α → Prop) → α → Prop
 number of parameters: 3
 constructors:
-InfSeqF._functor.step : ∀ (α : Type) (r : α → α → Prop) (InfSeqF._functor.call : α → Prop) {a b : α},
-  r a b → InfSeqF._functor.call b → InfSeqF._functor α r InfSeqF._functor.call a
+InfSeq._functor.step : ∀ (α : Type) (r : α → α → Prop) (InfSeq._functor.call : α → Prop) {a b : α},
+  r a b → InfSeq._functor.call b → InfSeq._functor α r InfSeq._functor.call a
 ```
 :::
 
@@ -140,25 +127,30 @@ An equivalent {deftech}_existential form_ is then constructed, expressing each c
 This form is used for monotonicity checking and for generating readable coinduction principles.
 
 :::example "Existential Form"
+```lean
+variable (α : Type)
+coinductive InfSeq (r : α → α → Prop) : α → Prop where
+  | step : r a b → InfSeq r b → InfSeq r a
+```
 
-```lean (name := printExist) -keep
+```lean (name := printExist)
 set_option pp.proofs true in
-#print InfSeqF._functor.existential
+#print InfSeq._functor.existential
 ```
 
 ```leanOutput printExist
-def InfSeqF._functor.existential : (α : Type) → (α → α → Prop) → (α → Prop) → α → Prop :=
-fun α r InfSeqF._functor.call a => ∃ b, r a b ∧ InfSeqF._functor.call b
+def InfSeq._functor.existential : (α : Type) → (α → α → Prop) → (α → Prop) → α → Prop :=
+fun α r InfSeq._functor.call a => ∃ b, r a b ∧ InfSeq._functor.call b
 ```
 
 The two forms are connected by an equivalence theorem:
 
 ```lean (name := checkExistEquiv) -keep
-#check @InfSeqF._functor.existential_equiv
+#check @InfSeq._functor.existential_equiv
 ```
 ```leanOutput checkExistEquiv
-InfSeqF._functor.existential_equiv : ∀ (α : Type) (r : α → α → Prop) (InfSeqF._functor.call : α → Prop) (a : α),
-  InfSeqF._functor α r InfSeqF._functor.call a ↔ ∃ b, r a b ∧ InfSeqF._functor.call b
+InfSeq._functor.existential_equiv : ∀ (α : Type) (r : α → α → Prop) (InfSeq._functor.call : α → Prop) (a : α),
+  InfSeq._functor α r InfSeq._functor.call a ↔ ∃ b, r a b ∧ InfSeq._functor.call b
 ```
 :::
 
@@ -175,8 +167,7 @@ The following declarations are generated for a coinductive predicate named `P`:
  * `P.functor_unfold`: theorem connecting the coinductive predicate to its flat inductive
  * Constructors (e.g., `P.step`): corresponding to each constructor in the declaration
  * `P.casesOn`: case analysis principle
- * `P.coinduct`: coinduction principle
-
+ * `P.coinduct`: {tech}[coinduction principle]
 :::
 
 # Mutual Coinductive and Inductive Blocks
@@ -235,9 +226,9 @@ The {keywordOf Lean.Parser.Command.declaration}`coinductive` command has the fol
  * It can only define predicates, that is, types valued in {lean}`Prop`.
    Attempting to define a coinductive type in {lean}`Type` or higher universes results in an error.
 
- * It is not allowed inside macro scopes.
+ * The predicate being defined may not have {tech}[macro scopes].
 
- * The name of a coinductive predicate must not conflict with the name of one of its constructors.
+ * The name of a coinductive predicate must not conflict with the name of one of its constructors. {TODO}[What does this mean?]
 
  * Pattern matching via {keywordOf Lean.Parser.Term.match}`match` is not yet supported; use the {tactic}`cases` tactic instead.
 
@@ -246,7 +237,7 @@ The {keywordOf Lean.Parser.Command.declaration}`coinductive` command has the fol
 :::example "Restriction to Predicates"
 Attempting to define a coinductive type that is not a predicate results in an error:
 
-```lean +error (name := notPredErr) -keep
+```lean +error (name := notPredErr)
 coinductive MyNat where
   | zero : MyNat
   | succ : MyNat → MyNat
