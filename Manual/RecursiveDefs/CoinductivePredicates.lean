@@ -35,9 +35,9 @@ This is the dual of inductive reasoning, in which a known fact can be decomposed
 Coinductive predicates allow infinite domains to be specified and reasoned about.
 Some examples from computer science include:
 
- * Bisimilarity of state transition systems that admit cycles
- * Divergence of small-step operational semantics
- * Liveness properties
+ * bisimilarity of state transition systems that admit cycles
+ * divergence of small-step operational semantics
+ * liveness properties
 
 Dually, {deftech (key := "lattice-theoretic inductive predicate")}[inductive predicates] can also be defined via least fixpoints using the same machinery.
 Because it uses the same underlying mechanisms, this alternative to ordinary {tech}[inductive types] is compatible with mixed inductive-coinductive mutual blocks.
