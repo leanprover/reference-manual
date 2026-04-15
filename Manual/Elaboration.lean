@@ -18,6 +18,60 @@ set_option guard_msgs.diff true
 
 open Lean (Syntax SourceInfo)
 
+open Illuminate in
+def pipelineDiagram : Diagram SVG :=
+  let resultStyle : TextStyle := { fontSize := 20, bold := true }
+  let result :=
+    Diagram.hsep (align := .bottom) 8
+      [.text "✔" { resultStyle with color := Color.green }, .text "/" resultStyle, .text "✖" resultStyle]
+      |>.pad 8
+      |>.namedWithAnchors `result
+  let codeLabel :=
+    Diagram.text "Code.lean"
+      (style := { fontFamily := "monospace", fontSize := 12 })
+      |>.pad 12
+  let code :=
+    Diagram.paper
+      (name := `source)
+      (label := some codeLabel)
+      (width := some 80)
+      (height := some 100)
+      (fill := Color.white)
+  Diagram.grid (hSpacing := 70) (vSpacing := 50) #[
+    #[some code,                            none],
+    #[some (box `stx "Syntax\nTree"),        none],
+    #[some (box `core "Core Type\nTheory"), some (box `kernel "Core Type\nTheory\n(no recursion)")],
+    #[some (box `exe "Executable"),         some result]
+  ]
+  -- Arrows with stealth arrowheads and upright labels
+    |>.connect `source.south `stx.north
+      (label := lbl "Parsing") (arrowhead := ah)
+    |>.connect `stx.south `core.north
+      (label := lbl "Elaboration") (arrowhead := ah)
+    |>.connect `core.south `exe.north
+      (label := lbl "Compilation") (arrowhead := ah)
+    |>.connect `core.east `kernel.west
+      (label := lbl "Recursion\nElimination") (arrowhead := ah)
+  -- Self-loop on Syntax Tree for macro expansion (left side)
+    |>.connect
+      { point := `stx.west, shift := ⟨0, -10⟩, angle := some (pi + pi / 7), pull := 3.5 }
+      { point := `stx.west, shift := ⟨0, 10⟩, angle := some (0 - pi / 7), pull := 3.5 }
+      (label := lbl "Macro\nExpansion") (arrowhead := ah)
+  -- Kernel check arrow
+    |>.connect `kernel.south `result.north
+      (label := lbl "Kernel\nCheck") (arrowhead := ah)
+where
+  ah : Arrowhead := { type := .stealth }
+  lbl (s : String) : Option (Label SVG) :=
+    some { label := .text s { fontSize := 10 }, upright := true }
+  box (name : Lean.Name) (label : String) (fontFamily := "sans-serif") : Diagram SVG :=
+    Diagram.text label { fontSize := 12, fontFamily }
+      |>.pad 12
+      |>.filledFrame
+        (fill := Color.white)
+        (stroke := { color := Color.black, width := 1 })
+        (cornerRadius := 6)
+      |>.namedWithAnchors name
 
 
 #doc (Manual) "Elaboration and Compilation" =>
@@ -53,7 +107,9 @@ Roughly speaking, Lean's processing of a source file can be divided into the fol
 
 
 :::figure "The Lean Pipeline" (tag := "pipeline-overview")
-![The Lean Pipeline](/static/figures/pipeline-overview.svg)
+```diagram
+pipelineDiagram
+```
 :::
 
 
