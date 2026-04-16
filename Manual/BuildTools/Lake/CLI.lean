@@ -38,9 +38,8 @@ COMMANDS:
   check-build           check if any default build targets are configured
   test                  test the package using the configured test driver
   check-test            check if there is a properly configured test driver
-  lint                  lint the package using the configured lint driver
+  lint                  lint the package
   check-lint            check if there is a properly configured lint driver
-  builtin-lint          run builtin environment linters
   clean                 remove build outputs
   shake                 minimize imports in source files
   env <cmd> <args>...   execute a command in Lake's environment
@@ -845,19 +844,24 @@ A library test driver will just be built; it is expected that tests are implemen
 :::
 
 ```lakeHelp lint
-Lint the workspace's root package using its configured lint driver
+Lint the workspace's root package
 
 USAGE:
-  lake lint [-- <args>...]
+  lake lint [OPTIONS] [<MODULE>...] [-- <args>...]
+
+By default, runs the package's configured lint driver. If `builtinLint` is
+set to `true` in the package configuration, builtin lints also run.
 
 A lint driver can be configured by either setting the `lintDriver` package
-configuration option by tagging a script or executable `@[lint_driver]`.
-A definition in dependency can be used as a test driver by using the
-`<pkg>/<name>` syntax for the 'testDriver' configuration option.
+configuration option or by tagging a script or executable `@[lint_driver]`.
 
-A script lint driver will be run with the  package configuration's
-`lintDriverArgs` plus the CLI `args`. An executable lint driver will be
-built and then run like a script.
+OPTIONS:
+  --builtin-lint        run builtin environment linters
+  --builtin-only        run only builtin linters, skip the lint driver
+  --clippy              run only non-default (clippy) builtin linters
+  --lint-all            run all builtin linters (default + clippy)
+  --lint-only <name>    run only the specified builtin linter (repeatable)
+  --force               skip the up-to-date build check
 
 ```
 
