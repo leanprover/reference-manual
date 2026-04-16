@@ -40,6 +40,7 @@ COMMANDS:
   check-test            check if there is a properly configured test driver
   lint                  lint the package using the configured lint driver
   check-lint            check if there is a properly configured lint driver
+  builtin-lint          run builtin environment linters
   clean                 remove build outputs
   shake                 minimize imports in source files
   env <cmd> <args>...   execute a command in Lake's environment
