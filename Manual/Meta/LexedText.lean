@@ -126,17 +126,15 @@ r##"
 "##
 
 def Block.c (value : LexedText) : Block where
-  name := `Manual.c
   data := toJson value
 
 def Inline.c (value : LexedText) : Inline where
-  name := `Manual.c
   data := toJson value
 
 def lexedText := ()
 
 @[code_block]
-def c : CodeBlockExpanderOf Unit
+def C : CodeBlockExpanderOf Unit
   | (), str => do
     let codeStr := str.getString
     let toks ← LexedText.highlight hlC codeStr
@@ -144,7 +142,7 @@ def c : CodeBlockExpanderOf Unit
 
 open Verso.Output Html in
 open Verso.Doc.Html in
-@[block_extension c]
+@[block_extension Block.c]
 def c.descr : BlockDescr where
   traverse _ _ _ := pure none
   toTeX := none
@@ -156,7 +154,7 @@ def c.descr : BlockDescr where
 
 open Verso.Output Html in
 open Verso.Doc.Html in
-@[inline_extension c]
+@[inline_extension Inline.c]
 def c.idescr : InlineDescr where
   traverse _ _ _ := pure none
   toTeX := none
@@ -166,7 +164,7 @@ def c.idescr : InlineDescr where
     pure {{<code class="c">{{v.toHtml}}</code>}}
   extraCss := [c.css]
 
-@[role c]
+@[role C]
 def cInline : RoleExpanderOf Unit
   | (), contents => do
     let #[x] := contents

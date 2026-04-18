@@ -93,50 +93,12 @@ jobs:
               run: |
                   echo "leanprover/lean4:${{ needs.check-update.outputs.latest-version }}" > lean-toolchain
 
-            - name: Install deps for figures (OS packages)
-              run: |
-                  sudo apt update && sudo apt install -y poppler-utils
-
-            - name: Install deps for figures (TeX)
-              uses: zauguin/install-texlive@v4
-              with:
-                  texlive_version: 2025
-                  packages: |
-                      scheme-small
-                      latex-bin
-                      fontspec
-                      standalone
-                      pgf
-                      pdftexcmds
-                      luatex85
-                      lualatex-math
-                      infwarerr
-                      ltxcmds
-                      xcolor
-                      fontawesome
-                      spath3
-                      inter
-                      epstopdf-pkg
-                      tex-gyre
-                      tex-gyre-math
-                      unicode-math
-                      amsmath
-                      sourcecodepro
-
-            - name: Do we have lualatex?
-              run: |
-                  lualatex --version
-
             - name: Install elan
               run: |
                   set -o pipefail
                   curl -sSfL https://github.com/leanprover/elan/releases/download/v4.1.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
                   ./elan-init -y --default-toolchain none
                   echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-
-            - name: Build figures
-              run: |
-                  lake build figures
 
             - name: Build
               run: |

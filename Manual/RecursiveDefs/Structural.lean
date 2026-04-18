@@ -577,7 +577,7 @@ set_option pp.all true in
 trace: [Elab.definition.body] half : Nat → Nat :=
     fun (x : Nat) =>
       half.match_1.{1} (fun (x : Nat) => Nat) x (fun (_ : Unit) => Nat.zero) (fun (_ : Unit) => Nat.zero)
-        fun (n : Nat) => Nat.succ (_root_.half n)
+        fun (n : Nat) => Nat.succ (half n)
 -/
 #guard_msgs in
 def half : Nat → Nat
@@ -606,7 +606,7 @@ The auxiliary match function's definition is:
 #print half.match_1
 ```
 ```leanOutput halfmatch (whitespace := lax)
-def half.match_1.{u_1} :
+@[implicit_reducible] def half.match_1.{u_1} :
     (motive : Nat → Sort u_1) → (x : Nat) →
     (Unit → motive Nat.zero) → (Unit → motive 1) →
     ((n : Nat) → motive n.succ.succ) →

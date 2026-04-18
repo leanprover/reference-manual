@@ -112,7 +112,7 @@ def isFro (path : Path) : Bool := path[0]?.isEqSome "fro"
 Build NavBarConfig for FRO section
 -/
 def buildFroNavBarConfig : TemplateM NavBarConfig := do
-  let leftItems ← getPageItems
+  let pageItems ← getPageItems
   let path ← currentPath
 
   let froPathItems (path : Path) : Array NavBarItem := #[
@@ -128,17 +128,21 @@ def buildFroNavBarConfig : TemplateM NavBarConfig := do
   ]
 
   let rightItems : Array NavBarItem := #[
-    { title := Icon.moon, alt := some "Change Theme", classes := some "change-theme" },
-    { title := Icon.github, alt := some "Github", url := some "https://github.com/leanprover/lean4", blank := true }
+    { title := Icon.moon, alt := some "Change Theme", classes := some "change-theme", align := .right },
+    { title := Icon.github, alt := some "Github", url := some "https://github.com/leanprover/lean4", blank := true, align := .right }
   ]
 
-  let menuItems := #[navFroItem path] ++ froPathItems path
+  let menuItems : Array NavBarItem := (#[navFroItem path] ++ froPathItems path).map fun item =>
+    { item with display := .mobile }
+
+  let items : Array NavBarEntry :=
+    (pageItems.map .item) ++
+    (externalLinks.map .item) ++
+    (menuItems.map .item) ++
+    (rightItems.map .item)
 
   return {
-    leftItems := leftItems
-    rightItems := rightItems
-    menuItems := menuItems
-    externalLinks := externalLinks
+    items := items
     subNavBar := if isFro path then some (SubNavBarConfig.mk (froPathItems path)) else none
   }
 

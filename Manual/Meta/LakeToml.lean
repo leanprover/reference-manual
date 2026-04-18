@@ -141,7 +141,7 @@ structure TomlFieldOpts where
   type : Name
   sort : Option Nat
 
-instance [Inhabited α] [Applicative f] : Inhabited (f α) where
+local instance [Inhabited α] [Applicative f] : Inhabited (f α) where
   default := pure default
 
 @[specialize]
@@ -828,6 +828,8 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
         baseName := name
         wsIdx := 0
         origName := name
+        keyName := name
+        relManifestFile := Lake.defaultManifestFile
       }
 
     .ok <$> report pkg errs

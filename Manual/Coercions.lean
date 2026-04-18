@@ -15,6 +15,40 @@ set_option pp.rawOnError true
 
 open Lean (Syntax SourceInfo)
 
+open Illuminate in
+def coeChainDiagram : Diagram SVG :=
+  let spacing := 16
+  -- Build from inside out: hcat items spanned by each brace, then vsep brace below
+  -- Level 1: Coe* with CoeTC brace
+  let level1 := Diagram.braceBelow (mono "Coe*") (mono "CoeTC")
+  -- Level 2: add CoeOut* on the left, CoeOTC brace below
+  let level2 := Diagram.braceBelow
+    (Diagram.hsep spacing [mono "CoeOut*", level1] (align := .top))
+    (mono "CoeOTC")
+  -- Level 3: add CoeHead? on the left, CoeHTC brace below
+  let level3 := Diagram.braceBelow
+    (Diagram.hsep spacing [mono "CoeHead?", level2] (align := .top))
+    (mono "CoeHTC")
+  -- Level 4: add CoeTail? on the right, CoeHTCT brace below (named)
+  let level4 := Diagram.braceBelow
+    (Diagram.hsep spacing [level3, mono "CoeTail?"] (align := .top))
+    (mono "CoeHTCT" |>.padBottom 3 |>.namedWithAnchors `CoeHTCT)
+  -- CoeDep at same level as CoeHTCT label (bottom-aligned, named)
+  let withCoeDep := Diagram.hsep 30
+    [level4, mono "CoeDep" |>.padBottom 3 |>.namedWithAnchors `CoeDep] (align := .bottom)
+  -- "or" and CoeT below, named for anchor resolution
+  let orLabel : Diagram SVG :=
+    Diagram.text "or" { fontSize := 10, italic := true } |>.pad 3 |>.namedWithAnchors `or
+  let coeTLabel : Diagram SVG := mono "CoeT" (name := `CoeT)
+  let lineStroke : Stroke := .ofWidth 1
+  Diagram.vsep 12 [withCoeDep, orLabel, coeTLabel]
+    |>.connectL `CoeHTCT.south `or.west (stroke := lineStroke)
+    |>.connectL `CoeDep.south `or.east (stroke := lineStroke)
+    |>.connectL `or.south `CoeT.north (stroke := lineStroke)
+where
+  mono (s : String) (name : Option Lean.Name := none) : Diagram SVG :=
+    .text s { fontSize := 10, fontFamily := "monospace" } (name := name)
+
 
 #doc (Manual) "Coercions" =>
 %%%
@@ -1245,7 +1279,9 @@ The specific rules governing the ordering of instances in the chain (namely, tha
 :::
 
 :::figure "Auxiliary Classes for Coercions" (tag := "coe-aux-classes")
-![A graphical representation of the relationships between the coercion transitive closure auxiliary classes](/static/figures/coe-chain.svg)
+```diagram
+coeChainDiagram
+```
 :::
 
 {docstring CoeHTCT}

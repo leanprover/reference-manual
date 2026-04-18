@@ -89,8 +89,6 @@ end
 ```
 
 
-:::::TODO
-
 When used in a {tech}`module`, {keywordOf Lean.Parser.Command.eval}`#eval` reveals a difference between the way the Lean language server and the Lean compiler process files.
 Because it runs code at compile time, {keywordOf Lean.Parser.Command.eval}`#eval` requires that its code is available in the {tech}[meta phase].
 To make easier to experiment with a module, the language server makes all imported modules available in the meta phase, while the compiler strictly adheres to the {keywordOf Lean.Parser.Module.import}`meta` declarations.
@@ -118,8 +116,7 @@ import Eval.Even
 ❌️ Docstring on `#guard_msgs` does not match generated message:
 
 - info: [true, false]
-+ error: Could not find native implementation of external declaration 'isEven' (symbols 'lp_example_isEven___boxed' or 'lp_example_isEven').
-+ For declarations from `Init`, `Std`, or `Lean`, you need to set `supportInterpreter := true` in the relevant `lean_exe` statement in your `lakefile.lean`.
++ error: Invalid `meta` definition `_eval`, `isEven` is not accessible here; consider adding `public meta import Eval.Even`
 ```
 :::
 :::leanModules
@@ -140,7 +137,7 @@ meta import Eval.Even
 ```
 :::
 ::::
-:::::
+
 
 Results are displayed using a {name Lean.ToExpr}`ToExpr`, {name}`ToString`, or {name}`Repr` instance, if they exist.
 If not, and {option}`eval.derive.repr` is {lean}`true`, Lean attempts to derive a suitable {name}`Repr` instance.
@@ -154,7 +151,7 @@ Setting {option}`eval.pp` to {lean}`false` disables the use of {name Lean.ToExpr
 #eval fun x => x + 1
 ```
 ```leanOutput funEval
-could not synthesize a `ToExpr`, `Repr`, or `ToString` instance for type
+Could not synthesize a `ToExpr`, `Repr`, or `ToString` instance for type
   Nat → Nat
 ```
 
@@ -178,7 +175,7 @@ set_option eval.derive.repr false
 #eval Quadrant.nw
 ```
 ```leanOutput quadEval2
-could not synthesize a `ToExpr`, `Repr`, or `ToString` instance for type
+Could not synthesize a `ToExpr`, `Repr`, or `ToString` instance for type
   Quadrant
 ```
 

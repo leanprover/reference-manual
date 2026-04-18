@@ -40,32 +40,6 @@ jobs:
               run: |
                   ./deploy/prep.sh
 
-            - name: Install deps for figures (TeX)
-              uses: zauguin/install-texlive@v4
-              with:
-                  texlive_version: 2025
-                  packages: |
-                      scheme-small
-                      latex-bin
-                      fontspec
-                      standalone
-                      pgf
-                      pdftexcmds
-                      luatex85
-                      lualatex-math
-                      infwarerr
-                      ltxcmds
-                      xcolor
-                      fontawesome
-                      spath3
-                      inter
-                      epstopdf-pkg
-                      tex-gyre
-                      tex-gyre-math
-                      unicode-math
-                      amsmath
-                      sourcecodepro
-
             - name: Install elan
               run: |
                   set -o pipefail
@@ -137,9 +111,9 @@ jobs:
                   TAG_NAME=$GITHUB_REF_NAME
                   echo "Making deployment from tag: '$TAG_NAME'"
 
-                  python deploy/release.py ${{ steps.detect-structure.outputs.reference_dir }} "$VERSION" deploy
+                  python deploy/release.py ${{ steps.detect-structure.outputs.reference_dir }} "$VERSION" "$GITHUB_SHA" deploy
                   if [ "${{ steps.detect-structure.outputs.structure }}" = "new" ]; then
-                      python deploy/release.py html/site/tutorials "$VERSION" deploy-tutorials
+                      python deploy/release.py html/site/tutorials "$VERSION" "$GITHUB_SHA" deploy-tutorials
                   fi
 
             - name: Push deploy branch

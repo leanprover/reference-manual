@@ -52,7 +52,20 @@ tag := "string-runtime"
 %%%
 
 :::figure "Memory layout of strings" (tag := "stringffi")
-![Memory layout of strings](/static/figures/string.svg)
+```diagram
+open Illuminate in
+open Manual.Diagram in
+layoutDiagram [
+  ("m_header", .header, txt "Lean object header"),
+  ("m_size", .size_t, twoLine "Byte count" "size_t"),
+  ("m_capacity", .size_t, twoLine "Allocated space" "size_t"),
+  ("m_length", .size_t, twoLine "Characters" "size_t"),
+  ("m_data", .data none,
+    some <| .styledText (base := fieldLabelStyle) <|
+      "String data\n" ++ family "monospace" "char" ++ " array"),
+  ("'\\0'", .data (some 30), none)
+]
+```
 :::
 
 Strings are represented as {tech}[dynamic arrays] of bytes, encoded in UTF-8.

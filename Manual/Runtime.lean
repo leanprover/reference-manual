@@ -274,25 +274,30 @@ This emits the following IR:
         let x_2 : tagged := ctor_0[List.nil];
         ret x_2
       List.cons →
-        let x_3 : u8 := isShared x_1;
-        case x_3 : u8 of
+        let x_3 : tobj := proj[1] x_1;
+        block_4 (x_5 : tobj) (x_6 : u8) :=
+          let x_7 : tagged := ctor_0[PUnit.unit];
+          let x_8 : tobj := discardElems._redArg x_3;
+          block_9 (x_10 : obj) :=
+            ret x_10;
+          case x_6 : u8 of
+          Bool.false →
+            set x_5[1] := x_8;
+            set x_5[0] := x_7;
+            jmp block_9 x_5
+          Bool.true →
+            let x_11 : obj := ctor_1[List.cons] x_7 x_8;
+            jmp block_9 x_11;
+        let x_12 : u8 := isShared x_1;
+        case x_12 : u8 of
         Bool.false →
-          let x_4 : tobj := proj[1] x_1;
-          let x_5 : tobj := proj[0] x_1;
-          dec x_5;
-          let x_6 : tagged := ctor_0[PUnit.unit];
-          let x_7 : tobj := discardElems._redArg x_4;
-          set x_1[1] := x_7;
-          set x_1[0] := x_6;
-          ret x_1
+          let x_13 : tobj := proj[0] x_1;
+          dec x_13;
+          jmp block_4 x_1 x_12
         Bool.true →
-          let x_8 : tobj := proj[1] x_1;
-          inc x_8;
+          inc x_3;
           dec x_1;
-          let x_9 : tagged := ctor_0[PUnit.unit];
-          let x_10 : tobj := discardElems._redArg x_8;
-          let x_11 : obj := ctor_1[List.cons] x_9 x_10;
-          ret x_11
+          jmp block_4 ◾ x_12
 [Compiler.IR] [result]
     def discardElems (x_1 : ◾) (x_2 : tobj) : tobj :=
       let x_3 : tobj := discardElems._redArg x_2;
@@ -336,7 +341,7 @@ tag := "ffi"
 It will be refined and extended in the future.
 
 Lean offers efficient interoperability with any language that supports the C ABI.
-This support is, however, currently limited to transferring Lean data types; in particular, it is not yet possible to pass or return compound data structures such as C {c}`struct`s by value from or to Lean.
+This support is, however, currently limited to transferring Lean data types; in particular, it is not yet possible to pass or return compound data structures such as C {C}`struct`s by value from or to Lean.
 
 There are two primary attributes for interoperating with other languages:
   {TODO}[It can also be used with `def` to provide an internal definition, but ensuring consistency of both definitions is up to the user.]
@@ -363,7 +368,6 @@ For simple examples of how to call foreign code from Lean and vice versa, see [t
 ## The Lean ABI
 
 :::leanSection
-
 ```lean -show
 variable {α₁ αₙ β αᵢ}
 private axiom «α₂→…→αₙ₋₁».{u} : Type u
@@ -372,20 +376,20 @@ local macro "..." : term => ``(«α₂→…→αₙ₋₁»)
 
 The Lean {deftech}_Application Binary Interface_ (ABI) describes how the signature of a Lean declaration is encoded in the platform-native calling convention.
 It is based on the standard C ABI and calling convention of the target platform.
-Lean declarations can be marked for interaction with foreign functions using either the attribute {attr}`extern "sym"`, which causes compiled code to use the C declaration {c}`sym` as the implementation, or the attribute {attr}`export sym`, which makes the declaration available as {c}`sym` to C.
+Lean declarations can be marked for interaction with foreign functions using either the attribute {attr}`extern "sym"`, which causes compiled code to use the C declaration {C}`sym` as the implementation, or the attribute {attr}`export sym`, which makes the declaration available as {C}`sym` to C.
 
 In both cases, the C declaration's type is derived from the Lean type of the declaration with the attribute.
 Let {lean}`α₁ → ... → αₙ → β` be the declaration's {tech (key := "normal form")}[normalized] type.
 If `n` is 0, the corresponding C declaration is
-```c
+```C
 extern s sym;
 ```
-where {c}`s` is the C translation of {lean}`β` as specified in {ref "ffi-types"}[the next section].
+where {C}`s` is the C translation of {lean}`β` as specified in {ref "ffi-types"}[the next section].
 In the case of a definition marked {attr}`extern`, the symbol's value is only guaranteed to be initialized after calling the Lean module's initializer or that of an importing module.
 The section on {ref "ffi-initialization"}[initialization] describes initializers in greater detail.
 
 If `n` is greater than 0, the corresponding C declaration is
-```c
+```C
 s sym(t₁, ..., tₙ);
 ```
 where the parameter types `tᵢ` are the C translations of the types {lean}`αᵢ`.
@@ -397,6 +401,7 @@ In the case of {attr}`extern`, all {tech}[irrelevant] types are removed first.
 tag := "ffi-types"
 %%%
 
+:::leanSection
 ```lean -show
 universe u
 variable (p : Prop)
@@ -406,20 +411,22 @@ local macro "..." : term => ``(«...»)
 
 In the {tech (key := "application binary interface")}[ABI], Lean types are translated to C types as follows:
 
-* The integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`USize` are represented by the C types {c}`uint8_t`, ..., {c}`uint64_t`, {c}`size_t`, respectively.
+* The integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`USize` are represented by the C types {C}`uint8_t`, ..., {C}`uint64_t`, {C}`size_t`, respectively.
   If their {ref "fixed-int-runtime"}[run-time representation] requires {tech (key := "boxed")}[boxing], then they are unboxed at the FFI boundary.
-* {lean}`Char` is represented by {c}`uint32_t`.
-* {lean}`Float` is represented by {c}`double`.
-* {name}`Nat` and {name}`Int` are represented by {c}`lean_object *`.
-  Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the “pointer” is 1 ({c}`lean_is_scalar`), an encoded natural number or integer ({c}`lean_box`/{c}`lean_unbox`).
-* A universe {lean}`Sort u`, type constructor {lean}`... → Sort u`, or proposition {lean}`p`​` :`{lean}` Prop` is {tech}[irrelevant] and is either statically erased (see above) or represented as a {c}`lean_object *` with the runtime value {c}`lean_box(0)`
+* {lean}`Char` is represented by {C}`uint32_t`.
+* {lean}`Float` is represented by {C}`double`.
+* {name}`Nat` and {name}`Int` are represented by {C}`lean_object *`.
+  Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the “pointer” is 1 ({C}`lean_is_scalar`), an encoded natural number or integer ({C}`lean_box`/{C}`lean_unbox`).
+* A universe {lean}`Sort u`, type constructor {lean}`... → Sort u`, or proposition {lean}`p`​` :`{lean}` Prop` is {tech}[irrelevant] and is either statically erased (see above) or represented as a {C}`lean_object *` with the runtime value {C}`lean_box(0)`
 * The ABI for other inductive types that don't have special compiler support depends on the specifics of the type.
   It is the same as the {ref "run-time-inductives"}[run-time representation] of these types.
-  Its runtime value is either a pointer to an object of a subtype of {c}`lean_object` (see the “Inductive types” section below) or it is the value {c}`lean_box(cidx)` for the {c}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
+  Its runtime value is either a pointer to an object of a subtype of {C}`lean_object` (see the “Inductive types” section below) or it is the value {C}`lean_box(cidx)` for the {C}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
 
-  ```lean -show
-  variable (u : Unit)
-  ```
+:::
+
+```lean -show
+variable (u : Unit)
+```
 
 :::example "`Unit` in the ABI"
 The runtime value of {lean}`u`​` : `{lean}`Unit` is always `lean_box(0)`.
@@ -430,11 +437,11 @@ The runtime value of {lean}`u`​` : `{lean}`Unit` is always `lean_box(0)`.
 tag := "ffi-borrowing"
 %%%
 
-By default, all {c}`lean_object *` parameters of an {attr}`extern` function are considered {deftech}_owned_.
-The external code is passed a “virtual RC token” and is responsible for passing this token along to another consuming function (exactly once) or freeing it via {c}`lean_dec`.
+By default, all {C}`lean_object *` parameters of an {attr}`extern` function are considered {deftech}_owned_.
+The external code is passed a “virtual RC token” and is responsible for passing this token along to another consuming function (exactly once) or freeing it via {C}`lean_dec`.
 To reduce reference counting overhead, parameters can be marked as {deftech}_borrowed_ by prefixing their type with {keywordOf Lean.Parser.Term.borrowed}`@&`.
-Borrowed objects must only be passed to other non-consuming functions (arbitrarily often) or converted to owned values using {c}`lean_inc`.
-In `lean.h`, the {c}`lean_object *` aliases {c}`lean_obj_arg` and {c}`b_lean_obj_arg` are used to mark this difference on the C side.
+Borrowed objects must only be passed to other non-consuming functions (arbitrarily often) or converted to owned values using {C}`lean_inc`.
+In `lean.h`, the {C}`lean_object *` aliases {C}`lean_obj_arg` and {C}`b_lean_obj_arg` are used to mark this difference on the C side.
 Return values and `@[export]` parameters are always owned at the moment.
 
 :::syntax term (title := "Borrowed Parameters")
@@ -460,8 +467,8 @@ For all other modules imported by `lean`, the initializer is run without `builti
 In other words, {attr}`init` functions are run if and only if their module is imported, regardless of whether they have native code available, while {attr}`builtin_init` functions are only run for native executable or plugins, regardless of whether their module is imported.
 The Lean compiler uses built-in initializers for purposes such as registering basic parsers that should be available even without importing their module, which is necessary for bootstrapping.
 
-The initializer for module `A.B` in a package `foo` is called {c}`initialize_foo_A_B`.
-For modules in the Lean core (e.g., {module}`Init.Prelude`), the initializer is called {c}`initialize_Init_Prelude`.
+The initializer for module `A.B` in a package `foo` is called {C}`initialize_foo_A_B`.
+For modules in the Lean core (e.g., {module}`Init.Prelude`), the initializer is called {C}`initialize_Init_Prelude`.
 Module initializers will automatically initialize any imported modules.
 They are also idempotent (when run with the same `builtin` flag), but not thread-safe.
 
@@ -469,7 +476,7 @@ They are also idempotent (when run with the same `builtin` flag), but not thread
 This sets up process handling capabilities correctly, which is essential for certain system-level operations that Lean's runtime may depend on.
 
 Together with initialization of the Lean runtime, code like the following should be run exactly once before accessing any Lean declarations:
-```c
+```C
 void lean_initialize_runtime_module();
 void lean_initialize();
 char ** lean_setup_args(int argc, char ** argv);
@@ -503,11 +510,11 @@ lean_io_mark_end_initialization();
 ```
 
 In addition, any other thread not spawned by the Lean runtime itself must be initialized for Lean use by calling
-```c
+```C
 void lean_initialize_thread();
 ```
 and should be finalized in order to free all thread-local resources by calling
-```c
+```C
 void lean_finalize_thread();
 ```
 

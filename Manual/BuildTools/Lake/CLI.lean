@@ -304,8 +304,10 @@ Single-character flags cannot be combined; `-HR` is not equivalent to `-H -R`.
 
 : {lakeOptDef option}`--packages=FILE`
 
-  Use the contents of `FILE` to specify the versions of some or all dependencies instead of the manifest.
-  `FILE` should be a syntactically valid manifest, but it does not need to be complete.
+  Uses the specified {tech}[package overrides] file.
+  Can be specified multiple times to add more overrides (with later overrides taking precedence).
+  The complete set of package overrides will also include those from `.lake/package-overrides.json` (if any).
+  However, the ones provided by this option take precedence.
 
 :  {lakeOptDef flag}`--reconfigure` or {lakeOptDef flag}`-R`
 
@@ -1095,12 +1097,12 @@ If {lakeMeta}`archive.tgz` is not specified, the package's `buildArchive` settin
 
 # Local Caches
 
-{lake}`cache get` and {lake}`cache put` are used to interact with remote cache servers.
+{lake}`cache get`, {lake}`cache put`, and {lake}`cache add` are used to interact with remote cache servers.
 These commands are *experimental*, and are only useful if the {ref "lake-cache"}[local cache] is enabled.
 
-Both commands can be configured to use a {deftech}[cache scope], which is a server-specific identifier for a set of artifacts for a package.
+These commands can be configured to use a {deftech}[cache scope], which is a server-specific identifier for a set of build outputs for a package.
 On Reservoir, scopes are currently identical with GitHub repositories, but may include toolchain and platform information in the future.
-Other remote artifact caches may use any scope scheme that they want.
+Other remote caches may use any scope scheme that they want.
 Cache scopes are specified using the {lakeOptDef option}`--scope=` option.
 Cache scopes are not identical to the scopes used to require packages from Reservoir.
 
@@ -1111,14 +1113,22 @@ USAGE:
   lake cache <COMMAND>
 
 COMMANDS:
-  get [<mappings>]      download artifacts into the Lake cache
-  put <mappings>        upload artifacts to a remote cache
+  get [<mappings>]      download build outputs into the local Lake cache
+  put <mappings>        upload build outputs to a remote cache
+  add <mappings>        add input-to-output mappings to the Lake cache
+  clean                 removes ALL from the local Lake cache
+  services              print configured remote cache services
+
+STAGING COMMANDS:
+  stage <map> <dir>     copy build outputs from the cache to a directory
+  unstage <dir>         cache build outputs from a staging directory
+  put-staged <dir>      upload build outputs from a staging directory
 
 See `lake cache help <command>` for more information on a specific command.
 ```
 
 ```lakeCacheHelp get
-Download artifacts from a remote service into the Lake cache
+Download build outputs from a remote service into the Lake cache
 
 USAGE:
   lake cache get [<mappings>]
@@ -1126,33 +1136,33 @@ USAGE:
 OPTIONS:
   --max-revs=<n>                  backtrack up to n revisions (default: 100)
   --rev=<commit-hash>             uses this exact revision to lookup artifacts
+  --service=<name>                cache service to fetch from
   --repo=<github-repo>            GitHub repository of the package or a fork
   --platform=<target-triple>      with Reservoir or --repo, sets the platform
   --toolchain=<name>              with Reservoir or --repo, sets the toolchain
   --scope=<remote-scope>          scope for a custom endpoint
+  --mappings-only                 only download mappings, delay artifacts
+  --force-download                redownload existing files
 
-Downloads artifacts for packages in the workspace from a remote cache service.
-The cache service used can be configured via the environment variables:
-
-  LAKE_CACHE_ARTIFACT_ENDPOINT  base URL for artifact downloads
-  LAKE_CACHE_REVISION_ENDPOINT  base URL for the mapping download
-
-If neither of these are set, Lake will use Reservoir.
+Downloads build outputs for packages in the workspace from a remote cache
+service. The cache service used can be specified via the `--service` option.
+Otherwise, Lake will the system default, or, if none is configured, Reservoir.
+See `lake cache services` for more information on how to configure services.
 
 If an input-to-outputs mappings file, `--scope`, or `--repo` is provided,
-Lake will download artifacts for the root package. Otherwise, it will use
-Reservoir to download artifacts for each dependency in workspace (in order).
+Lake will download build outputs for the root package. Otherwise, it will use
+Reservoir to download outputs for each dependency in the workspace (in order).
 Non-Reservoir dependencies will be skipped.
 
-To determine the artifacts to download, Lake searches for input-to-output
-mappings for a given build of the package via the cache service. This mapping
-is identified by a Git revision and prefixed with a scope derived from the
-package's name, GitHub repository, Lean toolchain, and current platform.
-The exact configuration can be customized using options.
+To determine what to download, Lake searches for input-to-output mappings for
+a given build of the package via the cache service. This mapping is identified
+by a Git revision and prefixed with a scope derived from the package's name,
+GitHub repository, Lean toolchain, and current platform. The exact configuration
+can be customized using options.
 
-For Reservoir, setting `--repo` will make Lake lookup artifacts for the root
+For Reservoir, setting `--repo` will cause Lake to lookup outputs for the root
 package by a repository name, rather than the package's. This can be used to
-download artifacts for a fork of the Reservoir package (if such artifacts are
+download outputs for a fork of the Reservoir package (if such artifacts are
 available). The `--platform` and `--toolchain` options can be used to download
 artifacts for a different platform/toolchain configuration than Lake detects.
 For a custom endpoint, the full prefix Lake uses can be set via  `--scope`.
@@ -1162,22 +1172,27 @@ artifacts. If no mappings are found, Lake will backtrack the Git history up to
 `--max-revs`, looking for a revision with mappings. If `--max-revs` is 0, Lake
 will search the repository's entire history (or as far as Git will allow).
 
+By default, Lake will download both the input-to-output mappings and the
+output artifacts for a package. By using `--mappings-onlys`, Lake will only
+download the mappings and delay downloading artifacts until they are needed.
+
 If a download for an artifact fails or the download process for a whole
 package fails, Lake will report this and continue on to the next. Once done,
 if any download failed, Lake will exit with a nonzero status code.
 ```
 
-:::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»]"
-Downloads artifacts for packages in the workspace from a remote cache service to the local Lake {tech (key:="local cache")}[artifact cache].
-The remote cache service used can be configured using {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT` and {envVar}`LAKE_CACHE_REVISION_ENDPOINT`.
-If neither of these are set, Lake will use Reservoir instead.
+:::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--service=\" «name»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»] [\"--mappings-only\"] [\"--force-download\"]"
+Downloads build outputs for packages in the workspace from a remote cache service to the local Lake {tech (key:="local cache")}[artifact cache].
+The cache service used can be specified via the {lakeOpt}`--service` option.
+Otherwise, Lake will use the system default, or, if none is configured, Reservoir.
+See {lake}`cache services` for more information on how to configure services.
 
-If an input-to-outputs {lakeMeta}`mappings` file, a {lakeMeta}`remote-scope`, or a {lakeMeta}`github-repo` is provided, Lake will download artifacts for the root package.
-Otherwise, it will download artifacts for each package in the root's dependency tree in order (using Reservoir).
+If an input-to-outputs {lakeMeta}`mappings` file, a {lakeMeta}`remote-scope`, or a {lakeMeta}`github-repo` is provided, Lake will download build outputs for the root package.
+Otherwise, it will download outputs for each package in the root's dependency tree in order (using Reservoir).
 Non-Reservoir dependencies will be skipped.
 
-For Reservoir, setting {lakeOpt}`--repo` will make Lake lookup artifacts for the root package by a repository name, rather than the package's.
-This can be used to download artifacts for a fork of the Reservoir package (if such artifacts are available).
+For Reservoir, setting {lakeOpt}`--repo` will cause Lake to look up outputs for the root package by a repository name, rather than the package's.
+This can be used to download outputs for a fork of the Reservoir package (if such artifacts are available).
 The {lakeOpt}`--platform` and {lakeOpt}`--toolchain` options can be used to download artifacts for a different platform/toolchain configuration than Lake detects.
 For a custom endpoint, the full prefix Lake uses can be set via {lakeOpt}`--scope`.
 
@@ -1186,31 +1201,34 @@ Lake will download the artifacts for the most recent commit with available mappi
 It will backtrack up to {lakeOptDef option}`--max-revs`, which defaults to 100.
 If set to 0, Lake will search the repository's whole history, or as far back as Git will allow.
 
+By default, Lake will download both the input-to-output mappings and the output artifacts for packages.
+Using {lakeOptDef option}`--mappings-only` will cause Lake to only download the mappings and delay downloading artifacts until they are needed.
+Using {lakeOptDef option}`--force-download` will redownload existing files.
+
 While downloading, Lake will continue on when a download for an artifact fails or if the download process for a whole package fails.
 However, it will report this and exit with a nonzero status code in such cases.
 :::
 
 
 ```lakeCacheHelp put
-Upload artifacts from the Lake cache to a remote service
+Upload build outputs from the Lake cache to a remote service
 
 USAGE:
   lake cache put <mappings> <scope-option>
 
-Uploads the input-to-outputs mappings contained in the specified file along
+Uploads the input-to-output mappings contained in the specified file along
 with the corresponding output artifacts to a remote cache. The cache service
-used is configured via the environment variables:
-
-  LAKE_CACHE_KEY                  authentication key for requests
-  LAKE_CACHE_ARTIFACT_ENDPOINT    base URL for artifact uploads
-  LAKE_CACHE_REVISION_ENDPOINT    base URL for the mapping upload
+used can be specified via the `--service` option. If not specified, Lake will use
+the system default, or error if none is configured. See the help page of
+`lake cache services` for more information on how to configure services.
 
 Files are uploaded using the AWS Signature Version 4 authentication protocol
-via `curl`. Thus, the service should generally be an S3-compatible bucket.
+via `curl`. Thus, the service should generally be an S3-compatible bucket. The
+authentication key is set via the `LAKE_CACHE_KEY` environment variable.
 
 Since Lake does not currently use cryptographically secure hashes for
 artifacts and outputs, uploads to the cache are prefixed with a scope to avoid
-clashes. This scoped is configured with the following options:
+clashes. This scope is configured with the following options:
 
   --scope=<remote-scope>          sets a fixed scope
   --repo=<github-repo>            uses the repository + toolchain & platform
@@ -1232,9 +1250,13 @@ has changes.
 
 ::::lake cache put "mappings «scope-option»"
 Uploads the input-to-outputs mappings contained in the specified file along with the corresponding output artifacts to a remote cache.
-The remote cache service used can be configured using {envVar}`LAKE_CACHE_KEY`, {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT` and {envVar}`LAKE_CACHE_REVISION_ENDPOINT`.
+The cache service used can be specified via the {lakeOpt}`--service` option.
+If not specified, Lake will use the system default, or error if none is configured.
+See {lake}`cache services` for more information on how to configure services.
 
-Files are uploaded using the AWS Signature Version 4 authentication protocol via `curl`. Thus, the service should generally be an S3-compatible bucket.
+Files are uploaded using the AWS Signature Version 4 authentication protocol via `curl`.
+Thus, the service should generally be an S3-compatible bucket.
+The authentication key is set via the {envVar}`LAKE_CACHE_KEY` environment variable.
 
 Since Lake does not currently use cryptographically secure hashes for
 artifacts and outputs, uploads to the cache are prefixed with a scope to avoid
@@ -1263,6 +1285,166 @@ Artifacts are uploaded to the artifact endpoint with a file name derived from th
 The mappings file is uploaded to the revision endpoint with a file name derived from the package's current Git revision (and prefixed by the full scope).
 As such, the command will warn if the work tree currently has changes.
 ::::
+
+```lakeCacheHelp add
+Add input-to-output mappings to the Lake cache
+
+USAGE:
+  lake cache add <mappings>
+
+OPTIONS:
+  --service=<name>                cache service to fetch from on demand
+  --scope=<remote-scope>          the prefix of artifacts within the service
+  --repo=<github-repo>            for Reservoir, a GitHub repository scope
+
+Reads a list of input-to-output mappings from the provided file and adds
+them to the local Lake cache. If `--service` is provided, the output artifacts
+can then be fetched lazily from that service during a Lake build. The service
+must either be `reservoir` or  be configured through the Lake system
+configuration (see the help page of `lake cache services` for details).
+
+Since Lake does not currently use cryptographically secure hashes for
+artifacts and outputs, artifacts in a cache service are prefixed with a scope
+to avoid clashes. For Reservoir, this scope can either be a package (set via
+`--scope`) or a repository (set via `--repo`). For S3 services, both options
+are synonymous.
+```
+
+::::lake cache add "mappings [\"--service=\" «name»] [\"--scope=\" «remote-scope»] [\"--repo=\" «github-repo»]"
+Reads a list of input-to-output mappings from the provided file and adds them to the local Lake cache.
+If {lakeOpt}`--service` is provided, the output artifacts can then be fetched lazily from that service during a Lake build.
+The service must either be `reservoir` or be configured through the Lake system configuration (see {lake}`cache services` for details).
+
+Since Lake does not currently use cryptographically secure hashes for artifacts and outputs, artifacts in a cache service are prefixed with a scope to avoid clashes.
+For Reservoir, this scope can either be a package (set via {lakeOpt}`--scope`) or a repository (set via {lakeOpt}`--repo`).
+For S3 services, both options are synonymous.
+::::
+
+```lakeCacheHelp clean
+Removes ALL files from the local Lake cache
+
+USAGE:
+  lake cache clean
+
+Deletes the configured Lake cache directory. If a workspace configuration
+exists, this will delete the cache directory it uses. Otherwise, it will
+delete the default Lake cache directory for the system.
+```
+
+:::lake cache clean
+Deletes the configured Lake {tech (key:="local cache")}[artifact cache] directory.
+If a workspace configuration exists, this will delete the cache directory it uses.
+Otherwise, it will delete the default Lake cache directory for the system.
+:::
+
+```lakeCacheHelp services
+Print configured remote cache services
+
+USAGE:
+  lake cache services
+
+Prints the name of each configured remote cache services (one per line).
+Additional services can be added by modifying the system Lake configuration.
+The exact location of the this configuration file is system dependent and can
+be set by `LAKE_CONFIG`, but it is usually located at `~/.lake/config.toml`.
+
+The configuration of the system cache could look something like the following:
+
+  cache.defaultService = "my-s3"
+  cache.defaultUploadService = "my-s3"
+
+  [[cache.service]]
+  name = "my-s3"
+  kind = "s3"
+  artifactEndpoint = "https://my-s3.com/a0"
+  revisionEndpoint = "https://my-s3.com/r0"
+
+If no `cache.defaultService` is configured, Lake will use Reservoir by default.
+```
+
+::::lake cache services
+Prints the name of each configured remote cache service (one per line).
+Additional services can be added by modifying the system Lake configuration file, which is usually located at `~/.lake/config.toml` but can be set via the {envVar}`LAKE_CONFIG` environment variable.
+
+:::paragraph
+The configuration of the system cache could look something like the following:
+```toml -link
+cache.defaultService = "my-s3"
+cache.defaultUploadService = "my-s3"
+
+[[cache.service]]
+name = "my-s3"
+kind = "s3"
+artifactEndpoint = "https://my-s3.com/a0"
+revisionEndpoint = "https://my-s3.com/r0"
+```
+If no `cache.defaultService` is configured, Lake will use Reservoir by default.
+:::
+::::
+
+```lakeCacheHelp stage
+Copy build outputs from the cache to a staging directory
+
+USAGE:
+  lake cache stage <mappings> <staging-directory>
+
+Creates the staging directory and copies the mappings file to it. Then, it
+copies all artifacts described within the mappings file from the cache to the
+staging directory. Errors if any of the artifacts described cannot be found in
+the cache.
+```
+
+::::lake cache stage "mappings «staging-directory»"
+Creates {lakeMeta}`staging-directory` and copies the {lakeMeta}`mappings` file to it.
+After this, it copies all artifacts described within the mappings file from the cache to the
+staging directory.
+It is an error if any of the artifacts described cannot be found in the cache.
+::::
+
+```lakeCacheHelp unstage
+Cache build outputs from a staging directory
+
+USAGE:
+  lake cache unstage <staging-directory>
+
+Copies the mappings and artifacts stored in staging directory (e.g., via
+`lake cache stage`) back into the cache.
+
+Reads the mappings file located at `outputs.jsonl` within the staging
+directory and writes the mappings to the Lake cache. Then, it copies the
+described artifacts from the staging directory into the cache.
+```
+
+::::lake cache unstage "«staging-directory»"
+
+Copies the mappings and artifacts stored in {lakeMeta}`staging-directory` (e.g., via {lake}`cache stage`) back into the cache.
+
+Reads the mappings file located at `outputs.jsonl` within the staging
+directory and writes the mappings to the Lake cache. Then, it copies the
+described artifacts from the staging directory into the cache.
+::::
+
+
+```lakeCacheHelp "put-stage"
+Manage the Lake cache
+
+USAGE:
+  lake cache <COMMAND>
+
+COMMANDS:
+  get [<mappings>]      download build outputs into the local Lake cache
+  put <mappings>        upload build outputs to a remote cache
+  add <mappings>        add input-to-output mappings to the Lake cache
+  clean                 removes ALL from the local Lake cache
+  services              print configured remote cache services
+
+STAGING COMMANDS:
+  stage <map> <dir>     copy build outputs from the cache to a directory
+  unstage <dir>         cache build outputs from a staging directory
+  put-staged <dir>      upload build outputs from a staging directory
+
+See `lake cache help <command>` for more information on a specific command.
+```
 
 
 # Configuration Files
