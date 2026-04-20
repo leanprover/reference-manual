@@ -15,9 +15,14 @@ open Verso.Genre.Manual.InlineLean
 
 #doc (Manual) "Lean 4.30.0-rc1 (2026-04-01)" =>
 %%%
-tag := "release-v4.30.0-rc1"
-file := "v4.30.0-rc1"
+tag := "release-v4.30.0"
+file := "v4.30.0"
 %%%
+
+:::warn
+These release notes describe a _release candidate_, not the final release.
+They may be incomplete and are subject to change.
+:::
 
 For this release, 298 changes landed.
 In addition to the 120 feature additions
