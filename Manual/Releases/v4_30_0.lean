@@ -13,7 +13,7 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.30.0-rc1 (2026-04-01)" =>
+#doc (Manual) "Lean 4.30.0-rc2 (2026-04-16)" =>
 %%%
 tag := "release-v4.30.0"
 file := "v4.30.0"
@@ -24,14 +24,14 @@ These release notes describe a _release candidate_, not the final release.
 They may be incomplete and are subject to change.
 :::
 
-For this release, 298 changes landed.
-In addition to the 120 feature additions
-and 68 fixes listed below,
+For this release, 302 changes landed.
+In addition to the 118 feature additions,
+and 69 fixs listed below,
 there were 17 refactoring changes,
 8 documentation improvements,
 19 performance improvements,
 12 improvements to the test suite,
-and 54 other changes.
+and 59 other changes.
 
 # Language
 
@@ -641,6 +641,12 @@ and 54 other changes.
 # Compiler
 
 ```markdown
+
+- [#13392](https://github.com/leanprover/lean4/pull/13392)
+  fixes a heap buffer overflow in `lean_io_prim_handle_read` that was triggered through an
+  integer overflow in the size computation of an allocation. In addition it places several checked
+  arithmetic operations on all relevant allocation paths to have potential future overflows be turned
+  into crashes instead. The offending code now throws an out of memory error instead.
 
 - [#13152](https://github.com/leanprover/lean4/pull/13152)
   informs the RC optimizer that tagged values can also be considered as "borrowed" in the sense that we do not need to consider them as owned values for the borrow analysis (they do of course not have an allocation they actually borrow from).
