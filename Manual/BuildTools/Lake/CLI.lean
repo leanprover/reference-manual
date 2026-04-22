@@ -852,8 +852,10 @@ USAGE:
 By default, runs the package's configured lint driver. If `builtinLint` is
 set to `true` in the package configuration, builtin lints also run.
 
-A lint driver can be configured by either setting the `lintDriver` package
-configuration option or by tagging a script or executable `@[lint_driver]`.
+Positional `MODULE` arguments narrow only the builtin lints; if omitted,
+the workspace's default target roots are used. The lint driver is invoked
+with `lintDriverArgs` from the package config plus any arguments after
+`--`; the `MODULE` list is not passed to it.
 
 OPTIONS:
   --builtin-lint        run builtin environment linters
@@ -862,6 +864,15 @@ OPTIONS:
   --lint-all            run all builtin linters (default + clippy)
   --lint-only <name>    run only the specified builtin linter (repeatable)
   --force               skip the up-to-date build check
+
+A lint driver can be configured by either setting the `lintDriver` package
+configuration option or by tagging a script or executable `@[lint_driver]`.
+A definition in a dependency can be used as a lint driver by using the
+`<pkg>/<name>` syntax for the 'lintDriver' configuration option.
+
+A script lint driver will be run with the package configuration's
+`lintDriverArgs` plus the CLI `args`. An executable lint driver will be
+built and then run like a script.
 
 ```
 
