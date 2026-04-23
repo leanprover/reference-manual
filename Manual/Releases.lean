@@ -54,6 +54,7 @@ open Verso.Genre
 tag := "release-notes"
 file := "releases"
 number := false
+searchPriority := 10
 %%%
 
 This section provides release notes about recent versions of Lean. When updating to a new version, please
