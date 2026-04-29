@@ -386,11 +386,10 @@ A definition's reducibility controls the contexts in which it is unfolded during
 
 There are four levels of reducibility:
 
-: {deftech}[Reducible]
+: {deftech}[Irreducible]
 
-  Reducible definitions are unfolded essentially everywhere, on demand.
-  Type class instance synthesis, definitional equality checks, and the rest of the language treat the definition as being essentially an abbreviation.
-  This is the setting applied by the {keywordOf Lean.Parser.Command.declaration}`abbrev` command.
+  Irreducible definitions are not unfolded at all during elaboration.
+  Definitions can be made irreducible by applying the {attr}`irreducible` attribute.
 
 : {deftech}[Semireducible]
 
@@ -403,10 +402,11 @@ There are four levels of reducibility:
   This includes ordinary {tech}[implicit] arguments, {tech}[instance implicit] arguments, and {tech}[strict implicit] arguments.
   All type class instances should be instance-reducible or reducible, as should definitions that appear in the types of implicit arguments and are intended to reduce.
 
-: {deftech}[Irreducible]
+: {deftech}[Reducible]
 
-  Irreducible definitions are not unfolded at all during elaboration.
-  Definitions can be made irreducible by applying the {attr}`irreducible` attribute.
+  Reducible definitions are unfolded essentially everywhere, on demand.
+  Type class instance synthesis, definitional equality checks, and the rest of the language treat the definition as being essentially an abbreviation.
+  This is the setting applied by the {keywordOf Lean.Parser.Command.declaration}`abbrev` command.
 
 :::example "Reducibility and Instance Synthesis"
 These three aliases for {lean}`String` are respectively reducible, semireducible, and irreducible.
