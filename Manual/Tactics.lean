@@ -842,12 +842,46 @@ Along with these operators, {tactic}`rename_i` allows inaccessible assumptions t
 :::tactic "rename"
 :::
 
+The {tactic}`revert` tactic is the inverse of {tactic}`intro`: it moves a hypothesis from the local context back into the goal as a premise.
+
 :::tactic "revert"
 :::
+
+:::example "Reverting Before Induction"
+Reverting a hypothesis before {tactic}`induction` gives a stronger inductive hypothesis that quantifies over the reverted variable.
+Here, reverting `m` before inducting on `n` produces an inductive hypothesis that works for all `m`, not just the original one:
+```lean
+example (n m : Nat) : n + m = m + n := by
+  revert m
+  induction n with
+  | zero => intro m; simp
+  | succ n ih => intro m; rw [Nat.succ_add, ih, Nat.add_succ]
+```
+:::
+
+The {tactic}`clear` tactic removes a hypothesis from the local context. This is sometimes useful to simplify the local context.
 
 :::tactic "clear"
 :::
 
+:::example "Clearing Before Induction"
+A hypothesis that mentions the induction variable can be included in the inductive hypothesis in an undesirable way.
+Here, without {tactic}`clear`, the inductive hypothesis would require `n = 7`, which cannot be proved in the successor case.
+```lean +error
+example (n : Nat) (h : n = 7) : n + 0 = n := by
+  induction n with
+  | zero => rfl
+  | succ n ih => rw [Nat.succ_add, ih]
+```
+Clearing `h` before {tactic}`induction` removes this requirement:
+```lean
+example (n : Nat) (h : n = 7) : n + 0 = n := by
+  clear h
+  induction n with
+  | zero => rfl
+  | succ n ih => rw [Nat.succ_add, ih]
+```
+:::
 
 ## Local Definitions and Proofs
 %%%
@@ -858,6 +892,19 @@ tag := "tactic-language-local-defs"
 Generally speaking, {tactic}`have` should be used when proving an intermediate lemma; {tactic}`let` should be reserved for local definitions.
 
 :::tactic "have"
+:::
+
+:::example "Introducing an Intermediate Fact"
+Here the main proof needs a fact about list lengths that requires its own reasoning.
+The {tactic}`have` tactic carves out that intermediate step, and after it is proved, `hlen` is available as a hypothesis for the rest of the proof:
+```lean
+example (xs ys : List Nat)
+    (h : xs.reverse = ys) : xs.length = ys.length := by
+  have hlen : xs.reverse.length = ys.length := by
+    rw [h]
+  rw [List.length_reverse] at hlen
+  exact hlen
+```
 :::
 
 :::tactic Lean.Parser.Tactic.tacticHave__
