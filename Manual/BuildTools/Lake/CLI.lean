@@ -35,6 +35,7 @@ COMMANDS:
   build <targets>...    build targets
   query <targets>...    build targets and output results
   exe <exe> <args>...   build an exe and run it in Lake's environment
+  profile <exe>         profile an exe and demangle Lean names
   check-build           check if any default build targets are configured
   test                  test the package using the configured test driver
   check-test            check if there is a properly configured test driver
@@ -636,6 +637,45 @@ Looks for the executable target {lakeMeta}`exe-target` in the workspace, builds 
 it with the given {lakeMeta}`args` in Lake's environment.
 
 See {lake}`build` for the syntax of target specifications and {lake}`env` for a description of how the environment is set up.
+
+:::
+
+```lakeHelp "profile"
+Profile an executable target and demangle Lean names
+
+USAGE:
+  lake profile [OPTIONS] <exe-target> [<args>...]
+
+Builds the executable target, records a CPU profile using samply, symbolicates
+the raw addresses, demangles Lean compiler names, and writes a Firefox Profiler
+JSON file.
+
+OPTIONS:
+  --rate N              sampling rate in Hz (default: 1000)
+  --output FILE         output path (default: current directory)
+  --raw                 skip symbolication and demangling
+  --no-serve            write output file and exit (don't start server)
+
+REQUIREMENTS:
+  samply                cargo install samply
+  curl, gzip            standard on most systems
+
+Open the output file in Firefox Profiler at https://profiler.firefox.com/from-file/
+```
+
+:::lake profile "«exe-target» [args...]"
+
+Builds the executable target {lakeMeta}`exe-target`, records a CPU profile using [samply](https://github.com/mstange/samply), symbolicates the raw addresses via samply's API, demangles Lean compiler names, and serves the result for [Firefox Profiler](https://profiler.firefox.com).
+
+The output is a gzipped Firefox Profiler JSON file with Lean symbol names demangled into human-readable form (e.g. `l_Lean_Meta_foo` becomes `Lean.Meta.foo`). By default, the demangled profile is served on a local HTTP server and a Firefox Profiler URL is printed.
+
+Options:
+* `--rate N` sets the sampling rate in Hz (default: 1000).
+* `--output FILE` writes the output to a specific file instead of the current directory.
+* `--raw` skips symbolication and demangling, outputting the raw samply profile.
+* `--no-serve` writes the output file and exits without starting the server.
+
+Requires [samply](https://github.com/mstange/samply) (`cargo install samply`).
 
 :::
 
