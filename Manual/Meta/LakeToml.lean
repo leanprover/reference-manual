@@ -695,7 +695,6 @@ deriving instance Test for Lake.NConfigDecl
 deriving instance Test for Lake.Package
 
 
-
 open Lake Toml in
 def report [Monad m] [Lean.MonadLog m] [MonadFileMap m] [Test α] (val : α) (errs : Array DecodeError) : m String := do
     let mut result := ""
