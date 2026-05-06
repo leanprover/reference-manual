@@ -8,7 +8,7 @@ import VersoManual
 import Manual.Meta
 import Manual.Meta.LexedText
 import Manual.Papers
-import Std.Internal.Async.Process
+import Std.Async.Process
 
 open Manual
 open Verso.Genre
@@ -472,7 +472,7 @@ For modules in the Lean core (e.g., {module}`Init.Prelude`), the initializer is 
 Module initializers will automatically initialize any imported modules.
 They are also idempotent (when run with the same `builtin` flag), but not thread-safe.
 
-*Important for process-related functionality*: applications that use process-related functions from `libuv`, such as {name}`Std.Internal.IO.Process.getProcessTitle` and {name}`Std.Internal.IO.Process.setProcessTitle`, must call `lean_setup_args(argc, argv)` (which returns a potentially modified `argv` that must be used in place of the original) *before* calling `lean_initialize()` or `lean_initialize_runtime_module()`.
+*Important for process-related functionality*: applications that use process-related functions from `libuv`, such as {name}`Std.IO.Process.getProcessTitle` and {name}`Std.IO.Process.setProcessTitle`, must call `lean_setup_args(argc, argv)` (which returns a potentially modified `argv` that must be used in place of the original) *before* calling `lean_initialize()` or `lean_initialize_runtime_module()`.
 This sets up process handling capabilities correctly, which is essential for certain system-level operations that Lean's runtime may depend on.
 
 Together with initialization of the Lean runtime, code like the following should be run exactly once before accessing any Lean declarations:
