@@ -54,115 +54,98 @@ prevention for permutation theorems
 
 ## `cbv` Tactic Expansion
 ```markdown
-The {tactic}`cbv` tactic — introduced as an experimental user-facing tactic
-in v4.29.0 — receives major new capabilities in v4.30.0:
-[#12597](https://github.com/leanprover/lean4/pull/12597) adds a
+The `cbv` tactic — introduced as an experimental user-facing evaluator tactic
+in v4.29.0, provides a principled alternative to {tactic}`native_decide` for computational
+goals in v4.30.0:
+- [#12597](https://github.com/leanprover/lean4/pull/12597) adds a
 `cbv_simproc` system for user-defined simplification procedures (mirroring
-{tactic}`simp`'s `simproc` infrastructure);
+`simp`'s `simproc` infrastructure);
 [#12773](https://github.com/leanprover/lean4/pull/12773) adds `at` location
 syntax (`cbv at h`, `cbv at *`), matching `simp`'s interface;
-[#12763](https://github.com/leanprover/lean4/pull/12763) adds short-circuit
+- [#12763](https://github.com/leanprover/lean4/pull/12763) adds short-circuit
 evaluation for `Or`/`And`, avoiding unnecessary work on branches whose outcome
 is already determined; and
-[#12788](https://github.com/leanprover/lean4/pull/12788) adds
+- [#12788](https://github.com/leanprover/lean4/pull/12788) adds
 `set_option cbv.maxSteps N`.
-
-These additions move `cbv` from an experimental evaluator toward a principled,
-user-extensible alternative to {tactic}`native_decide` for computational
-goals — filling a gap that has existed since `native_decide` first appeared in
-the Lean 4 toolchain.
 ```
 
 ## Compiler: User Borrow Annotations and New LCNF Backend
 ```markdown
-[#12830](https://github.com/leanprover/lean4/pull/12830) enables
+- [#12830](https://github.com/leanprover/lean4/pull/12830) enables
 user-provided borrow annotations: mark arguments with `(x : @&Ty)` to reduce
 reference counting pressure. Use `trace.Compiler.inferBorrow` to inspect the
 compiler's reasoning.
-[#12942](https://github.com/leanprover/lean4/pull/12942) marks `ReaderT`'s
+- [#12942](https://github.com/leanprover/lean4/pull/12942) marks `ReaderT`'s
 context argument as borrowed, propagating RC savings across the
 metaprogramming stack.
-
-[#12781](https://github.com/leanprover/lean4/pull/12781) ports the C emission
-pass to LCNF, completing end-to-end code generation through the new
-infrastructure. [#12665](https://github.com/leanprover/lean4/pull/12665)
+- [#12781](https://github.com/leanprover/lean4/pull/12781) ports the C emission
+pass to LCNF, complementing push_proj,
+ResetReuse, borrow, box/unbox, RC insertion, and toposorting
+thereby completing end-to-end code generation through the new
+infrastructure's pipeline, having benn under construction since v4.16.0, with IR
+passes migrating one by one across releases.
+-[#12665](https://github.com/leanprover/lean4/pull/12665)
 ports the reset/reuse pass with improved exponential-code prevention, yielding
 a *~15% decrease in binary size*.
-
-The LCNF infrastructure has been under construction since v4.16.0, with IR
-passes migrating one by one across releases. v4.29.0 ported push_proj,
-ResetReuse, borrow, box/unbox, RC insertion, and toposorting; v4.30.0 ports
-C emission — the last pass — so the entire pipeline now runs end-to-end
-through LCNF.
 ```
 ## Lake Cache Overhaul
 ```markdown
-[#12634](https://github.com/leanprover/lean4/pull/12634) enables on-demand
-artifact downloads during `lake build`, removing the need for a separate
+Lake's remote caching integration with  was introduced in v4.25.0.
+v4.29.0 added , , and a
+so now artifact downloads .
+- [#12634](https://github.com/leanprover/lean4/pull/12634) Hard links for local transfers in Reservoir from Lake's system-wide configuration file (as with `lake cache clean`) enables on-demand
+artifact downloads during `lake build` as to happen automatically as part of `lake build`, removing the need for a separate
 `lake cache get` step.
-[#12974](https://github.com/leanprover/lean4/pull/12974) adds parallel
+- [#12974](https://github.com/leanprover/lean4/pull/12974) adds parallel
 transfers via `curl --parallel`, and
-[#13164](https://github.com/leanprover/lean4/pull/13164) fetches all artifact
+- [#13164](https://github.com/leanprover/lean4/pull/13164) fetches all artifact
 URLs from Reservoir in a single bulk request rather than one redirect per
-artifact. [#13144](https://github.com/leanprover/lean4/pull/13144) adds staged
+artifact.
+- [#13144](https://github.com/leanprover/lean4/pull/13144) adds staged
 upload commands (`lake cache stage`/`unstage`/`put-staged`) paralleling
 Mathlib's `lake exe cache` workflow.
-
-Lake's remote caching integration with Reservoir was introduced in v4.25.0.
-v4.29.0 added hard links for local transfers, `lake cache clean`, and a
-system-wide configuration file. v4.30.0 completes the picture: artifact
-downloads now happen automatically as part of `lake build`.
 ```
 ## Theorems Are Now Opaque in the Kernel
 ```markdown
 [#12973](https://github.com/leanprover/lean4/pull/12973) makes theorems
 opaque to the kernel: a `theorem` is never unfolded during reduction or type
-checking, closing a gap that proof irrelevance had already made largely
-theoretical. Proofs that must reduce (e.g., `Acc.rec` eliminating into `Type`)
-must use `def` instead.
-
-This continues v4.29.0's systematic tightening of reducibility and
-transparency semantics — `@[implicit_reducible]`, `isDefEq` transparency
-changes, and kernel-level `theorem` opacity are successive steps in a broader
-effort across recent releases to make Lean's definitional equality algorithm
-more predictable and scalable.
+checking, closing a gap that semantics for `@[implicit_reducible]` like `isDefEq` transparency
+which had been already made largely theoretical through steps making them more robust.
+Proofs that must reduce (e.g., `Acc.rec` eliminating into `Type`)
+must use `def` instead such that definitions using the equality algorithm
+are now predictable and scalable in type.
 ```
 ## `@[deprecated_arg]` Attribute
 ```markdown
-[#13011](https://github.com/leanprover/lean4/pull/13011) adds
-`@[deprecated_arg old new (since := "...")]` for deprecating individual
-function parameters. Callers using the old name receive a warning and a rename
-code action; removed parameters produce an error with a delete hint.
-
-Lean has had `@[deprecated]` for whole-function deprecation since early in
-the v4 series. `@[deprecated_arg]` fills the finer-grained gap, covering the
-common case where a library refactors parameter names without changing the
-function's identifier.
+- [#13011](https://github.com/leanprover/lean4/pull/13011) adds
+`@[deprecated_arg old new (since := "i.e some date")]` from`@[deprecated]` for
+whole-function deprecation thereby fine-grains library refactors such as general callers which,
+using the old name's parameter, receive a warning and a rename
+code action; removed parameters produce an error with a delete hint, without changing the
+function's identifier, therein filling the finer-grained gap by `@[deprecated_arg]` since v4.
 ```
 ## Library Highlights
 ```markdown
-[#12126](https://github.com/leanprover/lean4/pull/12126)–[#12144](https://github.com/leanprover/lean4/pull/12144)
+- [#12126](https://github.com/leanprover/lean4/pull/12126)–[#12144](https://github.com/leanprover/lean4/pull/12144)
 introduce core HTTP data types (`Request`, `Response`, `Status`, `Headers`,
 `URI`, streaming `Body`) as the foundation of a standard HTTP library — the
 first such types in Lean core. String verification continues from v4.29.0
 (which proved KMP correctness for `Slice` patterns), adding proofs for
 `startsWith`, `split`, `intercalate`, `isNat`/`toNat?`, `isInt`/`toInt?`, and
-more. [#12385](https://github.com/leanprover/lean4/pull/12385) adds
+more.
+- [#12385](https://github.com/leanprover/lean4/pull/12385) adds
 `Array.mergeSort`, a stable O(n log n) sort about twice as fast as
 `List.mergeSort` on large random inputs.
 ```
 ## Experimental: Live Debugging with `idbg`
 ```markdown
-[#12648](https://github.com/leanprover/lean4/pull/12648) adds experimental
-`idbg e` syntax: when placed in a `do` block, it connects a running compiled
+- [#12648](https://github.com/leanprover/lean4/pull/12648) adds an experimental
+ debugging capability via a`idbg e` lexical scoping technique, being the first mechanism to
+ connect back to the language server for live inspection, previously relying on the `#eval` trace.
+ Its syntax: when placed in a `do` block, it connects a running compiled
 program to the language server over TCP and evaluates `e` with actual runtime
 values. Editing the expression re-evaluates it live. Known limitations: single
 `idbg` at a time, requires `LEAN_PATH`, untested on Windows/macOS.
-
-This is a qualitatively new debugging capability for the Lean toolchain: prior
-to v4.30.0, no mechanism connected a compiled Lean program back to the
-language server for live inspection — debugging relied on `#eval`, trace
-messages, or external tools.
 ```
 ## Breaking Changes
 ```markdown
