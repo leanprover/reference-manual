@@ -107,7 +107,7 @@ Mathlib's `lake exe cache` workflow.
 ```
 ## Theorems Are Now Opaque in the Kernel
 ```markdown
-[#12973](https://github.com/leanprover/lean4/pull/12973) makes theorems
+- [#12973](https://github.com/leanprover/lean4/pull/12973) makes theorems
 opaque to the kernel: a `theorem` is never unfolded during reduction or type
 checking, closing a gap that semantics for `@[implicit_reducible]` like `isDefEq` transparency
 which had been already made largely theoretical through steps making them more robust.
