@@ -60,7 +60,7 @@ goals in v4.30.0:
 - [#12597](https://github.com/leanprover/lean4/pull/12597) adds a
 `cbv_simproc` system for user-defined simplification procedures (mirroring
 `simp`'s `simproc` infrastructure);
-[#12773](https://github.com/leanprover/lean4/pull/12773) adds `at` location
+- [#12773](https://github.com/leanprover/lean4/pull/12773) adds `at` location
 syntax (`cbv at h`, `cbv at *`), matching `simp`'s interface;
 - [#12763](https://github.com/leanprover/lean4/pull/12763) adds short-circuit
 evaluation for `Or`/`And`, avoiding unnecessary work on branches whose outcome
@@ -84,15 +84,12 @@ ResetReuse, borrow, box/unbox, RC insertion, and toposorting
 thereby completing end-to-end code generation through the new
 infrastructure's pipeline, having benn under construction since v4.16.0, with IR
 passes migrating one by one across releases.
--[#12665](https://github.com/leanprover/lean4/pull/12665)
+- [#12665](https://github.com/leanprover/lean4/pull/12665)
 ports the reset/reuse pass with improved exponential-code prevention, yielding
 a *~15% decrease in binary size*.
 ```
 ## Lake Cache Overhaul
 ```markdown
-Lake's remote caching integration with  was introduced in v4.25.0.
-v4.29.0 added , , and a
-so now artifact downloads .
 - [#12634](https://github.com/leanprover/lean4/pull/12634) Hard links for local transfers in Reservoir from Lake's system-wide configuration file (as with `lake cache clean`) enables on-demand
 artifact downloads during `lake build` as to happen automatically as part of `lake build`, removing the need for a separate
 `lake cache get` step.
@@ -103,7 +100,7 @@ URLs from Reservoir in a single bulk request rather than one redirect per
 artifact.
 - [#13144](https://github.com/leanprover/lean4/pull/13144) adds staged
 upload commands (`lake cache stage`/`unstage`/`put-staged`) paralleling
-Mathlib's `lake exe cache` workflow.
+Mathlib's `lake exe cache` remote caching.
 ```
 ## Theorems Are Now Opaque in the Kernel
 ```markdown
