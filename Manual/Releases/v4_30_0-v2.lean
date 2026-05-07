@@ -33,25 +33,14 @@ there were 17 refactoring changes,
 12 improvements to the test suite,
 and 59 other changes.
 
-/-
-============================================================
-SUGGESTED # Highlights SECTION (markdown body)
-============================================================
--/
-
 # Highlights
-`````
-Lean 4.30.0 delivers `sym =>` — a user-facing interactive tactic mode built
-atop the symbolic simulation framework introduced in v4.28.0 — substantially
-expands the {tactic}`cbv` tactic that arrived experimentally in v4.29.0,
-completes the LCNF compiler backend migration begun in v4.16.0, and makes
-Lake's remote caching seamless by integrating on-demand downloads into
-`lake build`.
-
+```markdown
 ## New `sym =>` Interactive Tactic
-
-[#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, an
-interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`, it gives
+- [#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, an
+interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`,
+{tactic}`grind`, which has been under continuous development since v4.9.0 (mid-2024),
+the `SymM` symbolic simulation framework it builds on was introduced in
+v4.28.0 as internal infrastructure for verification condition generators. This gives
 users explicit control over each step — `intro`, `apply`, `internalize`,
 `by_contra`, and `simp` — without eagerly applying by-contradiction. Satellite
 solvers like `lia` and `ring` handle remaining goals automatically when
@@ -61,15 +50,10 @@ invoked. The mode is backed by a new `Sym.simp` simplifier that also powers
 ([#13018](https://github.com/leanprover/lean4/pull/13018)), and loop
 prevention for permutation theorems
 ([#13046](https://github.com/leanprover/lean4/pull/13046)).
-
-{tactic}`grind` has been under continuous development since v4.9.0 (mid-2024).
-The `SymM` symbolic simulation framework it builds on was introduced in
-v4.28.0 as internal infrastructure for verification condition generators.
-`sym =>` is the first user-facing interactive mode to emerge from that line
-of work — complementing `grind =>` rather than replacing it.
+```
 
 ## `cbv` Tactic Expansion
-
+```markdown
 The {tactic}`cbv` tactic — introduced as an experimental user-facing tactic
 in v4.29.0 — receives major new capabilities in v4.30.0:
 [#12597](https://github.com/leanprover/lean4/pull/12597) adds a
@@ -87,9 +71,10 @@ These additions move `cbv` from an experimental evaluator toward a principled,
 user-extensible alternative to {tactic}`native_decide` for computational
 goals — filling a gap that has existed since `native_decide` first appeared in
 the Lean 4 toolchain.
+```
 
 ## Compiler: User Borrow Annotations and New LCNF Backend
-
+```markdown
 [#12830](https://github.com/leanprover/lean4/pull/12830) enables
 user-provided borrow annotations: mark arguments with `(x : @&Ty)` to reduce
 reference counting pressure. Use `trace.Compiler.inferBorrow` to inspect the
@@ -109,9 +94,9 @@ passes migrating one by one across releases. v4.29.0 ported push_proj,
 ResetReuse, borrow, box/unbox, RC insertion, and toposorting; v4.30.0 ports
 C emission — the last pass — so the entire pipeline now runs end-to-end
 through LCNF.
-
+```
 ## Lake Cache Overhaul
-
+```markdown
 [#12634](https://github.com/leanprover/lean4/pull/12634) enables on-demand
 artifact downloads during `lake build`, removing the need for a separate
 `lake cache get` step.
@@ -127,9 +112,9 @@ Lake's remote caching integration with Reservoir was introduced in v4.25.0.
 v4.29.0 added hard links for local transfers, `lake cache clean`, and a
 system-wide configuration file. v4.30.0 completes the picture: artifact
 downloads now happen automatically as part of `lake build`.
-
+```
 ## Theorems Are Now Opaque in the Kernel
-
+```markdown
 [#12973](https://github.com/leanprover/lean4/pull/12973) makes theorems
 opaque to the kernel: a `theorem` is never unfolded during reduction or type
 checking, closing a gap that proof irrelevance had already made largely
@@ -141,9 +126,9 @@ transparency semantics — `@[implicit_reducible]`, `isDefEq` transparency
 changes, and kernel-level `theorem` opacity are successive steps in a broader
 effort across recent releases to make Lean's definitional equality algorithm
 more predictable and scalable.
-
+```
 ## `@[deprecated_arg]` Attribute
-
+```markdown
 [#13011](https://github.com/leanprover/lean4/pull/13011) adds
 `@[deprecated_arg old new (since := "...")]` for deprecating individual
 function parameters. Callers using the old name receive a warning and a rename
@@ -153,9 +138,9 @@ Lean has had `@[deprecated]` for whole-function deprecation since early in
 the v4 series. `@[deprecated_arg]` fills the finer-grained gap, covering the
 common case where a library refactors parameter names without changing the
 function's identifier.
-
+```
 ## Library Highlights
-
+```markdown
 [#12126](https://github.com/leanprover/lean4/pull/12126)–[#12144](https://github.com/leanprover/lean4/pull/12144)
 introduce core HTTP data types (`Request`, `Response`, `Status`, `Headers`,
 `URI`, streaming `Body`) as the foundation of a standard HTTP library — the
@@ -165,9 +150,9 @@ first such types in Lean core. String verification continues from v4.29.0
 more. [#12385](https://github.com/leanprover/lean4/pull/12385) adds
 `Array.mergeSort`, a stable O(n log n) sort about twice as fast as
 `List.mergeSort` on large random inputs.
-
+```
 ## Experimental: Live Debugging with `idbg`
-
+```markdown
 [#12648](https://github.com/leanprover/lean4/pull/12648) adds experimental
 `idbg e` syntax: when placed in a `do` block, it connects a running compiled
 program to the language server over TCP and evaluates `e` with actual runtime
@@ -178,9 +163,9 @@ This is a qualitatively new debugging capability for the Lean toolchain: prior
 to v4.30.0, no mechanism connected a compiled Lean program back to the
 language server for live inspection — debugging relied on `#eval`, trace
 messages, or external tools.
-
+```
 ## Breaking Changes
-
+```markdown
 - [#12973](https://github.com/leanprover/lean4/pull/12973) Theorems are now
   opaque in the kernel; use `def` for proof terms that must reduce.
 - [#12749](https://github.com/leanprover/lean4/pull/12749) Renames
@@ -196,8 +181,7 @@ messages, or external tools.
   signature of `Option.getElem?_inj`.
 - [#12708](https://github.com/leanprover/lean4/pull/12708) `PostCond`
   functions reorder implicit parameters so `α` consistently comes before `ps`.
-
-`````
+```
 # Language
 
 ````markdown
