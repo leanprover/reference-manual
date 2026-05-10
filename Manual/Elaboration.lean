@@ -76,6 +76,7 @@ where
 
 #doc (Manual) "Elaboration and Compilation" =>
 %%%
+tag := "elaboration-compilation"
 htmlSplit := .never
 %%%
 
@@ -94,12 +95,12 @@ Roughly speaking, Lean's processing of a source file can be divided into the fol
 : Elaboration
 
   {deftech (key := "Lean elaborator") -normalize}[Elaboration] is the process of transforming Lean's user-facing syntax into its core type theory.
-  This core theory is much simpler, enabling the trusted kernel to be very small.
+  This core theory is much simpler, enabling the {tech (key := "trust")}[trusted] kernel to be very small.
   Elaboration additionally produces metadata, such as proof states or the types of expressions, used for Lean's interactive features, storing them in a side table.
 
 : Kernel Checking
 
-  Lean's trusted kernel checks the output of the elaborator to ensure that it follows the rules of the type theory.
+  Lean's {tech (key := "trust")}[trusted] kernel checks the output of the elaborator to ensure that it follows the rules of the type theory.
 
 : Compilation
 
