@@ -64,7 +64,7 @@ The blue ticks indicate that the theorem statement has been successfully elabora
 
 ## Trust
 
-This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and trusts the authors of the imported libraries to be {tech}[honest], that they performed this check, and that no unsound axioms have been declared and used.
+This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and trusts the authors of the imported libraries to be {tech}[honest], that they checked that the theorems in their libraries express their intended informal meanings, and that no unsound axioms have been declared and used.
 
 ## Protection
 
