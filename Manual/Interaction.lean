@@ -461,7 +461,7 @@ def intersperse (x : α) : List α → List α
 ```
 ```leanOutput intersperse_eqns
 equations:
-@[defeq] theorem intersperse.eq_1.{u_1} : ∀ {α : Type u_1} (x y z : α) (zs : List α),
+@[backward_defeq] theorem intersperse.eq_1.{u_1} : ∀ {α : Type u_1} (x y z : α) (zs : List α),
   intersperse x (y :: z :: zs) = y :: x :: intersperse x (z :: zs)
 theorem intersperse.eq_2.{u_1} : ∀ {α : Type u_1} (x : α) (x_1 : List α),
   (∀ (y z : α) (zs : List α), x_1 = y :: z :: zs → False) → intersperse x x_1 = x_1

@@ -162,6 +162,37 @@ span.TODO {
     some <| fun go _ _ content => do
       pure {{<span class="TODO">{{← content.mapM go}}</span>}}
 
+def Block.warn : Block where
+  name := `Manual.warn
+
+@[directive_expander warn]
+def warn : DirectiveExpander
+  | args, blocks => do
+    ArgParse.done.run args
+    let content ← blocks.mapM elabBlock
+    pure #[← `(Block.other Block.warn #[$content,*])]
+
+@[block_extension warn]
+def warn.descr : BlockDescr where
+  traverse _ _ _ := pure none
+  toTeX := none
+  extraCss := [r#"
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+"#]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ goB _ _ content => do
+      pure {{
+        <div class="namedocs warn">
+          <span class="label">"Warning"</span>
+          <div class="text">
+            {{← content.mapM goB}}
+          </div>
+        </div>
+      }}
+
 def Inline.noVale : Inline where
   name := `Manual.noVale
 

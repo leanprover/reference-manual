@@ -38,7 +38,7 @@ COMMANDS:
   check-build           check if any default build targets are configured
   test                  test the package using the configured test driver
   check-test            check if there is a properly configured test driver
-  lint                  lint the package using the configured lint driver
+  lint                  lint the package
   check-lint            check if there is a properly configured lint driver
   clean                 remove build outputs
   shake                 minimize imports in source files
@@ -67,6 +67,7 @@ BASIC OPTIONS:
   --packages=file       JSON file of package entries that override the manifest
   --reconfigure, -R     elaborate configuration files instead of using OLeans
   --keep-toolchain      do not update toolchain on workspace update
+  --allow-empty         accept bare builds with no default targets configured
   --no-build            exit immediately if a build target is not up-to-date
   --no-cache            build packages locally; do not download build caches
   --try-cache           attempt to download build caches for supported packages
@@ -291,11 +292,14 @@ Single-character flags cannot be combined; `-HR` is not equivalent to `-H -R`.
 
 : {lakeOptDef flag}`--rehash` or {lakeOptDef flag}`-H`
 
-  Ignored cached file hashes, recomputing them.
+  Ignore cached file hashes, recomputing them.
   Lake uses hashes of dependencies to determine whether to rebuild an artifact.
   These hashes are cached on disk whenever a module is built.
   To save time during builds, these cached hashes are used instead of recomputing each hash unless {lakeOpt}`--rehash` is specified.
 
+: {lakeOptDef flag}`--allow-empty`
+
+  Accept builds that produce no output when no {tech}[default targets] are configured.
 
 : {lakeOptDef flag}`--update`
 
@@ -844,27 +848,91 @@ A library test driver will just be built; it is expected that tests are implemen
 :::
 
 ```lakeHelp lint
-Lint the workspace's root package using its configured lint driver
+Lint the workspace's root package
 
 USAGE:
-  lake lint [-- <args>...]
+  lake lint [OPTIONS] [<MODULE>...] [-- <args>...]
+
+By default, runs the package's configured lint driver. If `builtinLint` is
+set to `true` in the package configuration, builtin lints also run.
+
+Builtin linting (`--builtin-lint`, `--builtin-only`, `--extra`, `--lint-all`,
+`--lint-only`, or `builtinLint = true` in the package configuration) drives a
+build of the targeted modules with the requested linter options enabled.
+The lint driver path on its own does not trigger a build.
+
+Positional `MODULE` arguments narrow only the builtin lints; if omitted,
+the workspace's default target roots are used. The lint driver is invoked
+with `lintDriverArgs` from the package config plus any arguments after
+`--`; the `MODULE` list is not passed to it.
+
+OPTIONS:
+  --builtin-lint        run builtin environment and text linters
+  --builtin-only        run only builtin linters, skip the lint driver
+  --extra               run default builtin linters together with the
+                        non-default (extra) ones
+  --lint-all            run all registered linters, including defaults, extras,
+                        and any other disabled-by-default linters
+  --lint-only <name>    run only the specified linter (repeatable)
 
 A lint driver can be configured by either setting the `lintDriver` package
-configuration option by tagging a script or executable `@[lint_driver]`.
-A definition in dependency can be used as a test driver by using the
-`<pkg>/<name>` syntax for the 'testDriver' configuration option.
+configuration option or by tagging a script or executable `@[lint_driver]`.
+A definition in a dependency can be used as a lint driver by using the
+`<pkg>/<name>` syntax for the 'lintDriver' configuration option.
 
-A script lint driver will be run with the  package configuration's
+A script lint driver will be run with the package configuration's
 `lintDriverArgs` plus the CLI `args`. An executable lint driver will be
 built and then run like a script.
 
 ```
 
-:::lake lint " [\"--\" args...]"
+:::lake lint "[options...] [module...] [\"--\" args...]"
 
-Lint the workspace's root package using its configured lint driver
+By default, lint the workspace's root package using its configured lint driver.
+If `builtinLint` is set to {name}`true` in the package configuration, builtin lints also run.
+
+Positional {lakeMeta}`module` arguments narrow only the builtin lints; if omitted,
+the workspace's default target roots are used. The lint driver is invoked
+with `lintDriverArgs` from the package config plus any arguments after
+`--`; the {lakeMeta}`module` list is not passed to it.
 
 A script lint driver will be run with the  package configuration's
+`lintDriverArgs` plus the CLI `args`. An executable lint driver will be
+built and then run like a script.
+
+The builtin linters are a set of linters that can run as part of a build. Some of them are run by default; these linters are run when `--builtin-lint` is specified. Other linters are extra linters; these linters are run only when `--extra` is specified.
+
+The {lakeMeta}`options` may be:
+
+: `--builtin-lint`
+
+  Run default builtin environment and text linters
+
+: `--builtin-only`
+
+  Run only default builtin linters, skip the lint driver
+
+: `--extra`
+
+  Run only non-default (extra) builtin linters
+
+: `--lint-all`
+
+  Run all registered linters, including defaults, extra,
+  and any other disabled-by-default linters
+
+: `--lint-only` `<name>`
+
+  Run only the specified linter (repeatable).
+
+
+
+A lint driver can be configured by either setting the `lintDriver` package
+configuration option or by tagging a script or executable `@[lint_driver]`.
+A definition in a dependency can be used as a lint driver by using the
+`<pkg>/<name>` syntax for the 'lintDriver' configuration option.
+
+A script lint driver will be run with the package configuration's
 `lintDriverArgs` plus the CLI `args`. An executable lint driver will be
 built and then run like a script.
 :::
