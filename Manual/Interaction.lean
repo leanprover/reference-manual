@@ -209,7 +209,7 @@ In particular, functions defined using {tech}[well-founded recursion] or as {tec
 
 :::syntax command (title := "Reducing Terms")
 ```grammar
-#reduce $[(proofs := true)]? $[(types := true)]? $t
+#reduce $_:reduceConfig $t
 ```
 
 {includeDocstring Lean.reduceCmd}
