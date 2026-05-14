@@ -34,7 +34,7 @@ there were 17 refactoring changes,
 and 59 other changes.
 
 # Highlights
-```markdown
+````markdown
 ## New `sym =>` Interactive Tactic
 - [#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, an
 interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`,
@@ -49,9 +49,19 @@ invoked. The mode is backed by a new `Sym.simp` simplifier that also powers
 ([#13034](https://github.com/leanprover/lean4/pull/13034)), named theorem sets
 ([#13018](https://github.com/leanprover/lean4/pull/13018)), and loop
 prevention for permutation theorems
-([#13046](https://github.com/leanprover/lean4/pull/13046)).
-```
+([#13046](https://github.com/leanprover/lean4/pull/13046)). Example:
 
+  ```lean
+    example (x : Nat) : myP x → myQ x := by
+      sym [myP_myQ] =>
+      intro h
+      finish
+
+    example (x y z : Nat) : x > 1 → x + y + z > 0 := by
+      sym =>
+      lia
+  ```
+````
 ## `cbv` Tactic Expansion
 ```markdown
 The `cbv` tactic — introduced as an experimental user-facing evaluator tactic
