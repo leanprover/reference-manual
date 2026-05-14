@@ -34,7 +34,6 @@ there were 17 refactoring changes,
 and 59 other changes.
 
 # Highlights
-````markdown
 ## New `sym =>` Interactive Tactic
 - [#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, an
 interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`,
@@ -51,7 +50,7 @@ invoked. The mode is backed by a new `Sym.simp` simplifier that also powers
 prevention for permutation theorems
 ([#13046](https://github.com/leanprover/lean4/pull/13046)). Example:
 
-  ```lean
+  ```
     example (x : Nat) : myP x → myQ x := by
       sym [myP_myQ] =>
       intro h
@@ -61,15 +60,19 @@ prevention for permutation theorems
       sym =>
       lia
   ```
-````
+
 ## `cbv` Tactic Expansion
-```markdown
-The `cbv` tactic — introduced as an experimental user-facing evaluator tactic
+
+The {tactic}`cbv` tactic — introduced as an experimental user-facing evaluator tactic
 in v4.29.0, provides a principled alternative to {tactic}`native_decide` for computational
 goals in v4.30.0:
 - [#12597](https://github.com/leanprover/lean4/pull/12597) adds a
 `cbv_simproc` system for user-defined simplification procedures (mirroring
 `simp`'s `simproc` infrastructure);
+```
+cbv_simproc [↓] myPreProc (myPattern _) := fun e => ...
+cbv_simproc [↑] myPostProc (myPattern _) := fun e => ...
+```
 - [#12773](https://github.com/leanprover/lean4/pull/12773) adds `at` location
 syntax (`cbv at h`, `cbv at *`), matching `simp`'s interface;
 - [#12763](https://github.com/leanprover/lean4/pull/12763) adds short-circuit
@@ -77,7 +80,6 @@ evaluation for `Or`/`And`, avoiding unnecessary work on branches whose outcome
 is already determined; and
 - [#12788](https://github.com/leanprover/lean4/pull/12788) adds
 `set_option cbv.maxSteps N`.
-```
 
 ## Compiler: User Borrow Annotations and New LCNF Backend
 ```markdown
@@ -85,6 +87,10 @@ is already determined; and
 user-provided borrow annotations: mark arguments with `(x : @&Ty)` to reduce
 reference counting pressure. Use `trace.Compiler.inferBorrow` to inspect the
 compiler's reasoning.
+```
+def process (ctx : @& Context) (data : Array Nat) : Result :=
+  ...  -- `ctx` will not be reference counted
+```
 - [#12942](https://github.com/leanprover/lean4/pull/12942) marks `ReaderT`'s
 context argument as borrowed, propagating RC savings across the
 metaprogramming stack.
@@ -99,7 +105,6 @@ ports the reset/reuse pass with improved exponential-code prevention, yielding
 a *~15% decrease in binary size*.
 ```
 ## Lake Cache Overhaul
-```markdown
 - [#12634](https://github.com/leanprover/lean4/pull/12634) Hard links for local transfers in Reservoir from Lake's system-wide configuration file (as with `lake cache clean`) enables on-demand
 artifact downloads during `lake build` as to happen automatically as part of `lake build`, removing the need for a separate
 `lake cache get` step.
@@ -111,9 +116,9 @@ artifact.
 - [#13144](https://github.com/leanprover/lean4/pull/13144) adds staged
 upload commands (`lake cache stage`/`unstage`/`put-staged`) paralleling
 Mathlib's `lake exe cache` remote caching.
-```
+
 ## Theorems Are Now Opaque in the Kernel
-```markdown
+
 - [#12973](https://github.com/leanprover/lean4/pull/12973) makes theorems
 opaque to the kernel: a `theorem` is never unfolded during reduction or type
 checking, closing a gap that semantics for `@[implicit_reducible]` like `isDefEq` transparency
@@ -121,18 +126,26 @@ which had been already made largely theoretical through steps making them more r
 Proofs that must reduce (e.g., `Acc.rec` eliminating into `Type`)
 must use `def` instead such that definitions using the equality algorithm
 are now predictable and scalable in type.
-```
+
 ## `@[deprecated_arg]` Attribute
-```markdown
+
 - [#13011](https://github.com/leanprover/lean4/pull/13011) adds
-`@[deprecated_arg old new (since := "i.e some date")]` from`@[deprecated]` for
-whole-function deprecation thereby fine-grains library refactors such as general callers which,
-using the old name's parameter, receive a warning and a rename
-code action; removed parameters produce an error with a delete hint, without changing the
-function's identifier, therein filling the finer-grained gap by `@[deprecated_arg]` since v4.
 ```
+@[deprecated_arg old new (since := "2026-03-18")]
+def f (new : Nat) : Nat := new
+#check f (old := 42)
+-- warning: parameter `old` of `f` has been deprecated, use `new` instead
+-- Hint: Rename this argument
+```
+ from`@[deprecated]` for
+whole-function deprecation thereby fine-graining library refactors such as general callers which,
+by using the old name's parameter, receive a warning and a rename
+code action; removed parameters produce an error with a delete hint, without changing the
+function's identifier, therein filling the gap with `@[deprecated_arg]` since v4.
+
+
 ## Library Highlights
-```markdown
+
 - [#12126](https://github.com/leanprover/lean4/pull/12126)–[#12144](https://github.com/leanprover/lean4/pull/12144)
 introduce core HTTP data types (`Request`, `Response`, `Status`, `Headers`,
 `URI`, streaming `Body`) as the foundation of a standard HTTP library — the
@@ -143,9 +156,9 @@ more.
 - [#12385](https://github.com/leanprover/lean4/pull/12385) adds
 `Array.mergeSort`, a stable O(n log n) sort about twice as fast as
 `List.mergeSort` on large random inputs.
-```
+
 ## Experimental: Live Debugging with `idbg`
-```markdown
+
 - [#12648](https://github.com/leanprover/lean4/pull/12648) adds an experimental
  debugging capability via a`idbg e` lexical scoping technique, being the first mechanism to
  connect back to the language server for live inspection, previously relying on the `#eval` trace.
@@ -153,9 +166,18 @@ more.
 program to the language server over TCP and evaluates `e` with actual runtime
 values. Editing the expression re-evaluates it live. Known limitations: single
 `idbg` at a time, requires `LEAN_PATH`, untested on Windows/macOS.
-```
+
+## Other Language Improvements
+- [#12841](https://github.com/leanprover/lean4/pull/12841) allows structure/class field defaults to depend on fields that come *after* them, not just before. Fields that would create circular dependencies are cleared from the context.
+- [#12603](https://github.com/leanprover/lean4/pull/12603)The example
+  ```
+  inductive Eq {α : Type u} (x : α) : α → Prop where
+    | refl (x) : Eq x x
+  ```
+demonstrates `inductive` constructor Eq overriding the binder '(x:a)' and its variant type, making `x` explicit in `Eq.refl`.
+
 ## Breaking Changes
-```markdown
+
 - [#12973](https://github.com/leanprover/lean4/pull/12973) Theorems are now
   opaque in the kernel; use `def` for proof terms that must reduce.
 - [#12749](https://github.com/leanprover/lean4/pull/12749) Renames
@@ -171,7 +193,7 @@ values. Editing the expression re-evaluates it live. Known limitations: single
   signature of `Option.getElem?_inj`.
 - [#12708](https://github.com/leanprover/lean4/pull/12708) `PostCond`
   functions reorder implicit parameters so `α` consistently comes before `ps`.
-```
+
 # Language
 
 ````markdown
