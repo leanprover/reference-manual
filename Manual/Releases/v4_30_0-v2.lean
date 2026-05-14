@@ -41,7 +41,7 @@ interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`,
 the `SymM` symbolic simulation framework it builds on was introduced in
 v4.28.0 as internal infrastructure for verification condition generators. This gives
 users explicit control over each step — `intro`, `apply`, `internalize`,
-`by_contra`, and `simp` — without eagerly applying by-contradiction. Satellite
+`by_contra`, and `simp` — without eagerly applying an axiomatic contradiction method. Satellite
 solvers like `lia` and `ring` handle remaining goals automatically when
 invoked. The mode is backed by a new `Sym.simp` simplifier that also powers
 {tactic}`cbv` and {tactic}`grind`, with support for named variants
@@ -82,12 +82,12 @@ is already determined; and
 `set_option cbv.maxSteps N`.
 
 ## Compiler: User Borrow Annotations and New LCNF Backend
-```markdown
+
 - [#12830](https://github.com/leanprover/lean4/pull/12830) enables
 user-provided borrow annotations: mark arguments with `(x : @&Ty)` to reduce
 reference counting pressure. Use `trace.Compiler.inferBorrow` to inspect the
 compiler's reasoning.
-```
+
 def process (ctx : @& Context) (data : Array Nat) : Result :=
   ...  -- `ctx` will not be reference counted
 ```
