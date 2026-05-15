@@ -545,7 +545,7 @@ example (h : ∀ a b : Nat, a + b = b + a) :
 :::
 
 The {tactic}`obtain` tactic is used when a hypothesis or proof term has internal structure that should be broken apart.
-Where {tactic}`have` introduces a single new fact into the context, {tactic}`obtain` destructs a term into its pieces using pattern matching — for example, extracting the witness from an existential or the two sides of a conjunction.
+Where {tactic}`have` introduces a single new fact into the context, {tactic}`obtain` destructs a term into its pieces using pattern matching. For example, extracting the witness from an existential or the two sides of a conjunction.
 
 :::tactic "obtain"
 :::
@@ -636,7 +636,7 @@ tag := "tactic-ref-ext"
 %%%
 
 The {tactic}`ext` tactic applies extensionality lemmas registered with the {attr}`ext` attribute.
-The principle of extensionality states that two objects are equal if they are built from the same components — for example, two functions are equal if they return the same value on every input.
+The principle of extensionality states that two objects are equal if they are built from the same components. For example, two functions are equal if they return the same value on every input.
 
 :::tactic "ext"
 :::
@@ -785,7 +785,7 @@ example (hp : P) (hq : Q) : P ∧ Q := by
 ```
 :::
 
-:::example "Splitting an Iff"
+:::example "Splitting an If-and-only-If"
 Because `P ↔ Q` is defined as `(P → Q) ∧ (Q → P)`, {tactic}`constructor` splits it into the two directions:
 ```lean
 example : (P ∧ Q) ↔ (Q ∧ P) := by
@@ -1736,7 +1736,7 @@ tag := "tactic-ref-debug"
 tag := "tactic-ref-other"
 %%%
 
-The {tactic}`trivial` tactic tries a short list of simple tactics — including {tactic}`rfl`, {tactic}`assumption`, and {lean}`True.intro` — to close the goal.
+The {tactic}`trivial` tactic tries a short list of simple tactics, including {tactic}`rfl`, {tactic}`assumption`, and {lean}`True.intro`, to close the goal.
 
 :::tactic "trivial"
 :::
