@@ -47,6 +47,7 @@ The {tactic}`assumption` tactic closes the goal if there is a hypothesis in the 
 :::
 
 :::example "Closing a Goal from Context"
+Here the hypothesis `h₃` has exactly the type needed by the goal, so {tactic}`assumption` finds it automatically:
 ```lean
 example (a b c d e : Nat)
     (h₁ : a < b) (h₂ : b < c) (h₃ : c < d)
@@ -69,6 +70,7 @@ The {tactic}`exists` tactic is used to prove an existential goal by providing a 
 :::
 
 :::example "Providing a Witness"
+To prove that there exists a natural number whose double is 4, it suffices to provide the witness `2`:
 ```lean
 example : ∃ n : Nat, n + n = 4 := by
   exists 2
@@ -82,6 +84,7 @@ It introduces the function's parameter into the local context as a new assumptio
 :::
 
 :::example "Introducing an Implication"
+The goal `P → R` is a function type; {tactic}`intro` moves its premise into the context as `hp`:
 ```lean
 example (P Q R : Prop) (hpq : P → Q) (hqr : Q → R) :
     P → R := by
@@ -128,6 +131,7 @@ The {tactic}`rintro` tactic combines {tactic}`intro` with pattern matching, allo
 :::
 
 :::example "Introducing and Destructuring"
+The anonymous constructor pattern `⟨hp, hq⟩` destructs the conjunction as it is introduced:
 ```lean
 example : P ∧ Q → Q ∧ P := by
   rintro ⟨hp, hq⟩
@@ -176,6 +180,7 @@ example (n : Nat) : n = n := by
 :::
 
 :::example "Definitional Equality"
+Even though `2 + 3` and `5` are syntactically different, they are definitionally equal, so {tactic}`rfl` succeeds:
 ```lean
 example : 2 + 3 = 5 := by
   rfl
@@ -214,6 +219,7 @@ It can also be applied to a hypothesis with `symm at h`.
 :::
 
 :::example "Swapping Sides of an Equality"
+After {tactic}`symm`, the goal becomes `a = b`, which matches the hypothesis `h`:
 ```lean
 example (a b : Nat) (h : a = b) : b = a := by
   symm
@@ -274,6 +280,7 @@ Given a hypothesis `h : x = e` or `h : e = x` where `x` is a local variable, it 
 :::
 
 :::example "Substituting a Known Equality"
+After `subst h`, the variable `n` is replaced by `3` everywhere, and the goal becomes `3 + 1 = 4`:
 ```lean
 example (n : Nat) (h : n = 3) : n + 1 = 4 := by
   subst h
@@ -293,6 +300,7 @@ The {tactic}`congr` tactic reduces an equality goal to equalities between the ar
 :::
 
 :::example "Basic Congruence"
+The goal `n + 1 = m + 1` is reduced to `n = m`, which {tactic}`congr` closes using the hypothesis `h`:
 ```lean
 example (n m : Nat) (h : n = m) : n + 1 = m + 1 := by
   congr
@@ -355,6 +363,7 @@ It works up to {tech}[definitional equality], so the term's type does not need t
 :::
 
 :::example "Closing a Goal with a Hypothesis"
+When a hypothesis already has the exact type of the goal, {tactic}`exact` can close it directly:
 ```lean
 example (P : Prop) (h : P) : P := by
   exact h
@@ -377,6 +386,7 @@ Where {tactic}`exact` requires the term to have exactly the goal's type, {tactic
 :::
 
 :::example "Reducing a Goal with an Implication"
+Applying `hpq` reduces the goal from `Q` to `P`, which can then be closed with {tactic}`exact`:
 ```lean
 example (P Q : Prop) (hpq : P → Q) (hp : P) : Q := by
   apply hpq
@@ -417,6 +427,7 @@ This is useful when part of a term is known but some arguments still need to be 
 :::
 
 :::example "Exact with Holes"
+The anonymous constructor provides the witness `2`, while `?_` leaves the proof obligation `2 + 2 = 4` as a new goal:
 ```lean
 example : ∃ n : Nat, n + n = 4 := by
   refine ⟨2, ?_⟩
@@ -451,6 +462,8 @@ If they are not, the resulting `False` goal will be unsolvable.
 :::
 
 :::example "Reasoning from a Contradiction"
+The hypothesis `h : n < n` is contradictory because no number is strictly less than itself.
+After {tactic}`exfalso` changes the goal to `False`, we can close it using the irreflexivity lemma:
 ```lean
 example (n : Nat) (h : n < n) : n * n = n + 1 := by
   exfalso
@@ -491,6 +504,7 @@ With {tactic}`suffices`, the user first shows how a sufficient condition would i
 :::
 
 :::example "Suffices with a Term Proof"
+Using {tactic}`suffices` with `from` shows how the sufficient condition `h : a = b` implies the original goal, and the second goal requires proving `a = b`:
 ```lean
 example (a b : Nat) (h : a = b) : a + 1 = b + 1 := by
   suffices h : a = b from congrArg (· + 1) h
@@ -499,6 +513,8 @@ example (a b : Nat) (h : a = b) : a + 1 = b + 1 := by
 :::
 
 :::example "Suffices with a Tactic Proof"
+We first show that it suffices to know that the list of the length is 3 in order to conclude that
+the list has nonzero length. Then we prove that the list does in fact have lengtht three.
 ```lean
 example (xs : List Nat) (h : xs = [1, 2, 3]) :
     xs.length > 0 := by
@@ -536,6 +552,7 @@ If the original hypothesis is needed again, use {tactic}`have` to create a copy 
 :::
 
 :::example "Partially Specializing a Hypothesis"
+After `specialize h 1`, the hypothesis becomes `h : ∀ b, 1 + b = b + 1`, which can then be applied to `2`:
 ```lean
 example (h : ∀ a b : Nat, a + b = b + a) :
     1 + 2 = 2 + 1 := by
@@ -551,6 +568,7 @@ Where {tactic}`have` introduces a single new fact into the context, {tactic}`obt
 :::
 
 :::example "Unpacking an Existential"
+The pattern `⟨n, hn⟩` extracts the witness `n` and the proof `hn : n + n = 10` from the existential hypothesis:
 ```lean
 example (h : ∃ n : Nat, n + n = 10) : ∃ m : Nat, m = 5 := by
   obtain ⟨n, hn⟩ := h
@@ -642,6 +660,7 @@ The principle of extensionality states that two objects are equal if they are bu
 :::
 
 :::example "Function Extensionality"
+After `ext n`, the goal changes from an equality of functions to an equality of their values at an arbitrary `n`:
 ```lean
 example : (fun n : Nat => n + 0) = (fun n => n) := by
   ext n
@@ -661,6 +680,7 @@ The {tactic}`funext` tactic is a variant of {tactic}`ext` that specifically appl
 :::
 
 :::example "Proving Functions Equal with `funext`"
+After `funext x`, the goal reduces to showing `f x = g x` for an arbitrary `x`:
 ```lean
 example (f g : Nat → Nat)
     (hf : ∀ x, f x = 2 * x) (hg : ∀ x, g x = x + x) : f = g := by
@@ -777,6 +797,7 @@ It is essentially syntactic sugar for `refine ⟨?_, ?_, …⟩` with as many ho
 :::
 
 :::example "Splitting a Conjunction"
+The {tactic}`constructor` tactic splits the goal `P ∧ Q` into two subgoals, one for each conjunct:
 ```lean
 example (hp : P) (hq : Q) : P ∧ Q := by
   constructor
@@ -810,6 +831,7 @@ The {tactic}`left` and {tactic}`right` tactics select which side of a disjunctio
 :::
 
 :::example "Proving a Disjunction"
+Using {tactic}`left` selects the first disjunct, reducing the goal from `P ∨ Q` to `P`:
 ```lean
 example (hp : P) : P ∨ Q := by
   left
@@ -962,6 +984,7 @@ It uses `⟨x, y⟩` for constructor patterns and `(x | y)` for disjunctive patt
 :::
 
 :::example "Nested Destructuring"
+The pattern `⟨hp, hq, hr⟩` destructs the nested conjunction `P ∧ Q ∧ R` in one step:
 ```lean
 example (h : P ∧ Q ∧ R) : R ∧ Q ∧ P := by
   rcases h with ⟨hp, hq, hr⟩
@@ -980,6 +1003,8 @@ This makes {tactic}`induction` a useful tool for proving properties of recursive
 :::
 
 :::example "Induction on Natural Numbers"
+Here we use induction to establish that zero is the identity for addition on the left.
+The base case `zero` is closed by {tactic}`rfl`, and the successor case uses the inductive hypothesis `ih : 0 + n = n`:
 ```lean
 example (n : Nat) : 0 + n = n := by
   induction n with
@@ -1086,6 +1111,7 @@ Always name the hypothesis with `h : P` syntax; without a name, Lean generates a
 :::
 
 :::example "Case Split on a Proposition"
+After `by_cases h : n = 0`, the proof splits into a branch where `h : n = 0` and a branch where `h : n ≠ 0`:
 ```lean
 example (n : Nat) : n = 0 ∨ n ≠ 0 := by
   by_cases h : n = 0
@@ -1100,12 +1126,14 @@ tag := "tactic-ref-decision"
 %%%
 
 
-The {tactic}`decide` tactic closes goals whose truth can be determined by computation, such as concrete arithmetic facts or membership in finite structures.
+The {tactic}`decide` tactic closes goals whose truth is decidable in the sense that it
+can be determined by computation, such as concrete arithmetic facts or membership in finite structures.
 
 :::tactic Lean.Parser.Tactic.decide (show := "decide")
 :::
 
 :::example "Deciding Concrete Propositions"
+Here we see how {tactic}`decide` can close simple goals.
 ```lean
 example : 2 + 2 = 4 := by decide
 ```
@@ -1742,6 +1770,7 @@ The {tactic}`trivial` tactic tries a short list of simple tactics, including {ta
 :::
 
 :::example "Closing Easy Goals"
+The {tactic}`trivial` tactic can close goals that are trivial from the point of view of propositional logic.
 ```lean
 example : True := by trivial
 ```
