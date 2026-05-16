@@ -41,7 +41,7 @@ interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`,
 the `SymM` symbolic simulation framework it builds on was introduced in
 v4.28.0 as internal infrastructure for verification condition generators. This gives
 users explicit control over each step — `intro`, `apply`, `internalize`,
-`by_contra`, and `simp` — without eagerly applying an axiomatic contradiction method. Satellite
+`by_contra`, and `simp` — without eagerly applying an axiomatic contradiction method with the by command. Satellite
 solvers like `lia` and `ring` handle remaining goals automatically when
 invoked. The mode is backed by a new `Sym.simp` simplifier that also powers
 {tactic}`cbv` and {tactic}`grind`, with support for named variants
