@@ -29,19 +29,30 @@ htmlSplit := .never
 
 This section discusses how to validate a proof expressed in Lean.
 
-Depending on the circumstances, additional steps may be recommended to rule out misleading proofs.
-In particular, it matters a lot whether one is dealing with an {tech}[honest] proof attempt, and needs protection against only benign mistakes, or a possibly-{tech}[malicious] proof attempt that actively tries to mislead.
+The steps needed to rule out a misleading proof depend on the author's {deftech}[trust] assumptions towards the _proof author_ (including authors that proved depended-upon theorems), the _verification software_, and the _correctness of the statement_.
 
-In particular, we use {deftech}_honest_ when the goal is to create a valid proof.
-This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the {option}`debug.skipKernelTC`).
-Note that the {keyword}`unsafe` marker on API functions is unrelated to whether this API can be used in an dishonest way.
+* Regarding the _proof author_, it matters a lot whether one is dealing with an {tech}[honest] proof attempt, and needs protection against only benign mistakes, or a possibly-{tech}[malicious] proof attempt that actively tries to mislead.
 
-In contrast, we use {deftech}_malicious_ to describe code that goes out of its way to trick or mislead the user, exploit bugs or compromise the system.
-This includes un-reviewed AI-generated proofs and programs.
+    In particular, we use {deftech}_honest_ when the goal is to create a valid proof.
+    This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the {option}`debug.skipKernelTC`).
+    Note that the {keyword}`unsafe` marker on API functions is unrelated to whether this API can be used in an dishonest way.
 
-Furthermore it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.
+    In contrast, we use {deftech}_malicious_ to describe code that goes out of its way to trick or mislead the user, exploit bugs or compromise the system.
+    This includes un-reviewed AI-generated proofs and programs.
+
+* Regarding the verification software, Lean takes {ref "elaboration-compilation"}[a number of steps] to process a theorem and its proof.
+Different uses correspond to trusting different steps of this pipeline.
+At a minimum, the Lean kernel or an alternative kernel such as [`nanoda`](https://github.com/ammkrn/nanoda_lib) has to be trusted.
+
+* Regarding the correctness of the statement, it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.
+No matter what software is used and how trusted the environment is, a theorem is meaningful only if its author(s) and user(s) are certain that its statement mathematically expresses its intended informal meaning.
+
+    As written, the statement is {tech (key := "Lean elaborator")}[elaborated] before being passed to the kernel.
+    To avoid trusting the {tech (key := "Lean elaborator")}[elaborator], one has to {keywordOf Lean.Parser.Command.print}`#print` the statement to get the elaborated type and manually verify that it indeed expresses the desired statement.
+    This brings {keywordOf Lean.Parser.Command.print}`#print` into the trusted base, which is less than 1000 lines of code.
 
 Below, an escalating sequence of checks are presented, with instructions on how to perform them, an explanation of what they entail and the mistakes or attacks they guard against.
+To avoid repetition, we will not discuss trust towards the correctness of the statement every time.
 
 # The Blue Double Check Marks
 %%%
@@ -64,7 +75,7 @@ The blue ticks indicate that the theorem statement has been successfully elabora
 
 ## Trust
 
-This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and trusts the authors of the imported libraries to be {tech}[honest], that they checked that the theorems in their libraries express their intended informal meanings, and that no unsound axioms have been declared and used.
+This check is meaningful if one trusts the authors of the imported libraries to be {tech}[honest], that they checked that the theorems in their libraries express their intended informal meanings, and that no unsound axioms have been declared and used.
 
 ## Protection
 
@@ -115,7 +126,7 @@ The three axioms above are standard axioms of Lean's logic, and benign.
 
 ## Trust
 
-This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and one trusts the authors of the imported libraries to be {tech}[honest].
+This check is meaningful if one trusts the authors of the imported libraries to be {tech}[honest].
 
 ## Protection
 
@@ -145,7 +156,7 @@ It trusts that the {tech}[`.olean` files] are structurally correct.
 
 ## Trust
 
-This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and believes the authors of the imported libraries to not be very cunningly {tech}[malicious], and to neither compromise the user’s system nor use Lean’s extensibility to change the interpretation of the theorem statement.
+This check is meaningful if one believes the authors of the imported libraries to not be very cunningly {tech}[malicious], and to neither compromise the user’s system nor use Lean’s extensibility to change the interpretation of the theorem statement.
 
 ## Protection
 
