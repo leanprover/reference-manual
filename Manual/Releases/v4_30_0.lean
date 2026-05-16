@@ -19,14 +19,9 @@ tag := "release-v4.30.0"
 file := "v4.30.0"
 %%%
 
-:::warn
-These release notes describe a _release candidate_, not the final release.
-They may be incomplete and are subject to change.
-:::
-
 For this release, 302 changes landed.
 In addition to the 118 feature additions,
-and 69 fixs listed below,
+and 69 fixes listed below,
 there were 17 refactoring changes,
 8 documentation improvements,
 19 performance improvements,
@@ -39,44 +34,65 @@ Lean 4.30.0 brings a new interactive `sym =>` tactic, a significantly expanded `
 
 ## New `sym =>` Interactive Tactic
 
-[#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, a new interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`, which eagerly introduces hypotheses and applies proof by contradiction, `sym =>` gives users explicit control over each step:
+[#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, a new interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`, which eagerly introduces hypotheses and applies proof by contradiction, `sym =>` gives users explicit control over each step. For instance, in this example
 
+```lean
+example (x y : Int) :
+  (x = 1 ∨ x = 2) →
+  (y = 3 ∨ y = 4) → x + y ≤ 6
+:= by
+  grind =>
+    cases #f6a1 <;> cases #4228
 ```
-example (x : Nat) : myP x → myQ x := by
-  sym [myP_myQ] =>
-    intro h
-    finish
 
-example (x y z : Nat) : x > 1 → x + y + z > 0 := by
+`grind =>` automatically introduces the terms `(x = 1 ∨ x = 2)` and `(y = 3 ∨ y = 4)`, which are available for a case-by-case analysis, whereas with `sym =>` one introduces them explicitly if needed:
+
+```lean
+example (x y : Int) :
+  (x = 1 ∨ x = 2) →
+  (y = 3 ∨ y = 4) → x + y ≤ 6
+:= by
   sym =>
-    lia
+    intro h1 h2
+    cases #f6a1 <;> cases #4228
 ```
 
 Available tactics include `intro`/`intros` (with optional E-graph internalization), `apply` (with caching for `repeat`), `internalize`, `by_contra`, and `simp`. Satellite solvers like `lia` and `ring` automatically introduce remaining binders and apply by-contradiction as needed.
 
-The `sym =>` mode is backed by a new `Sym.simp` simplifier infrastructure that also powers {tactic}`cbv` and {tactic}`grind`. This infrastructure includes:
-
-- [#13034](https://github.com/leanprover/lean4/pull/13034) Named `Sym.simp` variants via `register_sym_simp`, allowing users to define reusable simplification configurations with custom `pre`/`post` simproc chains.
-- [#13018](https://github.com/leanprover/lean4/pull/13018) Named theorem sets for `Sym.simp` via `register_sym_simp_attr`, following the pattern of {tactic}`simp`'s `register_simp_attr`.
-- [#13046](https://github.com/leanprover/lean4/pull/13046) Automatic detection of permutation theorems (e.g., `x + y = y + x`) to prevent rewriting loops — rewrites are only applied when the result is strictly smaller under AC ordering.
-- [#12996](https://github.com/leanprover/lean4/pull/12996) Per-result context-dependency tracking with split persistent/transient caches, replacing the coarse `wellBehavedMethods` flag.
+Related development can be found in PRs: [#12996](https://github.com/leanprover/lean4/pull/12996) / [#13018](https://github.com/leanprover/lean4/pull/13018) / [#13034](https://github.com/leanprover/lean4/pull/13034) / [#13039](https://github.com/leanprover/lean4/pull/13039) / [#13040](https://github.com/leanprover/lean4/pull/13040) / [#13041](https://github.com/leanprover/lean4/pull/13041) / [#13042](https://github.com/leanprover/lean4/pull/13042) / [#13046](https://github.com/leanprover/lean4/pull/13046) / [#13048](https://github.com/leanprover/lean4/pull/13048) / [#13080](https://github.com/leanprover/lean4/pull/13080).
 
 ## `cbv` Tactic Expansion
 
-The {tactic}`cbv` tactic, introduced in v4.29.0, receives major new capabilities in this release:
+The {tactic}`cbv` tactic, introduced in v4.29.0, is no longer experimental and receives major new capabilities in this release.
 
-[#12597](https://github.com/leanprover/lean4/pull/12597) adds a `cbv_simproc` system mirroring {tactic}`simp`'s `simproc` infrastructure, but tailored to `cbv`'s three-phase pipeline (`↓` pre, `cbv_eval` eval, `↑` post). User-defined simplification procedures are indexed by discrimination tree patterns and dispatched during normalization:
+{tactic}`cbv` performs a process similar to call-by-value evaluation in order to simplify or close the goals.
 
+```lean
+def fact : Nat → Nat
+| 0 => 1
+| n+1 => (n+1) * fact n
+
+def pow2 : Nat → Nat
+| 0 => 1
+| n+1 => 2 * pow2 n
+
+-- `simp` requires providing functions
+example : fact 5 < pow2 7 := by simp [fact, pow2]
+-- `cbv` just executes directly
+example : fact 5 < pow2 7 := by cbv
 ```
-cbv_simproc [↓] myPreProc (myPattern _) := fun e => ...
-cbv_simproc [↑] myPostProc (myPattern _) := fun e => ...
-```
 
-[#12773](https://github.com/leanprover/lean4/pull/12773) adds `at` location syntax, matching the interface of `simp at`. Previously `cbv` could only reduce the goal target; now it supports `cbv at h`, `cbv at h |-`, and `cbv at *`.
+v4.30.0 introduces the following improvements:
 
-[#12763](https://github.com/leanprover/lean4/pull/12763) adds short-circuit evaluation for `Or`/`And`: for expressions like `decide (m < n ∨ expensive)`, when `m < n` is true, the expensive right side is now skipped entirely.
+- [#12597](https://github.com/leanprover/lean4/pull/12597): `cbv_simproc` system mirroring {tactic}`simp`'s `simproc` infrastructure.
 
-Other improvements: [#12788](https://github.com/leanprover/lean4/pull/12788) adds `set_option cbv.maxSteps N` for user-configurable step limits, [#12851](https://github.com/leanprover/lean4/pull/12851) adds `attribute [-cbv_eval]` for erasing annotations, [#12944](https://github.com/leanprover/lean4/pull/12944) allows `@[cbv_eval]` rules to fire on `@[cbv_opaque]` constants, and [#12875](https://github.com/leanprover/lean4/pull/12875), [#12888](https://github.com/leanprover/lean4/pull/12888) add built-in simprocs for array access and string operations.
+- [#12773](https://github.com/leanprover/lean4/pull/12773): `at` location syntax (`cbv at h`, `cbv at h |-`, and `cbv at *`).
+
+- [#12788](https://github.com/leanprover/lean4/pull/12788): `set_option cbv.maxSteps N` for user-configurable step limits.
+
+- [#12763](https://github.com/leanprover/lean4/pull/12763): short-circuit evaluation for `Or`/`And`: for expressions like `decide (m < n ∨ expensive)`
+
+- Other improvements: [#12851](https://github.com/leanprover/lean4/pull/12851) / [#12944](https://github.com/leanprover/lean4/pull/12944) / [#12875](https://github.com/leanprover/lean4/pull/12875) / [#12888](https://github.com/leanprover/lean4/pull/12888).
 
 ## Compiler: User Borrow Annotations and New LCNF Backend
 
@@ -91,7 +107,7 @@ def process (ctx : @& Context) (data : Array Nat) : Result :=
 
 The compiler prioritizes preserving tail calls over borrow annotations. Use `trace.Compiler.inferBorrow` to see a detailed reasoning of the compiler's inference decisions. [#12810](https://github.com/leanprover/lean4/pull/12810) adds this tracing infrastructure.
 
-[#12942](https://github.com/leanprover/lean4/pull/12942) marks the context argument of `ReaderT` as borrowed, causing a widespread reduction in RC pressure across the entire metaprogramming stack.
+[#12942](https://github.com/leanprover/lean4/pull/12942) marks the context argument of {lean}`ReaderT` as borrowed (`(a : @&ρ) → m α`), causing a widespread reduction in RC pressure across the entire metaprogramming stack.
 
 ### New LCNF Backend Complete
 
