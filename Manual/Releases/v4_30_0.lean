@@ -19,6 +19,11 @@ tag := "release-v4.30.0"
 file := "v4.30.0"
 %%%
 
+:::warn
+These release notes describe a _release candidate_, not the final release.
+They may be incomplete and are subject to change.
+:::
+
 For this release, 302 changes landed.
 In addition to the 118 feature additions,
 and 69 fixes listed below,
