@@ -132,13 +132,19 @@ The compiler prioritizes preserving tail calls over borrow annotations. Use `tra
 
 This release brings a comprehensive overhaul of Lake's caching infrastructure:
 
-[#12634](https://github.com/leanprover/lean4/pull/12634) enables Lake to download artifacts from a remote cache service *on demand* as part of a `lake build`, rather than requiring a separate `lake cache get` step upfront. [#12927](https://github.com/leanprover/lean4/pull/12927) changes `lake cache get` to download artifacts by default (use `--mappings-only` for the old behavior).
+- [#12634](https://github.com/leanprover/lean4/pull/12634):  enables Lake to download artifacts from a remote cache service on demand as part of a `lake build`.
 
-[#12974](https://github.com/leanprover/lean4/pull/12974) adds *parallel artifact transfers* using `curl --parallel` for both uploads and downloads. [#13164](https://github.com/leanprover/lean4/pull/13164) further optimizes downloads by fetching all artifact URLs from Reservoir in a single bulk POST request instead of per-artifact redirects.
+- [#12927](https://github.com/leanprover/lean4/pull/12927): `lake cache get` changes to download artifacts by default. Artifacts can be downloaded on demand with the new `--mappings-only` option.
 
-[#12914](https://github.com/leanprover/lean4/pull/12914) adds `.ltar` archive packing/unpacking via `leantar`, and [#13144](https://github.com/leanprover/lean4/pull/13144) adds staged cache upload commands (`lake cache stage`, `unstage`, `put-staged`) paralleling Mathlib's `lake exe cache` workflow.
+- [#12974](https://github.com/leanprover/lean4/pull/12974): parallel artifact transfers using `curl --parallel` for both uploads and downloads.
 
-Other Lake improvements: [#12935](https://github.com/leanprover/lean4/pull/12935) adds the `fixedToolchain` package option for single-toolchain packages like Mathlib, [#12540](https://github.com/leanprover/lean4/pull/12540) extends response file usage to all platforms (avoiding `ARG_MAX` limits), and [#13141](https://github.com/leanprover/lean4/pull/13141) cleans up stale files when updating dependencies.
+- [#13164](https://github.com/leanprover/lean4/pull/13164): download optimizations by fetching all artifact URLs from Reservoir in a single bulk POST request instead of per-artifact redirects.
+
+- [#12914](https://github.com/leanprover/lean4/pull/12914): `.ltar` archive packing/unpacking via `leantar`.
+
+- [#13144](https://github.com/leanprover/lean4/pull/13144): new `lake cache` subcommands for staged cache uploads: `stage`, `unstage`, and `put-staged`, functioning as parallels for the commands of the same name in Mathlib's `lake exe cache`.
+
+- [#12935](https://github.com/leanprover/lean4/pull/12935): new `fixedToolchain` option for packages only expected to function on a single toolchain (like Mathlib).
 
 ## Theorems Are Now Opaque in the Kernel
 
