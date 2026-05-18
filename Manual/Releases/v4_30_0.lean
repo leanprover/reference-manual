@@ -143,12 +143,6 @@ This release brings a comprehensive overhaul of Lake's caching infrastructure:
 
 - [#12935](https://github.com/leanprover/lean4/pull/12935): new `fixedToolchain` option for packages only expected to function on a single toolchain (like Mathlib).
 
-## Theorems Are Now Opaque in the Kernel
-
-[#12973](https://github.com/leanprover/lean4/pull/12973) makes theorems opaque in almost all ways, including in the kernel. A `theorem` now behaves like an `opaque`: it has a value (for soundness), but it is never unfolded during reduction or type checking.
-
-This was already nearly the case in practice due to proof irrelevance, but the change closes the gap. Proofs that need to reduce (e.g., `Acc.rec` eliminating into `Type`) must now be `def`, not `theorem` — this was already required by the module system. This moves the reduction behavior of `Acc.rec` further into the “supported by the theory but not relied upon by regular Lean” corner.
-
 ## `@[deprecated_arg]` Attribute
 
 [#13011](https://github.com/leanprover/lean4/pull/13011) adds `@[deprecated_arg]`, a new attribute for deprecating individual function parameters. When a caller uses the old parameter name, the elaborator emits a deprecation warning with a code action hint:
