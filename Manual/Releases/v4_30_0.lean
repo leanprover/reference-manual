@@ -13,10 +13,10 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.30.0-rc2 (2026-04-16)" =>
+#doc (Manual) "Lean 4.30.0-rc3 (2026-05-05)" =>
 %%%
-tag := "release-v4.30.0"
-file := "v4.30.0"
+tag := "release-v4.30.0-v2"
+file := "v4.30.0-v2"
 %%%
 
 :::warn
@@ -32,6 +32,167 @@ there were 17 refactoring changes,
 19 performance improvements,
 12 improvements to the test suite,
 and 59 other changes.
+
+# Highlights
+## New `sym =>` Interactive Tactic
+- [#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, an
+interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`,
+{tactic}`grind`, which has been under continuous development since v4.9.0 (mid-2024),
+the `SymM` symbolic simulation framework it builds on was introduced in
+v4.28.0 as internal infrastructure for verification condition generators. This gives
+users explicit control over each step — `intro`, `apply`, `internalize`,
+`by_contra`, and `simp` — without eagerly applying an axiomatic contradiction method with the by command. Satellite
+solvers like `lia` and `ring` handle remaining goals automatically when
+invoked. The mode is backed by a new `Sym.simp` simplifier that also powers
+{tactic}`cbv` and {tactic}`grind`, with support for named variants
+([#13034](https://github.com/leanprover/lean4/pull/13034)), named theorem sets
+([#13018](https://github.com/leanprover/lean4/pull/13018)), and loop
+prevention for permutation theorems
+([#13046](https://github.com/leanprover/lean4/pull/13046)). Example:
+
+  ```
+    example (x : Nat) : myP x → myQ x := by
+      sym [myP_myQ] =>
+      intro h
+      finish
+
+    example (x y z : Nat) : x > 1 → x + y + z > 0 := by
+      sym =>
+      lia
+  ```
+
+## `cbv` Tactic Expansion
+
+The {tactic}`cbv` tactic — introduced as an experimental user-facing evaluator tactic
+in v4.29.0, provides a principled alternative to {tactic}`native_decide` for computational
+goals in v4.30.0:
+- [#12597](https://github.com/leanprover/lean4/pull/12597) adds a
+`cbv_simproc` system for user-defined simplification procedures (mirroring
+`simp`'s `simproc` infrastructure);
+```
+cbv_simproc [↓] myPreProc (myPattern _) := fun e => ...
+cbv_simproc [↑] myPostProc (myPattern _) := fun e => ...
+```
+- [#12773](https://github.com/leanprover/lean4/pull/12773) adds `at` location
+syntax (`cbv at h`, `cbv at *`), matching `simp`'s interface;
+- [#12763](https://github.com/leanprover/lean4/pull/12763) adds short-circuit
+evaluation for `Or`/`And`, avoiding unnecessary work on branches whose outcome
+is already determined; and
+- [#12788](https://github.com/leanprover/lean4/pull/12788) adds
+`set_option cbv.maxSteps N`.
+
+## Compiler: User Borrow Annotations and New LCNF Backend
+
+- [#12830](https://github.com/leanprover/lean4/pull/12830) enables
+user-provided borrow annotations: mark arguments with `(x : @&Ty)` to reduce
+reference counting pressure. Use `trace.Compiler.inferBorrow` to inspect the
+compiler's reasoning.
+
+def process (ctx : @& Context) (data : Array Nat) : Result :=
+  ...  -- `ctx` will not be reference counted
+```
+- [#12942](https://github.com/leanprover/lean4/pull/12942) marks `ReaderT`'s
+context argument as borrowed, propagating RC savings across the
+metaprogramming stack.
+- [#12781](https://github.com/leanprover/lean4/pull/12781) ports the C emission
+pass to LCNF, complementing push_proj,
+ResetReuse, borrow, box/unbox, RC insertion, and toposorting
+thereby completing end-to-end code generation through the new
+infrastructure's pipeline, having benn under construction since v4.16.0, with IR
+passes migrating one by one across releases.
+- [#12665](https://github.com/leanprover/lean4/pull/12665)
+ports the reset/reuse pass with improved exponential-code prevention, yielding
+a *~15% decrease in binary size*.
+```
+## Lake Cache Overhaul
+- [#12634](https://github.com/leanprover/lean4/pull/12634) Hard links for local transfers in Reservoir from Lake's system-wide configuration file (as with `lake cache clean`) enables on-demand
+artifact downloads during `lake build` as to happen automatically as part of `lake build`, removing the need for a separate
+`lake cache get` step.
+- [#12974](https://github.com/leanprover/lean4/pull/12974) adds parallel
+transfers via `curl --parallel`, and
+- [#13164](https://github.com/leanprover/lean4/pull/13164) fetches all artifact
+URLs from Reservoir in a single bulk request rather than one redirect per
+artifact.
+- [#13144](https://github.com/leanprover/lean4/pull/13144) adds staged
+upload commands (`lake cache stage`/`unstage`/`put-staged`) paralleling
+Mathlib's `lake exe cache` remote caching.
+
+## Theorems Are Now Opaque in the Kernel
+
+- [#12973](https://github.com/leanprover/lean4/pull/12973) makes theorems
+opaque to the kernel: a `theorem` is never unfolded during reduction or type
+checking, closing a gap that semantics for `@[implicit_reducible]` like `isDefEq` transparency
+which had been already made largely theoretical through steps making them more robust.
+Proofs that must reduce (e.g., `Acc.rec` eliminating into `Type`)
+must use `def` instead such that definitions using the equality algorithm
+are now predictable and scalable in type.
+
+## `@[deprecated_arg]` Attribute
+
+- [#13011](https://github.com/leanprover/lean4/pull/13011) adds
+```
+@[deprecated_arg old new (since := "2026-03-18")]
+def f (new : Nat) : Nat := new
+#check f (old := 42)
+-- warning: parameter `old` of `f` has been deprecated, use `new` instead
+-- Hint: Rename this argument
+```
+ from`@[deprecated]` for
+whole-function deprecation thereby fine-graining library refactors such as general callers which,
+by using the old name's parameter, receive a warning and a rename
+code action; removed parameters produce an error with a delete hint, without changing the
+function's identifier, therein filling the gap with `@[deprecated_arg]` since v4.
+
+
+## Library Highlights
+
+- [#12126](https://github.com/leanprover/lean4/pull/12126)–[#12144](https://github.com/leanprover/lean4/pull/12144)
+introduce core HTTP data types (`Request`, `Response`, `Status`, `Headers`,
+`URI`, streaming `Body`) as the foundation of a standard HTTP library — the
+first such types in Lean core. String verification continues from v4.29.0
+(which proved KMP correctness for `Slice` patterns), adding proofs for
+`startsWith`, `split`, `intercalate`, `isNat`/`toNat?`, `isInt`/`toInt?`, and
+more.
+- [#12385](https://github.com/leanprover/lean4/pull/12385) adds
+`Array.mergeSort`, a stable O(n log n) sort about twice as fast as
+`List.mergeSort` on large random inputs.
+
+## Experimental: Live Debugging with `idbg`
+
+- [#12648](https://github.com/leanprover/lean4/pull/12648) adds an experimental
+ debugging capability via a`idbg e` lexical scoping technique, being the first mechanism to
+ connect back to the language server for live inspection, previously relying on the `#eval` trace.
+ Its syntax: when placed in a `do` block, it connects a running compiled
+program to the language server over TCP and evaluates `e` with actual runtime
+values. Editing the expression re-evaluates it live. Known limitations: single
+`idbg` at a time, requires `LEAN_PATH`, untested on Windows/macOS.
+
+## Other Language Improvements
+- [#12841](https://github.com/leanprover/lean4/pull/12841) allows structure/class field defaults to depend on fields that come *after* them, not just before. Fields that would create circular dependencies are cleared from the context.
+- [#12603](https://github.com/leanprover/lean4/pull/12603)The example
+  ```
+  inductive Eq {α : Type u} (x : α) : α → Prop where
+    | refl (x) : Eq x x
+  ```
+demonstrates `inductive` constructor Eq overriding the binder '(x:a)' and its variant type, making `x` explicit in `Eq.refl`.
+
+## Breaking Changes
+
+- [#12973](https://github.com/leanprover/lean4/pull/12973) Theorems are now
+  opaque in the kernel; use `def` for proof terms that must reduce.
+- [#12749](https://github.com/leanprover/lean4/pull/12749) Renames
+  metaprogramming APIs: `isStructureLike` → `isNonRecStructure`,
+  `matchConstStructLike` → `matchConstNonRecStructure`,
+  `getStructureLikeCtor?` → `getNonRecStructureCtor?`,
+  `getStructureLikeNumFields` → `getNonRecStructureNumFields`.
+- [#13005](https://github.com/leanprover/lean4/pull/13005) Metaprograms
+  calling `compileDecl` directly may need to call `markMeta` first.
+- [#12771](https://github.com/leanprover/lean4/pull/12771)
+  `String.Slice.Pos.cast` now requires `s.copy = t.copy` instead of `s = t`.
+- [#12435](https://github.com/leanprover/lean4/pull/12435) Changes the
+  signature of `Option.getElem?_inj`.
+- [#12708](https://github.com/leanprover/lean4/pull/12708) `PostCond`
+  functions reorder implicit parameters so `α` consistently comes before `ps`.
 
 # Language
 
