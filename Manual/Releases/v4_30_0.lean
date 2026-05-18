@@ -39,30 +39,27 @@ Lean 4.30.0 brings a new interactive `sym =>` tactic, a significantly expanded `
 
 ## New `sym =>` Interactive Tactic
 
-[#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, a new interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`, which eagerly introduces hypotheses and applies proof by contradiction, `sym =>` gives users explicit control over each step. For instance, in this example
+[#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, a new interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`, which eagerly introduces hypotheses and applies proof by contradiction, `sym =>` gives users explicit control over each step. So the user may use all the infrastructure provided by `grind` but with a custom strategy:
 
-```lean
-example (x y : Int) :
-  (x = 1 ∨ x = 2) →
-  (y = 3 ∨ y = 4) → x + y ≤ 6
-:= by
-  grind =>
-    cases #f6a1 <;> cases #4228
-```
-
-`grind =>` automatically introduces the terms `(x = 1 ∨ x = 2)` and `(y = 3 ∨ y = 4)`, which are available for a case-by-case analysis, whereas with `sym =>` one introduces them explicitly if needed:
-
-```lean
-example (x y : Int) :
-  (x = 1 ∨ x = 2) →
-  (y = 3 ∨ y = 4) → x + y ≤ 6
-:= by
+```lean  (name := sym)
+example
+    (f : Nat → Nat)
+    (a b : Nat)
+    (hinj : ∀ x y, f x = f y → x = y)
+    (h : f a = f b) :
+    a = b := by
   sym =>
-    intro h1 h2
-    cases #f6a1 <;> cases #4228
+    instantiate
+    show_eqcs
+    finish
+```
+```leanOutput sym
+[eqc] Equivalence classes
+  [eqc] {a, b}
+  [eqc] {f a, f b}
 ```
 
-Available tactics include `intro`/`intros` (with optional E-graph internalization), `apply` (with caching for `repeat`), `internalize`, `by_contra`, and `simp`. Satellite solvers like `lia` and `ring` automatically introduce remaining binders and apply by-contradiction as needed.
+Available tactics include `intro`/`intros`, `apply`, `internalize`, `by_contra`, and `simp`. Solvers like `lia` and `ring` automatically introduce remaining binders and apply by-contradiction as needed.
 
 Related development can be found in PRs: [#12996](https://github.com/leanprover/lean4/pull/12996) / [#13018](https://github.com/leanprover/lean4/pull/13018) / [#13034](https://github.com/leanprover/lean4/pull/13034) / [#13039](https://github.com/leanprover/lean4/pull/13039) / [#13040](https://github.com/leanprover/lean4/pull/13040) / [#13041](https://github.com/leanprover/lean4/pull/13041) / [#13042](https://github.com/leanprover/lean4/pull/13042) / [#13046](https://github.com/leanprover/lean4/pull/13046) / [#13048](https://github.com/leanprover/lean4/pull/13048) / [#13080](https://github.com/leanprover/lean4/pull/13080).
 
