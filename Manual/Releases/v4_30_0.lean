@@ -171,12 +171,13 @@ This release brings a comprehensive overhaul of Lake's caching infrastructure:
 
 ## Breaking Changes
 
-- [#12897](https://github.com/leanprover/lean4/pull/12897): Proofs that relied on the prior “̲defeq abuse”̲ of these instance or that depended on their specific structure may need adjustments. As `inferInstanceAs A` now needs to know the source and target types exactly before it can continue, it cannot be used anymore as a synonym for `(inferInstance : A)`, use the latter instead when source and target type are identical.
+- [#12897](https://github.com/leanprover/lean4/pull/12897): Proofs that relied on the prior “defeq abuse” of these instance or that depended on their specific structure may need adjustments. As `inferInstanceAs A` now needs to know the source and target types exactly before it can continue, it cannot be used anymore as a synonym for `(inferInstance : A)`, use the latter instead when source and target type are identical.
 - [#13005](https://github.com/leanprover/lean4/pull/13005): Metaprograms that call `compileDecl` directly may now need to call `markMeta` first where appropriate, possibly based on the value of `isMarkedMeta` of existing decls. `addAndCompile` should be split into `addDecl` and `compileDecl` for this in order to insert the call in between.
 - [#12749](https://github.com/leanprover/lean4/pull/12749) renames metaprogramming APIs: `isStructureLike` → `isNonRecStructure`, `matchConstStructLike` → `matchConstNonRecStructure`, `getStructureLikeCtor?` → `getNonRecStructureCtor?`, `getStructureLikeNumFields` → `getNonRecStructureNumFields`.
 - [#12771](https://github.com/leanprover/lean4/pull/12771) changes the signature of `String.Slice.Pos.cast` to require `s.copy = t.copy` instead of `s = t`. Uses of it can be easily adapted by replacing `proof` with `congrArg Slice.copy proof` where required.
 - [#12435](https://github.com/leanprover/lean4/pull/12435) changes the signature of `Option.getElem?_inj`.
 - [#12708](https://github.com/leanprover/lean4/pull/12708) changes the order of implicit parameters in `PostCond.noThrow`, `PostCond.mayThrow`, `PostCond.entails`, `PostCond.and`, `PostCond.imp` so that `α` consistently comes before `ps`.
+- [#12603](https://github.com/leanprover/lean4/pull/12603): Inductive types with a constructor that starts with typeless binders may need to be rewritten, e.g. changing `(x)` to `(x : _)` if there is a `variable` with that name or if it is meant to shadow one of the inductive type's parameters.
 
 # Language
 
