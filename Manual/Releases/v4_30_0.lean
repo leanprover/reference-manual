@@ -148,7 +148,7 @@ This release brings a comprehensive overhaul of Lake's caching infrastructure:
 - [#13117](https://github.com/leanprover/lean4/pull/13117) re-enables `#print axioms` under the module system by computing axiom dependencies at olean serialization time.
 - [#12866](https://github.com/leanprover/lean4/pull/12866) adds `optType` support to the `doPatDecl` parser, allowing `let ⟨width, height⟩ : Nat × Nat ← action` in do-notation.
 - [#12325](https://github.com/leanprover/lean4/pull/12325) adds a warning when a `def` of class type does not declare an appropriate reducibility (e.g., `@[reducible]` or `@[implicit_reducible]`).
-- [#12233](https://github.com/leanprover/lean4/pull/12233) replaces `instantiateMVars` with a two-pass implementation that reduces quadratic complexity from long chains of delayed-assigned metavariables to linear, with formally verified caching.
+- [#12233](https://github.com/leanprover/lean4/pull/12233) replaces `instantiateMVars` with a two-pass implementation that reduces quadratic complexity from long chains of delayed-assigned metavariables to linear.
 
 ## Library Highlights
 
