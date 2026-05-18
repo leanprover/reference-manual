@@ -117,8 +117,6 @@ The compiler prioritizes preserving tail calls over borrow annotations. Use `tra
 
 [#12665](https://github.com/leanprover/lean4/pull/12665) ports the expand reset/reuse pass to LCNF with improved exponential-code prevention, resulting in a *~15% decrease in binary size* and slight speedups across the board.
 
-[#13136](https://github.com/leanprover/lean4/pull/13136) introduces coalescing of RC operations — multiple `inc` operations for a single value within one basic block are now combined at the first `inc` site, and [#13064](https://github.com/leanprover/lean4/pull/13064) teaches the borrow inference that indexing into a borrowed `Array` produces a borrowed value, improving the ABI for trie-like structures.
-
 ### Other Compiler Improvements
 
 - [#12971](https://github.com/leanprover/lean4/pull/12971) increases Lean's default stack size to 1GB (pages are allocated dynamically, so this does not increase memory usage). The stack size can be customized via `LEAN_STACK_SIZE_KB`.
@@ -143,35 +141,13 @@ This release brings a comprehensive overhaul of Lake's caching infrastructure:
 
 - [#12935](https://github.com/leanprover/lean4/pull/12935): new `fixedToolchain` option for packages only expected to function on a single toolchain (like Mathlib).
 
-## `@[deprecated_arg]` Attribute
-
-[#13011](https://github.com/leanprover/lean4/pull/13011) adds `@[deprecated_arg]`, a new attribute for deprecating individual function parameters. When a caller uses the old parameter name, the elaborator emits a deprecation warning with a code action hint:
-
-```
-@[deprecated_arg old new (since := "2026-03-18")]
-def f (new : Nat) : Nat := new
-
-#check f (old := 42)
--- warning: parameter `old` of `f` has been deprecated, use `new` instead
--- Hint: Rename this argument
-```
-
-Removed parameters can also be marked, producing an error with a delete hint. The `linter.deprecated.arg` option controls whether these diagnostics are enabled.
-
 ## Other Language Improvements
 
-- [#12841](https://github.com/leanprover/lean4/pull/12841) allows structure/class field defaults to depend on fields that come *after* them, not just before. Fields that would create circular dependencies are cleared from the context.
-- [#12603](https://github.com/leanprover/lean4/pull/12603) allows `inductive` constructors to override the binder kinds of the type's parameters. For example, making `x` explicit in `Eq.refl`:
-  ```
-  inductive Eq {α : Type u} (x : α) : α → Prop where
-    | refl (x) : Eq x x
-  ```
-- [#12756](https://github.com/leanprover/lean4/pull/12756) adds `deriving noncomputable instance` syntax for when the underlying instance depends on noncomputable definitions, with an actionable “Try this:” suggestion when the regular form fails.
+- [#13011](https://github.com/leanprover/lean4/pull/13011) adds `@[deprecated_arg]`, a new attribute for deprecating individual function parameters. When a caller uses the old parameter name, the elaborator emits a deprecation warning with a code action hint.
+- [#12756](https://github.com/leanprover/lean4/pull/12756) adds `deriving noncomputable instance Foo for Bar` syntax so that delta-derived instances can be marked noncomputable.
 - [#13117](https://github.com/leanprover/lean4/pull/13117) re-enables `#print axioms` under the module system by computing axiom dependencies at olean serialization time.
-- [#12866](https://github.com/leanprover/lean4/pull/12866) adds type annotations to pattern bindings in do-notation: `let ⟨width, height⟩ : Nat × Nat ← action`.
-- [#11427](https://github.com/leanprover/lean4/pull/11427) improves `#eval` to elaborate with section variables in scope, giving a clearer “Cannot evaluate, contains free variable” error instead of “unknown identifier.”
+- [#12866](https://github.com/leanprover/lean4/pull/12866) adds `optType` support to the `doPatDecl` parser, allowing `let ⟨width, height⟩ : Nat × Nat ← action` in do-notation.
 - [#12325](https://github.com/leanprover/lean4/pull/12325) adds a warning when a `def` of class type does not declare an appropriate reducibility (e.g., `@[reducible]` or `@[implicit_reducible]`).
-- [#12673](https://github.com/leanprover/lean4/pull/12673) adds lightweight dependent `match` support in the new do elaborator, where discriminant types are abstracted over previous discriminants.
 - [#12233](https://github.com/leanprover/lean4/pull/12233) replaces `instantiateMVars` with a two-pass implementation that reduces quadratic complexity from long chains of delayed-assigned metavariables to linear, with formally verified caching.
 
 ## Library Highlights
