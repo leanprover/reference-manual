@@ -38,7 +38,7 @@ and 59 other changes.
 Lean 4.30.0 brings a new interactive `sym =>` tactic, a significantly expanded `cbv` tactic, completion of the new LCNF compiler backend with user-controllable borrow annotations, and a major overhaul of Lake's caching infrastructure.
 
 _This highlights section was contributed by Juanjo Madrigal._
-_This highlights section was contributed by Juanjo Madrigal._
+
 ## New `sym =>` Interactive Tactic
 
 [#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, a new interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`, which eagerly introduces hypotheses and applies proof by contradiction, `sym =>` gives users explicit control over each step. So the user may use all the infrastructure provided by `grind` but with a custom strategy:
