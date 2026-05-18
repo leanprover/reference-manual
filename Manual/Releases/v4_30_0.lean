@@ -42,16 +42,9 @@ Lean 4.30.0 brings a new interactive `sym =>` tactic, a significantly expanded `
 [#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, a new interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`, which eagerly introduces hypotheses and applies proof by contradiction, `sym =>` gives users explicit control over each step. So the user may use all the infrastructure provided by `grind` but with a custom strategy:
 
 ```lean  (name := sym)
-example
-    (f : Nat → Nat)
-    (a b : Nat)
-    (hinj : ∀ x y, f x = f y → x = y)
-    (h : f a = f b) :
-    a = b := by
-  sym =>
-    instantiate
-    show_eqcs
-    finish
+example (f : Nat → Nat) (a b : Nat)
+    (hinj : ∀ x y, f x = f y → x = y) (h : f a = f b) : a = b := by
+  sym => instantiate ; show_eqcs ; finish
 ```
 ```leanOutput sym
 [eqc] Equivalence classes
