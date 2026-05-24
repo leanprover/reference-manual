@@ -100,7 +100,7 @@ Roughly speaking, Lean's processing of a source file can be divided into the fol
 
 : Kernel Checking
 
-  Lean's {tech (key := "trust")}[trusted] kernel checks the output of the elaborator to ensure that it follows the rules of the type theory.
+  Lean's {tech (key := "trust")}[trusted] {deftech (key := "Lean kernel")}[kernel] checks the output of the elaborator to ensure that it follows the rules of the type theory.
 
 : Compilation
 

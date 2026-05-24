@@ -42,7 +42,7 @@ The steps needed to rule out a misleading proof depend on the author's {deftech}
 
 * Regarding the verification software, Lean takes {ref "elaboration-compilation"}[a number of steps] to process a theorem and its proof.
 Different uses correspond to trusting different steps of this pipeline.
-At a minimum, the Lean kernel or an alternative kernel such as [`nanoda`](https://github.com/ammkrn/nanoda_lib) has to be trusted.
+At a minimum, the Lean {tech}[kernel] or an alternative kernel such as [`nanoda`](https://github.com/ammkrn/nanoda_lib) has to be trusted.
 
 * Regarding the correctness of the statement, it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.
 No matter what software is used and how trusted the environment is, a theorem is meaningful only if its author(s) and user(s) are certain that its statement mathematically expresses its intended informal meaning.
@@ -71,7 +71,7 @@ While working interactively with Lean, once the theorem is proved, blue double c
 
 ## Significance
 
-The blue ticks indicate that the theorem statement has been successfully elaborated, according to the syntax and type class instances defined in the current file and its imports, and that the Lean kernel has accepted a proof of that theorem statement that follows from the definitions, theorems and axioms declared in the current file and its imports.
+The blue ticks indicate that the theorem statement has been successfully elaborated, according to the syntax and type class instances defined in the current file and its imports, and that the Lean {tech}[kernel] has accepted a proof of that theorem statement that follows from the definitions, theorems and axioms declared in the current file and its imports.
 
 ## Trust
 
@@ -151,7 +151,7 @@ Build your project using {lake}`build`, run `lean4checker --fresh` on the module
 
 ## Significance
 
-The `lean4checker` tool reads the declarations and proofs as they are stored by `lean` during building (the {tech}[`.olean` files]), and replays them through the kernel.
+The `lean4checker` tool reads the declarations and proofs as they are stored by `lean` during building (the {tech}[`.olean` files]), and replays them through the {tech}[kernel].
 It trusts that the {tech}[`.olean` files] are structurally correct.
 
 ## Trust
@@ -163,7 +163,7 @@ This check is meaningful if one believes the authors of the imported libraries t
 :::listBullet "🛡️"
 (In addition to the list above)
 
-* Bugs in Lean’s core handling of the kernel’s state (e.g. due to parallel proof processing, or import handling)
+* Bugs in Lean’s core handling of the {tech}[kernel]’s state (e.g. due to parallel proof processing, or import handling)
 * Meta-programs or tactics intentionally bypassing that state (e.g. using low-level functionality to add unchecked theorems)
 :::
 
@@ -195,7 +195,7 @@ In a trusted environment, write the theorem *statement* (the “challenge”), a
 
 Comparator will build the proof in a sandboxed environment, to protect against {tech}[malicious] code in the build step.
 The proof term is exported to a serialized format.
-Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, replays the proofs using both Lean's kernel and/or an external checker and also ensures that the proved theorem statements match those in the trusted challenge file.
+Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, replays the proofs using both Lean's {tech}[kernel] and/or an external checker and also ensures that the proved theorem statements match those in the trusted challenge file.
 
 ## Trust
 
@@ -212,7 +212,7 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 
 ## Comments
 
-At the time of writing, `comparator` supports using the official Lean kernel and the external checker [`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust. The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
+At the time of writing, `comparator` supports using the official Lean {tech}[kernel] and the external checker [`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust. The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
 
 # Remaining Issues
 
@@ -233,12 +233,12 @@ tag := "validating-trustCompiler"
 %%%
 
 Lean supports proofs by native evaluation.
-This is used by the {tactic}`decide`{keywordOf Lean.Parser.Tactic.decide}` +native` tactic or internally by specific tactics ({tactic}`bv_decide` in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the kernel.
+This is used by the {tactic}`decide`{keywordOf Lean.Parser.Tactic.decide}` +native` tactic or internally by specific tactics ({tactic}`bv_decide` in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the {tech}[kernel].
 
 Specific uses wrapped in {tech}[honest] tactics (e.g. {tactic}`bv_decide`) are generally trustworthy.
 The trusted code base is larger (it includes Lean's compilation toolchain and library annotations in the standard library), but still fixed and vetted.
 
-General use ({tactic}`decide`{keywordOf Lean.Parser.Tactic.decide}` +native` or direct use of {name}`Lean.ofReduceBool`) can be used to create invalid proofs whenever the native evaluation of a term disagrees with the kernel's evaluation.
+General use ({tactic}`decide`{keywordOf Lean.Parser.Tactic.decide}` +native` or direct use of {name}`Lean.ofReduceBool`) can be used to create invalid proofs whenever the native evaluation of a term disagrees with the {tech}[kernel]'s evaluation.
 In particular, for every {attr}`implemented_by`/{attr}`extern` attribute in libraries it becomes part of the trusted code base that the replacement is semantically equivalent.
 
 All these uses show up as an axiom {name}`Lean.trustCompiler` in {keywordOf Lean.Parser.Command.printAxioms}`#print axioms`.
