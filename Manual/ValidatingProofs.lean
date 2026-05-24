@@ -30,26 +30,26 @@ htmlSplit := .never
 This section discusses how to validate a proof expressed in Lean.
 
 The steps needed to rule out a misleading proof depend on the author's {deftech}[trust] assumptions towards the _proof author_ (including authors that proved depended-upon theorems), the _verification software_, and the _correctness of the statement_.
+Each of these is explained in detail below.
 
-* Regarding the _proof author_, it matters a lot whether one is dealing with an {tech}[honest] proof attempt, and needs protection against only benign mistakes, or a possibly-{tech}[malicious] proof attempt that actively tries to mislead.
+* Regarding the _proof author_, we distinguish whether one is dealing with an {tech}[honest] proof author, and needs protection against only benign mistakes, or a possibly-{tech}[malicious] proof author that actively tries to mislead.
 
     In particular, we use {deftech}_honest_ when the goal is to create a valid proof.
-    This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the {option}`debug.skipKernelTC`).
+    This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for proof code that clearly only serves to circumvent the system (such as using the {option}`debug.skipKernelTC`).
     Note that the {keyword}`unsafe` marker on API functions is unrelated to whether this API can be used in an dishonest way.
 
-    In contrast, we use {deftech}_malicious_ to describe code that goes out of its way to trick or mislead the user, exploit bugs or compromise the system.
+    In contrast, we use {deftech}_malicious_ to describe proof code that goes out of its way to trick or mislead the user, exploit bugs or compromise the system.
     This includes un-reviewed AI-generated proofs and programs.
 
-* Regarding the verification software, Lean takes {ref "elaboration-compilation"}[a number of steps] to process a theorem and its proof.
-Different uses correspond to trusting different steps of this pipeline.
-At a minimum, the Lean {tech}[kernel] or an alternative kernel such as [`nanoda`](https://github.com/ammkrn/nanoda_lib) has to be trusted.
+* Regarding the verification software, Lean takes {ref "elaboration-compilation"}[a number of steps] to process a theorem and its proof. Some of these steps are part of the {deftech}[trusted computing base] (TCB), which typically comprises at least the Lean {tech}[kernel] or an alternative kernel such as [`nanoda`](https://github.com/ammkrn/nanoda_lib).
 
 * Regarding the correctness of the statement, it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.
 No matter what software is used and how trusted the environment is, a theorem is meaningful only if its author(s) and user(s) are certain that its statement mathematically expresses its intended informal meaning.
 
-    As written, the statement is {tech (key := "Lean elaborator")}[elaborated] before being passed to the kernel.
-    To avoid trusting the {tech (key := "Lean elaborator")}[elaborator], one has to {keywordOf Lean.Parser.Command.print}`#print` the statement to get the elaborated type and manually verify that it indeed expresses the desired statement.
-    This brings {keywordOf Lean.Parser.Command.print}`#print` into the trusted base, which is less than 1000 lines of code.
+    As written, the statement is {tech (key := "Lean elaborator")}[elaborated] before being passed to the {tech}[kernel].
+    As such, the {tech (key := "Lean elaborator")}[elaborator] is also part of the {tech (key := "trusted computing base")}[TCB].
+    To avoid trusting the {tech (key := "Lean elaborator")}[elaborator], one has to {keywordOf Lean.Parser.Command.print}`#print` the statement with the {keywordOf Lean.Util.PPExt.pp.raw}`pp.raw` option set to `true` to get the elaborated type and manually verify that it indeed expresses the desired statement.
+    Unfortunately the raw output is not user-friendly, so including the {tech (key := "Lean elaborator")}[elaborator] in the {tech (key := "trusted computing base")}[TCB] is currently the most reasonable approach.
 
 Below, an escalating sequence of checks are presented, with instructions on how to perform them, an explanation of what they entail and the mistakes or attacks they guard against.
 To avoid repetition, we will not discuss trust towards the correctness of the statement every time.
