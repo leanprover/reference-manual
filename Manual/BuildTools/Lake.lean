@@ -648,22 +648,23 @@ end
 tag := "test-lint-drivers"
 %%%
 
-A {deftech}_test driver_ is a target — an executable, a {tech}[Lake script], or a library — that runs the tests for a package.
-Lake itself is not a test framework: the {lake}`test` command only locates the configured target, builds it if necessary, and runs it.
-The assertions, test discovery, and reporting are the responsibility of the code that the target runs, whether that is a third-party testing library or hand-written checks.
+A {deftech}_test driver_ runs the tests for a package.
+It can be an executable target, a {tech}[Lake script], or a library.
+Lake itself isn't a test framework: the {lake}`test` command just locates the configured target, builds it if necessary, and runs it.
+Assertions, test discovery, and reporting are up to the target itself, whether that's a third-party testing library or hand-written checks.
 
-For executable and script drivers, Lake treats a nonzero exit code as a test failure.
-For library drivers, Lake builds the library and treats any elaboration error — including failures of `#guard`-style commands — as a test failure.
+For executables and scripts, Lake treats a nonzero exit code as a test failure.
+For libraries, any elaboration error counts as a test failure, including failures of `#guard`-style commands.
 
-A {deftech}_lint driver_ is analogous: an executable or {tech}[Lake script] that checks the package for stylistic or semantic issues, run by {lake}`lint`.
-Lint drivers cannot be libraries.
+A {deftech}_lint driver_ is similar, but it's run by {lake}`lint` and checks the package for stylistic or semantic issues.
+Lint drivers can only be executables or scripts, not libraries.
 
 ### Configuring a Test Driver
 %%%
 tag := "lake-test-driver-config"
 %%%
 
-In a `lakefile.toml`, set the {tomlField Lake.PackageConfig}`testDriver` field to the name of an executable target, library target, or script defined in the same lakefile:
+In a `lakefile.toml`, set {tomlField Lake.PackageConfig}`testDriver` to the name of an executable target, library target, or script defined in the same configuration:
 
 ::::lakeToml Lake.PackageConfig _root_
 ```toml
@@ -812,40 +813,44 @@ root = "Tests"
 ```
 ::::
 
-In a `lakefile.lean`, there are two equivalent ways to configure a test driver:
+In a `lakefile.lean`, either set the `testDriver` field on the `package` declaration (as above), or tag a script, executable, or library declaration with the `test_driver` attribute.
+The attribute form is the more common style, since it places the marker next to the target.
 
-* Set the `testDriver` field on the `package` declaration to the name of a script, executable, or library target, exactly as in the TOML form above.
-* Apply the `test_driver` attribute to a script, executable, or library declaration in the same file. This is the more common style in Lean configurations because it places the marker next to the target it refers to.
+Only one declaration per package can carry `test_driver`, and you can't combine the attribute with a non-empty `testDriver` field.
 
-At most one declaration in a package may carry the `test_driver` attribute, and it is an error to combine the attribute with a non-empty `testDriver` field.
-
-A target in a dependency package can be used as a test driver by writing `<pkg>/<name>` as the value of `testDriver`, where `<pkg>` is the dependency's package name.
+To use a target from a dependency package, write `<pkg>/<name>` as the value of `testDriver`, where `<pkg>` is the dependency's package name.
 
 ### Running Tests
 %%%
 tag := "lake-test-running"
 %%%
 
-The {lake}`test` command runs the configured test driver for the workspace's root package. Test drivers in dependency packages are not run.
+The {lake}`test` command runs the configured driver for the root package only.
+Drivers in dependencies aren't run.
 
-For executable and script drivers, Lake invokes the driver with the arguments in the {tomlField Lake.PackageConfig}`testDriverArgs` field, followed by any arguments passed on the command line after `--`. For example:
+For executables and scripts, Lake passes the arguments from {tomlField Lake.PackageConfig}`testDriverArgs` first, then anything after `--` on the command line.
+For example,
 
 ```
 lake test -- --filter Foo --verbose
 ```
 
-passes `--filter Foo --verbose` to the driver after any `testDriverArgs` already configured in the lakefile. Executable test drivers are built before being run.
+passes `--filter Foo --verbose` to the driver after whatever `testDriverArgs` is already configured.
+Lake builds executable drivers before running them.
 
-Library test drivers do not accept arguments: Lake reports an error if `testDriverArgs` is non-empty or if any arguments follow `--`. A library driver is exercised purely by elaboration.
+Library drivers don't accept arguments at all.
+Lake reports an error if `testDriverArgs` is non-empty or if any arguments follow `--`.
+The library is just elaborated.
 
-The {lake}`check-test` command exits with code 0 if a test driver is configured for the root package. It does not verify that the named target actually exists.
+{lake}`check-test` exits 0 if a test driver is configured for the root package.
+It doesn't check that the named target actually exists.
 
 ### Lint Drivers
 %%%
 tag := "lake-lint-driver-config"
 %%%
 
-Lint drivers use the same machinery as test drivers, with three differences: the configuration field is {tomlField Lake.PackageConfig}`lintDriver`, the attribute is `lint_driver`, and library targets are not accepted — a lint driver must be an executable or a script.
+Lint drivers work the same way as test drivers, with three differences: the configuration field is {tomlField Lake.PackageConfig}`lintDriver`, the attribute is `lint_driver`, and the driver must be an executable or script (not a library).
 
 A minimal `lakefile.toml` configuring a lint driver:
 
@@ -996,17 +1001,18 @@ root = "Lint"
 ```
 ::::
 
-In a `lakefile.lean`, either set the `lintDriver` field on the `package` declaration or apply the `lint_driver` attribute to a script or executable declaration. At most one declaration per package may carry the attribute, and combining the attribute with a non-empty `lintDriver` field is an error.
+In a `lakefile.lean`, either set the `lintDriver` field on the `package` declaration, or tag a script or executable declaration with the `lint_driver` attribute.
+Only one declaration per package can carry it, and you can't combine the attribute with a non-empty `lintDriver` field.
 
 A driver in a dependency package can be referenced with the same `<pkg>/<name>` syntax used for test drivers.
 
-The {lake}`lint` command runs the configured driver. The arguments passed to the driver are {tomlField Lake.PackageConfig}`lintDriverArgs` followed by anything supplied on the command line after `--`:
+{lake}`lint` runs the configured driver, passing {tomlField Lake.PackageConfig}`lintDriverArgs` first, then anything after `--` on the command line:
 
 ```
 lake lint -- --warnings-as-errors
 ```
 
-The {lake}`check-lint` command exits with code 0 if a lint driver is configured.
+{lake}`check-lint` exits 0 if a lint driver is configured.
 
 :::TODO
 Restore the `{attr}` role for `test_driver` and `lint_driver` above. Right now, importing the attributes crashes the compiler.
