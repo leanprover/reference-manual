@@ -13,25 +13,20 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.30.0-rc2 (2026-04-16)" =>
+#doc (Manual) "Lean 4.30.0 (2026-05-26)" =>
 %%%
 tag := "release-v4.30.0"
 file := "v4.30.0"
 %%%
 
-:::warn
-These release notes describe a _release candidate_, not the final release.
-They may be incomplete and are subject to change.
-:::
-
-For this release, 302 changes landed.
-In addition to the 118 feature additions,
-and 69 fixes listed below,
+For this release, 306 changes landed.
+In addition to the 123 feature additions,
+and 73 fixes listed below,
 there were 17 refactoring changes,
 8 documentation improvements,
 19 performance improvements,
 12 improvements to the test suite,
-and 59 other changes.
+and 54 other changes.
 
 # Highlights
 
@@ -177,6 +172,15 @@ This release brings a comprehensive overhaul of Lake's caching infrastructure:
 # Language
 
 ````markdown
+
+- [#13315](https://github.com/leanprover/lean4/pull/13315)
+  fixes `processDefDeriving` to propagate the `meta` attribute to instances derived via delta deriving, so that `deriving BEq` inside a `public meta section` produces a meta instance. Previously the derived `instBEqFoo` was not marked meta, and the LCNF visibility checker rejected meta definitions that used `==` on the alias — this came up while bumping verso to v4.30.0-rc1.
+
+- [#13311](https://github.com/leanprover/lean4/pull/13311)
+  adds an optional `markMeta : Bool := false` parameter to `addAndCompile`, so that callers can propagate the `meta` marking without manually splitting into `addDecl` + `markMeta` + `compileDecl`.
+
+- [#13304](https://github.com/leanprover/lean4/pull/13304)
+  makes the delta-deriving handler create `theorem` declarations instead of `def` declarations when the instance type is a `Prop`. Previously, `deriving instance Nonempty for Foo` would always create a `def`, which is inconsistent with the behavior of a handwritten `instance` declaration.
 
 - [#13188](https://github.com/leanprover/lean4/pull/13188)
   extends the `missingDocs` linter to detect and warn about empty doc strings (e.g. `/---/` or `/-- -/`), in addition to missing doc strings. Previously, an empty doc comment would silence the linter even though it provides no documentation value. Now empty doc strings produce a distinct "empty doc string for ..." warning, while `@[inherit_doc]` still suppresses warnings as before.
@@ -783,6 +787,9 @@ This release brings a comprehensive overhaul of Lake's caching infrastructure:
 
 ```markdown
 
+- [#13270](https://github.com/leanprover/lean4/pull/13270)
+  adds `Runtime.hold`, which ensures its argument remains alive until the callsite by holding a reference to it. This can be useful for unsafe code (such as an FFI) that relies on a Lean object not being freed until after some point in the program.
+
 - [#13392](https://github.com/leanprover/lean4/pull/13392)
   fixes a heap buffer overflow in `lean_io_prim_handle_read` that was triggered through an
   integer overflow in the size computation of an allocation. In addition it places several checked
@@ -978,6 +985,12 @@ This release brings a comprehensive overhaul of Lake's caching infrastructure:
 
 ```markdown
 
+- [#13683](https://github.com/leanprover/lean4/pull/13683)
+  moves the compiled Lake configurations (e.g., `lakefile.olean`) from the package's `.lake/config` directory to the workspace's `.lake/config`. This removes a potential source contention between workspaces sharing a dependency.
+
+- [#13600](https://github.com/leanprover/lean4/pull/13600)
+  fixes a Lake issue where the IR for a `meta import`'s transitive imports was not included in the import artifacts Lake provided to Lean (e.g., via `--setup`). When using the Lake artifact cache, this could produce "missing data file" errors due to absent IR.
+
 - [#13164](https://github.com/leanprover/lean4/pull/13164)
   changes `lake cache get` to fetch artifact cloud storage URLs from Reservoir in a single bulk POST request rather than relying on per-artifact HTTP redirects. When downloading many artifacts, the redirect-based approach sends one request per artifact to the Reservoir web host (Netlify), which can be slow and risks hitting rate limits. The bulk endpoint returns all URLs at once, so curl only talks to the CDN after that.
 
@@ -1040,6 +1053,9 @@ This release brings a comprehensive overhaul of Lake's caching infrastructure:
 # Other
 
 ```markdown
+
+- [#13499](https://github.com/leanprover/lean4/pull/13499)
+  fixes the architecture detection for `leantar` on Linux aarch64, ensuring it is properly bundled with Lean.
 
 - [#12865](https://github.com/leanprover/lean4/pull/12865)
   fixes a crash in release_checklist.py when a repository uses the
