@@ -650,7 +650,8 @@ tag := "test-lint-drivers"
 
 A {deftech}_test driver_ runs the tests for a package.
 It can be an executable target, a {tech}[Lake script], or a library.
-Lake itself isn't a test framework: the {lake}`test` command just locates the configured target, builds it if necessary, and runs it.
+Lake itself isn't a test framework: the {lake}`test` command just locates the configured target, builds it, and (for executables and scripts) runs it.
+Library drivers are exercised purely by elaboration, so they aren't run as a separate step.
 Assertions, test discovery, and reporting are up to the target itself, whether that's a third-party testing library or hand-written checks.
 
 For executables and scripts, Lake treats a nonzero exit code as a test failure.
@@ -814,7 +815,7 @@ root = "Tests"
 ::::
 
 In a `lakefile.lean`, either set the `testDriver` field on the `package` declaration (as above), or tag a script, executable, or library declaration with the `test_driver` attribute.
-The attribute form is the more common style, since it places the marker next to the target.
+The attribute form is often convenient because it places the marker next to the target.
 
 Only one declaration per package can carry `test_driver`, and you can't combine the attribute with a non-empty `testDriver` field.
 
@@ -826,7 +827,7 @@ tag := "lake-test-running"
 %%%
 
 The {lake}`test` command runs the configured driver for the root package only.
-Drivers in dependencies aren't run.
+Lake doesn't automatically run each dependency package's driver.
 
 For executables and scripts, Lake passes the arguments from {tomlField Lake.PackageConfig}`testDriverArgs` first, then anything after `--` on the command line.
 For example,
@@ -847,7 +848,7 @@ It doesn't check that the named target actually exists.
 
 ### Lint Drivers
 %%%
-tag := "lake-lint-driver-config"
+tag := "lake-lint-drivers"
 %%%
 
 Lint drivers work the same way as test drivers, with three differences: the configuration field is {tomlField Lake.PackageConfig}`lintDriver`, the attribute is `lint_driver`, and the driver must be an executable or script (not a library).
@@ -1012,7 +1013,13 @@ A driver in a dependency package can be referenced with the same `<pkg>/<name>` 
 lake lint -- --warnings-as-errors
 ```
 
-{lake}`check-lint` exits 0 if a lint driver is configured.
+Lake also has a separate _builtin linter_ that operates on Lean modules directly, independent of any configured driver.
+Builtin linting is enabled by the `--builtin-lint` and related flags (see {lake}`lint`), or by setting `builtinLint := true` in the package configuration.
+When builtin linting is active, positional `MODULE` arguments before `--` select which modules to lint, and they are _not_ passed to the configured driver.
+So `lake lint Mathlib` triggers builtin linting on `Mathlib`, whereas `lake lint -- Mathlib` passes `Mathlib` to the driver.
+The two mechanisms are independent and can run together: when both apply, Lake runs the builtin linter first and then the driver.
+
+{lake}`check-lint` exits 0 if a lint driver is configured for the root package or if `builtinLint := true` is set in its configuration.
 
 :::TODO
 Restore the `{attr}` role for `test_driver` and `lint_driver` above. Right now, importing the attributes crashes the compiler.
