@@ -648,14 +648,366 @@ end
 tag := "test-lint-drivers"
 %%%
 
-A {deftech}_test driver_ is responsible for running the tests for a package.
-Test drivers may be executable targets or {tech}[Lake scripts], in which case the {lake}`test` command runs them, or they may be libraries, in which case {lake}`test` causes them to be elaborated, with the expectation that test failures are registered as elaboration failures.
+A {deftech}_test driver_ is a target — an executable, a {tech}[Lake script], or a library — that runs the tests for a package.
+Lake itself is not a test framework: the {lake}`test` command only locates the configured target, builds it if necessary, and runs it.
+The assertions, test discovery, and reporting are the responsibility of the code that the target runs, whether that is a third-party testing library or hand-written checks.
 
-Similarly, a {deftech}_lint driver_ is responsible for checking the code for stylistic issues.
-Lint drivers may be executables or scripts, which are run by {lake}`lint`.
+For executable and script drivers, Lake treats a nonzero exit code as a test failure.
+For library drivers, Lake builds the library and treats any elaboration error — including failures of `#guard`-style commands — as a test failure.
 
-A test or lint driver can be configured by either setting the {tomlField Lake.PackageConfig}`testDriver` or {tomlField Lake.PackageConfig}`lintDriver` package configuration options or by tagging a script, executable, or library with the `test_driver` or `lint_driver` attribute in a Lean-format configuration file.
-A definition in a dependency can be used as a test or lint driver by using the `<pkg>/<name>` syntax for the appropriate configuration option.
+A {deftech}_lint driver_ is analogous: an executable or {tech}[Lake script] that checks the package for stylistic or semantic issues, run by {lake}`lint`.
+Lint drivers cannot be libraries.
+
+### Configuring a Test Driver
+%%%
+tag := "lake-test-driver-config"
+%%%
+
+In a `lakefile.toml`, set the {tomlField Lake.PackageConfig}`testDriver` field to the name of an executable target, library target, or script defined in the same lakefile:
+
+::::lakeToml Lake.PackageConfig _root_
+```toml
+name = "my-package"
+testDriver = "my-package-tests"
+
+[[lean_exe]]
+name = "my-package-tests"
+root = "Tests"
+```
+```expected
+{wsIdx := 0,
+  baseName := `«my-package»,
+  keyName := `«my-package»,
+  origName := `«my-package»,
+  dir := FilePath.mk ".",
+  relDir := FilePath.mk ".",
+  config :=
+    {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
+      toLeanConfig :=
+        { buildType := Lake.BuildType.release,
+          leanOptions := #[],
+          moreLeanArgs := #[],
+          weakLeanArgs := #[],
+          moreLeancArgs := #[],
+          moreServerOptions := #[],
+          weakLeancArgs := #[],
+          moreLinkObjs := #[],
+          moreLinkLibs := #[],
+          moreLinkArgs := #[],
+          weakLinkArgs := #[],
+          backend := Lake.Backend.default,
+          platformIndependent := none,
+          dynlibs := #[],
+          plugins := #[] },
+      bootstrap := false,
+      extraDepTargets := #[],
+      precompileModules := false,
+      moreGlobalServerArgs := #[],
+      srcDir := FilePath.mk ".",
+      buildDir := FilePath.mk ".lake/build",
+      leanLibDir := FilePath.mk "lib/lean",
+      nativeLibDir := FilePath.mk "lib",
+      binDir := FilePath.mk "bin",
+      irDir := FilePath.mk "ir",
+      releaseRepo := none,
+      buildArchive := ELIDED,
+      preferReleaseBuild := false,
+      testDriver := "my-package-tests",
+      testDriverArgs := #[],
+      lintDriver := "",
+      lintDriverArgs := #[],
+      version := { toSemVerCore := { major := 0, minor := 0, patch := 0 }, specialDescr := "" },
+      versionTags := { filter := #<fun>, name := `default, descr? := none},
+      description := "",
+      keywords := #[],
+      homepage := "",
+      license := "",
+      licenseFiles := #[FilePath.mk "LICENSE"],
+      readmeFile := FilePath.mk "README.md",
+      reservoir := true,
+      enableArtifactCache? := none,
+      restoreAllArtifacts? := none,
+      libPrefixOnWindows := false,
+      allowImportAll := false,
+      fixedToolchain := false},
+  configFile := FilePath.mk "lakefile",
+  relConfigFile := FilePath.mk "lakefile",
+  relManifestFile := FilePath.mk "lake-manifest.json",
+  scope := "",
+  remoteUrl := "",
+  depConfigs := #[],
+  targetDecls :=
+    #[{toConfigDecl :=
+          {pkg := `«my-package»,
+            name := `«my-package-tests»,
+            kind := `lean_exe,
+            config :=
+              {toLeanConfig :=
+                  { buildType := Lake.BuildType.release,
+                    leanOptions := #[],
+                    moreLeanArgs := #[],
+                    weakLeanArgs := #[],
+                    moreLeancArgs := #[],
+                    moreServerOptions := #[],
+                    weakLeancArgs := #[],
+                    moreLinkObjs := #[],
+                    moreLinkLibs := #[],
+                    moreLinkArgs := #[],
+                    weakLinkArgs := #[],
+                    backend := Lake.Backend.default,
+                    platformIndependent := none,
+                    dynlibs := #[],
+                    plugins := #[] },
+                srcDir := FilePath.mk ".",
+                root := `Tests,
+                exeName := "my-package-tests",
+                needs := #[],
+                extraDepTargets := #[],
+                supportInterpreter := false,
+                nativeFacets := #<fun>},
+            wf_data := …},
+        pkg_eq := …}],
+  targetDeclMap :=
+    {`«my-package-tests» ↦
+        {toPConfigDecl :=
+            {toConfigDecl :=
+                {pkg := `«my-package»,
+                  name := `«my-package-tests»,
+                  kind := `lean_exe,
+                  config :=
+                    {toLeanConfig :=
+                        { buildType := Lake.BuildType.release,
+                          leanOptions := #[],
+                          moreLeanArgs := #[],
+                          weakLeanArgs := #[],
+                          moreLeancArgs := #[],
+                          moreServerOptions := #[],
+                          weakLeancArgs := #[],
+                          moreLinkObjs := #[],
+                          moreLinkLibs := #[],
+                          moreLinkArgs := #[],
+                          weakLinkArgs := #[],
+                          backend := Lake.Backend.default,
+                          platformIndependent := none,
+                          dynlibs := #[],
+                          plugins := #[] },
+                      srcDir := FilePath.mk ".",
+                      root := `Tests,
+                      exeName := "my-package-tests",
+                      needs := #[],
+                      extraDepTargets := #[],
+                      supportInterpreter := false,
+                      nativeFacets := #<fun>},
+                  wf_data := …},
+              pkg_eq := …},
+          name_eq := …},
+      },
+  defaultTargets := #[],
+  scripts := {},
+  defaultScripts := #[],
+  postUpdateHooks := #[],
+  buildArchive := ELIDED,
+  testDriver := "my-package-tests",
+  lintDriver := ""}
+```
+::::
+
+In a `lakefile.lean`, there are two equivalent ways to configure a test driver:
+
+* Set the `testDriver` field on the `package` declaration to the name of a script, executable, or library target, exactly as in the TOML form above.
+* Apply the `test_driver` attribute to a script, executable, or library declaration in the same file. This is the more common style in Lean configurations because it places the marker next to the target it refers to.
+
+At most one declaration in a package may carry the `test_driver` attribute, and it is an error to combine the attribute with a non-empty `testDriver` field.
+
+A target in a dependency package can be used as a test driver by writing `<pkg>/<name>` as the value of `testDriver`, where `<pkg>` is the dependency's package name.
+
+### Running Tests
+%%%
+tag := "lake-test-running"
+%%%
+
+The {lake}`test` command runs the configured test driver for the workspace's root package. Test drivers in dependency packages are not run.
+
+For executable and script drivers, Lake invokes the driver with the arguments in the {tomlField Lake.PackageConfig}`testDriverArgs` field, followed by any arguments passed on the command line after `--`. For example:
+
+```
+lake test -- --filter Foo --verbose
+```
+
+passes `--filter Foo --verbose` to the driver after any `testDriverArgs` already configured in the lakefile. Executable test drivers are built before being run.
+
+Library test drivers do not accept arguments: Lake reports an error if `testDriverArgs` is non-empty or if any arguments follow `--`. A library driver is exercised purely by elaboration.
+
+The {lake}`check-test` command exits with code 0 if a test driver is configured for the root package. It does not verify that the named target actually exists.
+
+### Lint Drivers
+%%%
+tag := "lake-lint-driver-config"
+%%%
+
+Lint drivers use the same machinery as test drivers, with three differences: the configuration field is {tomlField Lake.PackageConfig}`lintDriver`, the attribute is `lint_driver`, and library targets are not accepted — a lint driver must be an executable or a script.
+
+A minimal `lakefile.toml` configuring a lint driver:
+
+::::lakeToml Lake.PackageConfig _root_
+```toml
+name = "my-package"
+lintDriver = "my-package-lint"
+
+[[lean_exe]]
+name = "my-package-lint"
+root = "Lint"
+```
+```expected
+{wsIdx := 0,
+  baseName := `«my-package»,
+  keyName := `«my-package»,
+  origName := `«my-package»,
+  dir := FilePath.mk ".",
+  relDir := FilePath.mk ".",
+  config :=
+    {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
+      toLeanConfig :=
+        { buildType := Lake.BuildType.release,
+          leanOptions := #[],
+          moreLeanArgs := #[],
+          weakLeanArgs := #[],
+          moreLeancArgs := #[],
+          moreServerOptions := #[],
+          weakLeancArgs := #[],
+          moreLinkObjs := #[],
+          moreLinkLibs := #[],
+          moreLinkArgs := #[],
+          weakLinkArgs := #[],
+          backend := Lake.Backend.default,
+          platformIndependent := none,
+          dynlibs := #[],
+          plugins := #[] },
+      bootstrap := false,
+      extraDepTargets := #[],
+      precompileModules := false,
+      moreGlobalServerArgs := #[],
+      srcDir := FilePath.mk ".",
+      buildDir := FilePath.mk ".lake/build",
+      leanLibDir := FilePath.mk "lib/lean",
+      nativeLibDir := FilePath.mk "lib",
+      binDir := FilePath.mk "bin",
+      irDir := FilePath.mk "ir",
+      releaseRepo := none,
+      buildArchive := ELIDED,
+      preferReleaseBuild := false,
+      testDriver := "",
+      testDriverArgs := #[],
+      lintDriver := "my-package-lint",
+      lintDriverArgs := #[],
+      version := { toSemVerCore := { major := 0, minor := 0, patch := 0 }, specialDescr := "" },
+      versionTags := { filter := #<fun>, name := `default, descr? := none},
+      description := "",
+      keywords := #[],
+      homepage := "",
+      license := "",
+      licenseFiles := #[FilePath.mk "LICENSE"],
+      readmeFile := FilePath.mk "README.md",
+      reservoir := true,
+      enableArtifactCache? := none,
+      restoreAllArtifacts? := none,
+      libPrefixOnWindows := false,
+      allowImportAll := false,
+      fixedToolchain := false},
+  configFile := FilePath.mk "lakefile",
+  relConfigFile := FilePath.mk "lakefile",
+  relManifestFile := FilePath.mk "lake-manifest.json",
+  scope := "",
+  remoteUrl := "",
+  depConfigs := #[],
+  targetDecls :=
+    #[{toConfigDecl :=
+          {pkg := `«my-package»,
+            name := `«my-package-lint»,
+            kind := `lean_exe,
+            config :=
+              {toLeanConfig :=
+                  { buildType := Lake.BuildType.release,
+                    leanOptions := #[],
+                    moreLeanArgs := #[],
+                    weakLeanArgs := #[],
+                    moreLeancArgs := #[],
+                    moreServerOptions := #[],
+                    weakLeancArgs := #[],
+                    moreLinkObjs := #[],
+                    moreLinkLibs := #[],
+                    moreLinkArgs := #[],
+                    weakLinkArgs := #[],
+                    backend := Lake.Backend.default,
+                    platformIndependent := none,
+                    dynlibs := #[],
+                    plugins := #[] },
+                srcDir := FilePath.mk ".",
+                root := `Lint,
+                exeName := "my-package-lint",
+                needs := #[],
+                extraDepTargets := #[],
+                supportInterpreter := false,
+                nativeFacets := #<fun>},
+            wf_data := …},
+        pkg_eq := …}],
+  targetDeclMap :=
+    {`«my-package-lint» ↦
+        {toPConfigDecl :=
+            {toConfigDecl :=
+                {pkg := `«my-package»,
+                  name := `«my-package-lint»,
+                  kind := `lean_exe,
+                  config :=
+                    {toLeanConfig :=
+                        { buildType := Lake.BuildType.release,
+                          leanOptions := #[],
+                          moreLeanArgs := #[],
+                          weakLeanArgs := #[],
+                          moreLeancArgs := #[],
+                          moreServerOptions := #[],
+                          weakLeancArgs := #[],
+                          moreLinkObjs := #[],
+                          moreLinkLibs := #[],
+                          moreLinkArgs := #[],
+                          weakLinkArgs := #[],
+                          backend := Lake.Backend.default,
+                          platformIndependent := none,
+                          dynlibs := #[],
+                          plugins := #[] },
+                      srcDir := FilePath.mk ".",
+                      root := `Lint,
+                      exeName := "my-package-lint",
+                      needs := #[],
+                      extraDepTargets := #[],
+                      supportInterpreter := false,
+                      nativeFacets := #<fun>},
+                  wf_data := …},
+              pkg_eq := …},
+          name_eq := …},
+      },
+  defaultTargets := #[],
+  scripts := {},
+  defaultScripts := #[],
+  postUpdateHooks := #[],
+  buildArchive := ELIDED,
+  testDriver := "",
+  lintDriver := "my-package-lint"}
+```
+::::
+
+In a `lakefile.lean`, either set the `lintDriver` field on the `package` declaration or apply the `lint_driver` attribute to a script or executable declaration. At most one declaration per package may carry the attribute, and combining the attribute with a non-empty `lintDriver` field is an error.
+
+A driver in a dependency package can be referenced with the same `<pkg>/<name>` syntax used for test drivers.
+
+The {lake}`lint` command runs the configured driver. The arguments passed to the driver are {tomlField Lake.PackageConfig}`lintDriverArgs` followed by anything supplied on the command line after `--`:
+
+```
+lake lint -- --warnings-as-errors
+```
+
+The {lake}`check-lint` command exits with code 0 if a lint driver is configured.
+
 :::TODO
 Restore the `{attr}` role for `test_driver` and `lint_driver` above. Right now, importing the attributes crashes the compiler.
 :::
