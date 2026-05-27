@@ -147,6 +147,17 @@ jobs:
               run: |
                   ./generate-html.sh --mode preview --draft --output _out/draft-site
 
+            # Drop deploy/netlify-headers as _headers at each possible Netlify
+            # publish-dir root so hashed search-index buckets can be cached
+            # immutably. See deploy/netlify-headers for the rules.
+            - name: Install Netlify cache headers
+              run: |
+                  for dir in _out/site _out/site/reference _out/html-multi _out/draft-site _out/draft/html-multi; do
+                      if [ -d "$dir" ]; then
+                          cp deploy/netlify-headers "$dir/_headers"
+                      fi
+                  done
+
             - name: Report status to Lean PR
               if: always() && github.repository == 'leanprover/reference-manual'
               shell: bash
