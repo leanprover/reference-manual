@@ -1,4 +1,4 @@
-<!-- Generated from commit aeccfa72806adad385b88a5222a19216352d7820 at 2026-04-01T23:39:31Z -->
+<!-- Generated from commit be77c0d03d22165bffbbd74ee08b650727aa6d55 at 2026-05-27T14:35:00Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -14,13 +14,16 @@
     <title>Validating a Lean Proof</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="-verso-search/elasticlunr.min.js"></script>
-    <script src="-verso-search/fuzzysort.min.js"></script>
-    <script src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/elasticlunr.min.js"></script>
+    <script defer="defer" src="-verso-search/fuzzysort.min.js"></script>
+    <script defer="defer" src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/search-config.js"></script>
     <script type="module" src="-verso-search/search-init.js"></script>
     <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-page.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1997,7 +2000,14 @@ dl.toml-table-field-spec {
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
 }
-</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>.plain-keyword {
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
+.diagram svg text[font-family="text"] {
+  font-family: var(--verso-text-font-family);
+}
+.diagram svg text[font-family="monospace"] {
+  font-family: var(--verso-code-font-family);
+}
+</style><style>.plain-keyword {
   font-weight: 500;
 }
 </style><style>
@@ -2592,7 +2602,6 @@ window.onload = () => {
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     </head>
   <body>
     <header>
@@ -2617,7 +2626,7 @@ window.onload = () => {
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-validating-proofs" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-validating-proofs" checked="checked"></label><span class="unnumbered"></span><span class="current"><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></span></div>
-              <table><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-blue-check-marks">The Blue Double Check Marks</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-printing-axioms">Printing Axioms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-lean4checker">Re-Checking Proofs with <code>lean4checker</code></a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-comparator">Gold Standard: <code>comparator</code></a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#The-Lean-Language-Reference--Validating-a-Lean-Proof--Remaining-Issues">Remaining Issues</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-trustCompiler">On <code>Lean.trustCompiler</code></a></td></tr></table></div>
+              <table><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-blue-check-marks">The Blue Double Check Marks</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-printing-axioms">Printing Axioms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-lean4checker">Re-Checking Proofs with <code>lean4checker</code></a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-comparator">Gold Standard: <code>comparator</code> and external checkers</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#The-Lean-Language-Reference--Validating-a-Lean-Proof--Remaining-Issues">Remaining Issues</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-trustCompiler">On <code>Lean.trustCompiler</code> (up to Lean 4.28.0)</a></td></tr></table></div>
             </div>
           </div>
         <div class="last">
@@ -2642,10 +2651,10 @@ window.onload = () => {
 In particular, it matters a lot whether one is dealing with an <a class="technical-term" href="ValidatingProofs/#--tech-term-honest">honest</a> proof attempt, and needs protection against only benign mistakes, or a possibly-<a class="technical-term" href="ValidatingProofs/#--tech-term-malicious">malicious</a> proof attempt that actively tries to mislead.</p>
             <p>
               In particular, we use <span id="--tech-term-honest" class="def-technical-term"><em>honest</em></span> when the goal is to create a valid proof.
-This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the <code class="hl lean inline" data-lean-context="examples"><span class="option token" data-binding="option-debug.skipKernelTC" data-verso-hover="7523">debug.skipKernelTC</span></code>).
+This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the <code class="hl lean inline" data-lean-context="examples"><span class="option token" data-binding="option-debug.skipKernelTC" data-verso-hover="9389">debug.skipKernelTC</span></code>).
 Note that the <code class="plain-keyword">unsafe</code> marker on API functions is unrelated to whether this API can be used in an dishonest way.</p>
             <p>
-              In contrast, we use <span id="--tech-term-malicious" class="def-technical-term"><em>malicious</em></span> to describe code to go out of its way to trick or mislead the user, exploit bugs or compromise the system.
+              In contrast, we use <span id="--tech-term-malicious" class="def-technical-term"><em>malicious</em></span> to describe code that goes out of its way to trick or mislead the user, exploit bugs or compromise the system.
 This includes un-reviewed AI-generated proofs and programs.</p>
             <p>
               Furthermore it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.</p>
@@ -2674,7 +2683,7 @@ This includes un-reviewed AI-generated proofs and programs.</p>
                 <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--The-Blue-Double-Check-Marks--Trust">
                   Trust<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--The-Blue-Double-Check-Marks--Trust" title="Permalink">🔗</a></span></h3>
                 <p>
-                  This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and trusts the authors of the imported libraries to be <a class="technical-term" href="ValidatingProofs/#--tech-term-honest">honest</a>, that they performed this check, and that no unsound axioms have been declared and used.</p>
+                  This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and trusts the authors of the imported libraries to be <a class="technical-term" href="ValidatingProofs/#--tech-term-honest">honest</a>, that they checked that the theorems in their libraries express their intended informal meanings, and that no unsound axioms have been declared and used.</p>
                 </section>
               <section>
                 <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--The-Blue-Double-Check-Marks--Protection">
@@ -2689,7 +2698,7 @@ This includes un-reviewed AI-generated proofs and programs.</p>
                       </li>
                     <li>
                       <p>
-                        Explicit use of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-3261" data-verso-hover="77">sorry</span></code> <strong>in the current theorem</strong></p>
+                        Explicit use of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-3330" data-verso-hover="79">sorry</span></code> <strong>in the current theorem</strong></p>
                       </li>
                     <li>
                       <p>
@@ -2716,13 +2725,13 @@ Editors other than VS Code may have a different indication.</p>
               <h2 id="validating-printing-axioms">
                 Printing Axioms<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=validating-printing-axioms" title="Permalink">🔗</a></span></h2>
               <p>
-                The blue double check marks appear  even when there are explicit uses of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-3875" data-verso-hover="77">sorry</span></code> or incomplete proofs in the dependencies of the theorem.
-Because both <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-3959" data-verso-hover="77">sorry</span></code> and incomplete proofs are elaborated to axioms, their presence can be detected by listing the axioms that a proof relies on.</p>
+                The blue double check marks appear  even when there are explicit uses of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-3944" data-verso-hover="79">sorry</span></code> or incomplete proofs in the dependencies of the theorem.
+Because both <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-4028" data-verso-hover="79">sorry</span></code> and incomplete proofs are elaborated to axioms, their presence can be detected by listing the axioms that a proof relies on.</p>
               <section>
                 <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Printing-Axioms--Instructions">
                   Instructions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Printing-Axioms--Instructions" title="Permalink">🔗</a></span></h3>
                 <p>
-                  Write <code class="hl lean inline" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">thmName</span><span class="text">' does not depend on any axioms</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-4252">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-4252">axioms</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-thmName" data-verso-hover="7524">thmName</span><span class="unknown token" data-binding=""></span></code> after the theorem declaration, with <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-thmName" data-verso-hover="7524">thmName</span></code> replaced by the name of the theorem and check that it reports only the built-in axioms <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Propositions/#propext" title="Documentation for propext"><span class="const token" data-binding="const-propext" data-verso-hover="127">propext</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Classical.choice" data-verso-hover="128">Classical.choice</span></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Quotients/#Quot___sound" title="Documentation for Quot.sound"><span class="const token" data-binding="const-Quot.sound" data-verso-hover="129">Quot.sound</span></a></code>.</p>
+                  Write <code class="hl lean inline" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">thmName</span><span class="text">' does not depend on any axioms</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-4321" data-verso-hover="140">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-4321" data-verso-hover="140">axioms</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-thmName" data-verso-hover="9390">thmName</span><span class="unknown token" data-binding=""></span></code> after the theorem declaration, with <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-thmName" data-verso-hover="9390">thmName</span></code> replaced by the name of the theorem and check that it reports only the built-in axioms <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Propositions/#propext" title="Documentation for propext"><span class="const token" data-binding="const-propext" data-verso-hover="136">propext</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Classical.choice" data-verso-hover="137">Classical.choice</span></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Quotients/#Quot___sound" title="Documentation for Quot.sound"><span class="const token" data-binding="const-Quot.sound" data-verso-hover="138">Quot.sound</span></a></code>.</p>
                 </section>
               <section>
                 <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Printing-Axioms--Significance">
@@ -2733,11 +2742,11 @@ The three axioms above are standard axioms of Lean's logic, and benign.</p>
                 <ul>
                   <li>
                     <p>
-                      If <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-sorryAx" data-verso-hover="1640">sorryAx</span></code> is reported, then this theorem or one of its dependencies uses <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-4758" data-verso-hover="77">sorry</span></code> or is otherwise incomplete.</p>
+                      If <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-sorryAx" data-verso-hover="1828">sorryAx</span></code> is reported, then this theorem or one of its dependencies uses <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-4827" data-verso-hover="79">sorry</span></code> or is otherwise incomplete.</p>
                     </li>
                   <li>
                     <p>
-                      If <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1642">Lean.trustCompiler</span></code> is reported, then native evaluation is used; see below for a discussion.</p>
+                      If <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1830">Lean.trustCompiler</span></code> is reported, then native evaluation is used; see below for a discussion.</p>
                     </li>
                   <li>
                     <p>
@@ -2764,7 +2773,7 @@ The three axioms above are standard axioms of Lean's logic, and benign.</p>
                       </li>
                     <li>
                       <p>
-                        Explicit use of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-5358" data-verso-hover="77">sorry</span></code></p>
+                        Explicit use of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-5427" data-verso-hover="79">sorry</span></code></p>
                       </li>
                     <li>
                       <p>
@@ -2772,13 +2781,6 @@ The three axioms above are standard axioms of Lean's logic, and benign.</p>
                       </li>
                     </ul>
                   </div>
-                </section>
-              <section>
-                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Printing-Axioms--Comments">
-                  Comments<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Printing-Axioms--Comments" title="Permalink">🔗</a></span></h3>
-                <p>
-                  At the time of writing, the <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.printAxioms : command</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms"><code class="kw">#print axioms</code></a></span> command does not work in a <a class="technical-term" href="Source-Files-and-Modules/#--tech-term-module">module</a>.
-To work around this, create a non-module file, import your module, and use <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.printAxioms : command</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms"><code class="kw">#print axioms</code></a></span> there.</p>
                 </section>
               </section>
             <section>
@@ -2840,33 +2842,33 @@ The <a href="https://github.com/leanprover/lean-action">lean-action</a> GitHub A
               </section>
             <section>
               <h2 id="validating-comparator">
-                Gold Standard: <code>comparator</code><span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=validating-comparator" title="Permalink">🔗</a></span></h2>
+                Gold Standard: <code>comparator</code> and external checkers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=validating-comparator" title="Permalink">🔗</a></span></h2>
               <p>
                 To protect against a seriously <a class="technical-term" href="ValidatingProofs/#--tech-term-malicious">malicious</a> proof compromising how Lean interprets a theorem statement or the user's system, additional steps are necessary.
-This should only be necessary for high risk scenarios (proof marketplaces, high-reward proof competitions).</p>
+This should only be necessary for high risk scenarios (proof marketplaces, high-reward proof competitions, unaligned AI).</p>
               <section>
-                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--Instructions">
-                  Instructions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--Instructions" title="Permalink">🔗</a></span></h3>
+                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--and-external-checkers--Instructions">
+                  Instructions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--and-external-checkers--Instructions" title="Permalink">🔗</a></span></h3>
                 <p>
-                  In a trusted environment, write the theorem <strong>statement</strong> (the ”challenge”), and then feed the challenge as well as the proposed proof to the <a href="https://github.com/leanprover/comparator"><code>comparator</code></a> tool, as documented there.</p>
+                  In a trusted environment, write the theorem <strong>statement</strong> (the “challenge”), and then feed the challenge as well as the proposed proof to the <a href="https://github.com/leanprover/comparator"><code>comparator</code></a> tool, with external checkers enabled, as documented there.</p>
                 </section>
               <section>
-                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--Significance">
-                  Significance<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--Significance" title="Permalink">🔗</a></span></h3>
+                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--and-external-checkers--Significance">
+                  Significance<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--and-external-checkers--Significance" title="Permalink">🔗</a></span></h3>
                 <p>
                   Comparator will build the proof in a sandboxed environment, to protect against <a class="technical-term" href="ValidatingProofs/#--tech-term-malicious">malicious</a> code in the build step.
 The proof term is exported to a serialized format.
-Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, loads the proofs, replays them using Lean's kernel, and checks that the proved theorem statement matches the one in the challenge file.</p>
+Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, replays the proofs using both Lean's kernel and/or an external checker and also ensures that the proved theorem statements match those in the trusted challenge file.</p>
                 </section>
               <section>
-                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--Trust">
-                  Trust<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--Trust" title="Permalink">🔗</a></span></h3>
+                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--and-external-checkers--Trust">
+                  Trust<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--and-external-checkers--Trust" title="Permalink">🔗</a></span></h3>
                 <p>
                   This check is meaningful if the theorem statement in the trusted challenge file is correct and the sandbox used to build the possibly-<a class="technical-term" href="ValidatingProofs/#--tech-term-malicious">malicious</a> code is safe.</p>
                 </section>
               <section>
-                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--Protection">
-                  Protection<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--Protection" title="Permalink">🔗</a></span></h3>
+                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--and-external-checkers--Protection">
+                  Protection<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--and-external-checkers--Protection" title="Permalink">🔗</a></span></h3>
                 <div class="listBullet" style="--bullet: '🛡️ ';">
                   <p>
                     (In addition to the list above)</p>
@@ -2875,15 +2877,18 @@ Outside the sandbox and out of the reach of possibly malicious code, it validate
                       <p>
                         Actively <a class="technical-term" href="ValidatingProofs/#--tech-term-malicious">malicious</a> proofs</p>
                       </li>
+                    <li>
+                      <p>
+                        Implementation bugs present in some (but not simulatenously in all) of the used checkers.</p>
+                      </li>
                     </ul>
                   </div>
                 </section>
               <section>
-                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--Comments">
-                  Comments<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--Comments" title="Permalink">🔗</a></span></h3>
+                <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--and-external-checkers--Comments">
+                  Comments<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Gold-Standard___--comparator--and-external-checkers--Comments" title="Permalink">🔗</a></span></h3>
                 <p>
-                  At the time of writing, <code>comparator</code> uses only the official Lean kernel.
-In the future it will be easy to use multiple, independent kernel implementations; then this will also protect against implementation bugs in the official Lean kernel.</p>
+                  At the time of writing, <code>comparator</code> supports using the official Lean kernel and the external checker <a href="https://github.com/ammkrn/nanoda_lib"><code>nanoda</code></a>, which is developed independently and implemented in Rust. The <a href="https://arena.lean-lang.org/">Lean Kernel Arena</a> features more external checkers that can be used manually for even more confidence.</p>
                 </section>
               </section>
             <section>
@@ -2898,28 +2903,31 @@ In the future it will be easy to use multiple, independent kernel implementation
                   </li>
                 <li>
                   <p>
-                    The implementation of that logic in Lean’s kernel (for now; see comment above).</p>
+                    The plumbing provided by the <code>comparator</code> tool is correct.</p>
                   </li>
                 <li>
                   <p>
-                    The plumbing provided by the <code>comparator</code> tool.</p>
+                    The sandbox used by <code>comparator</code> is secure.</p>
                   </li>
                 <li>
                   <p>
-                    The safety of the sandbox used by <code>comparator</code></p>
+                    There is no implementation bug affecting all of the used checkers simultaneously.</p>
                   </li>
                 <li>
                   <p>
                     No human error or misleading presentation of the theorem statement in the trusted challenge file.</p>
+                  <p>
+                    If there are doubts that the theorem means what it appears to mean, its statement and all referenced definitions must be investigated carefully, in particular with regard to custom notation and type classes.
+  Some external checkers offer raw pretty-printing capabilities that are not affected by changes to parser or notation in the source file.</p>
                   </li>
                 </ul>
               </section>
             <section>
               <h2 id="validating-trustCompiler">
-                On <code>Lean.trustCompiler</code><span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=validating-trustCompiler" title="Permalink">🔗</a></span></h2>
+                On <code>Lean.trustCompiler</code> (up to Lean 4.28.0)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=validating-trustCompiler" title="Permalink">🔗</a></span></h2>
               <p>
                 Lean supports proofs by native evaluation.
-This is used by the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="404">decide</span></a></code><span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.decide : tactic</code><span class="sep"></span><code class="docstring">`decide` attempts to prove the main goal (with target type `p`) by synthesizing an instance of `Decidable p`
+This is used by the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="428">decide</span></a></code><span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.decide : tactic</code><span class="sep"></span><code class="docstring">`decide` attempts to prove the main goal (with target type `p`) by synthesizing an instance of `Decidable p`
 and then reducing that instance to evaluate the truth value of `p`.
 If it reduces to `isTrue h`, then `h` is a proof of `p` that closes the goal.
 
@@ -2987,12 +2995,12 @@ For equality goals for types with decidable equality, usually `rfl` can be used 
 example : 1 + 1 = 2 := by decide
 example : 1 + 1 = 2 := by rfl
 ```
-</code></code><a href="Tactic-Proofs/Tactic-Reference/#decide"><code class="kw"> +native</code></a></span> tactic or internally by specific tactics (<code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="121">bv_decide</span></a></code> in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the kernel.</p>
+</code></code><a href="Tactic-Proofs/Tactic-Reference/#decide"><code class="kw"> +native</code></a></span> tactic or internally by specific tactics (<code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code> in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the kernel.</p>
               <p>
-                Specific uses wrapped in <a class="technical-term" href="ValidatingProofs/#--tech-term-honest">honest</a> tactics (e.g. <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="121">bv_decide</span></a></code>) are generally trustworthy.
+                Specific uses wrapped in <a class="technical-term" href="ValidatingProofs/#--tech-term-honest">honest</a> tactics (e.g. <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code>) are generally trustworthy.
 The trusted code base is larger (it includes Lean's compilation toolchain and library annotations in the standard library), but still fixed and vetted.</p>
               <p>
-                General use (<code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="404">decide</span></a></code><span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.decide : tactic</code><span class="sep"></span><code class="docstring">`decide` attempts to prove the main goal (with target type `p`) by synthesizing an instance of `Decidable p`
+                General use (<code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="428">decide</span></a></code><span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.decide : tactic</code><span class="sep"></span><code class="docstring">`decide` attempts to prove the main goal (with target type `p`) by synthesizing an instance of `Decidable p`
 and then reducing that instance to evaluate the truth value of `p`.
 If it reduces to `isTrue h`, then `h` is a proof of `p` that closes the goal.
 
@@ -3060,12 +3068,83 @@ For equality goals for types with decidable equality, usually `rfl` can be used 
 example : 1 + 1 = 2 := by decide
 example : 1 + 1 = 2 := by rfl
 ```
-</code></code><a href="Tactic-Proofs/Tactic-Reference/#decide"><code class="kw"> +native</code></a></span> or direct use of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.ofReduceBool" data-verso-hover="1643">Lean.ofReduceBool</span></code>) can be used to create invalid proofs whenever the native evaluation of a term disagrees with the kernel's evaluation.
-In particular, for every <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1110">implemented_by</span></code>/<code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2350">extern</span></code> attribute in libraries it becomes part of the trusted code base that the replacement is semantically equivalent.</p>
+</code></code><a href="Tactic-Proofs/Tactic-Reference/#decide"><code class="kw"> +native</code></a></span> or direct use of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.ofReduceBool" data-verso-hover="1831">Lean.ofReduceBool</span></code>) can be used to create invalid proofs whenever the native evaluation of a term disagrees with the kernel's evaluation.
+In particular, for every <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1139">implemented_by</span></code>/<code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2572">extern</span></code> attribute in libraries it becomes part of the trusted code base that the replacement is semantically equivalent.</p>
               <p>
-                All these uses show up as an axiom <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1642">Lean.trustCompiler</span></code> in <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.printAxioms : command</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms"><code class="kw">#print axioms</code></a></span>.
+                All these uses show up as an axiom <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1830">Lean.trustCompiler</span></code> in <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.printAxioms : command</code><span class="sep"></span><code class="docstring">Prints the axioms used by a declaration, directly or indirectly.
+Please consult [the reference manual](https://lean-lang.org/doc/reference/4.30.0/find/?domain=Verso.Genre.Manual.section&name=validating-proofs) to understand the significance of the output. </code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms"><code class="kw">#print axioms</code></a></span>.
 External checkers (<code>lean4checker</code>, <code>comparator</code>) cannot check such proofs, as they do not have access to the Lean compiler.
-When that level of checking is needed, proofs have to avoid using native evaluation.
+When that level of checking is needed, proofs have to avoid using native evaluation.</p>
+              <p>
+                Since Lean 4.29.0, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="428">decide</span></a></code><span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.decide : tactic</code><span class="sep"></span><code class="docstring">`decide` attempts to prove the main goal (with target type `p`) by synthesizing an instance of `Decidable p`
+and then reducing that instance to evaluate the truth value of `p`.
+If it reduces to `isTrue h`, then `h` is a proof of `p` that closes the goal.
+
+The target is not allowed to contain local variables or metavariables.
+If there are local variables, you can first try using the `revert` tactic with these local variables to move them into the target,
+or you can use the `+revert` option, described below.
+
+Options:
+- `decide +revert` begins by reverting local variables that the target depends on,
+  after cleaning up the local context of irrelevant variables.
+  A variable is *relevant* if it appears in the target, if it appears in a relevant variable,
+  or if it is a proposition that refers to a relevant variable.
+- `decide +kernel` uses kernel for reduction instead of the elaborator.
+  It has two key properties: (1) since it uses the kernel, it ignores transparency and can unfold everything,
+  and (2) it reduces the `Decidable` instance only once instead of twice.
+- `decide +native` uses the native code compiler (`#eval`) to evaluate the `Decidable` instance,
+  admitting the result via an axiom. This can be significantly more efficient than using reduction, but it is at the cost of increasing the size
+  This can be significantly more efficient than using reduction, but it is at the cost of increasing the size
+  of the trusted code base.
+  Namely, it depends on the correctness of the Lean compiler and all definitions with an `@[implemented_by]` attribute.
+  Like with `+kernel`, the `Decidable` instance is evaluated only once.
+
+Limitation: In the default mode or `+kernel` mode, since `decide` uses reduction to evaluate the term,
+`Decidable` instances defined by well-founded recursion might not work because evaluating them requires reducing proofs.
+Reduction can also get stuck on `Decidable` instances with `Eq.rec` terms.
+These can appear in instances defined using tactics (such as `rw` and `simp`).
+To avoid this, create such instances using definitions such as `decidable_of_iff` instead.
+
+## Examples
+
+Proving inequalities:
+```lean
+example : 2 + 2 ≠ 5 := by decide
+```
+
+Trying to prove a false proposition:
+```lean
+example : 1 ≠ 1 := by decide
+/-
+tactic 'decide' proved that the proposition
+  1 ≠ 1
+is false
+-/
+```
+
+Trying to prove a proposition whose `Decidable` instance fails to reduce
+```lean
+opaque unknownProp : Prop
+
+open scoped Classical in
+example : unknownProp := by decide
+/-
+tactic 'decide' failed for proposition
+  unknownProp
+since its 'Decidable' instance reduced to
+  Classical.choice ⋯
+rather than to the 'isTrue' constructor.
+-/
+```
+
+## Properties and relations
+
+For equality goals for types with decidable equality, usually `rfl` can be used in place of `decide`.
+```lean
+example : 1 + 1 = 2 := by decide
+example : 1 + 1 = 2 := by rfl
+```
+</code></code><a href="Tactic-Proofs/Tactic-Reference/#decide"><code class="kw"> +native</code></a></span> and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code> tactics no longer use <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1830">Lean.trustCompiler</span></code>, but instead introduce one dedicated axiom for each computation that is asserted by native computation. The <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1830">Lean.trustCompiler</span></code> machinery is deprecated and will eventually be removed.
 </p>
               </section>
             </section>

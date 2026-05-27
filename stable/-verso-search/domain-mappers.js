@@ -106,10 +106,11 @@ const Verso_DOT_Genre_DOT_Manual_DOT_section = {
     dataToSearchables:
       (domainData) =>
           Object.entries(domainData.contents).map(([key, value]) => ({
-            searchKey: `${value[0].data.sectionNum} ${value[0].data.title}`,
+            searchKey: `${value[0].data.sectionNum ?? ''} ${value[0].data.title}`,
             address: `${value[0].address}#${value[0].id}`,
             domainId: 'Verso.Genre.Manual.section',
             ref: value,
+            priority: value[0].data.searchPriority ?? 50,
           })),
     className: "section-domain",
     displayName: "Section",
@@ -361,3 +362,15 @@ export const domainMappers = {"Verso.Genre.Manual.doc.suggestion":
   "Manual.elanCommand": Manual_DOT_elanCommand,
   "Manual.errorExplanation": Manual_DOT_errorExplanation
 };
+
+export const searchPriorities = {
+  semantic: 50,
+    fullText: 50,
+    domains: {"Verso.Genre.Manual.example": 60,
+      "Verso.Genre.Manual.doc.tactic.conv": 60,
+      "Verso.Genre.Manual.doc.tech": 65,
+      "Verso.Genre.Manual.doc.tactic": 60,
+      "Verso.Genre.Manual.doc": 60,
+      "Verso.Genre.Manual.doc.option": 60
+    }
+  };

@@ -1,4 +1,4 @@
-<!-- Generated from commit aeccfa72806adad385b88a5222a19216352d7820 at 2026-04-01T23:39:31Z -->
+<!-- Generated from commit be77c0d03d22165bffbbd74ee08b650727aa6d55 at 2026-05-27T14:35:00Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -14,13 +14,16 @@
     <title>Definitions</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="-verso-search/elasticlunr.min.js"></script>
-    <script src="-verso-search/fuzzysort.min.js"></script>
-    <script src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/elasticlunr.min.js"></script>
+    <script defer="defer" src="-verso-search/fuzzysort.min.js"></script>
+    <script defer="defer" src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/search-config.js"></script>
     <script type="module" src="-verso-search/search-init.js"></script>
     <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-page.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1997,7 +2000,14 @@ dl.toml-table-field-spec {
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
 }
-</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>.plain-keyword {
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
+.diagram svg text[font-family="text"] {
+  font-family: var(--verso-text-font-family);
+}
+.diagram svg text[font-family="monospace"] {
+  font-family: var(--verso-code-font-family);
+}
+</style><style>.plain-keyword {
   font-weight: 500;
 }
 </style><style>
@@ -2592,7 +2602,6 @@ window.onload = () => {
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     </head>
   <body>
     <header>
@@ -2826,7 +2835,7 @@ such as inductive constructors, structure projections, and `let rec` / `where` d
 They are useful for specifying the existence of some function.
 Unlike <a class="technical-term" href="Axioms/#--tech-term-Axioms">axioms</a>, opaque declarations can only be used for types that are inhabited, so they do not risk introducing inconsistency.
 Also unlike axioms, the inhabitant of the type is used in compiled code.
-The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1110">implemented_by</span></code> attribute can be used to instruct the compiler to emit a call to some other function as the compilation of an opaque constant.</p>
+The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1139">implemented_by</span></code> attribute can be used to instruct the compiler to emit a call to some other function as the compilation of an opaque constant.</p>
             <div class="namedocs" id="Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next">
               <span class="label">syntax</span><span class="title">Opaque Constants</span><div class="text">
                 <p>
@@ -2850,7 +2859,7 @@ such as inductive constructors, structure projections, and `let rec` / `where` d
       <span class="from-nonterminal" data-kind="Lean.Parser.Command.opaque"><span class="keyword">opaque</span> <span class="nonterminal documented" data-kind="Lean.Parser.Command.declId"><code class="hover-info"><code class="docstring">`declId` matches `foo` or `foo.{u,v}`: an identifier possibly followed by a list of universe names </code></code>declId</span> <a href="Definitions/Headers-and-Signatures/#Lean___Parser___Command___declSig"><span class="nonterminal documented" data-kind="Lean.Parser.Command.declSig"><code class="hover-info"><code class="docstring">`declSig` matches the signature of a declaration with required type: a list of binders and then `: type` </code></code>declSig</span></a> <span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="Lean.Parser.Command.declValSimple"><span class="keyword">:=</span> <span class="nonterminal" data-kind="term.pseudo">term</span><span class="from-nonterminal documented" data-kind="Lean.Parser.Termination.suffix"><code class="hover-info"><code class="docstring">Termination hints are `termination_by` and `decreasing_by`, in that order.
 </code></code><span class="from-nonterminal" data-kind="null"></span><span class="from-nonterminal" data-kind="null"></span></span><span class="from-nonterminal" data-kind="null"></span></span></span></span></span></pre><p>
                   Opaque constants may also be specified without right-hand sides.
-The elaborator fills in the right-hand side by synthesizing an instance of <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Inhabited___mk" title="Documentation for Inhabited"><span class="const token" data-binding="const-Inhabited" data-verso-hover="315">Inhabited</span></a></code>, or <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Nonempty___intro" title="Documentation for Nonempty"><span class="const token" data-binding="const-Nonempty" data-verso-hover="951">Nonempty</span></a></code> if that fails.</p>
+The elaborator fills in the right-hand side by synthesizing an instance of <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Inhabited___mk" title="Documentation for Inhabited"><span class="const token" data-binding="const-Inhabited" data-verso-hover="333">Inhabited</span></a></code>, or <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Nonempty___intro" title="Documentation for Nonempty"><span class="const token" data-binding="const-Nonempty" data-verso-hover="978">Nonempty</span></a></code> if that fails.</p>
                 <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next"><span class="nonterminal" data-kind="command">command</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal" data-kind="Lean.Parser.Command.declaration"><a href="Definitions/Modifiers/#Lean___Parser___Command___declModifiers"><span class="nonterminal documented" data-kind="Lean.Parser.Command.declModifiers"><code class="hover-info"><code class="docstring">`declModifiers` is the collection of modifiers on a declaration:
 * a doc comment `/-- ... -/`

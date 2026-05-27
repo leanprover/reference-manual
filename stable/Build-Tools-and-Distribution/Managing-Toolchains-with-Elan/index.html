@@ -1,4 +1,4 @@
-<!-- Generated from commit aeccfa72806adad385b88a5222a19216352d7820 at 2026-04-01T23:39:31Z -->
+<!-- Generated from commit be77c0d03d22165bffbbd74ee08b650727aa6d55 at 2026-05-27T14:35:00Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -14,13 +14,16 @@
     <title>Managing Toolchains with Elan</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="-verso-search/elasticlunr.min.js"></script>
-    <script src="-verso-search/fuzzysort.min.js"></script>
-    <script src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/elasticlunr.min.js"></script>
+    <script defer="defer" src="-verso-search/fuzzysort.min.js"></script>
+    <script defer="defer" src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/search-config.js"></script>
     <script type="module" src="-verso-search/search-init.js"></script>
     <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-page.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1997,7 +2000,14 @@ dl.toml-table-field-spec {
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
 }
-</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>.plain-keyword {
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
+.diagram svg text[font-family="text"] {
+  font-family: var(--verso-text-font-family);
+}
+.diagram svg text[font-family="monospace"] {
+  font-family: var(--verso-code-font-family);
+}
+</style><style>.plain-keyword {
   font-weight: 500;
 }
 </style><style>
@@ -2592,7 +2602,6 @@ window.onload = () => {
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     </head>
   <body>
     <header>
@@ -2843,9 +2852,9 @@ In this case, the toolchain was selected due to a <code>lean-toolchain</code> fi
                   Elan's configuration file specifies a <a class="technical-term" href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#--tech-term-default-toolchain">default toolchain</a> to be used when there is no <code>lean-toolchain</code> file or <a class="technical-term" href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#--tech-term-toolchain-override">toolchain override</a> for the current directory.
 Rather than manually editing the file, this value is typically changed using the <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#default" class="elan-command"><code>elan default</code></a> command.</p>
                 <div class="namedocs" id="default">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=default" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="default"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">default</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="7518">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=default" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="default"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">default</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="9384">toolchain</span></pre><div class="text">
                     <p>
-                      Sets the default toolchain to <code class="hl lean inline" data-lean-context="default"><span class="var token" data-binding="var-toolchain" data-verso-hover="7518">toolchain</span></code>, which should be a <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-channels">valid toolchain identifier</a> such as <code>stable</code>, <code>nightly</code>, or <code>4.17.0</code>.</p>
+                      Sets the default toolchain to <code class="hl lean inline" data-lean-context="default"><span class="var token" data-binding="var-toolchain" data-verso-hover="9384">toolchain</span></code>, which should be a <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-channels">valid toolchain identifier</a> such as <code>stable</code>, <code>nightly</code>, or <code>4.17.0</code>.</p>
                     </div>
                   </div>
                 </section>
@@ -2866,24 +2875,24 @@ This list of projects can be used to determine which toolchains are in active us
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-install">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain install" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~install"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain install</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="7518">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain install" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~install"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain install</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="9384">toolchain</span></pre><div class="text">
                     <p>
-                      Installs the indicated <code class="hl lean inline" data-lean-context="toolchain~~install"><span class="var token" data-binding="var-toolchain" data-verso-hover="7518">toolchain</span></code>.
+                      Installs the indicated <code class="hl lean inline" data-lean-context="toolchain~~install"><span class="var token" data-binding="var-toolchain" data-verso-hover="9384">toolchain</span></code>.
 The toolchain's name should be <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-channels">an identifier that's suitable for inclusion in a <code>lean-toolchain</code> file</a>.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-uninstall">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain uninstall" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~uninstall"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain uninstall</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="7518">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain uninstall" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~uninstall"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain uninstall</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="9384">toolchain</span></pre><div class="text">
                     <p>
-                      Uninstalls the indicated <code class="hl lean inline" data-lean-context="toolchain~~uninstall"><span class="var token" data-binding="var-toolchain" data-verso-hover="7518">toolchain</span></code>.
+                      Uninstalls the indicated <code class="hl lean inline" data-lean-context="toolchain~~uninstall"><span class="var token" data-binding="var-toolchain" data-verso-hover="9384">toolchain</span></code>.
 The toolchain's name should the name of an installed toolchain.
 Use <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#toolchain-list" class="elan-command"><code>elan toolchain list</code></a> to see the installed toolchains with their names.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-link">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain link" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~link"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain link</span><span class="inter-text"> </span><span class="var token" data-binding="var-[anonymous]" data-verso-hover="7519">local-name</span><span class="inter-text"> </span><span class="var token" data-binding="var-path" data-verso-hover="7520">path</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain link" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~link"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain link</span><span class="inter-text"> </span><span class="var token" data-binding="var-[anonymous]" data-verso-hover="9385">local-name</span><span class="inter-text"> </span><span class="var token" data-binding="var-path" data-verso-hover="9386">path</span></pre><div class="text">
                     <p>
-                      Creates a new local toolchain named <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-[anonymous]" data-verso-hover="7519">local-name</span></code>, using the Lean toolchain found at <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-path" data-verso-hover="7520">path</span></code>.</p>
+                      Creates a new local toolchain named <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-[anonymous]" data-verso-hover="9385">local-name</span></code>, using the Lean toolchain found at <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-path" data-verso-hover="9386">path</span></code>.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-gc">
@@ -2930,16 +2939,16 @@ The left column contains the directories in which the Lean version is overridden
                     </div>
                   </div>
                 <div class="namedocs" id="override-set">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override set" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~set"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override set</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="7518">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override set" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~set"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override set</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="9384">toolchain</span></pre><div class="text">
                     <p>
-                      Sets <code class="hl lean inline" data-lean-context="override~~set"><span class="var token" data-binding="var-toolchain" data-verso-hover="7518">toolchain</span></code> as an override for the current directory.</p>
+                      Sets <code class="hl lean inline" data-lean-context="override~~set"><span class="var token" data-binding="var-toolchain" data-verso-hover="9384">toolchain</span></code> as an override for the current directory.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="override-unset">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override unset" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~unset"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override unset</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--nonexistent</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--path</span><span class="inter-text"> </span><span class="var token" data-binding="var-path" data-verso-hover="7520">path</span><span class="keyword token" data-binding="">]</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override unset" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~unset"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override unset</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--nonexistent</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--path</span><span class="inter-text"> </span><span class="var token" data-binding="var-path" data-verso-hover="9386">path</span><span class="keyword token" data-binding="">]</span></pre><div class="text">
                     <p>
                       If <code id="elan-flag--nonexistent" class="elan-opt">--nonexistent</code> flag is provided, all overrides that are configured for directories that don't currently exist are removed.
-If <code id="elan-option--path" class="elan-opt">--path</code> is provided, then the override set for <code class="hl lean inline" data-lean-context="override~~unset"><span class="var token" data-binding="var-path" data-verso-hover="7520">path</span></code> is removed.
+If <code id="elan-option--path" class="elan-opt">--path</code> is provided, then the override set for <code class="hl lean inline" data-lean-context="override~~unset"><span class="var token" data-binding="var-path" data-verso-hover="9386">path</span></code> is removed.
 Otherwise, the override for the current directory is removed.</p>
                     </div>
                   </div>
@@ -2951,7 +2960,7 @@ Otherwise, the override for the current directory is removed.</p>
                   The commands in this section provide the ability to run a command in a specific toolchain and to locate a tool from a particular toolchain on disk.
 This can be useful when experimenting with different Lean versions, for cross-version testing, and for integrating Elan with other tools.</p>
                 <div class="namedocs" id="run">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=run" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="run"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">run</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--install</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="7518">toolchain</span><span class="inter-text"> </span><span class="var token" data-binding="var-command" data-verso-hover="7521">command</span><span class="inter-text"> </span><span class="unknown token" data-binding="">...</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=run" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="run"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">run</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--install</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="9384">toolchain</span><span class="inter-text"> </span><span class="var token" data-binding="var-command" data-verso-hover="9387">command</span><span class="inter-text"> </span><span class="unknown token" data-binding="">...</span></pre><div class="text">
                     <p>
                       Configures an environment to use the given toolchain and then runs the specified program.
 The toolchain will be installed if the <code id="elan-flag--install" class="elan-opt">--install</code> flag is provided.
@@ -2960,9 +2969,9 @@ This can be used for testing arbitrary toolchains without setting an override.</
                     </div>
                   </div>
                 <div class="namedocs" id="which">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=which" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="which"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">which</span><span class="inter-text"> </span><span class="var token" data-binding="var-command" data-verso-hover="7521">command</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=which" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="which"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">which</span><span class="inter-text"> </span><span class="var token" data-binding="var-command" data-verso-hover="9387">command</span></pre><div class="text">
                     <p>
-                      Displays the full path to the toolchain-specific binary for <code class="hl lean inline" data-lean-context="which"><span class="var token" data-binding="var-command" data-verso-hover="7521">command</span></code>.</p>
+                      Displays the full path to the toolchain-specific binary for <code class="hl lean inline" data-lean-context="which"><span class="var token" data-binding="var-command" data-verso-hover="9387">command</span></code>.</p>
                     </div>
                   </div>
                 </section>
@@ -2985,7 +2994,7 @@ It can upgrade itself, remove itself, and help configure tab completion for many
                     </div>
                   </div>
                 <div class="namedocs" id="completions">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=completions" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="completions"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">completions</span><span class="inter-text"> </span><span class="var token" data-binding="var-shell" data-verso-hover="7522">shell</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=completions" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="completions"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">completions</span><span class="inter-text"> </span><span class="var token" data-binding="var-shell" data-verso-hover="9388">shell</span></pre><div class="text">
                     <p>
                       Generates shell completion scripts for Elan, enabling tab completion for Elan commands in a variety of shells.
 See the output of <code>elan help completions</code> for a description of how to install them.</p>

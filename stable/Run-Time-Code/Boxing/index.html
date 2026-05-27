@@ -1,4 +1,4 @@
-<!-- Generated from commit aeccfa72806adad385b88a5222a19216352d7820 at 2026-04-01T23:39:31Z -->
+<!-- Generated from commit be77c0d03d22165bffbbd74ee08b650727aa6d55 at 2026-05-27T14:35:00Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -14,13 +14,16 @@
     <title>Boxing</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="-verso-search/elasticlunr.min.js"></script>
-    <script src="-verso-search/fuzzysort.min.js"></script>
-    <script src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/elasticlunr.min.js"></script>
+    <script defer="defer" src="-verso-search/fuzzysort.min.js"></script>
+    <script defer="defer" src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/search-config.js"></script>
     <script type="module" src="-verso-search/search-init.js"></script>
     <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-page.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1997,7 +2000,14 @@ dl.toml-table-field-spec {
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
 }
-</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>.plain-keyword {
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
+.diagram svg text[font-family="text"] {
+  font-family: var(--verso-text-font-family);
+}
+.diagram svg text[font-family="monospace"] {
+  font-family: var(--verso-code-font-family);
+}
+</style><style>.plain-keyword {
   font-weight: 500;
 }
 </style><style>
@@ -2592,7 +2602,6 @@ window.onload = () => {
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     </head>
   <body>
     <header>
@@ -2656,10 +2665,10 @@ window.onload = () => {
             <p>
               Boxed values are either a pointer to an object, in which case the lowest-order bit is 0, or an immediate value, in which case the lowest-order bit is 1 and the value is found by shifting the representation to the right by one bit.</p>
             <p>
-              Types with an unboxed representation, such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="270">UInt8</span></a></code> and <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-enum-inductive">enum inductive</a> types, are represented as the corresponding C types in contexts where the compiler can be sure that the value has said type.
-In some contexts, such as generic container types like <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="300">Array</span></a></code>, otherwise-unboxed values must be boxed prior to storage.
-In other words, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___not" title="Documentation for Bool.not"><span class="const token" data-binding="const-Bool.not" data-verso-hover="425">Bool.not</span></a></code> is called with and returns unboxed <code>uint8_t</code> values because the <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-enum-inductive">enum inductive</a> type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="199">Bool</span></a></code> has an unboxed representation, but the individual <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="199">Bool</span></a></code> values in an <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="300">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="199">Bool</span></a></code> are boxed.
-A field of type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="199">Bool</span></a></code> in an inductive type's constructor is represented unboxed, while <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="199">Bool</span></a></code>s stored in polymorphic fields that are instantiated as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="199">Bool</span></a></code> are boxed.</p>
+              Types with an unboxed representation, such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="288">UInt8</span></a></code> and <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-enum-inductive">enum inductive</a> types, are represented as the corresponding C types in contexts where the compiler can be sure that the value has said type.
+In some contexts, such as generic container types like <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="318">Array</span></a></code>, otherwise-unboxed values must be boxed prior to storage.
+In other words, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___not" title="Documentation for Bool.not"><span class="const token" data-binding="const-Bool.not" data-verso-hover="449">Bool.not</span></a></code> is called with and returns unboxed <code>uint8_t</code> values because the <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-enum-inductive">enum inductive</a> type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a></code> has an unboxed representation, but the individual <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a></code> values in an <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="318">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a></code> are boxed.
+A field of type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a></code> in an inductive type's constructor is represented unboxed, while <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a></code>s stored in polymorphic fields that are instantiated as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a></code> are boxed.</p>
             </section>
           <nav class="prev-next-buttons">
             <a class="local-button active" href="Run-Time-Code/#runtime" rel="prev" title="12. Run-Time Code"><span class="arrow">←</span><span class="where">12. Run-Time Code</span></a><a class="local-button active" href="Run-Time-Code/Reference-Counting/#reference-counting" rel="next" title="12.2. Reference Counting"><span class="where">12.2. Reference Counting</span><span class="arrow">→</span></a></nav>

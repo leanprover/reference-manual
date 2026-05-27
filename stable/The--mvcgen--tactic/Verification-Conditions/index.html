@@ -1,4 +1,4 @@
-<!-- Generated from commit aeccfa72806adad385b88a5222a19216352d7820 at 2026-04-01T23:39:31Z -->
+<!-- Generated from commit be77c0d03d22165bffbbd74ee08b650727aa6d55 at 2026-05-27T14:35:00Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -14,13 +14,16 @@
     <title>Verification Conditions</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="-verso-search/elasticlunr.min.js"></script>
-    <script src="-verso-search/fuzzysort.min.js"></script>
-    <script src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/elasticlunr.min.js"></script>
+    <script defer="defer" src="-verso-search/fuzzysort.min.js"></script>
+    <script defer="defer" src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/search-config.js"></script>
     <script type="module" src="-verso-search/search-init.js"></script>
     <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-page.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1997,7 +2000,14 @@ dl.toml-table-field-spec {
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
 }
-</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>.plain-keyword {
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
+.diagram svg text[font-family="text"] {
+  font-family: var(--verso-text-font-family);
+}
+.diagram svg text[font-family="monospace"] {
+  font-family: var(--verso-code-font-family);
+}
+</style><style>.plain-keyword {
   font-weight: 500;
 }
 </style><style>
@@ -2592,7 +2602,6 @@ window.onload = () => {
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     </head>
   <body>
     <header>
@@ -2640,8 +2649,8 @@ window.onload = () => {
             <h1>
               17.3. Verification Conditions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--The--mvcgen--tactic--Verification-Conditions" title="Permalink">🔗</a></span></h1>
             <p>
-              The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mvcgen" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2797">mvcgen</span></a></code> tactic converts a goal that's expressed in terms of <code class="hl lean inline" data-lean-context="examples"><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do___SPred" title="Documentation for Std.Do.SPred"><span class="const token" data-binding="const-Std.Do.SPred" data-verso-hover="2799">SPred</span></a></code> and weakest preconditions to a set of invariants and verification conditions that, together, suffice to prove the original goal.
-In particular, <a class="technical-term" href="The--mvcgen--tactic/Predicate-Transformers/#--tech-term-Hoare-triple">Hoare triples</a> are defined in terms of weakest preconditions, so <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mvcgen" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2797">mvcgen</span></a></code> can be used to prove them.</p>
+              The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mvcgen" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="3091">mvcgen</span></a></code> tactic converts a goal that's expressed in terms of <code class="hl lean inline" data-lean-context="examples"><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do___SPred" title="Documentation for Std.Do.SPred"><span class="const token" data-binding="const-Std.Do.SPred" data-verso-hover="3093">SPred</span></a></code> and weakest preconditions to a set of invariants and verification conditions that, together, suffice to prove the original goal.
+In particular, <a class="technical-term" href="The--mvcgen--tactic/Predicate-Transformers/#--tech-term-Hoare-triple">Hoare triples</a> are defined in terms of weakest preconditions, so <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mvcgen" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="3091">mvcgen</span></a></code> can be used to prove them.</p>
             <p>
               The verification conditions for a goal are generated as follows:</p>
             <ol start="1">
@@ -2651,30 +2660,30 @@ In particular, <a class="technical-term" href="The--mvcgen--tactic/Predicate-Tra
                 </li>
               <li>
                 <p>
-                  The goal should now be of the form <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11996" data-verso-hover="3463">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⊢ₛ</span><span class="inter-text"> </span><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do____FLQQ_termWp____________FLQQ_" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Std.Do.«termWp⟦_:_⟧»-24875" data-verso-hover="3515">wp⟦</span></a><span class="var token" data-binding="var-_uniq.11993" data-verso-hover="386">e</span><span class="unknown token" data-binding="">⟧</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12021" data-verso-hover="3466">Q</span></code> (that is, an entailment from some set of stateful assumptions to the weakest precondition that implies a desired postcondition).</p>
+                  The goal should now be of the form <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.12005" data-verso-hover="3764">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⊢ₛ</span><span class="inter-text"> </span><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do____FLQQ_termWp____________FLQQ_" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Std.Do.«termWp⟦_:_⟧»-24875" data-verso-hover="3820">wp⟦</span></a><span class="var token" data-binding="var-_uniq.12002" data-verso-hover="410">e</span><span class="unknown token" data-binding="">⟧</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12030" data-verso-hover="3769">Q</span></code> (that is, an entailment from some set of stateful assumptions to the weakest precondition that implies a desired postcondition).</p>
                 </li>
               <li>
                 <p>
-                  <a class="technical-term" href="Definitions/Recursive-Definitions/#--tech-term-Reducible">Reducible</a> constants and definitions marked <code class="hl lean inline" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">@[</span></a><span class="keyword token" data-binding="" data-verso-hover="3558">spec</span><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">]</span></a></code> in the expression <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.12310" data-verso-hover="386">e</span></code> are unfolded.</p>
+                  <a class="technical-term" href="Definitions/Recursive-Definitions/#--tech-term-Reducible">Reducible</a> constants and definitions marked <code class="hl lean inline" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">@[</span></a><span class="keyword token" data-binding="" data-verso-hover="3870">spec</span><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">]</span></a></code> in the expression <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.12319" data-verso-hover="410">e</span></code> are unfolded.</p>
                 </li>
               <li>
                 <p>
-                  If the expression is an application of an <a class="technical-term" href="Elaboration-and-Compilation/#--tech-term-auxiliary-matching-functions">auxiliary matching function</a> or a conditional (<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-ite" data-verso-hover="803">ite</span></code> or <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-dite" data-verso-hover="1541">dite</span></code>), then it is first simplified.
+                  If the expression is an application of an <a class="technical-term" href="Elaboration-and-Compilation/#--tech-term-auxiliary-matching-functions">auxiliary matching function</a> or a conditional (<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-ite" data-verso-hover="827">ite</span></code> or <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-dite" data-verso-hover="1572">dite</span></code>), then it is first simplified.
    The <a class="technical-term" href="Terms/Pattern-Matching/#--tech-term-match-discriminants">discriminant</a> of each matcher is simplified, and the entire term is reduced in an attempt to eliminate the matcher or conditional.
    If this fails, then a new goal is generated for each branch.</p>
                 </li>
               <li>
                 <p>
-                  If the expression is an application of a constant, then the applicable lemmas marked <code class="hl lean inline" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">@[</span></a><span class="keyword token" data-binding="" data-verso-hover="3558">spec</span><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">]</span></a></code> are attempted in priority order.
-   Lean includes specification lemmas for constants such as <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Bind___mk" title="Documentation for Bind.bind"><span class="const token" data-binding="const-Bind.bind" data-verso-hover="1378">bind</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1000">pure</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Syntax/#ForIn___mk" title="Documentation for ForIn.forIn"><span class="const token" data-binding="const-ForIn.forIn" data-verso-hover="1474">ForIn.forIn</span></a></code> that result from desugaring <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.do : term</code></code><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><code class="kw">do</code></a></span>-notation.
+                  If the expression is an application of a constant, then the applicable lemmas marked <code class="hl lean inline" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">@[</span></a><span class="keyword token" data-binding="" data-verso-hover="3870">spec</span><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">]</span></a></code> are attempted in priority order.
+   Lean includes specification lemmas for constants such as <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Bind___mk" title="Documentation for Bind.bind"><span class="const token" data-binding="const-Bind.bind" data-verso-hover="1409">bind</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1029">pure</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Syntax/#ForIn___mk" title="Documentation for ForIn.forIn"><span class="const token" data-binding="const-ForIn.forIn" data-verso-hover="1505">ForIn.forIn</span></a></code> that result from desugaring <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.do : term</code></code><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><code class="kw">do</code></a></span>-notation.
    Instantiating the lemma will sometimes discharge its premises, in particular schematic variables due to definitional equalities with the goal.
-   Assumptions of type <code class="hl lean inline" data-lean-context="examples"><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do___Invariant" title="Documentation for Std.Do.Invariant"><span class="const token" data-binding="const-Std.Do.Invariant" data-verso-hover="3563">Invariant</span></a></code> are never instantiated this way, however.
+   Assumptions of type <code class="hl lean inline" data-lean-context="examples"><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do___Invariant" title="Documentation for Std.Do.Invariant"><span class="const token" data-binding="const-Std.Do.Invariant" data-verso-hover="3875">Invariant</span></a></code> are never instantiated this way, however.
    If the spec lemma's precondition or postcondition do not exactly match those of the goal, then new metavariables are created that prove the necessary entailments.
    If these cannot be immediately discharged using simple automation that attempts to use local assumptions and decomposes conjunctions in postconditions, then they remain as verification conditions.</p>
                 </li>
               <li>
                 <p>
-                  Each remaining goal created by this process is recursively processed for verification conditions if it has the form <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.13645" data-verso-hover="3463">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⊢ₛ</span><span class="inter-text"> </span><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do____FLQQ_termWp____________FLQQ_" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Std.Do.«termWp⟦_:_⟧»-26601" data-verso-hover="3515">wp⟦</span></a><span class="var token" data-binding="var-_uniq.13642" data-verso-hover="386">e</span><span class="unknown token" data-binding="">⟧</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.13670" data-verso-hover="3466">Q</span></code>. If not, it is added to the set of invariants or verification conditions.</p>
+                  Each remaining goal created by this process is recursively processed for verification conditions if it has the form <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.13654" data-verso-hover="3764">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⊢ₛ</span><span class="inter-text"> </span><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do____FLQQ_termWp____________FLQQ_" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Std.Do.«termWp⟦_:_⟧»-26601" data-verso-hover="3820">wp⟦</span></a><span class="var token" data-binding="var-_uniq.13651" data-verso-hover="410">e</span><span class="unknown token" data-binding="">⟧</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.13679" data-verso-hover="3769">Q</span></code>. If not, it is added to the set of invariants or verification conditions.</p>
                 </li>
               <li>
                 <p>
@@ -2682,7 +2691,7 @@ In particular, <a class="technical-term" href="The--mvcgen--tactic/Predicate-Tra
                 </li>
               <li>
                 <p>
-                  Depending on the tactic's configuration parameters, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="3583">mvcgen_trivial</span></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mleave" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2807">mleave</span></a></code> are attempted in each verification condition.</p>
+                  Depending on the tactic's configuration parameters, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="3901">mvcgen_trivial</span></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mleave" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="3101">mleave</span></a></code> are attempted in each verification condition.</p>
                 </li>
               </ol>
             <p>
