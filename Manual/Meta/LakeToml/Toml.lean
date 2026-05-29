@@ -483,7 +483,7 @@ def Block.toml.descr : BlockDescr where
     open Verso.Doc.Html in
     open Verso.Output Html in do
       let .ok (hl, link) := FromJson.fromJson? (α := Toml.Highlighted × Bool) info
-        | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize highlighted TOML data"; pure .empty
+        | do reportError "Failed to deserialize highlighted TOML data"; pure .empty
 
       let xref := (← read).traverseState
 
@@ -505,7 +505,7 @@ def Inline.toml.descr : InlineDescr where
     open Verso.Doc.Html in
     open Verso.Output Html in do
       let .ok hl := FromJson.fromJson? (α := Toml.Highlighted) info
-        | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize highlighted TOML data"; pure .empty
+        | do reportError "Failed to deserialize highlighted TOML data"; pure .empty
 
       let xref := (← read).traverseState
 

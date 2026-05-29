@@ -56,7 +56,7 @@ def figure : DirectiveExpander
 def figure.descr : BlockDescr where
   traverse id data contents := do
     match FromJson.fromJson? data (α := String × Option String × Option Tag) with
-    | .error e => logError s!"Error deserializing figure tag: {e}"; pure none
+    | .error e => reportError s!"Error deserializing figure tag: {e}"; pure none
     | .ok (captionString, none, _) => pure none
     | .ok (captionString, some x, none) =>
       let path ← (·.path) <$> read
@@ -72,11 +72,11 @@ def figure.descr : BlockDescr where
     open Verso.Output.Html in
     some <| fun goI goB id _data blocks => do
       if h : blocks.size < 1 then
-        HtmlT.logError "Malformed figure"
+        reportError "Malformed figure"
         pure .empty
       else
         let .para caption := blocks[0]
-          | HtmlT.logError "Malformed figure - caption not paragraph"; pure .empty
+          | reportError "Malformed figure - caption not paragraph"; pure .empty
         let xref ← HtmlT.state
         let attrs := xref.htmlId id
         pure {{

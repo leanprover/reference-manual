@@ -60,7 +60,7 @@ def envVar.descr : InlineDescr where
 
   traverse id data _ := do
     let .arr #[.str var, .bool isDef] := data
-      | logError s!"Couldn't deserialize environment variable info from {data}"; return none
+      | reportError s!"Couldn't deserialize environment variable info from {data}"; return none
     if isDef then
       let path ← (·.path) <$> read
       let _ ← Verso.Genre.Manual.externalTag id path var
@@ -90,7 +90,7 @@ r#"
       let (var, isDef) ←
         match data with
         | .arr #[.str var, .bool isDef] => pure (var, isDef)
-        | _ => HtmlT.logError s!"Couldn't deserialize environment var info from {data}"; return .empty
+        | _ => reportError s!"Couldn't deserialize environment var info from {data}"; return .empty
 
       if let some dest := (← read).traverseState.getDomainObject? envVarDomain var then
         for id in dest.ids do
