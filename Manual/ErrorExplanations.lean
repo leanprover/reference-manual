@@ -21,6 +21,7 @@ import Manual.ErrorExplanations.SynthInstanceFailed
 import Manual.ErrorExplanations.UnknownIdentifier
 
 open Lean
+open Verso (reportError)
 open Verso.Doc Elab
 open Verso.Genre Manual
 
@@ -34,7 +35,7 @@ inline_extension Inline.errorExplanationShortName (errorName : Name) where
   toHtml := some fun _go _id info _content =>
     open Verso.Output Html in do
     let .ok (some errorName) := fromJson? (α := Option String) info
-      | HtmlT.logError "Invalid data for explanation name element"
+      | reportError "Invalid data for explanation name element"
         pure .empty
     let html := {{ <code class="error-explanation-short-name">{{errorName}}</code> }}
     return html

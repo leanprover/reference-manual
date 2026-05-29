@@ -103,9 +103,9 @@ def elanOptDef.descr : InlineDescr where
 
   traverse id data _ := do
     let .arr #[.str name, jsonKind, _] := data
-      | logError s!"Failed to deserialize metadata for Elan option def: {data}"; return none
+      | reportError s!"Failed to deserialize metadata for Elan option def: {data}"; return none
     let .ok kind := fromJson? (α := ElanOptKind) jsonKind
-      | logError s!"Failed to deserialize metadata for Elan option def '{name}' kind: {jsonKind}"; return none
+      | reportError s!"Failed to deserialize metadata for Elan option def '{name}' kind: {jsonKind}"; return none
     modify fun s =>
       s |>.saveDomainObject elanOptDomain name id |>.saveDomainObjectData elanOptDomain name jsonKind
 
@@ -119,12 +119,12 @@ def elanOptDef.descr : InlineDescr where
     open Verso.Output.Html in
     some <| fun goB id data content => do
       let .arr #[.str name, _jsonKind, metadata] := data
-        | HtmlT.logError s!"Failed to deserialize metadata for Elan option def: {data}"; content.mapM goB
+        | reportError s!"Failed to deserialize metadata for Elan option def: {data}"; content.mapM goB
 
       let idAttr := (← read).traverseState.htmlId id
 
       let .ok metadata := FromJson.fromJson? (α := Option String) metadata
-        | HtmlT.logError s!"Failed to deserialize argument metadata for Elan option def: {metadata}"; content.mapM goB
+        | reportError s!"Failed to deserialize argument metadata for Elan option def: {metadata}"; content.mapM goB
 
       if let some mv := metadata then
         pure {{<code {{idAttr}} class="elan-opt">{{name}}" "{{mv}}</code>}}
@@ -163,7 +163,7 @@ def elanOpt.descr : InlineDescr where
     open Verso.Output.Html in
     some <| fun goB _id data content => do
       let .arr #[.str name, .str original] := data
-        | HtmlT.logError s!"Failed to deserialize metadata for Elan option ref: {data}"; content.mapM goB
+        | reportError s!"Failed to deserialize metadata for Elan option ref: {data}"; content.mapM goB
 
       if let some obj := (← read).traverseState.getDomainObject? elanOptDomain name then
         for id in obj.ids do
