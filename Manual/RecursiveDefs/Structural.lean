@@ -606,7 +606,7 @@ The auxiliary match function's definition is:
 #print half.match_1
 ```
 ```leanOutput halfmatch (whitespace := lax)
-def half.match_1.{u_1} :
+@[implicit_reducible] def half.match_1.{u_1} :
     (motive : Nat → Sort u_1) → (x : Nat) →
     (Unit → motive Nat.zero) → (Unit → motive 1) →
     ((n : Nat) → motive n.succ.succ) →
