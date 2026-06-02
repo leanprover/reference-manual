@@ -462,8 +462,7 @@ instance : WP Identity .pure where
 theorem Identity.of_wp_run_eq {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop) :
     (⊢ₛ wp⟦prog⟧ (⇓ a => ⟨P a⟩)) → P x := by
-  intro h'
-  simpa [← h] using h'
+  simp_all [WP.wp, Identity.run, ← h]
 ```
 
 ```lean -show
@@ -495,7 +494,7 @@ theorem rev_correct :
 ```
 ```leanOutput noInst
 unsolved goals
-case vc1.a
+case vc1
 α✝ : Type u_1
 xs x : List α✝
 h : (rev xs).run = x
@@ -781,9 +780,9 @@ instance : LawfulMonad (LogM β) where
   pure_seq g x := by
     simp [pure, Seq.seq, Functor.map]
   bind_pure_comp f x := by
-    simp [bind, Functor.map]
+    simp [pure, bind, Functor.map]
   bind_map f x := by
-    simp [bind, Seq.seq]
+    simp [bind, Seq.seq, Functor.map]
   pure_bind x f := by
     simp [pure, bind]
   bind_assoc x f g := by
@@ -812,11 +811,11 @@ The {name}`WPMonad` instance also benefits from the conceptual model as a state 
 instance : WPMonad (LogM β) (.arg (Array β) .pure) where
   wp_pure x := by
     ext
-    simp [wp]
+    simp [wp, pure]
 
   wp_bind _ _ := by
     ext
-    simp [wp]
+    simp [wp, bind]
 ```
 
 The adequacy lemma has one important detail: the result of the weakest precondition transformation is applied to the empty array.

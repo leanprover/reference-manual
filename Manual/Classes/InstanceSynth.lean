@@ -95,7 +95,7 @@ Clicking a `▶` symbol expands that branch of the trace, and clicking the `▼`
 
 ```lean -show
 -- Hide Lake details that are intruding here
-attribute [-instance] Lake.inhabitedOfNilTrace
+attribute [-instance] Lake.inhabitedOfNilTrace Lake.inhabitedOfMonadCycle
 ```
 
 ```lean (name := trace)
@@ -156,7 +156,7 @@ In the example above, Lean follows these steps:
   - The {name}`Sum.nonemptyLeft` instance, which would create a sub-goal {lean}`Nonempty Nat`.
   - The {name}`instNonemptyOfMonad` instance, which would create two sub-goals {lean}`Monad (Sum Nat)` and {lean}`Nonempty Nat`.
   - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited (Sum Nat Empty)`.
-* It applies {name}`Sum.nonemptyRight`, which succeeds, leaving an new goal: {lean}`Nonempty Empty`.
+* It applies {name}`Sum.nonemptyRight`, which succeeds, leaving a new goal: {lean}`Nonempty Empty`.
 * The first sub-goal, {lean}`Nonempty Empty`, is considered. Lean sees two ways of possibly satisfying this goal:
   - The {name}`instNonemptyOfMonad` instance, which is rejected.
     It can't be used because the type {lean}`Empty` is not the application of a monad to a type.
