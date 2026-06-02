@@ -462,8 +462,7 @@ instance : WP Identity .pure where
 theorem Identity.of_wp_run_eq {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop) :
     (⊢ₛ wp⟦prog⟧ (⇓ a => ⟨P a⟩)) → P x := by
-  intro h'
-  simpa [← h] using h'
+  simp_all [WP.wp, Identity.run, ← h]
 ```
 
 ```lean -show
