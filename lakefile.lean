@@ -41,6 +41,16 @@ lean_lib IndexMapGrind where
 @[default_target]
 lean_lib Manual where
 
+/--
+Elaborates Lean-format `lakefile.lean` examples for the manual, emitting both the elaborated
+package configuration and its SubVerso highlighting. Used by the `lakeLean` directive.
+-/
+@[default_target]
+lean_exe «extract-lakefile» where
+  root := `ExtractLakefile
+  -- The package configuration is evaluated via the interpreter (`Environment.evalConst`).
+  supportInterpreter := true
+
 /-- Ensure that the subverso-extract-mod executable is available -/
 target subversoExtractMod : FilePath := do
   let some pkg := ← findPackageByName? `subverso
@@ -51,7 +61,7 @@ target subversoExtractMod : FilePath := do
 
 @[default_target]
 lean_exe "generate-manual" where
-  needs := #[`@/subversoExtractMod]
+  needs := #[`@/subversoExtractMod, `@/«extract-lakefile»]
   root := `Main
 
 @[default_target]
