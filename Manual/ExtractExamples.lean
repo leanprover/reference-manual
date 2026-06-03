@@ -18,9 +18,9 @@ document is structured. In the `Array (Array String × String)`, the
 first string is the path to the example file we're writing, and the
 second is the body of the example.
 -/
-abbrev ExtractM := ReaderT (Array String) (StateT (Array (Array String × String)) IO)
+abbrev ExtractM := ReaderT (Array String) (StateT (Array (Array String × String)) (BuildLogT IO))
 
-partial def extractExamples (_mode : Mode) (logError : String → IO Unit) (cfg : Manual.Config) (_state : TraverseState) (text : Part Manual) : IO Unit := do
+partial def extractExamples (_mode : Mode) (cfg : Manual.Config) (_state : TraverseState) (text : Part Manual) : BuildLogT IO Unit := do
 
   let code := (← part text |>.run #[] |>.run #[]).snd
   let dest := cfg.destination / "extracted-examples"
@@ -29,7 +29,7 @@ partial def extractExamples (_mode : Mode) (logError : String → IO Unit) (cfg 
     let filename := ctx.map (Slug.toString ∘ String.sluggify)
       |>.foldl (init := dest) (· / ·)
       |>.withExtension "lean"
-    filename.parent.forM IO.FS.createDirAll
+    filename.parent.forM fun p => IO.FS.createDirAll p
     IO.FS.writeFile filename content
 
 where
@@ -41,7 +41,7 @@ where
     | .other which contents => do
       if which.name == `Manual.example then
         match FromJson.fromJson? which.data (α := Manual.ExampleBlockJson) with
-        | .error e => logError s!"Error deserializing example data: {e}"
+        | .error e => reportError s!"Error deserializing example data: {e}"
         | .ok (descrString, _, _, _, liveText) =>
           let context ← read
           let some txt := liveText

@@ -850,7 +850,7 @@ instance Result.instMonad : Monad Result where
 
 instance Result.instLawfulMonad : LawfulMonad Result := by
   apply LawfulMonad.mk' _
-  all_goals (dsimp [Functor.map, bind]; grind)
+  all_goals (dsimp [Functor.map, bind, pure]; grind)
 ```
 :::
 ::::
