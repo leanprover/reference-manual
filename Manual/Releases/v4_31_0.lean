@@ -296,6 +296,8 @@ and 48 other changes.
 
   1. **Non-class instance check**: errors when an instance target type is not a type class. This catches the common mistake of writing `instance` for a plain structure. Previously handled by the `nonClassInstance` linter in Batteries (`Batteries.Tactic.Lint.TypeClass`), this is now checked directly at declaration time.
 
+  2. **Impossible argument check**: errors when an instance has arguments that cannot be inferred by instance synthesis. Specifically, it flags arguments that are not instance-implicit and do not appear in any subsequent instance-implicit argument or in the return type. Previously such instances would be silently accepted but could never be synthesised.
+
 - [#13315](https://github.com/leanprover/lean4/pull/13315)
   fixes `processDefDeriving` to propagate the `meta` attribute to instances derived via delta deriving, so that `deriving BEq` inside a `public meta section` produces a meta instance. Previously the derived `instBEqFoo` was not marked meta, and the LCNF visibility checker rejected meta definitions that used `==` on the alias — this came up while bumping verso to v4.30.0-rc1.
 
@@ -438,7 +440,7 @@ and 48 other changes.
 
 # Library
 
-````markdown
+```markdown
 
 - [#13863](https://github.com/leanprover/lean4/pull/13863)
   changes the e-matching annotations on `BitVec` to avoid automatically going from `getMsbD` theory to `getLsbD` theory. The key reason being that all lemmas are already duplicated between `getMsbD` and `getLsbD` anyways. Thus, whenever we connect them all lemmas fire in both variants even though usually one is already sufficient. In order to make this possible without reducing proof strength noticeably we introduce two changes:
@@ -541,11 +543,11 @@ and 48 other changes.
 - [#13172](https://github.com/leanprover/lean4/pull/13172)
   adds borrow annotations in `Std.Internal.UV.System`.
 
-````
+```
 
 # Tactics
 
-````markdown
+```markdown
 
 - [#13859](https://github.com/leanprover/lean4/pull/13859)
   fixes a kernel rejection when a user-supplied pre-tactic like `clear` in `sym => mvcgen' with (clear h)` rewrites the local context.
@@ -754,11 +756,11 @@ and 48 other changes.
 - [#13202](https://github.com/leanprover/lean4/pull/13202)
   fixes a heartbeat timeout from an environment extension at the end of the file that cannot be avoided by raising the limit.
 
-````
+```
 
 # Compiler
 
-````markdown
+```markdown
 
 - [#13796](https://github.com/leanprover/lean4/pull/13796)
   optimizes `String.compare` to turn it into 1 instead of 2 `memcmp` calls.
@@ -828,11 +830,11 @@ and 48 other changes.
 - [#13128](https://github.com/leanprover/lean4/pull/13128)
   fixes the Windows dev build by using `CMAKE_RELATIVE_LIBRARY_OUTPUT_DIRECTORY` instead of the hardcoded `lib/lean` path for the Lake plugin. On Windows, DLLs must be placed next to executables in `bin/`, but the plugin path was hardcoded to `lib/lean`, causing stage0 DLLs to not be found.
 
-````
+```
 
 # Pretty Printing
 
-````markdown
+```markdown
 
 - [#13761](https://github.com/leanprover/lean4/pull/13761)
   fixes an issue where the `pp.universes` option would cause constants with no universes to not use unexpanders or dot notation. For example, `p ↔ q` would pretty print as `Iff p q` even though `Iff` has no universe levels.
@@ -846,11 +848,11 @@ and 48 other changes.
 - [#13030](https://github.com/leanprover/lean4/pull/13030)
   improves pretty printing of level metavariables: they now print with a per-definition index rather than their per-module internal identifiers. Furthermore, `+` is printed uniformly in level expressions with surrounding spaces. **Breaking metaprogramming change:** level pretty printing should use `delabLevel` or `MessageData.ofLevel`; functions such as `format` or `toString` do not have access to the indices, since they are stored in the current metacontext. Absent index information, metavariables print with the raw internal identifier as `?_mvar.nnn`. **Note:** The heartbeat counter also increases quicker due to counting allocations that record level metavariable indices. In some tests we needed to increase `maxHeartbeats` by 20–50% to compensate, without a corresponding slowdown.
 
-````
+```
 
 # Documentation
 
-````markdown
+```markdown
 
 - [#13864](https://github.com/leanprover/lean4/pull/13864)
   updates the pipe operator docstrings for accurracy and helpfulness. Such operators are not idiomatic Haskell, so the old text was incorrect, and it's better to explain the behavior than to reference other languages anyway.
@@ -858,11 +860,11 @@ and 48 other changes.
 - [#13656](https://github.com/leanprover/lean4/pull/13656)
   documents how to perform an LLVM upgrade.
 
-````
+```
 
 # Server
 
-````markdown
+```markdown
 
 - [#13525](https://github.com/leanprover/lean4/pull/13525)
   adds `FromJson`/`ToJson` instances for `Unit` - encoded as `{}` - and documentation for `FromJson`/`ToJson`.
@@ -876,11 +878,11 @@ and 48 other changes.
 - [#13257](https://github.com/leanprover/lean4/pull/13257)
   adds test infrastructure and tests for tactic completion in empty `by` blocks.
 
-````
+```
 
 # Lake
 
-````markdown
+```markdown
 
 - [#13843](https://github.com/leanprover/lean4/pull/13843)
   makes `lake lint --builtin-lint` import module-system targets at the public (`OLeanLevel.exported`) level instead of `private`. Environment linters now lint the public surface of such modules, matching how downstream consumers see them. Non-module targets retain their previous behaviour (`private` level), and text-linter warnings recorded via `lintLogExt` are preserved across the level change because that extension stores uniform OLean entries.
@@ -930,11 +932,11 @@ and 48 other changes.
 - [#13277](https://github.com/leanprover/lean4/pull/13277)
   fixes a public-facing typo in a function name: `Module.checkArtifactsExsist` ->  `Module.checkArtifactsExist`.
 
-````
+```
 
 # Other
 
-````markdown
+```markdown
 
 - [#13185](https://github.com/leanprover/lean4/pull/13185)
   adds new incremental module serialization functions that save/load a single module at a time with explicit sharing via dep regions and compactor state, generalizing the existing batch saveModuleDataParts API.
@@ -979,4 +981,4 @@ and 48 other changes.
 - [#13226](https://github.com/leanprover/lean4/pull/13226)
   updates `release_checklist.py` to handle the `CACHE STRING ""` suffix on CMake version variables. The `CACHE STRING` format was introduced in the `releases/v4.30.0` branch, but the script's parsing wasn't updated to match, causing false failures.
 
-````
+```
