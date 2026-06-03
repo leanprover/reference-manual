@@ -157,7 +157,7 @@ def keywordOf.descr : InlineDescr := withHighlighting {
           </span>
         }}
       | .error e =>
-        Html.HtmlT.logError s!"Couldn't deserialized keywordOf data: {e}"
+        reportError s!"Couldn't deserialized keywordOf data: {e}"
         content.mapM goI
   extraCss := [
 r#".keyword-of .kw {
@@ -231,7 +231,7 @@ def keyword.descr : InlineDescr where
     open Verso.Output Html in
     some <| fun goI _ info content => do
       let .str kw := info
-        | Html.HtmlT.logError s!"Expected a JSON string for a plain keyword, got {info}"; content.mapM goI
+        | reportError s!"Expected a JSON string for a plain keyword, got {info}"; content.mapM goI
       pure {{<code class="plain-keyword">{{kw}}</code>}}
 
   extraCss := [
@@ -1213,7 +1213,7 @@ def syntax.descr : BlockDescr where
         let tag ← Verso.Genre.Manual.externalTag id path kind.toString
         pure <| some <| Block.other {Block.syntax with id := some id, data := toJson (title, kind, label, some tag, aliases)} contents
     else
-      logError "Couldn't deserialize kind name for syntax block"
+      reportError "Couldn't deserialize kind name for syntax block"
       pure none
   toTeX := none
   toHtml :=
@@ -1223,7 +1223,7 @@ def syntax.descr : BlockDescr where
         match FromJson.fromJson? (α := Option String × Name × String × Option Tag × Array Name) data with
         | .ok (titleString, _, label, _, _) => pure (titleString, label)
         | .error e =>
-          HtmlT.logError s!"Failed to deserialize syntax docs: {e} from {data}"
+          reportError s!"Failed to deserialize syntax docs: {e} from {data}"
           pure (none, "syntax")
       let xref ← HtmlT.state
       let attrs := xref.htmlId id
@@ -1231,7 +1231,7 @@ def syntax.descr : BlockDescr where
         if let some (Block.para titleInlines) := content[0]? then
           pure (titleInlines, content.drop 1)
         else
-          HtmlT.logError s!"Didn't get a paragraph for the title inlines in syntax description {titleString}"
+          reportError s!"Didn't get a paragraph for the title inlines in syntax description {titleString}"
           pure (#[], content)
 
       let titleHtml ←  descr.mapM goI
@@ -1352,7 +1352,7 @@ window.addEventListener("load", () => {
 "#
 
 open Verso.Output Html HtmlT in
-private def nonTermHtmlOf (kind : Name) (doc? : Option String) (rendered : Html) : HtmlT Manual (ReaderT Multi.AllRemotes (ReaderT ExtensionImpls IO)) Html := do
+private def nonTermHtmlOf (kind : Name) (doc? : Option String) (rendered : Html) : HtmlT Manual (ReaderT Multi.AllRemotes (ReaderT ExtensionImpls (BuildLogT IO))) Html := do
   let xref ← match (← state).resolveDomainObject syntaxKindDomain kind.toString with
     | .error _ =>
       pure none
@@ -1398,7 +1398,7 @@ def noLook (ctx : GrammarHtmlContext) : GrammarHtmlContext :=
 end GrammarHtmlContext
 
 open Verso.Output Html in
-abbrev GrammarHtmlM := ReaderT GrammarHtmlContext (HtmlT Manual (ReaderT Multi.AllRemotes (ReaderT ExtensionImpls IO)))
+abbrev GrammarHtmlM := ReaderT GrammarHtmlContext (HtmlT Manual (ReaderT Multi.AllRemotes (ReaderT ExtensionImpls (BuildLogT IO))))
 
 private def lookingAt (k : Name) : GrammarHtmlM α → GrammarHtmlM α := withReader (·.look k)
 
@@ -1436,7 +1436,7 @@ partial def grammar.descr : BlockDescr := withHighlighting {
       modify fun st => st.saveDomainObject productionDomain prodName id
       modify fun st => st.saveDomainObjectData productionDomain prodName (json%{"category": null, "kind": $k.toString, "forms": $searchable})
     else
-      logError "Couldn't deserialize grammar info during traversal"
+      reportError "Couldn't deserialize grammar info during traversal"
     pure none
   toTeX := none
   toHtml :=
@@ -1446,14 +1446,14 @@ partial def grammar.descr : BlockDescr := withHighlighting {
       | .ok (kind, bnf, _searchable) =>
         let t ← match (← read).traverseState.externalTags.get? id with
           | some dest => pure dest.htmlId.toString
-          | _ => Html.HtmlT.logError s!"Couldn't get HTML ID for grammar of {kind}" *> pure ""
+          | _ => reportError s!"Couldn't get HTML ID for grammar of {kind}" *> pure ""
         pure {{
           <pre class="grammar hl lean" data-lean-context="--grammar" id={{t}}>
             {{← bnfHtml bnf |>.run (GrammarHtmlContext.default.skip kind) }}
           </pre>
         }}
       | .error e =>
-        Html.HtmlT.logError s!"Couldn't deserialize BNF: {e}"
+        reportError s!"Couldn't deserialize BNF: {e}"
         pure .empty
   extraCss := [grammarCss, "#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }"]
   extraJs := [grammarJs]
@@ -1492,7 +1492,7 @@ where
       let inner ← go
       if let some k := (← read).lookingAt then
         unless k == nullKind do
-          if let some tgt := ((← HtmlT.state (genre := Manual) (m := ReaderT Multi.AllRemotes (ReaderT ExtensionImpls IO))).localTargets.keyword k none)[0]? then
+          if let some tgt := ((← HtmlT.state (genre := Manual) (m := ReaderT Multi.AllRemotes (ReaderT ExtensionImpls (BuildLogT IO)))).localTargets.keyword k none)[0]? then
             return {{<a href={{tgt.href}}><span class="keyword">{{inner}}</span></a>}}
       return {{<span class="keyword">{{inner}}</span>}}
     | .nonterminal k doc? => do
@@ -1557,7 +1557,7 @@ def syntaxKind.inlinedescr : InlineDescr := withHighlighting {
     some <| fun goI _ data inls => do
       match FromJson.fromJson? (α := Name × String × Option String) data with
       | .error e =>
-        Html.HtmlT.logError s!"Couldn't deserialize syntax kind name: {e}"
+        reportError s!"Couldn't deserialize syntax kind name: {e}"
         return {{<code>{{← inls.mapM goI}}</code>}}
       | .ok (k, showAs, doc?) =>
         return {{

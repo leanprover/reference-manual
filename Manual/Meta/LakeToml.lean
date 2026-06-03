@@ -202,7 +202,7 @@ def Block.tomlField.descr : BlockDescr where
 
   traverse id info _ := do
     let .ok (_, inTable, field) := FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
-      | do logError "Failed to deserialize field doc data"; pure none
+      | do reportError "Failed to deserialize field doc data"; pure none
 
     let tableArrayKey : Option Json := (← get).getDomainObject? tomlTableDomain inTable.toString |>.bind fun t =>
       t.data.getObjVal? "arrayKey" |>.toOption
@@ -225,7 +225,7 @@ def Block.tomlField.descr : BlockDescr where
     open Verso.Doc.Html in
     open Verso.Output Html in do
       let .ok (_, _inTable, field) := FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
-        | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize field doc data"; pure .empty
+        | do reportError "Failed to deserialize field doc data"; pure .empty
       let sig : Html := {{ {{field.name.toString}} }}
 
       let xref ← HtmlT.state
@@ -289,7 +289,7 @@ def Block.tomlFieldCategory.descr : BlockDescr where
     open Verso.Doc.Html in
     open Verso.Output Html in do
       let .arr #[.str title, _fields] := info
-        | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize field category doc data"; pure .empty
+        | do reportError "Failed to deserialize field category doc data"; pure .empty
 
       let (nonField, field) :=
         flattenBlocks contents |>.partition fun
@@ -313,7 +313,7 @@ def Block.tomlTable.descr : BlockDescr where
 
   traverse id info _ := do
     let .ok (arrayKey, humanName, typeName) := FromJson.fromJson? (α := Option String × String × Name) info
-        | do logError "Failed to deserialize FFI doc data"; pure none
+        | do reportError "Failed to deserialize FFI doc data"; pure none
     let arrayKeyJson := arrayKey.map Json.str |>.getD Json.null
     modify fun s =>
       s |>.saveDomainObject tomlTableDomain typeName.toString id
@@ -335,7 +335,7 @@ dl.toml-table-field-spec {
     open Verso.Doc.Html in
     open Verso.Output Html in do
       let .ok (arrayKey, humanName, typeName) := FromJson.fromJson? (α := Option String × String × Name) info
-        | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize Lake TOML table doc data"; pure .empty
+        | do reportError "Failed to deserialize Lake TOML table doc data"; pure .empty
 
       let tableArrayName : Option Toml.Highlighted := arrayKey.map fun k =>
         .tableHeader <| .tableDelim (.text "[[") ++ .tableName (some typeName.toString) (.key (some k) (.text k)) ++ .tableDelim (.text "]]")
@@ -695,7 +695,6 @@ deriving instance Test for Lake.NConfigDecl
 deriving instance Test for Lake.Package
 
 
-
 open Lake Toml in
 def report [Monad m] [Lean.MonadLog m] [MonadFileMap m] [Test α] (val : α) (errs : Array DecodeError) : m String := do
     let mut result := ""
@@ -828,6 +827,8 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
         baseName := name
         wsIdx := 0
         origName := name
+        keyName := name
+        relManifestFile := Lake.defaultManifestFile
       }
 
     .ok <$> report pkg errs
@@ -928,13 +929,13 @@ r#"
     open Verso.Output.Html in
     some <| fun goB _id data content => do
       let .ok (tableName, fieldName) := fromJson? (α := Name × Name) data
-        | HtmlT.logError s!"Failed to deserialize metadata for Lake option ref: {data}"; content.mapM goB
+        | reportError s!"Failed to deserialize metadata for Lake option ref: {data}"; content.mapM goB
 
       if let some obj := (← read).traverseState.getDomainObject? tomlFieldDomain s!"{tableName} {fieldName}" then
         for id in obj.ids do
           if let some dest := (← read).traverseState.externalTags[id]? then
             return {{<code class="toml-field"><a href={{dest.link}}>{{fieldName.toString}}</a></code>}}
       else
-        HtmlT.logError s!"No link destination for TOML field {tableName}:{fieldName}"
+        reportError s!"No link destination for TOML field {tableName}:{fieldName}"
 
       pure {{<code class="toml-field">{{fieldName.toString}}</code>}}

@@ -86,7 +86,7 @@ def attr.descr : InlineDescr where
     some <| fun _ _ data _ => do
       match FromJson.fromJson? data with
       | .error err =>
-        HtmlT.logError <| "Couldn't deserialize Lean attribute code while rendering HTML: " ++ err
+        reportError <| "Couldn't deserialize Lean attribute code while rendering HTML: " ++ err
         pure .empty
       | .ok (hl : Highlighted) =>
         hl.inlineHtml (g := Manual) "examples"
@@ -165,7 +165,7 @@ def attrs.descr : InlineDescr where
     some <| fun _ _ data _ => do
       match FromJson.fromJson? data with
       | .error err =>
-        HtmlT.logError <| "Couldn't deserialize Lean attribute code while rendering HTML: " ++ err
+        reportError <| "Couldn't deserialize Lean attribute code while rendering HTML: " ++ err
         pure .empty
       | .ok (hl : Highlighted) =>
         hl.inlineHtml (g := Manual) "examples"

@@ -246,12 +246,12 @@ def lakeCommand.descr : BlockDescr where
 
   traverse id info _ := do
     let Json.arr #[Json.str name, aliases, _] := info
-      | do logError s!"Failed to deserialize data while traversing a Lake command, expected 3-element array starting with string but got {info}"; pure none
+      | do reportError s!"Failed to deserialize data while traversing a Lake command, expected 3-element array starting with string but got {info}"; pure none
     let aliases : List String ←
       match fromJson? (α := List String) aliases with
       | .ok v => pure v
       | .error e =>
-        logError s!"Failed to deserialize aliases while traversing a Lake command: {e}"; pure []
+        reportError s!"Failed to deserialize aliases while traversing a Lake command: {e}"; pure []
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path name
     Index.addEntry id {term := Inline.concat #[.code name, .text " (Lake command)"]}
@@ -264,11 +264,11 @@ def lakeCommand.descr : BlockDescr where
     open Verso.Doc.Html in
     open Verso.Output Html in do
       let Json.arr #[ Json.str name, aliases, spec] := info
-        | do Verso.Doc.Html.HtmlT.logError s!"Failed to deserialize data while making HTML for Lake command, got {info}"; pure .empty
+        | do reportError s!"Failed to deserialize data while making HTML for Lake command, got {info}"; pure .empty
       let .ok (aliases : List String) := FromJson.fromJson? aliases
-        | do Verso.Doc.Html.HtmlT.logError s!"Failed to deserialize aliases while making HTML for Lake command, got {spec}"; pure .empty
+        | do reportError s!"Failed to deserialize aliases while making HTML for Lake command, got {spec}"; pure .empty
       let .ok (spec : CommandSpec) := FromJson.fromJson? spec
-        | do Verso.Doc.Html.HtmlT.logError s!"Failed to deserialize spec while making HTML for Lake command, got {spec}"; pure .empty
+        | do reportError s!"Failed to deserialize spec while making HTML for Lake command, got {spec}"; pure .empty
 
       let lakeTok : Highlighted := .token ⟨.keyword none none none, "lake"⟩
       let nameTok : Highlighted := .token ⟨.keyword none none none, name⟩
@@ -390,7 +390,7 @@ a.lake-command:hover {
             if let some dest := (← read).traverseState.externalTags[id]? then
               return {{<a href={{dest.link}} class="lake-command"><code>s!"lake {n}"</code></a>}}
 
-      HtmlT.logError s!"No name for lake command in {data.compress}"
+      reportError s!"No name for lake command in {data.compress}"
       is.mapM goI
 
 @[role_expander lakeArgs]
@@ -422,9 +422,9 @@ def lakeArgs.descr : InlineDescr := withHighlighting {
     some <| fun _ _ data _ => do
       if let .arr #[hl, name] := data then
         match fromJson? (α := Highlighted) hl with
-        | .error e => HtmlT.logError s!"Couldn't deserialize Lake args: {e}"; return .empty
+        | .error e => reportError s!"Couldn't deserialize Lake args: {e}"; return .empty
         | .ok hl =>
           let name := if let Json.str n := name then some n else none
           hl.inlineHtml name (g := Verso.Genre.Manual)
-      else HtmlT.logError s!"Expected two-element JSON array, got {data}"; return .empty
+      else reportError s!"Expected two-element JSON array, got {data}"; return .empty
 }

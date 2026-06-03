@@ -371,4 +371,5 @@ def theme : Theme :=
         plausible.init()"
       </script>
     }}
+    (beforeNavBar := .empty)
     (pure footer)

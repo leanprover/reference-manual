@@ -248,18 +248,18 @@ def planned.descr : BlockDescr where
     | .ok (none, loc?) | .ok (some 0, loc?) =>
        -- TODO add source locations to Verso ASTs upstream, then report here
       if let some (line, file) := loc? then
-        logError s!"Missing issue number for planned content indicator at {file} line {line}"
+        reportError s!"Missing issue number for planned content indicator at {file} line {line}"
       else
-        logError s!"Missing issue number for planned content indicator"
+        reportError s!"Missing issue number for planned content indicator"
     | .ok (some n, loc?) =>
       if !(← isDraft) then
         let loc := loc?.map (fun (l, f) => s!" at {f} line {l}") |>.getD ""
-        logError s!"Planned content {n} in final rendering{loc}"
+        reportError s!"Planned content {n} in final rendering{loc}"
       else
         pure ()
 
     | .error e =>
-      logError s!"Failed to deserialize issue number from {data} during traversal: {e}"
+      reportError s!"Failed to deserialize issue number from {data} during traversal: {e}"
     pure none
   toTeX := none
   extraCss := [r#"
@@ -279,7 +279,7 @@ div.planned .label {
         match FromJson.fromJson? (α := Option Nat × Option (Nat × String)) data with
         | .ok v => pure v.1
         | .error e =>
-          HtmlT.logError s!"Failed to deserialize issue number from {data}: {e}"
+          reportError s!"Failed to deserialize issue number from {data}: {e}"
           pure none
       pure {{
         <div class="planned">
@@ -399,7 +399,7 @@ def ffi : DirectiveExpander
 def ffi.descr : BlockDescr where
   traverse id info _ := do
     let .ok (name, _declType, _signature) := FromJson.fromJson? (α := String × FFIDocType × String) info
-      | do logError "Failed to deserialize FFI doc data"; pure none
+      | do reportError "Failed to deserialize FFI doc data"; pure none
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path name
     Index.addEntry id {term := .code name}
@@ -408,7 +408,7 @@ def ffi.descr : BlockDescr where
     open Verso.Doc.Html in
     open Verso.Output Html in do
       let .ok (_name, ffiType, signature) := FromJson.fromJson? (α := String × FFIDocType × String) info
-        | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize FFI doc data"; pure .empty
+        | do reportError "Failed to deserialize FFI doc data"; pure .empty
       let sig : Html := {{<pre>{{signature}}</pre>}}
 
       let xref ← HtmlT.state
