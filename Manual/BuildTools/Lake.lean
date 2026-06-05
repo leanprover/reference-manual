@@ -979,7 +979,7 @@ lean_exe «my-package-tests» where
 Only one declaration per package can be tagged with {attr}`test_driver`.
 It is an error to use both the {attr}`test_driver` attribute and a non-empty {name Lake.Package.testDriver}`testDriver` field in the same Lake configuration file.
 
-A test driver may also be a target in a package dependency that is transitively {tech}[required].
+A test driver may also be a target in a package dependency that is transitively {tech (key:="require")}[required].
 To use a target from another package, use `<pkg>/<name>` as the value of `testDriver`, where `<pkg>` is the name of the package in which the target is found..
 
 ### Running Tests
@@ -1004,7 +1004,7 @@ Lake builds executable drivers before running them.
 
 If the test driver is a library, arguments are not accepted.
 Lake reports an error if {tomlField Lake.PackageConfig}`testDriverArgs` is non-empty or if any arguments follow `--`.
-To run the tests, the library is just {tech}[elaborated].
+To run the tests, the library is just {tech (key:="Lean elaborator")}[elaborated].
 
 {lake}`check-test` terminates with exit code 0 (that is, successfully) if a test driver is configured for the root package.
 It doesn't check that the named target actually exists.
@@ -1014,7 +1014,7 @@ It doesn't check that the named target actually exists.
 tag := "lake-lint-drivers"
 %%%
 
-Lint drivers are configured and run similarly to {ref "lake-test-drivers"}[test drivers].
+Lint drivers are configured and run similarly to {ref "lake-test-driver-config"}[test drivers].
 The Lake configuration file specifies a target that serves as the lint driver, and {lake}`lint` runs it.
 This target must be an executable or a script; unlike test drivers, lint drivers may not be libraries.
 
