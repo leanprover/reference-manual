@@ -13,7 +13,7 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.31.0-rc1 (2026-05-28)" =>
+#doc (Manual) "Lean 4.31.0-rc2 (2026-06-04)" =>
 %%%
 tag := "release-v4.31.0"
 file := "v4.31.0"
@@ -24,9 +24,9 @@ These release notes describe a _release candidate_, not the final release.
 They may be incomplete and are subject to change.
 :::
 
-For this release, 303 changes landed.
-In addition to the 104 feature additions,
-and 101 fixes listed below,
+For this release, 305 changes landed.
+In addition to the 105 feature additions,
+and 102 fixes listed below,
 there were 17 refactoring changes,
 5 documentation improvements,
 13 performance improvements,
@@ -214,6 +214,11 @@ and 48 other changes.
   - `@[expose]` on a `def` inside an `@[expose] section` (already exposed by the section)
   - `@[expose]`/`@[no_expose]` in a non-`module` file (no module system)
   - `@[no_expose]` on a declaration that wouldn't be exposed by default
+
+- [#13492](https://github.com/leanprover/lean4/pull/13492)
+  introduces stricter inference for the `@[defeq]` attribute and a
+  companion `@[backward_defeq]` attribute that preserves the pre-PR behavior
+  as an opt-in.
 
 - [#13534](https://github.com/leanprover/lean4/pull/13534)
   generalizes the `while` syntax in `do` blocks so that the condition can be any `doIfCond`, the same condition form already accepted by `if`. As a result, `while let pat := e do …` and `while let pat ← e do …` are now supported in addition to `while cond do …` and `while h : cond do …`. The previously separate `doWhile` and `doWhileH` parsers and their accompanying macros are unified into a single `doWhile` parser whose macro delegates to the existing `doIf` desugaring.
@@ -703,11 +708,6 @@ and 48 other changes.
 - [#13301](https://github.com/leanprover/lean4/pull/13301)
   adds a `try? => tac` syntax that runs `evalSuggest` directly on a given tactic, useful for testing the `try?` machinery in isolation. It also adds a server_interactive test (`cancellation_par.lean`) that demonstrates a cancellation bug with parallel tactic combinators.
 
-- [#13492](https://github.com/leanprover/lean4/pull/13492)
-  introduces stricter inference for the `@[defeq]` attribute and a
-  companion `@[backward_defeq]` attribute that preserves the pre-PR behavior
-  as an opt-in.
-
 - [#13532](https://github.com/leanprover/lean4/pull/13532)
   notifies satellite solvers about asserted equalities `lhs = rhs` even though `lhs = rhs` is not internalized in the E-graph (an existing optimization). The notification lets solvers that do not inspect equivalence classes (such as the homomorphism extension) react to asserted equalities directly. It fires before the equivalence-class merge so that solvers that mark `lhs` and `rhs` as their internal terms have them registered before `Solvers.mergeTerms` fires `processNewEq`.
 
@@ -883,6 +883,12 @@ and 48 other changes.
 # Lake
 
 ```markdown
+
+- [#13949](https://github.com/leanprover/lean4/pull/13949)
+  adds a `LAKE_RESTORE_ARTIFACTS` environment variable that overrides the workspace's default `restoreAllArtifacts` configuration, mirroring how `LAKE_ARTIFACT_CACHE` overrides `enableArtifactCache`.
+
+- [#13936](https://github.com/leanprover/lean4/pull/13936)
+  fixes an issue where `depPkgs` was not properly set for a transitive dependency that was overriden by a package at a higher level in the dependency graph.
 
 - [#13843](https://github.com/leanprover/lean4/pull/13843)
   makes `lake lint --builtin-lint` import module-system targets at the public (`OLeanLevel.exported`) level instead of `private`. Environment linters now lint the public surface of such modules, matching how downstream consumers see them. Non-module targets retain their previous behaviour (`private` level), and text-linter warnings recorded via `lintLogExt` are preserved across the level change because that extension stores uniform OLean entries.
