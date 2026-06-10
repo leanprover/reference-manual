@@ -363,37 +363,6 @@ The toolchain's name should the name of an installed toolchain.
 Use {elan}`toolchain list` to see the installed toolchains with their names.
 :::
 
-```elanHelp "toolchain" "link"
-elan-toolchain-link
-Create a custom toolchain by symlinking to a directory
-
-USAGE:
-    elan toolchain link <toolchain> <path>
-
-FLAGS:
-    -h, --help    Prints help information
-
-ARGS:
-    <toolchain>    Toolchain name, such as 'stable', 'beta', 'nightly', or '4.3.0'. For more information see `elan
-                   help toolchain`
-    <path>
-
-DISCUSSION:
-    'toolchain' is the custom name to be assigned to the new toolchain.
-
-    'path' specifies the directory where the binaries and libraries for
-    the custom toolchain can be found. For example, when used for
-    development of Lean itself, toolchains can be linked directly out of
-    the Lean root directory. After building, you can test out different
-    compiler versions as follows:
-
-        $ elan toolchain link master <path/to/lean/root>
-        $ elan override set master
-
-    If you now compile a crate in the current directory, the custom
-    toolchain 'master' will be used.
-```
-
 
 :::elan toolchain link "«local-name» path"
 
