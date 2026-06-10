@@ -7,6 +7,12 @@
     transition: background-color var(--transition-base), border-color var(--transition-base);
 }
 
+/* Drop the header below any full-screen overlay (glightbox, modals) */
+.glightbox-open .site-header,
+body.modal-open .site-header {
+    z-index: 0;
+}
+
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -14,6 +20,8 @@
     padding: var(--nav-padding-y) var(--space-8);
     border-bottom: 1px solid var(--color-border-nav);
     box-sizing: border-box;
+    position: relative;
+    z-index: 1;
 }
 
 .navbar-container {
@@ -275,6 +283,145 @@ nav.sub-navbar .navbar-container {
   transform: rotate(90deg);
 }
 
+
+/* ── Nav hover highlight ───────────────────────────────────────────────── */
+
+.nav-hover-highlight {
+    position: absolute;
+    border-radius: var(--radius-md);
+    background: var(--color-hover);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease, left 0.18s ease, top 0.18s ease, width 0.18s ease, height 0.18s ease;
+    z-index: 0;
+}
+
+.nav-hover-highlight.visible {
+    opacity: 1;
+}
+
+.desktop-menu-part .nav-link {
+    z-index: 1;
+}
+
+/* ── Desktop dropdown ──────────────────────────────────────────────────── */
+
+.nav-dropdown-wrapper {
+    position: relative;
+}
+
+/* transparent bridge fills the gap so the mouse can reach the panel */
+.nav-dropdown-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: -16px;
+    right: -16px;
+    height: 12px;
+}
+
+.nav-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dropdown-arrow {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.nav-dropdown-wrapper.is-open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.nav-dropdown-panel {
+    display: block;
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    translate: -50% 0;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg, 10px);
+    padding: var(--space-4) var(--space-3);
+    min-width: 260px;
+    list-style: none;
+    margin: 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    transform-origin: top center;
+    z-index: calc(var(--z-header, 100) + 10);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-6px) scale(0.97);
+    transition: opacity 0.18s ease, transform 0.2s ease, visibility 0.18s;
+}
+
+.nav-dropdown-wrapper:hover .nav-dropdown-panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.nav-dropdown-grid {
+    display: grid;
+    gap: 0;
+}
+
+.nav-dropdown-panel .nav-item {
+    width: 100%;
+}
+
+.nav-dropdown-panel .nav-item + .nav-item {
+    margin-top: var(--space-1);
+    padding-top: var(--space-1);
+}
+
+.nav-dropdown-panel .dropdown-item {
+    width: 100%;
+    justify-content: flex-start;
+    padding: var(--space-3) var(--space-5);
+    font-size: 0.875rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    border-radius: var(--radius-md);
+    height: auto;
+}
+
+.dropdown-item-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-text);
+    line-height: 1.3;
+}
+
+.dropdown-item-desc {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+/* small arrow caret pointing up from the panel */
+.nav-dropdown-panel::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    translate: -50% 0;
+    width: 8px;
+    height: 8px;
+    background: var(--color-white);
+    border-left: 1px solid var(--color-border);
+    border-top: 1px solid var(--color-border);
+    rotate: 45deg;
+}
 
 @media (max-width: 1024px) {
     .site-header {
