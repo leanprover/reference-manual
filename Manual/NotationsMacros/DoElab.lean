@@ -36,19 +36,19 @@ Extensions to {keywordOf Lean.Parser.Term.do}`do`-notation define new kinds of {
 Macros translate the new {keywordOf Lean.Parser.Term.do}`do`-elements into previously existing {keywordOf Lean.Parser.Term.do}`do`-elements, while elaborators have access to more information and can produce arbitrary terms in Lean's type theory.
 
 :::paragraph
-This chapter describes how to extend {keywordOf Lean.Parser.Term.do}`do`-notation.
+This chapter describes the extension mechanisms that are available for {keywordOf Lean.Parser.Term.do}`do`-notation.
 Extensible {keywordOf Lean.Parser.Term.do}`do`-notation was introduced in Lean version 4.29.0; prior to this release, it was not extensible.
 The extensible {keywordOf Lean.Parser.Term.do}`do` elaborator is controlled by the option {option}`backward.do.legacy`:
 
 {optionDocs backward.do.legacy}
 
 When {option}`backward.do.legacy` is `false`, the extensible elaborator is enabled.
-Custom {keywordOf Lean.Parser.Term.do}`do`-element elaborators extend the desugaring described in {ref "do-notation"}[the section on {keywordOf Lean.Parser.Term.do}`do`-notation].
+Custom {keywordOf Lean.Parser.Term.do}`do`-element elaborators extend the desugaring described in {ref "do-notation"}[the section on syntax for monads].
 :::
 
 # Elaboration Overview
 
-The {tech}[syntax kind] `doElem` represents individual {tech}[{keywordOf Lean.Parser.Term.do}`do`-elements].
+The {tech}[syntax kind] `doElem` represents individual {tech}[`do`-elements].
 A sequence of these elements, such as can make up the body of a {keywordOf Lean.Parser.Term.do}`do`-block, is represented by the syntax kind {name}`doSeq`.
 The elaborator for {keywordOf Lean.Parser.Term.do}`do` invokes a specialized elaboration framework on the {name}`doSeq` in its body, elaborating each `doElem` in turn.
 This specialized framework allows each element in the sequence to modify the elaboration of subsequent elements, as well as to track information such as enclosing loops (for {keywordOf Lean.Parser.Term.doBreak}`break` and {keywordOf Lean.Parser.Term.doContinue}`continue`), the way to escape via {keywordOf Lean.Parser.Term.doReturn}`return`, and the set of mutable variables.
