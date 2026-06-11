@@ -66,6 +66,9 @@ Macro expansion occurs during the elaboration of {keywordOf Lean.Parser.Term.do}
 There is no fundamental difference between {keywordOf Lean.Parser.Term.do}`do`-element macros and term or command macros; they are distinguished by being defined for syntax that is part of the `doElem` syntax category.
 
 ::::example "Multi-Way `if`"
+```imports -show
+import Lean.Elab
+```
 ```lean -show
 open Lean
 open Lean.Parser.Term (doSeq)
@@ -327,6 +330,9 @@ There are three primary ways of doing this.
 {docstring Lean.Elab.Do.DoElemCont.mkBindUnlessPure}
 
 :::example "Invoking Continuations"
+```imports -show
+import Lean.Elab
+```
 ```lean -show
 open Lean Elab Do
 set_option backward.do.legacy false
@@ -359,6 +365,9 @@ some ()
 :::
 
 :::example "Elaborating `do`-elements with `elab_rules`"
+```imports -show
+import Lean.Elab
+```
 ```lean -show
 open Lean Elab Do
 set_option backward.do.legacy false
@@ -399,6 +408,9 @@ It should produce a term that justifies abandoning the program, such as a call t
 Before returning this term, it should invoke {name Lean.Elab.Do.DoElemCont.elabAsSyntacticallyDeadCode}`DoElemCont.elabAsSyntacticallyDeadCode` on the continuation, which warns users that the code that the continuation would elaborate is unreachable.
 
 :::example "Unreachable Code"
+```imports -show
+import Lean.Elab
+```
 ```lean -show
 open Lean Elab Term Do
 set_option backward.do.legacy false
@@ -492,6 +504,9 @@ The three continuations are installed in the context using the helper {name Lean
 {docstring Lean.Elab.Do.enterLoopBody}
 
 :::example "Single-Iteration Loop"
+```imports -show
+import Lean.Elab
+```
 ```lean -show
 open Lean Elab Term Do
 set_option backward.do.legacy false
@@ -631,6 +646,9 @@ To ensure that an identifier refers to a mutable variable, use {name Lean.Elab.D
 {docstring Lean.Elab.Do.throwUnlessMutVarsDeclared}
 
 ::::example "Tracing Mutable Variables"
+```imports -show
+import Lean.Elab
+```
 ```lean -show
 open Lean Elab Do
 set_option backward.do.legacy false
@@ -679,6 +697,9 @@ The built-in elaborators for mutable variables take care of many subtle details,
 If at all possible, it is best to reuse these built-in elaborators, either via a macro or by invoking {name Lean.Elab.Do.elabDoElem}`elabDoElem` on the appropriate syntax.
 
 :::example "Mutating Variables"
+```imports -show
+import Lean.Elab
+```
 ```lean -show
 open Lean Elab Do
 set_option backward.do.legacy false
@@ -764,6 +785,9 @@ If the inner {keywordOf Lean.Parser.Term.do}`do`-sequence could throw an excepti
 {docstring Lean.Elab.Do.ControlLifter.restoreCont +allowMissing}
 
 :::example "Syntax for {name}`withReader`"
+```imports -show
+import Lean.Elab
+```
 ```lean -show
 open Lean Elab Do Term
 set_option backward.do.legacy false
@@ -825,6 +849,9 @@ abbrev App := ReaderT Nat Id
 :::
 
 :::example "Locally Violating Invariants"
+```imports -show
+import Lean.Elab
+```
 ```lean -show
 open Lean Elab Do Term Meta
 open Lean.Parser.Term (doSeq)
