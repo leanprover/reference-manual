@@ -210,7 +210,8 @@ Monads are primarily used via {deftech}[{keywordOf Lean.Parser.Term.do}`do`-nota
 It provides familiar syntax for sequencing effectful operations, early return, local mutable variables, loops, and exception handling.
 All of these features are translated to the operations of the {lean}`Monad` type class, with a few of them requiring addition instances of classes such as {lean}`ForIn` that specify iteration over containers.
 For more details about the design of {keywordOf Lean.Parser.Term.do}`do`-notation, please consult {citet doUnchained}[].
-A {keywordOf Lean.Parser.Term.do}`do` term consists of the keyword {keywordOf Lean.Parser.Term.do}`do` followed by a sequence of {deftech}_{keywordOf Lean.Parser.Term.do}`do` items_.
+
+A {keywordOf Lean.Parser.Term.do}`do` term consists of the keyword {keywordOf Lean.Parser.Term.do}`do` followed by a sequence of {deftech}_{keywordOf Lean.Parser.Term.do}`do` elements_.
 
 :::syntax term (title := "`do`-Notation")
 ```grammar
