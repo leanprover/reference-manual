@@ -227,7 +227,7 @@ variable {m : Type → Type} [Monad m] {α β γ: Type} {e1 : m Unit} {e : β} {
 
 ## Sequential Computations
 
-One form of {tech}[{keywordOf Lean.Parser.Term.do}`do` item] is a term.
+One form of {tech}[{keywordOf Lean.Parser.Term.do}`do`-element] is a term.
 
 :::syntax Lean.Parser.Term.doSeqItem (title := "Terms in `do`-Notation")
 ```grammar

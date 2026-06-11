@@ -22,40 +22,6 @@ set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
-open Illuminate in
-/--
-Illustrates how the continuation captures the remainder of a `do`-block: each statement becomes
-a box, and elaborating the first statement is handed a continuation that binds its result to a
-name and runs the rest of the block.
--/
-def continuationDiagram : Diagram SVG :=
-  let stmt1 := code "stmt₁"
-  let stmt2 := code "stmt₂"
-  let line1 :=
-    Diagram.hsep 8 [keyword "do", box first stmt1, code ";", box rest stmt2] (align := .center)
-  -- The label is given a zero-width envelope so it can overhang without spreading out the row,
-  -- while the brace still spans only `x`.
-  let resultLabel := label "the result name" |>.setEnvelopeLeft 0 |>.setEnvelopeRight 0
-  let xName := Diagram.braceAbove (code "x") resultLabel
-  let cont :=
-    Diagram.hsep 8 [code ">>=", keyword "fun", xName, code "=>", box rest stmt2.ghost] (align := .bottom)
-  let contBraced := Diagram.braceBelow cont (label "the continuation")
-  let line2 :=
-    Diagram.hsep 8 [box first stmt1.ghost, contBraced] (align := .center)
-  Diagram.vsep 24 [line1, line2]
-where
-  code (s : String) : Diagram SVG :=
-    Diagram.text s { fontFamily := "monospace", fontSize := 16 }
-  keyword (s : String) : Diagram SVG :=
-    Diagram.text s { fontFamily := "monospace", fontSize := 16, color := Color.rgb 137 89 168 }
-  label (s : String) : Diagram SVG :=
-    Diagram.text s { fontFamily := "sans-serif", fontSize := 12 }
-  first : Color := Color.rgb 207 226 255
-  rest : Color := Color.rgb 255 233 191
-  box (fill : Color) (d : Diagram SVG) : Diagram SVG :=
-    d.filledFrame (fill := fill) (stroke := { color := Color.black, width := 1 })
-      (padding := 6) (cornerRadius := 5)
-
 open Lean
 
 #doc (Manual) "Extending `do`-Notation" =>
@@ -271,14 +237,8 @@ Elaboration of {keywordOf Lean.Parser.Term.do}`do`-elements occurs in the {name 
 This monad is a wrapper around {name Lean.Elab.Term.TermElabM}`TermElabM` that provides one extra {ref "reader-monad"}[reader] value: a {keywordOf Lean.Parser.Term.do}`do`-elaboration context.
 The elaborators also receive an additional argument: a description of the elaboration {deftech}_continuation_.
 The continuation represents the remainder of the {keywordOf Lean.Parser.Term.do}`do`-block, after the current element; it includes both a {name Lean.Elab.Do.DoElabM}`DoElabM` action that will elaborate the remainder of the block and the name by which that term will refer to the result of the current elaboration step.
-When elaborating the first statement in `do stmt₁; stmt₂`, the continuation captures both the bind operator that sequences it with the rest of the block and the name `x` that stands for its result, as shown in {ref "do-continuation-fig"}[the following figure].
 Unlike term elaborators, which return the elaborated term to a surrounding elaboration context, {keywordOf Lean.Parser.Term.do}`do`-element elaborators invoke the provided continuation to arrange for the elaboration of the rest of the {keywordOf Lean.Parser.Term.do}`do`-block.
 
-:::figure "The Continuation in `do`-Elaboration" (tag := "do-continuation-fig")
-```diagram
-continuationDiagram
-```
-:::
 
 {docstring Lean.Elab.Do.Context +allowMissing}
 
