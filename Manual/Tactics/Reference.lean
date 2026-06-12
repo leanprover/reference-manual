@@ -1145,7 +1145,7 @@ example : ¬(3 = 5) := by decide
 
 Because {tactic}`decide` runs the decision procedure using the kernel's term reduction, it can be extremely slow or time out on large problems.
 For example, checking `Nat.Prime 104729` with {tactic}`decide` would take impractically long.
-For arithmetic goals involving large numbers, {tactic}`grind`, {tactic}`omega` or `norm_num` are more performant.
+For arithmetic goals involving large numbers, {tactic}`grind`, {tactic}`omega` or {tactic}`norm_num` are more performant.
 
 :::tactic Lean.Parser.Tactic.nativeDecide (show := "native_decide")
 :::
