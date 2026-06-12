@@ -865,7 +865,7 @@ The {tactic}`clear` tactic removes a hypothesis from the local context. This is 
 :::
 
 :::example "Clearing Before Induction"
-A hypothesis that mentions the induction variable can be included in the inductive hypothesis in an undesirable way.
+A hypothesis that mentions the induction variable can be included in the inductive hypothesis, resulting in an induction hypothesis that is too weak.
 Here, without {tactic}`clear`, the inductive hypothesis would require `n = 7`, which cannot be proved in the successor case.
 ```lean +error
 example (n : Nat) (h : n = 7) : n + 0 = n := by
