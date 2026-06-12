@@ -49,7 +49,7 @@ Custom {keywordOf Lean.Parser.Term.do}`do`-element elaborators extend the desuga
 # Elaboration Overview
 
 The {tech}[syntax kind] `doElem` represents individual {tech}[`do`-elements].
-A sequence of these elements, such as can make up the body of a {keywordOf Lean.Parser.Term.do}`do`-block, is represented by the syntax kind {name}`doSeq`.
+A sequence of these elements is represented by the syntax kind {name}`doSeq`, which makes up the body of a {keywordOf Lean.Parser.Term.do}`do`-block.
 The elaborator for {keywordOf Lean.Parser.Term.do}`do` invokes a specialized elaboration framework on the {name}`doSeq` in its body, elaborating each `doElem` in turn.
 This specialized framework allows each element in the sequence to modify the elaboration of subsequent elements, as well as to track information such as enclosing loops (for {keywordOf Lean.Parser.Term.doBreak}`break` and {keywordOf Lean.Parser.Term.doContinue}`continue`), the way to escape via {keywordOf Lean.Parser.Term.doReturn}`return`, and the set of mutable variables.
 
