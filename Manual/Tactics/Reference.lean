@@ -454,7 +454,7 @@ tag := "tactic-ref-false"
 %%%
 
 The {tactic}`exfalso` tactic changes the goal to `False`. It is named after the Latin phrase _ex falso quodlibet_, that is, “from falsehood, anything follows”.
-This is useful when the hypotheses are contradictory: once the goal is `False`, it can be closed by deriving a contradiction.
+This is useful when the hypotheses are contradictory: once the goal is {name}`False`, it can be closed by deriving a contradiction.
 Because it discards the original goal entirely, {tactic}`exfalso` should only be used when the hypotheses are genuinely contradictory.
 If they are not, the resulting `False` goal will be unsolvable.
 
