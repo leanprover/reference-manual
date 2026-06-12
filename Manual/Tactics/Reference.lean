@@ -103,7 +103,7 @@ example : ∀ (n : Nat), n + 0 = n := by
 :::
 
 :::example "Multiple Introductions"
-Multiple names can be provided to introduce several parameters at once.
+Multiple names can be provided to introduce several assumptions at once.
 Calling {tactic}`intro` once with multiple names is equivalent to calling it multiple times:
 ```lean
 example (P Q R : Prop) (h : P → Q → R) :
