@@ -859,7 +859,8 @@ example (n m : Nat) : n + m = m + n := by
 ```
 :::
 
-The {tactic}`clear` tactic removes a hypothesis from the local context. This is sometimes useful to simplify the local context.
+The {tactic}`clear` tactic removes a hypothesis from the local context. 
+This is sometimes useful to make proof goals easier to understand or to prevent automated tools from following red herrings.
 
 :::tactic "clear"
 :::
