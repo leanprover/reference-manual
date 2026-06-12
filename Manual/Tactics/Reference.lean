@@ -84,7 +84,7 @@ It introduces the function's parameter into the local context as a new assumptio
 :::
 
 :::example "Introducing an Implication"
-The goal `P → R` is a function type; {tactic}`intro` moves its premise into the context as `hp`:
+The goal `P → R` is an implication. {tactic}`intro` moves its premise into the context as `hp`:
 ```lean
 example (P Q R : Prop) (hpq : P → Q) (hqr : Q → R) :
     P → R := by
