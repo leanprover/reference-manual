@@ -484,7 +484,7 @@ example (hp : P) (hnp : ¬P) : Q := by
 ```
 It also recognizes incompatibilities between constructors of the same type.
 ```lean
-example (h : 0 = 1) : P := by
+example (h : Nat.zero = Nat.succ Nat.zero) : P := by
   contradiction
 ```
 :::
