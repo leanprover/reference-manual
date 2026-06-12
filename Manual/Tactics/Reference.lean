@@ -573,7 +573,7 @@ The pattern `⟨n, hn⟩` extracts the witness `n` and the proof `hn : n + n = 1
 ```lean
 example (h : ∃ n : Nat, n + n = 10) : ∃ m : Nat, m = 5 := by
   obtain ⟨n, hn⟩ := h
-  exact ⟨n, by omega⟩
+  exact ⟨n, by grind⟩
 ```
 :::
 
