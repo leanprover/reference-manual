@@ -77,8 +77,8 @@ example : ∃ n : Nat, n + n = 4 := by
 ```
 :::
 
-The {tactic}`intro` tactic makes progress on goals whose target type is a function type or a universal quantifier.
-It introduces the function's parameter into the local context as a new assumption (for propositions) or a new local variable (for data) and changes the goal to the function's body.
+The {tactic}`intro` tactic makes progress on goals whose target type is an implication, universal quantifier, or function type.
+It introduces the hypothesis into the local context as a new assumption (for propositions) or a new local variable (for data) and changes the goal to the function's body.
 
 :::tactic "intro"
 :::
@@ -166,7 +166,9 @@ example : ∀ (a b : Nat), 7 * b = a → a + 1 = 7 * b + 1 := by
 tag := "tactic-ref-relations"
 %%%
 
-The {tactic}`rfl` tactic succeeds whenever the two sides of the relation are {tech (key := "definitional equality")}[definitionally equal], even if they are not syntactically identical.
+The {tactic}`rfl` tactic succeeds on instances of reflexive relations.
+A common case is when the goal is an equality of two terms are {tech (key := "definitional equality")}[definitionally equal].
+Other reflexive relations can also be tagged with attributes and used with {tactic}`rfl`, for which see below.
 
 :::tactic "rfl"
 :::
@@ -193,6 +195,13 @@ For instance, it can close goals involving {lean}`Iff`:
 ```lean
 example (P : Prop) : P ↔ P := by
   rfl
+
+def Univ (_ _ : α) := True
+
+@[refl]
+theorem Univ.refl (x : α) : Univ x x := True.intro
+
+example : Univ 2 2 := by rfl
 ```
 :::
 
@@ -226,6 +235,23 @@ example (a b : Nat) (h : a = b) : b = a := by
   exact h
 ```
 :::
+
+:::example "Custom Symmetric Relations"
+Other relations can be proven symmetric, and annotated so that {tactic}`symm` can be applied to them.
+```lean
+def Univ (_ _ : α) := True
+
+@[symm]
+theorem Univ.symm (x : α) : Univ x y → Univ y x := by
+  intro; exact True.intro
+
+example : Univ 2 3 → Univ 3 2 := by
+  intro
+  symm
+  assumption
+```
+:::
+
 
 :::tactic "symm_saturate"
 :::
@@ -317,8 +343,8 @@ example (a b c : Nat) (h : b * c = a * c) :
   symm
   exact h
 ```
-Using uncontrolled {tactic}`congr` would have left us with the goal `a = b`,
-which we cannot close, because even though `b * c = a * c`, it might be because `c` is zero.
+Using uncontrolled {tactic}`congr` would have left us with the goal `a = b`.
+We cannot prove this, because even though `b * c = a * c`, it might be because `c` is zero.
 ```lean +error (name := bareCongr)
 example (a b c : Nat) (h : b * c = a * c) :
     (a * c) * 2 + 3 = (b * c) * 2 + 3 := by
@@ -356,14 +382,14 @@ tag := "tactic-ref-associativity-commutativity"
 tag := "tactic-ref-lemmas"
 %%%
 
-The {tactic}`exact` tactic closes the current goal by providing a term whose type matches the goal's target type.
+The {tactic}`exact` tactic proves the current goal by providing a term whose type matches the goal's target type.
 It works up to {tech}[definitional equality], so the term's type does not need to be syntactically identical to the goal.
 
 :::tactic "exact"
 :::
 
 :::example "Closing a Goal with a Hypothesis"
-When a hypothesis already has the exact type of the goal, {tactic}`exact` can close it directly:
+When a hypothesis already has the exact type of the goal, {tactic}`exact` can prove it directly:
 ```lean
 example (P : Prop) (h : P) : P := by
   exact h
@@ -412,16 +438,26 @@ Any term whose conclusion matches the goal can be used, including lemmas:
 example (a b c : Nat) (hab : a < b) (hbc : b < c) :
     a < c := by
   apply Nat.lt_trans
-  · exact hab
-  · exact hbc
+  · apply hab
+  · apply hbc
 ```
 :::
 
+:::example "Extracting One Direction of If-and-Only-If"
 Note that {tactic}`apply` does not work directly with `↔` (if-and-only-if) hypotheses.
 To use a hypothesis `h : P ↔ Q` backwards on the goal, use {tactic}`rw` instead, or extract one direction with `h.mp` or `h.mpr`.
+```lean
+example (P Q R S : Prop) (iff1 : P ↔ Q) (iff2 : R ↔ Q) (hp : P) :
+    R := by
+  apply iff2.mpr
+  apply iff1.mp
+  exact hp
+```
+:::
 
 The {tactic}`refine` tactic is like {tactic}`exact`, but allows holes written as `?_` that become new goals.
 This is useful when part of a term is known but some arguments still need to be proved.
+It is also often useful for decomposing goals with anonymous constructor syntax.
 
 :::tactic "refine"
 :::
@@ -542,12 +578,21 @@ example (hp : P) : ¬¬P := by
 ```
 :::
 
+:::example "Changing to Definitionally Equal Goal"
+Here we change a numeric literals to a definitionally equivalent form to facilitate the proof.
+```lean
+example : x + 2 = (x + 1) + 1  := by
+  change x + (1 + 1) = (x + 1) + 1
+  rw [Nat.add_assoc]
+```
+:::
+
 :::tactic "generalize"
 :::
 
 The {tactic}`specialize` tactic instantiates a universally quantified or function-typed hypothesis with specific arguments, replacing it in the context with the result.
 Because {tactic}`specialize` modifies the hypothesis in place, the original general statement is lost after specialization.
-If the original hypothesis is needed again, use {tactic}`have` to create a copy first, for example `have h' := h` before specializing `h`.
+If the original hypothesis is needed again, use {tactic}`have` to create a copy first, for example `have h' := h` before specializing `h` or `h'`.
 
 :::tactic "specialize"
 :::
@@ -655,7 +700,9 @@ tag := "tactic-ref-ext"
 %%%
 
 The {tactic}`ext` tactic applies extensionality lemmas registered with the {attr}`ext` attribute.
-The principle of extensionality states that two objects are equal if they are built from the same components. For example, two functions are equal if they return the same value on every input.
+Extensionality properties say that two objects are equal if they are equal under all appropriate observations.
+For example, two functions are equal if they return the same value on every input and two pairs are equal if their components are equal.
+See the section on {ref "quotient-funext"}[function extensionality for quotients] for more information.
 
 :::tactic "ext"
 :::
@@ -1103,10 +1150,29 @@ example (p : Bool) (x y : Nat) (hx : x > 0) (hy : y > 0) :
   · exact hx
   · exact hy
 ```
+
+When splitting a case match, hypotheses are available that show that previous arms of the case did not match.
+```lean
+def classify (n : Nat) : Option String :=
+  match n with
+  | 7 => some "seven"
+  | 12 => some "twelve"
+  | _ => none
+
+example (n : Nat) :
+    classify n = some "seven" ∨ classify n = some "twelve" ∨
+      (n ≠ 7 ∧ n ≠ 12) := by
+  unfold classify
+  split
+  · left; rfl
+  · right; left; rfl
+  · right; right; next hx hy => refine ⟨hx, hy⟩
+```
 :::
 
-The {tactic}`by_cases` tactic splits the proof into two cases based on whether a proposition holds or not.
-Always name the hypothesis with `h : P` syntax; without a name, Lean generates an inaccessible name (`h✝`) that cannot be referred to in the proof.
+
+The {tactic}`by_cases` tactic splits the proof into two cases based on whether a proposition is true or not.
+The hypothesis can optionally be named with `h : P` syntax.
 
 :::tactic "by_cases"
 :::
@@ -1144,8 +1210,8 @@ example : ¬(3 = 5) := by decide
 :::
 
 Because {tactic}`decide` runs the decision procedure using the kernel's term reduction, it can be extremely slow or time out on large problems.
-For example, checking {lean}`Nat.Prime 104729` with {tactic}`decide` would take impractically long.
-For arithmetic goals involving large numbers, {tactic}`grind`, {tactic}`omega` or {tactic}`norm_num` are more performant.
+For example, checking `Nat.Prime 104729` with {tactic}`decide` would take impractically long.
+For arithmetic goals involving large numbers, {tactic}`grind`, or `norm_num` are more performant.
 
 :::tactic Lean.Parser.Tactic.nativeDecide (show := "native_decide")
 :::
