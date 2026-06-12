@@ -712,7 +712,7 @@ example (f g : Nat → Nat)
 tag := "tactic-ref-rw"
 %%%
 
-The {tactic}`rw` (rewrite) tactic does rewriting: it substitutes equals for equals.
+The {tactic}`rw` uses proofs of equality to rewrite goals and/or hypotheses, replacing occurrences of one of the equated terms with the other.
 Given a proof of an equality `h : x = y` or an if-and-only-if `h : P ↔ Q`, it replaces occurrences of the left-hand side with the right-hand side in the goal.
 Use `rw [← h]` to rewrite in the reverse direction, and `rw [h] at hyp` to rewrite in a hypothesis `hyp` rather than the goal.
 After rewriting, {tactic}`rw` automatically tries to close the goal with {tactic}`rfl`.
