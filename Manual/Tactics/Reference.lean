@@ -498,7 +498,8 @@ example (h : Nat.zero = Nat.succ Nat.zero) : P := by
 tag := "tactic-ref-goals"
 %%%
 
-With {tactic}`suffices`, the user first shows how a sufficient condition would imply the original goal, and then proves that sufficient condition.
+The {tactic}`suffices` tactic replaces the goal with another statement that is at least as strong.
+That is, the new goal suffices to show the old one.
 
 :::tactic "suffices"
 :::
