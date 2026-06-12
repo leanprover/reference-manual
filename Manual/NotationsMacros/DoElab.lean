@@ -187,9 +187,8 @@ Within a {keywordOf Lean.Parser.Term.do}`do` block, new {keywordOf Lean.Parser.T
 However, many mutable variables are not modified after they are initialized.
 It might be convenient to indicate this fact by removing their mutability.
 
-
-There is no existing way to replace a mutable variable with an immutable one, so a macro cannot be a simple {keywordOf Lean.Parser.Term.do}`do`-element.
-However, it can introduce a scope in which the mutable variable is immutable by expanding to a function call:
+There is no existing way to replace a mutable variable with an immutable one, so this feature can't be implemented with a macro that expands to an existing {keywordOf Lean.Parser.Term.do}`do`-element which makes the variable immutable for the remainder of the block.
+However, the operator can be structured so that it introduces a scope in which the mutable variable is immutable by expanding to a function call:
 ```lean
 macro "freeze " x:ident " in " body:doSeq : doElem =>
   `(doElem| (fun $x => do $body) $x)
