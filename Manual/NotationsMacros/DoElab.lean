@@ -396,7 +396,7 @@ some ()
 
 Because the elaborator invokes its continuation explicitly, rather than simply returning a value, it can control the context of elaboration.
 In particular, it can use {name}`withReader` to modify the context, and it can invoke the continuation multiple times in order to support control structures with branching.
-To prevent code size explosions, continuations track whether they may be invoked multiple times in {name Lean.Elab.Do.DoElemCont.kind}`DoElemCont.kind`.
+To prevent code size explosions, continuations track whether they may be elaborated multiple times in {name Lean.Elab.Do.DoElemCont.kind}`DoElemCont.kind`.
 A continuation is {deftech}_duplicable_ if it may be invoked multiple times, and {deftech}_nonduplicable_ if not.
 Nonduplicable continuations can be transformed into duplicable continuations using {name Lean.Elab.Do.DoElemCont.withDuplicableCont}`DoElemCont.withDuplicableCont`.
 
