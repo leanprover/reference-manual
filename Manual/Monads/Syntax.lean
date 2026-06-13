@@ -217,7 +217,7 @@ A {keywordOf Lean.Parser.Term.do}`do` term consists of the keyword {keywordOf Le
 ```grammar
 do $stmt*
 ```
-The items in a {keywordOf Lean.Parser.Term.do}`do` may be separated by semicolons; otherwise, each should be on its own line and they should have equal indentation.
+The elements in a {keywordOf Lean.Parser.Term.do}`do` may be separated by semicolons; otherwise, each should be on its own line and they should have equal indentation.
 :::
 
 ```lean -show
@@ -236,12 +236,12 @@ $e:term
 :::
 
 
-A term followed by a sequence of items is translated to a use of {name}`bind`; in particular, {lean}`do e1; es` is translated to {lean}`e1 >>= fun () => do es`.
+A term followed by a sequence of elements is translated to a use of {name}`bind`; in particular, {lean}`do e1; es` is translated to {lean}`e1 >>= fun () => do es`.
 
 
 :::table +header
 *
-  * {keywordOf Lean.Parser.Term.do}`do` Item
+  * {keywordOf Lean.Parser.Term.do}`do` Element
   * Desugaring
 *
   * ```leanTerm
@@ -294,7 +294,7 @@ let $v := $e:term
 
 :::table +header
 *
-  * {keywordOf Lean.Parser.Term.do}`do` Item
+  * {keywordOf Lean.Parser.Term.do}`do` Element
   * Desugaring
 *
   * ```leanTerm
@@ -372,7 +372,7 @@ Multiple occurrences of `←` are processed from left to right, inside to outsid
 ::::figure "Example Nested Action Desugarings"
 :::table +header
 *
-  * Example {keywordOf Lean.Parser.Term.do}`do` Item
+  * Example {keywordOf Lean.Parser.Term.do}`do` Element
   * Desugaring
 *
   * ```leanTerm
@@ -495,9 +495,9 @@ When {keywordOf Lean.Parser.Term.do}`do` blocks contain mutable bindings, the {k
 tag := "do-control-structures"
 %%%
 
-There are {keywordOf Lean.Parser.Term.do}`do` items that correspond to most of Lean's term-level control structures.
-When they occur as a step in a {keywordOf Lean.Parser.Term.do}`do` block, they are interpreted as {keywordOf Lean.Parser.Term.do}`do` items rather than terms.
-Each branch of the control structures is a sequence of {keywordOf Lean.Parser.Term.do}`do` items, rather than a term, and some of them are more syntactically flexible than their corresponding terms.
+There are {keywordOf Lean.Parser.Term.do}`do` elements that correspond to most of Lean's term-level control structures.
+When they occur as a step in a {keywordOf Lean.Parser.Term.do}`do` block, they are interpreted as {keywordOf Lean.Parser.Term.do}`do` elements rather than terms.
+Each branch of the control structures is a sequence of {keywordOf Lean.Parser.Term.do}`do` elements, rather than a term, and some of them are more syntactically flexible than their corresponding terms.
 
 :::syntax Lean.Parser.Term.doSeqItem (title := "Conditionals")
 In a {keywordOf Lean.Parser.Term.do}`do` block, {keywordOf Lean.Parser.Term.doIf}`if` statements may omit their {keywordOf Lean.Parser.Term.doIf}`else` branch.
@@ -642,7 +642,7 @@ macro "…" : term => `((«<b>» : β))
 
 :::table +header
 *
-  * {keywordOf Lean.Parser.Term.do}`do` Item
+  * {keywordOf Lean.Parser.Term.do}`do` Element
   * Desugaring
 *
   * ```leanTerm (type := "m α")
@@ -806,10 +806,10 @@ Attempting to mutate a mutable binding outside of the same {keywordOf Lean.Parse
 :::
 
 The rules are as follows:
- * Each item immediately nested under the {keywordOf Lean.Parser.Term.do}`do` keyword that begins a block belongs to that block.
- * Each item immediately nested under the {keywordOf Lean.Parser.Term.do}`do` keyword that is an item in a containing {keywordOf Lean.Parser.Term.do}`do` block belongs to the outer block.
- * Items in the branches of an {keywordOf Lean.Parser.Term.doIf}`if`, {keywordOf Lean.Parser.Term.doMatch}`match`, or {keywordOf Lean.Parser.Term.doUnless}`unless` item belong to the same {keywordOf Lean.Parser.Term.do}`do` block as the control structure that contains them. The {keywordOf Lean.Parser.Term.doUnless}`do` keyword that is part of the syntax of {keywordOf Lean.Parser.Term.doUnless}`unless` does not introduce a new {keywordOf Lean.Parser.Term.do}`do` block.
- * Items in the body of {keywordOf Lean.doElemRepeat_}`repeat`, {keywordOf Lean.doElemWhile_Do_}`while`, and {keywordOf Lean.Parser.Term.doFor}`for` belong to the same {keywordOf Lean.Parser.Term.do}`do` block as the loop  that contains them. The {keywordOf Lean.Parser.Term.doFor}`do` keyword that is part of the syntax of {keywordOf Lean.doElemWhile_Do_}`while` and {keywordOf Lean.Parser.Term.doFor}`for` does not introduce a new {keywordOf Lean.Parser.Term.do}`do` block.
+ * Each element immediately nested under the {keywordOf Lean.Parser.Term.do}`do` keyword that begins a block belongs to that block.
+ * Each element immediately nested under the {keywordOf Lean.Parser.Term.do}`do` keyword that is an element in a containing {keywordOf Lean.Parser.Term.do}`do` block belongs to the outer block.
+ * Elements in the branches of an {keywordOf Lean.Parser.Term.doIf}`if`, {keywordOf Lean.Parser.Term.doMatch}`match`, or {keywordOf Lean.Parser.Term.doUnless}`unless` element belong to the same {keywordOf Lean.Parser.Term.do}`do` block as the control structure that contains them. The {keywordOf Lean.Parser.Term.doUnless}`do` keyword that is part of the syntax of {keywordOf Lean.Parser.Term.doUnless}`unless` does not introduce a new {keywordOf Lean.Parser.Term.do}`do` block.
+ * Elements in the body of {keywordOf Lean.doElemRepeat_}`repeat`, {keywordOf Lean.doElemWhile_Do_}`while`, and {keywordOf Lean.Parser.Term.doFor}`for` belong to the same {keywordOf Lean.Parser.Term.do}`do` block as the loop  that contains them. The {keywordOf Lean.Parser.Term.doFor}`do` keyword that is part of the syntax of {keywordOf Lean.doElemWhile_Do_}`while` and {keywordOf Lean.Parser.Term.doFor}`for` does not introduce a new {keywordOf Lean.Parser.Term.do}`do` block.
 
 ```lean -show
 -- Test nested `do` rules
@@ -862,7 +862,7 @@ def test : StateM Nat Unit := do
 ```
 
 This is because the {keywordOf Lean.Parser.Term.doReturn}`return` statement under the {keywordOf Lean.Parser.Term.doIf}`if` belongs to the same {keywordOf Lean.Parser.Term.do}`do` as its immediate parent, which itself belongs to the same {keywordOf Lean.Parser.Term.do}`do` as the {keywordOf Lean.Parser.Term.doIf}`if`.
-If {keywordOf Lean.Parser.Term.do}`do` blocks that occurred as items in other {keywordOf Lean.Parser.Term.do}`do` blocks instead created new blocks, then the example would output {lean}`7`.
+If {keywordOf Lean.Parser.Term.do}`do` blocks that occurred as elements in other {keywordOf Lean.Parser.Term.do}`do` blocks instead created new blocks, then the example would output {lean}`7`.
 :::
 ::::
 
