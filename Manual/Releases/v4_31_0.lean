@@ -12,6 +12,7 @@ open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
+open Lean.MessageSeverity
 
 #doc (Manual) "Lean 4.31.0-rc2 (2026-06-04)" =>
 %%%
@@ -35,21 +36,11 @@ and 48 other changes.
 
 # Highlights
 
-Lean 4.31.0 is a consolidation-heavy release: alongside a handful of new user-facing features — `while let` in `do` blocks, explicit universe levels in field and dot notation, and richer editor hovers — it lands a large, coordinated effort to make definitional-equality checking properly respect transparency levels, a faster and reimplemented `mvcgen'`, and broad performance work including an LLVM 22 upgrade.
+Lean 4.31.0 is a consolidation-heavy release: alongside a handful of new user-facing features — `do` blocks elaboration, Lake built-in linting, and richer editor hovers — it lands a large, coordinated effort to make definitional-equality checking properly respect transparency levels, a faster and reimplemented `mvcgen'`, significant development in libraries including HTTP, and broad performance work including an LLVM 22 upgrade.
 
-## Editor and UX Improvements
+## `do` Notation: New Loop Forms and New Elaborator
 
-Several changes make the interactive experience more informative.
-
-[#13446](https://github.com/leanprover/lean4/pull/13446) substantially improves how metavariables are displayed in the Infoview. Hovers now explain what a metavariable is, whether it is a blocked delayed assignment and which metavariables it is blocked on, and how its local context differs from the ambient one. Inaccessible named metavariables now pretty print with tombstones, and delayed-assignment pretty printing more reliably follows chains of assignments to the pending metavariable.
-
-[#13260](https://github.com/leanprover/lean4/pull/13260) adds server-side support for *incremental diagnostics*. Previously, reporting diagnostics while a file was being processed required re-sending the full set each time, a quadratic amount of work over the course of a file. Clients that advertise `incrementalDiagnosticSupport` now receive a `PublishDiagnosticsParams.isIncremental` flag telling them to append rather than replace, eliminating the quadratic reporting. A client-side implementation for the VS Code extension is tracked in [vscode-lean4#752](https://github.com/leanprover/vscode-lean4/pull/752).
-
-Hovers are also more precise in more places: compound field names in structure instance notation such as `x.fst` now attach information to `x` and `fst` separately ([#13728](https://github.com/leanprover/lean4/pull/13728)), `for h : x in xs do` loop variables and membership proofs report their types ([#13399](https://github.com/leanprover/lean4/pull/13399)), and the function name in `fun_induction` is hoverable ([#13678](https://github.com/leanprover/lean4/pull/13678)). The `unusedVariables` linter message is also clearer ([#13715](https://github.com/leanprover/lean4/pull/13715)).
-
-## `do` Notation: `while let` and Verifiable Loops
-
-[#13534](https://github.com/leanprover/lean4/pull/13534) generalizes the `while` condition in `do` blocks to accept any condition form already allowed by `if`. In addition to `while c do …` and `while h : c do …`, you can now write:
+The `while` condition in `do` blocks now accepts any condition form already allowed by `if` ([#13534](https://github.com/leanprover/lean4/pull/13534)). In addition to `while c do …` and `while h : c do …`, you can now match against a pattern, binding either with `:=` or with `←`:
 
 ```
 while let some x := stack.pop? do
@@ -59,17 +50,32 @@ while let .ok line ← readLine? do
   handle line
 ```
 
-[#13209](https://github.com/leanprover/lean4/pull/13209) and [#13689](https://github.com/leanprover/lean4/pull/13689) make `repeat`/`while` loops *verifiable*. They introduce `whileM`, a counterpart to `Lean.Loop.forIn` that admits a one-step unfolding lemma `whileM_eq` (impossible to state for the original `partial def`). Existing `repeat`/`while` loops now expand through `whileM` without source changes, and the accompanying `@[spec]` theorems let `mvcgen`/`mvcgen'` discharge loop bodies given a termination measure and an invariant.
+`repeat`/`while` loops also became *verifiable* ([#13209](https://github.com/leanprover/lean4/pull/13209)). They now expand through a new `whileM` combinator that admits a one-step unfolding lemma `whileM_eq`. Existing loops keep working without source changes, and the accompanying `@[spec]`. See also [#13689](https://github.com/leanprover/lean4/pull/13689) / [#13442](https://github.com/leanprover/lean4/pull/13442) / [#13447](https://github.com/leanprover/lean4/pull/13447).
 
-The new `do` elaborator also produces much better diagnostics: confusing result-type mismatch errors now point at the offending `do` element and describe the actual type mismatch rather than mentioning internal artifacts like `PUnit.unit` ([#13404](https://github.com/leanprover/lean4/pull/13404)), and pattern mistakes report the same precise errors as ordinary `match` patterns instead of a catch-all “unsupported pattern” message ([#13542](https://github.com/leanprover/lean4/pull/13542)). Configuration options like `(eq := h)`, `+nondep`, and `+zeta` are now accepted on `do`-block `let`/`have` ([#13255](https://github.com/leanprover/lean4/pull/13255)).
+At the same time, the new `do` elaborator (accessible via `set_option backward.do.legacy false`) is also being developed: beyond extensibility, it already produces more precise and more actionable diagnostics:
 
-## Explicit Universe Levels in Field and Dot Notation
+```lean (name := newDo)
+set_option backward.do.legacy false in
+example : IO Nat := do
+  return 5
+  IO.println "never runs"
+```
+```leanOutput newDo (severity := warning)
+This `do` element and its control-flow region are dead code. Consider removing it.
+```
 
-[#13262](https://github.com/leanprover/lean4/pull/13262) extends Lean's syntax to allow explicit universe levels in field-projection expressions such as `e.f.{u,v}`, `(f e).g.{u}`, and `e |>.f.{u,v} x y z`. It also fixes a parsing bug where universe levels were attributed to the wrong expression — for example, `x.f.{u}` was previously interpreted as `x.{u}.f`.
+The legacy elaborator instead rejects the same program with a coarser, purely structural error:
 
-Complementing this, [#13245](https://github.com/leanprover/lean4/pull/13245) extends dotted function notation (`.f`) with explicit-mode and explicit-universe forms: `@.f`, `.f.{u,v}`, and `@.f.{u,v}`.
+```lean +error (name := oldDo)
+example : IO Nat := do
+  return 5
+  IO.println "never runs"
+```
+```leanOutput oldDo (severity := error)
+must be last element in a `do` sequence
+```
 
-*Breaking change:* top-level declarations no longer allow whitespace between the identifier and its universe-level list (e.g. write `def f.{u}`, not `def f .{u}`).
+Related development in [#13404](https://github.com/leanprover/lean4/pull/13404) / [#13542](https://github.com/leanprover/lean4/pull/13542) / [#13491](https://github.com/leanprover/lean4/pull/13491) / [#13494](https://github.com/leanprover/lean4/pull/13494) / [#13502](https://github.com/leanprover/lean4/pull/13502) / [#13506](https://github.com/leanprover/lean4/pull/13506) / [#13486](https://github.com/leanprover/lean4/pull/13486) / [#13397](https://github.com/leanprover/lean4/pull/13397) / [#13396](https://github.com/leanprover/lean4/pull/13396) / [#13399](https://github.com/leanprover/lean4/pull/13399) / [#13413](https://github.com/leanprover/lean4/pull/13413) / [#13434](https://github.com/leanprover/lean4/pull/13434) / [#13437](https://github.com/leanprover/lean4/pull/13437) / [#13507](https://github.com/leanprover/lean4/pull/13507) / [#13255](https://github.com/leanprover/lean4/pull/13255) / [#13250](https://github.com/leanprover/lean4/pull/13250).
 
 ## Monadic Program Verification: `mvcgen'`
 
@@ -77,18 +83,34 @@ Work continues on the monadic verification framework. [#12965](https://github.co
 
 Building on this, [#13644](https://github.com/leanprover/lean4/pull/13644) adds the experimental `mvcgen'` tactic, a from-scratch reimplementation of `mvcgen` on the new `SymM`-based symbolic-evaluation framework. It can outperform {tactic}`mvcgen` by a factor of over 100x on some synthetic benchmarks and aspires to be feature-complete with it. `mvcgen'` can also be used as a step inside interactive `sym => …` blocks, where leftover verification conditions become subgoals for subsequent `grind` steps ([#13680](https://github.com/leanprover/lean4/pull/13680)).
 
-## More Helpful `try?`
+## Transparency and Defeq Discipline
 
-[#13430](https://github.com/leanprover/lean4/pull/13430) makes an empty `by` block run {tactic}`grind`-style suggestion search (`try?`) in the background and surface its suggestions, while still producing the usual unsolved-goals diagnostic. This is opt-in for now via `set_option tactic.tryOnEmptyBy true`; the default may flip in a future release.
+A cross-cutting theme of this release is making definitional-equality checking properly respect *transparency*: how aggressively Lean unfolds definitions when deciding whether two terms are *definitionally equal*. A plain `def` is defeq to its body at `.default` transparency, but `simp`/`dsimp` operate at the lower `.reducible` level, where it does not unfold:
 
-[#13771](https://github.com/leanprover/lean4/pull/13771) adds an `impossible by t` combinator, wired into `try?`'s default suggestion set. It uses tactic `t` to prove the current goal is impossible; existential witnesses in the goal become named hypotheses that `t` can `intro`/`cases` directly:
+```lean +error
+def x : Nat := 5
 
+-- `rfl` checks defeq at `.default` transparency, so it closes the goal:
+example : x = 5 := rfl
+
+-- but `with_reducible` (where `simp`/`dsimp` run) won't unfold it:
+example : x = 5 := by with_reducible refl
+
+-- and `simp`/`dsimp` does not work either:
+example : x = 5 := by simp
 ```
-example : ∃ x, x * x = 2 := by
-  refine Exists.intro ?w ?h
-  case h => impossible by intro hx; cases w <;> grind
-  case w => exact 0
+
+Previously such transparency mismatches were common and hard to diagnose. The usual fix is to let the constant unfold at the lower transparency by marking it `@[reducible]`:
+
+```lean (name := defeqFix)
+@[reducible] def y : Nat := 5
+example : y = 5 := by with_reducible rfl
+example : y = 5 := by simp
 ```
+
+*Migration:* if proofs break under the stricter regime, the most common fixes are to scope `set_option backward.defeqAttrib.useBackward true in` over the affected declaration, switch `simpa using` to `simpa using!`, mark the relevant constants `@[implicit_reducible]`, or add the now-required projections explicitly to `simp`/`dsimp` calls. The diagnostics above (and `set_option diagnostics true` with `set_option trace.diagnostics true`) help locate the affected spots.
+
+Related development: [#13492](https://github.com/leanprover/lean4/pull/13492) / [#13363](https://github.com/leanprover/lean4/pull/13363) / [#13281](https://github.com/leanprover/lean4/pull/13281) / [#13512](https://github.com/leanprover/lean4/pull/13512) / [#13636](https://github.com/leanprover/lean4/pull/13636) / [#13833](https://github.com/leanprover/lean4/pull/13833) / [#13317](https://github.com/leanprover/lean4/pull/13317) / [#13368](https://github.com/leanprover/lean4/pull/13368) / [#13793](https://github.com/leanprover/lean4/pull/13793) / [#13280](https://github.com/leanprover/lean4/pull/13280) / [#13768](https://github.com/leanprover/lean4/pull/13768) / [#13772](https://github.com/leanprover/lean4/pull/13772).
 
 ## Deprecating Modules, Syntax, and Options
 
@@ -123,7 +145,7 @@ This release includes broad performance work:
 
 ## Library Highlights
 
-The standard HTTP library introduced last release grows into a working server: [#12146](https://github.com/leanprover/lean4/pull/12146) adds the `H1` pure HTTP/1.1 state machine and [#12151](https://github.com/leanprover/lean4/pull/12151) adds an async HTTP/1.1 `Server`, and [#13511](https://github.com/leanprover/lean4/pull/13511) graduates the `Async` and `Http` modules out of `Internal` into `Std`.
+The standard HTTP library introduced last release grows into a working server: [#12146](https://github.com/leanprover/lean4/pull/12146) adds the `H1` pure HTTP/1.1 state machine and [#12151](https://github.com/leanprover/lean4/pull/12151) adds an async HTTP/1.1 `Server`. Importantly, [#13511](https://github.com/leanprover/lean4/pull/13511) graduates the `Async` and `Http` modules out of `Internal` into `Std`.
 
 Other notable library additions:
 
@@ -134,19 +156,11 @@ Other notable library additions:
 
 A number of runtime robustness fixes also turn previously silent memory-exhaustion failures into proper errors or panics instead of segfaults and corruption ([#13392](https://github.com/leanprover/lean4/pull/13392), [#13546](https://github.com/leanprover/lean4/pull/13546), [#13547](https://github.com/leanprover/lean4/pull/13547), [#13548](https://github.com/leanprover/lean4/pull/13548), [#13549](https://github.com/leanprover/lean4/pull/13549), [#13521](https://github.com/leanprover/lean4/pull/13521)). For security-sensitive deployments, [#13401](https://github.com/leanprover/lean4/pull/13401) adds a `LEAN_MI_SECURE` build option enabling additional mimalloc memory-safety mitigations.
 
-## Transparency and Defeq Discipline
+## Editor and UX Improvements
 
-A major, cross-cutting theme of this release is making definitional-equality checking — `isDefEq`, {tactic}`dsimp`, and the `rfl`-closing parts of {tactic}`simp` — properly respect transparency levels. Previously it was common for a definitional equality to hold only at a higher transparency than the one `dsimp`/`simp` actually operate at, leading to brittle, hard-to-diagnose proof failures. The pieces fit together as follows:
+[#13260](https://github.com/leanprover/lean4/pull/13260) adds server-side support for *incremental diagnostics*. Previously, reporting diagnostics while a file was being processed required re-sending the full set each time, a quadratic amount of work over the course of a file. Clients that advertise `incrementalDiagnosticSupport` now receive a `PublishDiagnosticsParams.isIncremental` flag telling them to append rather than replace, eliminating the quadratic reporting. A client-side implementation for the VS Code extension is tracked in [vscode-lean4#752](https://github.com/leanprover/vscode-lean4/pull/752).
 
-- [#13492](https://github.com/leanprover/lean4/pull/13492) makes inference of the `@[defeq]` attribute stricter: a theorem is now tagged `@[defeq]` only when it holds at `.instances` transparency. The companion `@[backward_defeq]` attribute captures the old, more permissive set, and the option `backward.defeqAttrib.useBackward` (default `false`) restores the previous behavior for a specific proof or file. Because the option is *equation-affecting*, its value at a function's definition site is recorded and reused when that function's equation lemmas are later generated.
-- [#13363](https://github.com/leanprover/lean4/pull/13363) replaces a `.reducible` → `.instances` transparency bump in `whnfMatcher` with an explicit allowlist, so marking a definition `@[implicit_reducible]` no longer silently changes match-discriminant reduction. [#13281](https://github.com/leanprover/lean4/pull/13281) and [#13512](https://github.com/leanprover/lean4/pull/13512) make related adjustments to match auxiliaries and equation generation.
-- [#13636](https://github.com/leanprover/lean4/pull/13636) makes {tactic}`simpa`'s `using h` close the goal at *reducible* transparency, making it more predictable under changes to the simp set. The previous behavior is available as `simpa using! h` ([#13833](https://github.com/leanprover/lean4/pull/13833)).
-- New diagnostics help find affected code: an opt-in linter (`set_option simp.rfl.checkTransparency true`) flags `rfl` simp theorems that only hold at higher transparency ([#13317](https://github.com/leanprover/lean4/pull/13317)), and tactics like `unfold` now attach a note explaining when they have left the goal type-correct only at `.default` transparency ([#13368](https://github.com/leanprover/lean4/pull/13368), [#13793](https://github.com/leanprover/lean4/pull/13793)).
-- The option `backward.isDefEq.respectTransparency.types` ([#13280](https://github.com/leanprover/lean4/pull/13280), default `false` for now) tightens metavariable type-checking to `.instances` transparency.
-
-This effort also surfaced two long-standing `Meta.Config` cache-key bugs, where the transparency field overlapped the `foApprox` bit ([#13768](https://github.com/leanprover/lean4/pull/13768)) and `zetaUnused` was omitted entirely ([#13772](https://github.com/leanprover/lean4/pull/13772)); both could return stale `isDefEq`/`WHNF` cache results.
-
-*Migration:* if proofs break under the stricter regime, the most common fixes are to scope `set_option backward.defeqAttrib.useBackward true in` over the affected declaration, switch `simpa using` to `simpa using!`, mark the relevant constants `@[implicit_reducible]`, or add the now-required projections explicitly to `simp`/`dsimp` calls. The diagnostics above (and `set_option diagnostics true` with `set_option trace.diagnostics true`) help locate the affected spots.
+There is also significant development in the display of metavariables ([#13446](https://github.com/leanprover/lean4/pull/13446)) and hovering ([#13728](https://github.com/leanprover/lean4/pull/13728) / [#13399](https://github.com/leanprover/lean4/pull/13399) / [#13678](https://github.com/leanprover/lean4/pull/13678) / [#13715](https://github.com/leanprover/lean4/pull/13715)).
 
 ## Breaking Changes
 
