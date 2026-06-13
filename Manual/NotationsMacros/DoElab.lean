@@ -516,34 +516,41 @@ syntax (name := doOnce) "once " doSeq : doElem
 ```
 Its control info is based on that of the body.
 A {keywordOf doOnce}`once` never breaks or continues itself, because it handles {keywordOf Lean.Parser.Term.doBreak}`break` and {keywordOf Lean.Parser.Term.doContinue}`continue` in its body; thus, it sets {name ControlInfo.breaks}`breaks` and {name ControlInfo.continues}`continues` to {lean}`false`.
-The value of {name ControlInfo.numRegularExits}`numRegularExits` is the number of times that the resulting code can invoke the surrounding elaboration continuation; here, it considers both {keywordOf Lean.Parser.Term.doBreak}`break` and {keywordOf Lean.Parser.Term.doContinue}`continue` to each count as two exits.
-The number of exits is used to decide whether to avoid duplicating the continuation in cases where it is reused; in practice, the framework checks whether {name ControlInfo.numRegularExits}`numRegularExits` is greater than 1.
-Returning {lean}`2` when the body breaks or continues is an overapproximation that is safe even when the body has no other exits.
+{name ControlInfo.numRegularExits}`numRegularExits` is the number of times that control can reach the code following the {keywordOf doOnce}`once`.
+The body's normal fallthrough, {keywordOf Lean.Parser.Term.doBreak}`break`, and {keywordOf Lean.Parser.Term.doContinue}`continue` all transfer control to the end of the loop, so control leaves a {keywordOf doOnce}`once` at most once.
+{name ControlInfo.numRegularExits}`numRegularExits` is therefore {lean}`1` when the body can exit in any of these ways and {lean}`0` otherwise, in which case {name ControlInfo.noFallthrough}`noFallthrough` is set.
 ```lean
 @[doElem_control_info doOnce]
 def inferOnce : ControlInfoHandler := fun stx => do
   let `(doElem| once $body) := stx | throwUnsupportedSyntax
   let bodyInfo ← InferControlInfo.ofSeq body
-  let numRegularExits :=
-    bodyInfo.numRegularExits
-      + (if bodyInfo.breaks then 2 else 0)
-      + (if bodyInfo.continues then 2 else 0)
+  let exits :=
+    bodyInfo.numRegularExits > 0 ||
+    bodyInfo.breaks ||
+    bodyInfo.continues
   return { bodyInfo with
     breaks := false
     continues := false
-    numRegularExits
-    noFallthrough := numRegularExits == 0
+    numRegularExits := if exits then 1 else 0
+    noFallthrough := !exits
   }
 ```
 The actual elaborator for {keywordOf doOnce}`once` uses {name Lean.Elab.Do.enterLoopBody}`enterLoopBody` to associate the elaborator's overall continuation with the {keywordOf Lean.Parser.Term.doBreak}`break` and {keywordOf Lean.Parser.Term.doContinue}`continue` continuations inside the body.
-Because the overall continuation is used multiple times, {name Lean.Elab.Do.DoElemCont.withDuplicableCont}`DoElemCont.withDuplicableCont` is used to ensure that it can be duplicated without code explosion.
+Because the elaborated body can reach that continuation from several places, the elaborator counts these uses.
+The body's control info does not indicate how many times {keywordOf Lean.Parser.Term.doBreak}`break` and {keywordOf Lean.Parser.Term.doContinue}`continue` may be invoked, so they are approximated as two exits each, safely ensuring that the continuation will be duplicated if either is used.
+The total approximated use count is passed to {name Lean.Elab.Do.DoElemCont.withDuplicableCont}`DoElemCont.withDuplicableCont`, which shares the continuation rather than duplicating it at each use when the use count is greater than one, and so avoids code explosion.
+It computes this count from the body directly, since the value reported by the control info handler is at most {lean}`1` and does not reflect the number of internal uses.
 ```lean
 @[doElem_elab doOnce]
 def elabOnce : DoElab := fun stx dec => do
   let `(doElem| once $body) := stx | throwUnsupportedSyntax
   let dec ← dec.ensureUnit
-  let info ← inferControlInfoElem stx
-  dec.withDuplicableCont info fun dec => do
+  let bodyInfo ← InferControlInfo.ofSeq body
+  let numRegularExits :=
+    bodyInfo.numRegularExits +
+    (if bodyInfo.breaks then 2 else 0) +
+    (if bodyInfo.continues then 2 else 0)
+  dec.withDuplicableCont { bodyInfo with numRegularExits } fun dec => do
     let returnCont ← getReturnCont
     let exitCont := dec.continueWithUnit
     enterLoopBody exitCont exitCont returnCont do
