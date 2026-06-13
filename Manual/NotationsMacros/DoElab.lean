@@ -446,7 +446,7 @@ def elabAbsurd : DoElab := fun stx dec => do
   let proof ← elabTermEnsuringType proofStx (mkConst ``False)
   dec.elabAsSyntacticallyDeadCode
   let ty ← mkMonadApp (← read).doBlockResultType
-  return (← Meta.mkAppM ``False.elim #[ty, proof])
+  return (← Meta.mkAppOptM ``False.elim #[some ty, some proof])
 ```
 
 {keywordOf doAbsurd}`absurd` allows the accumulated information from the nested conditionals to rule out the {keywordOf Lean.Parser.Term.doIf}`else` clause as unreachable:
