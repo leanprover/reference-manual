@@ -38,6 +38,8 @@ and 48 other changes.
 
 Lean 4.31.0 is a consolidation-heavy release: alongside a handful of new user-facing features — `do` blocks elaboration, Lake built-in linting, and richer editor hovers — it lands a large, coordinated effort to make definitional-equality checking properly respect transparency levels, a faster and reimplemented `mvcgen'`, significant development in libraries including HTTP, and broad performance work including an LLVM 22 upgrade.
 
+_This highlights section was contributed by Juanjo Madrigal._
+
 ## `do` Notation: New Loop Forms and New Elaborator
 
 The `while` condition in `do` blocks now accepts any condition form already allowed by `if` ([#13534](https://github.com/leanprover/lean4/pull/13534)). In addition to `while c do …` and `while h : c do …`, you can now match against a pattern, binding either with `:=` or with `←`:
