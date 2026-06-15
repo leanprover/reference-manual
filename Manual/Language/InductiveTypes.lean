@@ -461,7 +461,9 @@ tag := "inductive-types-ffi"
 
 From the perspective of C, these other inductive types are represented by {C}`lean_object *`.
 Each constructor is stored as a {C}`lean_ctor_object`, and {C}`lean_is_ctor` will return true.
-The exact field layout is implementation-defined; constructor objects should only ever be created, and their fields accessed, by `@[export]`ing a corresponding function from Lean.
+The exact field layout is implementation-defined.
+Constructor objects should only be created or unpacked by functions defined in Lean code.
+These functions can be made available to C via the {attr}`export` attribute.
 
 
 # Mutual Inductive Types
