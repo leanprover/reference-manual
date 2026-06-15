@@ -14,16 +14,11 @@ open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 open Lean.MessageSeverity
 
-#doc (Manual) "Lean 4.31.0-rc2 (2026-06-04)" =>
+#doc (Manual) "Lean 4.31.0 (2026-06-13)" =>
 %%%
 tag := "release-v4.31.0"
 file := "v4.31.0"
 %%%
-
-:::warn
-These release notes describe a _release candidate_, not the final release.
-They may be incomplete and are subject to change.
-:::
 
 For this release, 305 changes landed.
 In addition to the 105 feature additions,
