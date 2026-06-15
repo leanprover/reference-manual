@@ -20,589 +20,1126 @@
  "987": "<code>Squash α</code>",
  "986":
  "<code>Squash.mk.{u} {α : Sort u} (x : α) : Squash α</code><span class=\"sep\"></span><code class=\"docstring\">Places a value into its squash type, in which it cannot be distinguished from any other.\n</code>",
+ "9854":
+ "<code>snd_eq.{u_1, u_2} {α : Type u_1} {β : Type u_2} (a : α) (b : β) : snd (a, b) = b</code>",
+ "9853":
+ "<code>snd.{u_1, u_2} {α : Type u_1} {β : Type u_2} (p : α × β) : β</code>",
+ "9852": "<code>fMono {x y : Nat} : x ≤ y → f x ≤ f y</code>",
+ "9851":
+ "<code>experimental.module</code><span class=\"sep\"></span><code class=\"docstring\">no-op, deprecated</code>",
+ "9850": "<code>pow2 : Nat → Nat</code>",
  "985":
  "<code>Nonempty.rec.{u} {α : Sort u} {motive : Nonempty α → Prop} (intro : ∀ (val : α), motive ⋯) (t : Nonempty α) : motive t</code>",
+ "9849":
+ "<code class=\"docstring\">`finish` tries to close the current goal using `grind`'s default strategy </code>",
+ "9848":
+ "<code class=\"docstring\">Shows equivalence classes of terms. </code>",
+ "9847":
+ "<code class=\"docstring\">Instantiates theorems using E-matching.\nThe `approx` modifier is just a marker for users to easily identify automatically generated `instantiate` tactics\nthat may have redundant arguments.\n</code>",
+ "9846":
+ "<code class=\"docstring\">`sym` enters an interactive symbolic simulation mode built on `grind`.\nUnlike `grind =&gt;`, it does not eagerly introduce hypotheses or apply by-contradiction,\ngiving the user explicit control over `intro`, `apply`, and `internalize` steps.\n\nExample:\n```\nexample (x : Nat) : myP x → myQ x := by\n  sym [myP_myQ] =&gt;\n    intro h\n    finish\n```\n</code>",
+ "9845": "<code>f a = f b</code>",
+ "9844": "<code>∀ (x y : Nat), f x = f y → x = y</code>",
+ "9843": "<code>y : Nat</code>",
+ "9842": "<code>x : Nat</code>",
+ "9841":
+ "<code><span class=\"literal string\">\"never runs\"</span> : String</code>",
+ "9840": "<code>size₂</code>",
  "984":
  "<code>Squash.lift.{u_1, u_2} {α : Sort u_1} {β : Sort u_2} [Subsingleton β] (s : Squash α) (f : α → β) : β</code><span class=\"sep\"></span><code class=\"docstring\">Extracts a squashed value into any subsingleton type.\n\nIf `β` is a subsingleton, a function `α → β` cannot distinguish between elements of `α` and thus\nautomatically respects the universal relation that `Squash` quotients with.\n</code>",
+ "9839": "<code>α₂</code>",
+ "9838":
+ "<code>thisAlsoWorks.{u_1, u_2} {α₂ : Sort u_1} {size₂ : Sort u_2} (x : α₂) (y : size₂) : Unit</code>",
+ "9837": "<code>size₁</code>",
+ "9836":
+ "<code>thisWorks.{u_1, u_2} {α₁ : Sort u_1} {size₁ : Sort u_2} (x : α₁) (y : size₁) : Unit</code>",
+ "9835":
+ "<code>thisAlsoBreaks.{u_1, u_2} (x : sorry) (y : sorry) : Unit</code>",
+ "9834": "<code>α₁</code>",
+ "9833":
+ "<code>thisBreaks.{u_1, u_2} {α₁ : Sort u_1} (x : α₁) (y : sorry) : Unit</code>",
+ "9832": "<code>disjoinToNat (b₁ b₂ : Bool) : Nat</code>",
+ "9831": "<code>A.x : Unit</code>",
+ "9830": "<code>red : Color</code>",
  "983":
  "<code>Nonempty.{u} (α : Sort u) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`Nonempty α` is a typeclass that says that `α` is not an empty type,\nthat is, there exists an element in the type. It differs from `Inhabited α`\nin that `Nonempty α` is a `Prop`, which means that it does not actually carry\nan element of `α`, only a proof that *there exists* such an element.\nGiven `Nonempty α`, you can construct an element of `α` *nonconstructively*\nusing `Classical.choice`.\n</code>",
+ "9829": "<code>Color.grayscale (k : Nat) : Color</code>",
+ "9828": "<code>Color.rgb (r g b : Nat) : Color</code>",
+ "9827": "<code>Color : Type</code>",
+ "9826":
+ "<code>Lean.ToJson.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">Types that can be encoded as JSON.\n\nUse `deriving ToJson`\nto [automatically generate](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=deriving-instances) an instance.\nThe following encoding strategy is employed by auto-generated instances:\n\n* Basic types corresponding to JSON values are encoded as these values.\n\n  * `Bool` is encoded as `true`/`false`.\n\n  * `String`s are encoded as JSON strings.\n\n  * Numeric types are encoded as JSON numbers, with the exception of:\n\n    * `UInt64` and `USize`\n            which are encoded as JSON strings.\n            This is because, although JSON numbers proper have unbounded range,\n            in JavaScript they are parsed as [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)s\n            and these can only represent integers up to $2^{53} - 1$ safely;\n            so a roundtrip through JavaScript would result in truncation on these types.\n            \\(We use these types in the JavaScript-based Lean infoview.\\)\n\n    * Special `Float`s which are encoded as JSON strings:\n            `\"NaN\"`/`\"Infinity\"`/`\"-Infinity\"`.\n\n* `Unit` is encoded as `{}` \\(empty JSON object\\).\n\n* `Array`s and `List`s are encoded as JSON arrays.\n\n* `Option.none` is encoded as `null`,\n    whereas  `some a` has the same encoding as `a`.\n    Note that this implies `Option (Option α)` does not roundtrip,\n    since `none` and `some none` both become `null`.\n\n* General `structure`s are encoded as JSON objects in the obvious way.\n\n  * `Option` fields whose names end with `?` have special support:\n        the question mark is omitted from the JSON field name,\n        and such a field is omitted from the JSON object when its value is `none`\n        \\(as opposed to being encoded as `{ \"someField\": null }`\\).\n\n* General `inductive` types are encoded on a per-constructor basis.\n\n  * An argument-free constructor is encoded as its name \\(a JSON string\\).\n\n  * A constructor with named arguments only is encoded as the JSON object\n        `{ \"ctorName\": { \"arg1\": argVal1, ..., \"argN\": argValN } }`.\n\n  * A constructor with one unnamed argument is encoded as the JSON object\n        `{ \"ctorName\": argVal }`.\n\n  * A constructor with more than one unnamed argument is encoded as the JSON object\n        `{ \"ctorName\": [argVal1, ..., argValN] }`.\n\n* Certain other types have special handling: see the instances below. </code>",
+ "9825":
+ "<code>MyColor</code><span class=\"sep\"></span><code class=\"docstring\">`default` is a function that produces a \"default\" element of any\n`Inhabited` type. This element does not have any particular specified\nproperties, but it is often an all-zeroes value. </code>",
+ "9824": "<code>Option MyColor</code>",
+ "9823": "<code>forceColor (oc : Option MyColor) : MyColor</code>",
+ "9822": "<code>MyColor.thistle : MyColor</code>",
+ "9821": "<code>MyColor.sienna : MyColor</code>",
+ "9820": "<code>MyColor.chartreuse : MyColor</code>",
  "982":
  "<code>Squash.{u} (α : Sort u) : Sort u</code><span class=\"sep\"></span><code class=\"docstring\">The quotient of `α` by the universal relation. The elements of `Squash α` are those of `α`, but all\nof them are equal and cannot be distinguished.\n\n`Squash α` is a `Subsingleton`: it is empty if `α` is empty, otherwise it has just one element. It\nis the “universal `Subsingleton`” mapped from `α`.\n\n`Nonempty α` also has these properties. It is a proposition, which means that its elements (i.e.\nproofs) are erased from compiled code and represented by a dummy value. `Squash α` is a `Type u`,\nand its representation in compiled code is identical to that of `α`.\n\nConsequently, `Squash.lift` may extract an `α` value into any subsingleton type `β`, while\n`Nonempty.rec` can only do the same when `β` is a proposition.\n\n`Squash` is defined in terms of `Quotient`, so `Squash` can be used when a `Quotient` argument is\nexpected.\n</code>",
+ "9819": "<code>MyColor : Type</code>",
+ "9818":
+ "<code><span class=\"literal string\">\"3meters\"</span> : String</code>",
+ "9817":
+ "<code><span class=\"literal string\">\"meters\"</span> : String</code>",
+ "9816": "<code>x : Int</code>",
+ "9815": "<code><span class=\"literal string\">\"A3\"</span> : String</code>",
+ "9814": "<code><span class=\"literal string\">\"3\"</span> : String</code>",
+ "9813": "<code><span class=\"literal string\">\"A\"</span> : String</code>",
+ "9812": "<code>seconds.{u_1} {α : Type u_1} : List (List α) → List α</code>",
+ "9811":
+ "<code>Exists.elim.{u} {α : Sort u} {p : α → Prop} {b : Prop} (h₁ : ∃ x, p x) (h₂ : ∀ (a : α), p a → b) : b</code>",
+ "9810": "<code>(x : α) ×' p x</code>",
  "981":
  "<code>congrArg.{u, v} {α : Sort u} {β : Sort v} {a₁ a₂ : α} (f : α → β) (h : a₁ = a₂) : f a₁ = f a₂</code><span class=\"sep\"></span><code class=\"docstring\">Congruence in the function argument: if `a₁ = a₂` then `f a₁ = f a₂` for\nany (nondependent) function `f`. This is more powerful than it might look at first, because\nyou can also use a lambda expression for `f` to prove that\n`&lt;something containing a₁&gt; = &lt;something containing a₂&gt;`. This function is used\ninternally by tactics like `congr` and `simp` to apply equalities inside\nsubterms.\n\nFor more information: [Equality](https://lean-lang.org/theorem_proving_in_lean4/quantifiers_and_equality.html#equality)\n</code>",
+ "9809":
+ "<code>getWitness.{u} {α : Type u} {p : α → Prop} (h : (x : α) ×' p x) : α</code>",
+ "9808": "<code>∀ (x : α), p x → q</code>",
+ "9807":
+ "<code>useWitness.{u} {α : Type u} {p : α → Prop} {q : Prop} (h : ∃ x, p x) (hq : ∀ (x : α), p x → q) : q</code>",
+ "9806": "<code>p x</code>",
+ "9805": "<code>(x : α) → (h : p x) → motive ⋯</code>",
+ "9804": "<code>(∃ x, p x) → Sort ?u.11</code>",
+ "9803": "<code>∃ x, p x</code>",
+ "9802":
+ "<code>getWitness.{u} {α : Type u} {p : α → Prop} (h : ∃ x, p x) : α</code>",
+ "9801": "<code>(x : α) → motive ⋯</code>",
+ "9800": "<code>Nonempty α → Sort ?u.14</code>",
  "980": "<code>Quot.mk extEq f = Quot.mk extEq g</code>",
  "98": "<code>Quadrant.nw : Quadrant</code>",
+ "9799": "<code>w &gt; a + 1</code>",
+ "9798":
+ "<code>Nat.lt_of_succ_lt {n m : Nat} : n.succ &lt; m → n &lt; m</code>",
+ "9797": "<code>∃ x, x &gt; a + 1</code>",
+ "9796":
+ "<code>Std.Time.Internal.Bounded.LE.succ {lo hi : Int} (bounded : Std.Time.Internal.Bounded.LE lo hi) (h : bounded.val &lt; hi) :\n  Std.Time.Internal.Bounded.LE lo hi</code><span class=\"sep\"></span><code class=\"docstring\">Adds one to the value of the bounded if the value is less than the higher bound of the bounded number.\n</code>",
+ "9795":
+ "<code>Lean.Level.PP.Result.succ : Lean.Level.PP.Result → Lean.Level.PP.Result</code>",
+ "9794":
+ "<code>Std.PRange.UpwardEnumerable.succ.{u} {α : Type u} [Std.PRange.UpwardEnumerable α]\n  [Std.PRange.InfinitelyUpwardEnumerable α] (a : α) : α</code><span class=\"sep\"></span><code class=\"docstring\">Maps elements of `α` to their immediate successor.\n</code>",
+ "9793": "<code>Lean.Level.succ : Lean.Level → Lean.Level</code>",
+ "9792": "<code>double_plus_one (x : Nat) : Nat</code>",
+ "9791": "<code><span class=\"literal char\">'&gt;'</span> : Char</code>",
+ "9790":
+ "<code>reverseDuplicate.{u_1} {α : Type u_1} (xs : List α) : List α</code>",
  "979": "<code>(fun x =&gt; f x) = fun x =&gt; g x</code>",
+ "9789":
+ "<code>Std.DTreeMap.Internal.Impl.Ordered.reverse.{u, v} {α : Type u} {β : α → Type v} [Ord α]\n  {t : Std.DTreeMap.Internal.Impl α β} (h : t.Ordered) : t.reverse.Ordered</code>",
+ "9788":
+ "<code>Std.Tactic.BVDecide.BVUnOp.reverse : Std.Tactic.BVDecide.BVUnOp</code><span class=\"sep\"></span><code class=\"docstring\">Reverse the bits in a bitvector.\n</code>",
+ "9787":
+ "<code>Std.DTreeMap.Internal.Impl.reverse.{u, v} {α : Type u} {β : α → Type v} :\n  Std.DTreeMap.Internal.Impl α β → Std.DTreeMap.Internal.Impl α β</code><span class=\"sep\"></span><code class=\"docstring\">Internal implementation detail of the tree map </code>",
+ "9786":
+ "<code>Lean.Grind.AC.Seq.reverse (s : Lean.Grind.AC.Seq) : Lean.Grind.AC.Seq</code><span class=\"sep\"></span><code class=\"docstring\">Reverses the sequence </code>",
+ "9785":
+ "<code>List.Sublist.reverse.{u_1} {α✝ : Type u_1} {l₁ l₂ : List α✝} : l₁.Sublist l₂ → l₁.reverse.Sublist l₂.reverse</code>",
+ "9784":
+ "<code>List.IsSuffix.reverse.{u_1} {α✝ : Type u_1} {l₁ l₂ : List α✝} : l₁ &lt;:+ l₂ → l₁.reverse &lt;+: l₂.reverse</code>",
+ "9783":
+ "<code>List.IsPrefix.reverse.{u_1} {α✝ : Type u_1} {l₁ l₂ : List α✝} : l₁ &lt;+: l₂ → l₁.reverse &lt;:+ l₂.reverse</code>",
+ "9782":
+ "<code>List.IsInfix.reverse.{u_1} {α✝ : Type u_1} {l₁ l₂ : List α✝} : l₁ &lt;:+: l₂ → l₁.reverse &lt;:+: l₂.reverse</code>",
+ "9781": "<code>emptyNats : List Nat</code>",
+ "9780": "<code>Person.familyName (self : Person) : String</code>",
  "978":
  "<code class=\"docstring\">The `dsimp` tactic is the definitional simplifier. It is similar to `simp` but only\napplies theorems that hold by reflexivity. Thus, the result is guaranteed to be\ndefinitionally equal to the input.\n</code>",
+ "9779": "<code>Person.givenName (self : Person) : String</code>",
+ "9778": "<code>n : Nat</code>",
+ "9777": "<code>m : Nat</code>",
+ "9776": "<code>plusTwo (x : Nat) : Nat</code>",
+ "9775": "<code>identity.{u_1} {α : Sort u_1} (x : α) : α</code>",
+ "9774":
+ "<code>RoseTree.All.intro.{u_1} {α : Type u_1} {P : α → Prop} {t : RoseTree α} :\n  P t.val → List.All (All P) t.children → All P t</code>",
+ "9773":
+ "<code>RoseTree.All.{u_1} {α : Type u_1} (P : α → Prop) : RoseTree α → Prop</code>",
+ "9772": "<code>{α : Type ?u.6} → (α → Prop) → RoseTree α → Prop</code>",
+ "9771": "<code>RoseTree α</code>",
+ "9770": "<code>{α : Type ?u.6} → (α → Prop) → RoseTree α → Prop</code>",
  "977":
  "<code>(fun x =&gt; Quot.lift (fun x_1 =&gt; x_1 x) ⋯ (Quot.mk extEq f)) = fun x =&gt; Quot.lift (fun x_1 =&gt; x_1 x) ⋯ (Quot.mk extEq g)</code>",
+ "9769":
+ "<code>RoseTree.children.{u} {α : Type u} (self : RoseTree α) : List (RoseTree α)</code>",
+ "9768": "<code>RoseTree.val.{u} {α : Type u} (self : RoseTree α) : α</code>",
+ "9767":
+ "<code>List.All.cons.{u} {α : Type u} {P : α → Prop} {x : α} {xs : List α} : P x → All P xs → All P (x :: xs)</code>",
+ "9766": "<code>List.All.nil.{u} {α : Type u} {P : α → Prop} : All P []</code>",
+ "9765":
+ "<code>List.All.{u} {α : Type u} (P : α → Prop) : List α → Prop</code>",
+ "9764":
+ "<code>Vec.cons {α : Type} {n : Nat} : α → Vec α n → Vec α (n + 1)</code>",
+ "9763": "<code>Vec.nil {α : Type} : Vec α 0</code>",
+ "9762": "<code>Vec (α : Type) : Nat → Type</code>",
+ "9761": "<code>Type → Nat → Type</code>",
+ "9760": "<code>Type → Nat → Type</code>",
  "976":
  "<code class=\"docstring\">* `unfold id` unfolds all occurrences of definition `id` in the target.\n* `unfold id1 id2 ...` is equivalent to `unfold id1; unfold id2; ...`.\n* `unfold id at h` unfolds at the hypothesis `h`.\n\nDefinitions can be either global or local definitions.\n\nFor non-recursive global definitions, this tactic is identical to `delta`.\nFor recursive global definitions, it uses the \"unfolding lemma\" `id.eq_def`,\nwhich is generated for each recursive definition, to unfold according to the recursive definition given by the user.\nOnly one level of unfolding is performed, in contrast to `simp only [id]`, which unfolds definition `id` recursively.\n</code>",
+ "9759": "<code>Nat.add_zero (n : Nat) : n + 0 = n</code>",
+ "9758": "<code>Nat.mul_succ (n m : Nat) : n * m.succ = n * m + n</code>",
+ "9757": "<code>0 * n = 0</code>",
+ "9756": "<code>Nat.mul_zero (n : Nat) : n * 0 = 0</code>",
+ "9755": "<code>zero_mul (m : Nat) : 0 * m = 0</code>",
+ "9754":
+ "<code>fromImage (f : Nat → Nat) (y : Nat) : Nat</code><span class=\"sep\"></span><code class=\"docstring\">Returns `y` if it is in the image of `f`,\nor an element of the image of `f` otherwise.\n</code>",
+ "9753": "<code>endsOrDefault (ns : List Nat) : Nat × Nat</code>",
+ "9752":
+ "<code>getOrDefault.{u_1} {α : Type u_1} [Inhabited α] : Option α → α</code>",
+ "9751":
+ "<code>Classical.ofNonempty.{u} {α : Sort u} [Nonempty α] : α</code><span class=\"sep\"></span><code class=\"docstring\">A variation on `Classical.choice` that uses typeclass inference to\ninfer the proof of `Nonempty α`.\n</code>",
+ "9750":
+ "<code>getOrDefault.{u_1} {α : Type u_1} [Nonempty α] : Option α → α</code>",
  "975": "<code>extApp (Quot.mk extEq f) = extApp (Quot.mk extEq g)</code>",
+ "9749": "<code>transformIfZero : Nat → Nat</code>",
+ "9748": "<code>transform : Nat → Nat</code>",
+ "9747": "<code>Credential.password (str : String) : Credential</code>",
+ "9746": "<code>Credential.pin (num : Nat) : Credential</code>",
+ "9745": "<code>Credential.password : String → Credential</code>",
+ "9744": "<code>Credential.pin : Nat → Credential</code>",
+ "9743": "<code>Credential : Type</code>",
+ "9742": "<code>Sort ?u.2</code>",
+ "9741": "<code>Tree.node {α : Type} : α → Tree α → Tree α</code>",
+ "9740": "<code>Tree.leaf {α : Type} : Tree α</code>",
  "974":
  "<code class=\"docstring\">Given a main goal `ctx ⊢ t`, `suffices h : t' from e` replaces the main goal with `ctx ⊢ t'`,\n`e` must have type `t` in the context `ctx, h : t'`.\n\nThe variant `suffices h : t' by tac` is a shorthand for `suffices h : t' from by tac`.\nIf `h :` is omitted, the name `this` is used.\n </code>",
+ "9739": "<code>Tree (α : Type) : Type</code>",
+ "9738": "<code>Type → Sort ?u.3</code>",
+ "9737": "<code>Type → Sort ?u.3</code>",
+ "9736": "<code>thmName : TheoremStatement</code>",
+ "9735":
+ "<code>debug.skipKernelTC</code><span class=\"sep\"></span><code class=\"docstring\">skip kernel type checker. WARNING: setting this option to true may compromise soundness because your proofs will not be checked by the Lean kernel</code>",
+ "9734": "<code>shell</code>",
+ "9733": "<code>command</code>",
+ "9732": "<code>path</code>",
+ "9731": "<code>local-name</code>",
+ "9730": "<code>toolchain</code>",
  "973":
  "<code>funext'.{u, v} {α : Sort u} {β : α → Sort v} {f g : (x : α) → β x} (h : ∀ (x : α), f x = g x) : f = g</code>",
+ "9729":
+ "<code>Lake.getAugmentedEnv.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] :\n  m (Array (String × Option String))</code><span class=\"sep\"></span><code class=\"docstring\">Returns the augmented environment variables set by the context's workspace. </code>",
+ "9728":
+ "<code>Lake.getAugmentedSharedLibPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the augmented shared library path set by the context's workspace. </code>",
+ "9727":
+ "<code>Lake.getAugmentedLeanSrcPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the augmented `LEAN_SRC_PATH` set by the context's workspace. </code>",
+ "9726":
+ "<code>Lake.getAugmentedLeanPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the augmented `LEAN_PATH` set by the context's workspace. </code>",
+ "9725":
+ "<code>Lake.getSharedLibPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the paths added to the shared library path by the context's workspace. </code>",
+ "9724":
+ "<code>Lake.getLeanSrcPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the paths added to `LEAN_SRC_PATH` by the context's workspace. </code>",
+ "9723":
+ "<code>Lake.getLeanPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the paths added to `LEAN_PATH` by the context's workspace. </code>",
+ "9722":
+ "<code>Lake.ExternLib : Type</code><span class=\"sep\"></span><code class=\"docstring\">An external library -- its package plus its configuration. </code>",
+ "9721":
+ "<code>Lake.findExternLib?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (name : Lean.Name) :\n  m (Option Lake.ExternLib)</code><span class=\"sep\"></span><code class=\"docstring\">Try to find an external library in the workspace with the given name. </code>",
+ "9720":
+ "<code>Lake.LeanLib : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lean library -- its package plus its configuration. </code>",
  "972": "<code>extEq x✝¹ x✝</code>",
+ "9719":
+ "<code>Lake.findLeanLib?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (name : Lean.Name) :\n  m (Option Lake.LeanLib)</code><span class=\"sep\"></span><code class=\"docstring\">Try to find a Lean library in the workspace with the given name. </code>",
+ "9718":
+ "<code>Lake.LeanExe : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lean executable -- its package plus its configuration. </code>",
+ "9717":
+ "<code>Lake.findLeanExe?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (name : Lean.Name) :\n  m (Option Lake.LeanExe)</code><span class=\"sep\"></span><code class=\"docstring\">Try to find a Lean executable in the workspace with the given name. </code>",
+ "9716":
+ "<code>Lake.Module : Type</code><span class=\"sep\"></span><code class=\"docstring\">A buildable Lean module of a `LeanLib`. </code>",
+ "9715":
+ "<code>Lake.findModule?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (name : Lean.Name) :\n  m (Option Lake.Module)</code><span class=\"sep\"></span><code class=\"docstring\">Locate the named, buildable, importable, local module in the workspace. </code>",
+ "9714":
+ "<code>Lake.NPackage (n : Lean.Name) : Type</code><span class=\"sep\"></span><code class=\"docstring\">A package with a name known at type-level. </code>",
+ "9713":
+ "<code>Lake.findPackageByKey?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (keyName : Lean.Name) :\n  m (Option (Lake.NPackage keyName))</code><span class=\"sep\"></span><code class=\"docstring\">Returns the unique package in the workspace \\(if any\\) that is identified by  `keyName`. </code>",
+ "9712":
+ "<code>Lake.findPackageByName?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (name : Lean.Name) :\n  m (Option Lake.Package)</code><span class=\"sep\"></span><code class=\"docstring\">Returns the first package in the workspace \\(if any\\) that has been assigned the `name`.\n\nThis can be used to find the package corresponding to a user-provided name. If the package's unique\nidentifier is already available, use `findPackageByKey?`instead.\n</code>",
+ "9711":
+ "<code>Lake.Package : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lake package -- its location plus its configuration. </code>",
+ "9710":
+ "<code>Lake.getRootPackage.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m Lake.Package</code><span class=\"sep\"></span><code class=\"docstring\">Returns the root package of the context's workspace. </code>",
  "971":
  "<code class=\"docstring\">`exact e` closes the main goal if its target type matches that of `e`.\n</code>",
+ "9709":
+ "<code>Lake.Workspace : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lake workspace -- the top-level package directory. </code>",
+ "9708":
+ "<code>m Lake.Workspace</code><span class=\"sep\"></span><code class=\"docstring\">Gets the current Lake workspace. </code>",
+ "9707":
+ "<code>Lake.MonadWorkspace.mk.{u} {m : Type → Type u} (getWorkspace : m Lake.Workspace) : Lake.MonadWorkspace m</code>",
+ "9706":
+ "<code>Lake.LakeM (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">A monad equipped with a `Lake.Context`. </code>",
+ "9705": "<code>Manual.lake : Verso.Doc.Elab.DirectiveExpander</code>",
+ "9704":
+ "<code>Lake.getLake.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the path of the `lake` binary in the detected Lake installation. </code>",
+ "9703":
+ "<code>Lake.getLakeLibDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the Lean library directory of the detected Lake installation. </code>",
+ "9702":
+ "<code>Lake.getLakeSrcDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the source directory of the detected Lake installation. </code>",
+ "9701":
+ "<code>Lake.getLakeHome.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the root directory of the detected Lake installation \\(e.g., `LAKE_HOME`\\). </code>",
+ "9700":
+ "<code>Lake.LakeInstall : Type</code><span class=\"sep\"></span><code class=\"docstring\">Path information about the local Lake installation. </code>",
  "970": "<code>extEq g g'</code>",
  "97": "<code>Quadrant : Type</code>",
+ "9699":
+ "<code>Lake.getLakeInstall.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m Lake.LakeInstall</code><span class=\"sep\"></span><code class=\"docstring\">Get the detected Lake installation. </code>",
+ "9698":
+ "<code>Lake.getLeanCc?.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m (Option String)</code><span class=\"sep\"></span><code class=\"docstring\">Get the optional `LEAN_CC` compiler override of the detected Lean installation. </code>",
+ "9697":
+ "<code>Lake.getLeanCc.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the path of C compiler in the detected Lean installation. </code>",
+ "9696":
+ "<code>Lake.getLeanAr.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the path of the `ar` binary in the detected Lean installation. </code>",
+ "9695":
+ "<code>Lake.getLeanSharedLib.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the path of the `libleanshared` library in the detected Lean installation. </code>",
+ "9694":
+ "<code>Lake.getLeanc.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the path of the `leanc` binary in the detected Lean installation. </code>",
+ "9693":
+ "<code>Lake.getLean.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the path of the `lean` binary in the detected Lean installation. </code>",
+ "9692":
+ "<code>Lake.getLeanSystemLibDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the system library directory of the detected Lean installation. </code>",
+ "9691":
+ "<code>Lake.getLeanIncludeDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the C include directory of the detected Lean installation. </code>",
+ "9690":
+ "<code>Lake.getLeanLibDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the Lean library directory of the detected Lean installation. </code>",
  "969": "<code>ExtFun α β</code>",
+ "9689":
+ "<code>Lake.getLeanSrcDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the Lean source directory of the detected Lean installation. </code>",
+ "9688":
+ "<code>Lake.getLeanSysroot.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the root directory of the detected Lean installation. </code>",
+ "9687":
+ "<code>Lake.LeanInstall : Type</code><span class=\"sep\"></span><code class=\"docstring\">Path information about the local Lean installation. </code>",
+ "9686":
+ "<code>Lake.getLeanInstall.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m Lake.LeanInstall</code><span class=\"sep\"></span><code class=\"docstring\">Returns the detected Lean installation. </code>",
+ "9685":
+ "<code>Lake.getElan?.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m (Option System.FilePath)</code><span class=\"sep\"></span><code class=\"docstring\">Returns the path of the `elan` binary in the detected Elan installation. </code>",
+ "9684":
+ "<code>Lake.getElanHome?.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m (Option System.FilePath)</code><span class=\"sep\"></span><code class=\"docstring\">Returns the root directory of the detected Elan installation \\(i.e., `ELAN_HOME`\\). </code>",
+ "9683":
+ "<code>Lake.ElanInstall : Type</code><span class=\"sep\"></span><code class=\"docstring\">Information about the local Elan setup. </code>",
+ "9682":
+ "<code>Lake.getElanInstall?.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m (Option Lake.ElanInstall)</code><span class=\"sep\"></span><code class=\"docstring\">Returns the detected Elan installation \\(if one\\). </code>",
+ "9681":
+ "<code>Lake.getEnvSharedLibPath.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the detected `sharedLibPathEnvVar` value of the Lake environment. </code>",
+ "9680":
+ "<code>Lake.getEnvLeanSrcPath.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the detected `LEAN_SRC_PATH` value of the Lake environment. </code>",
  "968":
  "<code>extApp.{u, v} {α : Sort u} {β : α → Sort v} (f : ExtFun α β) (x : α) : β x</code>",
+ "9679": "<code>System.SearchPath : Type</code>",
+ "9678":
+ "<code>Lake.getEnvLeanPath.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the detected `LEAN_PATH` value of the Lake environment. </code>",
+ "9677":
+ "<code>Lake.getElanToolchain.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m String</code><span class=\"sep\"></span><code class=\"docstring\">Returns the name of Elan toolchain for the Lake environment. Empty if none. </code>",
+ "9676":
+ "<code>Lake.getPkgUrlMap.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m (Lean.NameMap String)</code><span class=\"sep\"></span><code class=\"docstring\">Returns the `LAKE_PACKAGE_URL_MAP` for the Lake environment. Empty if none. </code>",
+ "9675":
+ "<code>Lake.getTryCache.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] [Lake.MonadBuild m] : m Bool</code><span class=\"sep\"></span><code class=\"docstring\">Returns whether the `LAKE_NO_CACHE`/`--no-cache` Lake configuration is **NOT** set. </code>",
+ "9674":
+ "<code>Lake.MonadBuild.{u} (m : Type → Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">A monad equipped with a Lake build context. </code>",
+ "9673":
+ "<code>Lake.getNoCache.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] [Lake.MonadBuild m] : m Bool</code><span class=\"sep\"></span><code class=\"docstring\">Returns the `LAKE_NO_CACHE`/`--no-cache` Lake configuration. </code>",
+ "9672":
+ "<code>Lake.Env : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lake environment. </code>",
+ "9671":
+ "<code>Lake.getLakeEnv.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] : m Lake.Env</code><span class=\"sep\"></span><code class=\"docstring\">Gets the current Lake environment.\n</code>",
+ "9670":
+ "<code>Lake.MonadLakeEnv.{u} (m : Type → Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">A monad equipped with a \\(read-only\\) detected environment for Lake. </code>",
  "967":
  "<code>ExtFun.{u, v} (α : Sort u) (β : α → Sort v) : Sort (imax u v)</code>",
+ "9669": "<code>Lake.ExitCode</code>",
+ "9668": "<code>0 &lt; args.length</code>",
+ "9667": "<code>«script-name» : Lake.ScriptFn</code>",
+ "9666":
+ "<code class=\"docstring\">Define a new Lake script for the package.\n\n**Example**\n\n```\n/-- Display a greeting -/\nscript «script-name» (args) do\n  if h : 0 &lt; args.length then\n    IO.println s!\"Hello, {args[0]'h}!\"\n  else\n    IO.println \"Hello, world!\"\n  return 0\n```\n</code>",
+ "9665":
+ "<code>Lake.MonadWorkspace.{u} (m : Type → Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">A monad equipped with a \\(read-only\\) Lake `Workspace`. </code>",
+ "9664":
+ "<code>Lake.Backend.default : Lake.Backend</code><span class=\"sep\"></span><code class=\"docstring\">Use the default backend. Can be overridden by more specific configuration.\n</code>",
+ "9663":
+ "<code>Lake.Backend.llvm : Lake.Backend</code><span class=\"sep\"></span><code class=\"docstring\">Force the LLVM backend.\n</code>",
+ "9662":
+ "<code>Lake.Backend.c : Lake.Backend</code><span class=\"sep\"></span><code class=\"docstring\">Force the C backend.\n</code>",
+ "9661":
+ "<code>Lean.LeanOptionValue : Type</code><span class=\"sep\"></span><code class=\"docstring\">Restriction of `DataValue` that covers exactly those cases that Lean is able to handle when passed via the `-D` flag. </code>",
+ "9660":
+ "<code>Lean.LeanOptionValue</code><span class=\"sep\"></span><code class=\"docstring\">The option's value. </code>",
  "966":
  "<code>extEq.{u, v} {α : Sort u} {β : α → Sort v} (f g : (x : α) → β x) : Prop</code>",
+ "9659":
+ "<code>Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">The option's name. </code>",
+ "9658":
+ "<code>Lean.LeanOption.mk (name : Lean.Name) (value : Lean.LeanOptionValue) : Lean.LeanOption</code>",
+ "9657":
+ "<code>Lake.Glob.andSubmodules : Lean.Name → Lake.Glob</code><span class=\"sep\"></span><code class=\"docstring\">Selects the specified module and all submodules. </code>",
+ "9656":
+ "<code>Lake.Glob.submodules : Lean.Name → Lake.Glob</code><span class=\"sep\"></span><code class=\"docstring\">Selects all submodules of the specified module, but not the module itself. </code>",
+ "9655":
+ "<code>Lake.Glob.one : Lean.Name → Lake.Glob</code><span class=\"sep\"></span><code class=\"docstring\">Selects just the specified module name. </code>",
+ "9654":
+ "<code>Lake.BuildType.release : Lake.BuildType</code><span class=\"sep\"></span><code class=\"docstring\">High optimization level and no debug info, code, or asserts\n(e.g., passes `-O3 -DNDEBUG` when compiling C code).\n</code>",
+ "9653":
+ "<code>Lake.BuildType.release : BuildType</code><span class=\"sep\"></span><code class=\"docstring\">High optimization level and no debug info, code, or asserts\n(e.g., passes `-O3 -DNDEBUG` when compiling C code).\n</code>",
+ "9652":
+ "<code>Lake.BuildType.minSizeRel : Lake.BuildType</code><span class=\"sep\"></span><code class=\"docstring\">Same as `release` but optimizing for size rather than speed\n(e.g., passes `-Os -DNDEBUG` when compiling C code).\n</code>",
+ "9651":
+ "<code>Lake.BuildType.relWithDebInfo : Lake.BuildType</code><span class=\"sep\"></span><code class=\"docstring\">Optimized, *with* debug info, but no debug code or asserts\n(e.g., passes `-O3 -g -DNDEBUG` when compiling C code).\n</code>",
+ "9650":
+ "<code>Lake.BuildType.debug : Lake.BuildType</code><span class=\"sep\"></span><code class=\"docstring\">Debug optimization, asserts enabled, custom debug code enabled, and\ndebug info included in executable (so you can step through the code with a\ndebugger and have address to source-file:line-number translation).\nFor example, passes `-O0 -g` when compiling C code.\n</code>",
  "965": "<code>∀ (a b : α), r a b → f a ≍ f b</code>",
+ "9649":
+ "<code>Lake.nameToStaticLib (name : String) (libPrefixOnWindows : Bool := false) : String</code><span class=\"sep\"></span><code class=\"docstring\">Convert a library name into its static library file name for the `Platform`. </code>",
+ "9648":
+ "<code>Lake.PackageConfig.precompileModules {p n : Lean.Name} (self : Lake.PackageConfig p n) : Bool</code><span class=\"sep\"></span><code class=\"docstring\">Whether to compile each of the package's module into a native shared library\nthat is loaded whenever the module is imported. This speeds up evaluation of\nmetaprograms and enables the interpreter to run functions marked `@[extern]`.\n\nDefaults to `false`.\n</code>",
+ "9647":
+ "<code>Lake.Job.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">A Lake job. </code>",
+ "9646":
+ "<code>Lake.FetchM (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">The top-level monad for Lake build functions. </code>",
+ "9645":
+ "<code>Bool → Array (Lake.ModuleFacet System.FilePath)</code><span class=\"sep\"></span><code class=\"docstring\">The module facets to build and combine into the executable.\nIf `shouldExport` is true, the module facets should export any symbols\na user may expect to lookup in the executable. For example, the Lean\ninterpreter will use exported symbols in the executable. Thus, `shouldExport`\nwill be `true` if `supportInterpreter := true`.\n\nDefaults to a singleton of `Module.oExportFacet` (if `shouldExport`) or\n`Module.oFacet`. That is, the  object file compiled from the Lean source,\npotentially with exported Lean symbols.\n</code>",
+ "9644":
+ "<code>Lean.Elab.runFrontend (input : String) (opts : Lean.Options) (fileName : String) (mainModuleName : Lean.Name)\n  (trustLevel : UInt32 := 0) (oleanFileName? ileanFileName? : Option System.FilePath := none)\n  (jsonOutput : Bool := false) (errorOnKinds : Array Lean.Name := #[]) (plugins : Array Lean.Plugin := #[])\n  (printStats : Bool := false) (setup? : Option Lean.ModuleSetup := none) : IO (Option Lean.Environment)</code>",
+ "9643":
+ "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">Enables the executable to interpret Lean files (e.g., via\n`Lean.Elab.runFrontend`) by exposing symbols within the  executable\nto the Lean interpreter.\n\nImplementation-wise, on Windows, the Lean shared libraries are linked\nto the executable and, on other systems, the executable is linked with\n`-rdynamic`. This increases the size of the binary on Linux and, on Windows,\nrequires `libInit_shared.dll` and `libleanshared.dll` to  be co-located\nwith the executable or part of `PATH` (e.g., via `lake exe`). Thus, this\nfeature should only be enabled when necessary.\n\nDefaults to `false`.\n</code>",
+ "9642":
+ "<code>Array Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">**Deprecated. Use `needs` instead.**\nAn `Array` of target names to build before the executable's modules.\n</code>",
+ "9641":
+ "<code>String</code><span class=\"sep\"></span><code class=\"docstring\">The name of the binary executable.\nDefaults to the target name with any `.` replaced with a `-`.\n</code>",
+ "9640":
+ "<code>System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">The subdirectory of the package's source directory containing the executable's\nLean source file. Defaults simply to said `srcDir`.\n\n(This will be passed to `lean` as the `-R` option.)\n</code>",
  "964":
  "<code>Quot.recOn.{u, v} {α : Sort u} {r : α → α → Prop} {motive : Quot r → Sort v} (q : Quot r)\n  (f : (a : α) → motive (Quot.mk r a)) (h : ∀ (a b : α) (p : r a b), ⋯ ▸ f a = f b) : motive q</code><span class=\"sep\"></span><code class=\"docstring\">A dependent recursion principle for `Quot` that takes the quotient first. It is analogous to the\n[recursor](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=recursors) for a structure, and can be used when the resulting type\nis not necessarily a proposition.\n\nWhile it is very general, this recursor can be tricky to use. The following simpler alternatives may\nbe easier to use:\n * `Quot.lift` is useful for defining non-dependent functions.\n * `Quot.ind` is useful for proving theorems about quotients.\n * `Quot.recOnSubsingleton` can be used whenever the target type is a `Subsingleton`.\n * `Quot.hrecOn` uses [heterogeneous equality](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=HEq) instead of rewriting with\n   `Quot.sound`.\n\n`Quot.rec` is a version of this recursor that takes the quotient parameter last.\n</code>",
+ "9639":
+ "<code>Lake.LeanExeConfig.mk {name : Lean.Name} (toLeanConfig : Lake.LeanConfig) (srcDir : System.FilePath) (root : Lean.Name)\n  (exeName : String) (needs : Array Lake.PartialBuildKey) (extraDepTargets : Array Lean.Name)\n  (supportInterpreter : Bool) (nativeFacets : Bool → Array (Lake.ModuleFacet System.FilePath)) : Lake.LeanExeConfig name</code>",
+ "9638":
+ "<code>Lake.LeanExeConfig (name : Lean.Name) : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lean executable's declarative configuration. </code>",
+ "9637":
+ "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">Whether downstream packages can `import all` modules of this library.\n\nIf enabled, downstream users will be able to access the `private` internals of modules,\nincluding definition bodies not marked as `@[expose]`.\nThis may also, in the future, prevent compiler optimization which rely on `private`\ndefinitions being inaccessible outside their own package.\n\nDefaults to `false`.\n</code>",
+ "9636":
+ "<code>Lake.ModuleFacet (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">A module facet name along with proof of its data type. </code>",
+ "9635":
+ "<code>Bool → Array (Lake.ModuleFacet System.FilePath)</code><span class=\"sep\"></span><code class=\"docstring\">The module facets to build and combine into the library's static\nand shared libraries. If `shouldExport` is true, the module facets should\nexport any symbols a user may expect to lookup in the library. For example,\nthe Lean interpreter will use exported symbols in linked libraries.\n\nDefaults to a singleton of `Module.oExportFacet` (if `shouldExport`) or\n`Module.oFacet`. That is, the  object files compiled from the Lean sources,\npotentially with exported Lean symbols.\n</code>",
+ "9634":
+ "<code>Array Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">An `Array` of library facets to build on a bare `lake build` of the library.\nFor example, `#[LeanLib.sharedFacet]` will build the shared library facet.\n</code>",
+ "9633":
+ "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">Whether to compile each of the library's modules into a native shared library\nthat is loaded whenever the module is imported. This speeds up evaluation of\nmetaprograms and enables the interpreter to run functions marked `@[extern]`.\n\nDefaults to `false`.\n</code>",
+ "9632": "<code>Array Lake.PartialBuildKey</code>",
+ "9631":
+ "<code>Array Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">**Deprecated. Use `needs` instead.**\nAn `Array` of target names to build before the library's modules.\n</code>",
+ "9630":
+ "<code>Lake.PartialBuildKey : Type</code><span class=\"sep\"></span><code class=\"docstring\">A build key with some missing info.\n\n* Package names may be elided (replaced by `Name.anonymous`).\n* Facet names are unqualified (they do not include the input target kind)\n  and may also be ellided.\n</code>",
  "963":
  "<code>Quot.hrecOn.{u, v} {α : Sort u} {r : α → α → Prop} {motive : Quot r → Sort v} (q : Quot r)\n  (f : (a : α) → motive (Quot.mk r a)) (c : ∀ (a b : α), r a b → f a ≍ f b) : motive q</code><span class=\"sep\"></span><code class=\"docstring\">A dependent recursion principle for `Quot` that uses [heterogeneous\nequality](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=HEq), analogous to a [recursor](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=recursors) for\na structure.\n\n`Quot.recOn` is a version of this recursor that uses `Eq` instead of `HEq`.\n</code>",
+ "9629":
+ "<code>Array Lake.PartialBuildKey</code><span class=\"sep\"></span><code class=\"docstring\">An `Array` of targets to build before the executable's modules. </code>",
+ "9628":
+ "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">Whether static and shared binaries of this library should be prefixed with `lib` on Windows.\n\nUnlike Unix, Windows does not require native libraries to start with `lib` and,\nby convention, they usually do not. However, for consistent naming across all platforms,\nusers may wish to enable this.\n\nDefaults to `false`.\n</code>",
+ "9627":
+ "<code>String</code><span class=\"sep\"></span><code class=\"docstring\">The name of the library artifact.\nUsed as a base for the file names of its static and dynamic binaries.\nDefaults to the mangled name of the target.\n</code>",
+ "9626": "<code>Array Lean.Name</code>",
+ "9625":
+ "<code>Lake.Glob : Type</code><span class=\"sep\"></span><code class=\"docstring\">A specification of a set of module names. </code>",
+ "9624":
+ "<code>Array Lake.Glob</code><span class=\"sep\"></span><code class=\"docstring\">An `Array` of module `Glob`s to build for the library.\nDefaults to a `Glob.one` of each of the library's  `roots`.\n\nSubmodule globs build every source file within their directory.\nLocal imports of glob'ed files (i.e., fellow modules of the workspace) are\nalso recursively built.\n</code>",
+ "9623":
+ "<code>Array Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">The root module(s) of the library.\nSubmodules of these roots (e.g., `Lib.Foo` of `Lib`) are considered\npart of the library.\nDefaults to a single root of the target's name.\n</code>",
+ "9622":
+ "<code>Verso.Genre.Manual.InlineLean.lean : Verso.Doc.Elab.CodeBlockExpanderOf LeanBlockConfig</code><span class=\"sep\"></span><code class=\"docstring\">Elaborates the provided Lean command in the context of the current Verso module.\n</code>",
+ "9621":
+ "<code>System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">The subdirectory of the package's source directory containing the library's\nLean source files. Defaults simply to said `srcDir`.\n\n(This will be passed to `lean` as the `-R` option.)\n</code>",
+ "9620":
+ "<code>Lake.Backend : Type</code><span class=\"sep\"></span><code class=\"docstring\">Compiler backend with which to compile Lean.\n</code>",
  "962": "<code>r a b</code>",
+ "9619":
+ "<code>Lake.Dynlib : Type</code><span class=\"sep\"></span><code class=\"docstring\">A dynamic/shared library artifact for linking. </code>",
+ "9618":
+ "<code>Lake.TargetArray (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">Shorthand for `Array (Target α)` that supports\ndot notation for Lake-specific operations (e.g., `fetch`).\n</code>",
+ "9617":
+ "<code>Lean.LeanOption : Type</code><span class=\"sep\"></span><code class=\"docstring\">An option that is used by Lean as if it was passed using `-D`. </code>",
+ "9616":
+ "<code>Lake.BuildType : Type</code><span class=\"sep\"></span><code class=\"docstring\">Lake equivalent of CMake's\n[`CMAKE_BUILD_TYPE`](https://stackoverflow.com/a/59314670).\n</code>",
+ "9615":
+ "<code>Lake.LeanConfig : Type</code><span class=\"sep\"></span><code class=\"docstring\">Configuration options common to targets that build modules. </code>",
+ "9614":
+ "<code>Lake.LeanLibConfig.mk {name : Lean.Name} (toLeanConfig : Lake.LeanConfig) (srcDir : System.FilePath)\n  (roots : Array Lean.Name) (globs : Array Lake.Glob) (libName : String) (libPrefixOnWindows : Bool)\n  (needs : Array Lake.PartialBuildKey) (extraDepTargets : Array Lean.Name) (precompileModules : Bool)\n  (defaultFacets : Array Lean.Name) (nativeFacets : Bool → Array (Lake.ModuleFacet System.FilePath))\n  (allowImportAll : Bool) : Lake.LeanLibConfig name</code>",
+ "9613":
+ "<code>Lake.LeanLibConfig (name : Lean.Name) : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lean library's declarative configuration. </code>",
+ "9612": "<code>Lean.NameMap (α : Type) : Type</code>",
+ "9611":
+ "<code>Lake.PackageConfig.version {p n : Lean.Name} (self : Lake.PackageConfig p n) : Lake.StdVer</code><span class=\"sep\"></span><code class=\"docstring\">The package version. Versions have the form:\n\n```\nv!\"&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;[-&lt;specialDescr&gt;]\"\n```\n\nA version with a `-` suffix is considered a \"prerelease\".\n\nLake suggest the following guidelines for incrementing versions:\n\n* **Major version increment** *(e.g., v1.3.0 → v2.0.0)*\n  Indicates significant breaking changes in the package.\n  Package users are not expected to update to the new version\n  without manual intervention.\n\n* **Minor version increment** *(e.g., v1.3.0 → v1.4.0)*\n  Denotes notable changes that are expected to be\n  generally backwards compatible.\n  Package users are expected to update to this version automatically\n  and should be able to fix any breakages and/or warnings easily.\n\n* **Patch version increment** *(e.g., v1.3.0 → v1.3.1)*\n  Reserved for bug fixes and small touchups.\n  Package users are expected to update automatically and should not expect\n  significant breakage, except in the edge case of users relying on the\n  behavior of patched bugs.\n\n**Note that backwards-incompatible changes may occur at any version increment.**\nThe is because the current nature of Lean (e.g., transitive imports,\nrich metaprogramming, reducibility in proofs), makes it infeasible to\ndefine a completely stable interface for a package.\nInstead, the different version levels indicate a change's intended significance\nand how difficult migration is expected to be.\n\nVersions of form the `0.x.x` are considered development versions prior to\nfirst official release. Like prerelease, they are not expected to closely\nfollow the above guidelines.\n\nPackages without a defined version default to `0.0.0`.\n</code>",
+ "9610": "<code>main : List String → IO UInt32</code>",
  "961": "<code>∀ (a b : α) (p : r a b), ⋯ ▸ f a = f b</code>",
+ "9609": "<code>out-file</code>",
+ "9608": "<code>lang</code>",
+ "9607": "<code>staging-directory</code>",
+ "9606": "<code>&lt;target-triple&gt;</code>",
+ "9605": "<code>&lt;name&gt;</code>",
+ "9604": "<code>&lt;github-repo&gt;</code>",
+ "9603": "<code>&lt;remote-scope&gt;</code>",
+ "9602": "<code>scope-option</code>",
+ "9601": "<code>remote-scope</code>",
+ "9600": "<code>target-triple</code>",
  "960": "<code>(a : α) → motive (Quot.mk r a)</code>",
  "96":
  "<code>Lean.ToExpr.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">We use the `ToExpr` type class to convert values of type `α` into\nexpressions that denote these values in Lean.\n\nExamples:\n```\ntoExpr true = .const ``Bool.true []\n\ntoTypeExpr Bool = .const ``Bool []\n```\n\nSee also `ToLevel` for representing universe levels as `Level` expressions.\n</code>",
+ "9599": "<code>github-repo</code>",
+ "9598": "<code>commit-hash</code>",
+ "9597": "<code>cn</code>",
+ "9596": "<code>archive.tgz</code>",
+ "9595": "<code>archive.tar.gz</code>",
+ "9594": "<code>tag</code>",
+ "9593": "<code>script</code>",
+ "9592": "<code>options</code>",
+ "9591": "<code>file</code>",
+ "9590": "<code>cmd</code>",
  "959": "<code>∀ (a : α), Subsingleton (motive (Quot.mk r a))</code>",
+ "9589": "<code>packages</code>",
+ "9588": "<code>args</code>",
+ "9587": "<code>exe-target</code>",
+ "9586": "<code>facet</code>",
+ "9585": "<code>module</code>",
+ "9584": "<code>target</code>",
+ "9583": "<code>package</code>",
+ "9582": "<code>mappings</code>",
+ "9581": "<code>targets</code>",
+ "9580": "<code>language</code>",
  "958": "<code>Quot r → Sort v</code>",
+ "9579": "<code>template</code>",
+ "9578": "<code>name</code>",
+ "9577":
+ "<code>Lake.CustomOut.«my-package-lint» : CustomOut (_package.origName.num 0, `«my-package-lint») = ConfigTarget `lean_exe</code>",
+ "9576":
+ "<code><span class=\"literal string\">\"my-package-lint\"</span> : String</code>",
+ "9575":
+ "<code>String</code><span class=\"sep\"></span><code class=\"docstring\">The name of the script or executable used by `lake lint` when this package\nis the workspace root. To point to a definition in another package, use the\nsyntax `&lt;pkg&gt;/&lt;def&gt;`.\n\nA script driver will be run by `lake lint` with the arguments\nconfigured in `lintDriverArgs` followed by any specified on the CLI\n(e.g., via  `lake lint -- &lt;args&gt;...`). An executable driver will be built\nand then run like a script.\n</code>",
+ "9574":
+ "<code class=\"docstring\">mark a Lake script or executable as package's linter</code>",
+ "9573":
+ "<code>Lake.Package.lintDriver (self : Lake.Package) : String</code><span class=\"sep\"></span><code class=\"docstring\">The driver used for `lake lint` when this package is the workspace root. </code>",
+ "9572":
+ "<code>Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">The root module of the binary executable.\nShould include a `main` definition that will serve\nas the entry point of the program.\n\nThe root is built by recursively building its\nlocal imports (i.e., fellow modules of the workspace).\n\nDefaults to the name of the target.\n</code>",
+ "9571":
+ "<code>Lake.CustomOut.«my-package-tests» : CustomOut (_package.origName.num 0, `«my-package-tests») = ConfigTarget `lean_exe</code>",
+ "9570":
+ "<code class=\"docstring\">Define a new Lean binary executable target for the package.\nCan optionally be provided with a configuration of type `LeanExeConfig`.\nHas many forms:\n\n```lean\nlean_exe «target-name»\nlean_exe «target-name» { /- config opts -/ }\nlean_exe «target-name» where /- config opts -/\n```\n</code>",
  "957":
  "<code>Quot.recOnSubsingleton.{u, v} {α : Sort u} {r : α → α → Prop} {motive : Quot r → Sort v}\n  [h : ∀ (a : α), Subsingleton (motive (Quot.mk r a))] (q : Quot r) (f : (a : α) → motive (Quot.mk r a)) : motive q</code><span class=\"sep\"></span><code class=\"docstring\">An alternative induction principle for quotients that can be used when the target type is a\nsubsingleton, in which all elements are equal.\n\nIn these cases, the proof that the function respects the quotient's relation is trivial, so any\nfunction can be lifted.\n\n`Quot.rec` does not assume that the type is a subsingleton.\n</code>",
+ "9569":
+ "<code><span class=\"literal string\">\"my-package-tests\"</span> : String</code>",
+ "9568":
+ "<code>String</code><span class=\"sep\"></span><code class=\"docstring\">The name of the script, executable, or library by `lake test` when\nthis package is the workspace root. To point to a definition in another\npackage, use the syntax `&lt;pkg&gt;/&lt;def&gt;`.\n\nA script driver will be run by `lake test` with the arguments\nconfigured in `testDriverArgs`  followed by any specified on the CLI\n(e.g., via  `lake lint -- &lt;args&gt;...`). An executable driver will be built\nand then run like a script. A library will just be built.\n</code>",
+ "9567":
+ "<code class=\"docstring\">Defines the configuration of a Lake package.  Has many forms:\n\n```lean\npackage «pkg-name»\npackage «pkg-name» { /- config opts -/ }\npackage «pkg-name» where /- config opts -/\n```\n\nThere can only be one `package` declaration per Lake configuration file.\nThe defined package configuration will be available for reference as `_package`.\n</code>",
+ "9566":
+ "<code class=\"docstring\">mark a Lake script, executable, or library as package's test driver</code>",
+ "9565":
+ "<code>Lake.Package.testDriver (self : Lake.Package) : String</code><span class=\"sep\"></span><code class=\"docstring\">The driver used for `lake test` when this package is the workspace root. </code>",
+ "9564":
+ "<code>Lake.ScriptM (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">The type of a `Script`'s monad.\n\nIt is an `IO` monad equipped information about the Lake configuration.\n</code>",
+ "9563":
+ "<code>Lean.PrettyPrinter.Delaborator.SubExpr.withBindingBody {α : Type} {m : Type → Type} [Monad m]\n  [MonadReaderOf Lean.SubExpr m] [MonadWithReaderOf Lean.SubExpr m] [MonadControlT Lean.MetaM m] (n : Lean.Name)\n  (x : m α) : m α</code><span class=\"sep\"></span><code class=\"docstring\">Assumes the `SubExpr` is a lambda or forall.\nCreates a local declaration for this binder using the name `n`, enters the binding body, and evaluates `x`.\n</code>",
+ "9562":
+ "<code>Lean.PrettyPrinter.Delaborator.SubExpr.withAppFnArgs {α : Type} {m : Type → Type} [Monad m]\n  [MonadReaderOf Lean.SubExpr m] [MonadWithReaderOf Lean.SubExpr m] (xf : m α) (xa : α → m α) : m α</code><span class=\"sep\"></span><code class=\"docstring\">Uses `xa` to compute the fold across the arguments of an application,\nwhere `xf` provides the initial value and is evaluated in the context of the head of the application.\n</code>",
+ "9561":
+ "<code>Lean.PrettyPrinter.Delaborator.SubExpr.withAppArg {α : Type} {m : Type → Type} [Monad m] [MonadReaderOf Lean.SubExpr m]\n  [MonadWithReaderOf Lean.SubExpr m] (x : m α) : m α</code>",
+ "9560":
+ "<code>Lean.PrettyPrinter.Delaborator.SubExpr.withAppFn {α : Type} {m : Type → Type} [Monad m] [MonadReaderOf Lean.SubExpr m]\n  [MonadWithReaderOf Lean.SubExpr m] (x : m α) : m α</code>",
  "956":
  "<code>Quot.liftOn.{u, v} {α : Sort u} {β : Sort v} {r : α → α → Prop} (q : Quot r) (f : α → β)\n  (c : ∀ (a b : α), r a b → f a = f b) : β</code><span class=\"sep\"></span><code class=\"docstring\">Lifts a function from an underlying type to a function on a quotient, requiring that it respects the\nquotient's relation.\n\nGiven a relation `r : α → α → Prop` and a quotient's value `q : Quot r`, applying a `f : α → β`\nrequires a proof `c` that `f` respects `r`. In this case, `Quot.liftOn q f h : β` evaluates\nto the result of applying `f` to the underlying value in `α` from `q`.\n\n`Quot.liftOn` is a version of the built-in primitive `Quot.lift` with its parameters re-ordered.\n\n[Quotient types](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=quotients) are described in more detail in the Lean Language\nReference.\n</code>",
+ "9559":
+ "<code>Lean.PrettyPrinter.Delaborator.SubExpr.getExpr {m : Type → Type} [Monad m] [MonadReaderOf Lean.SubExpr m] : m Expr</code>",
+ "9558":
+ "<code>Lean.Expr.mdata (data : Lean.MData) (expr : Expr) : Expr</code><span class=\"sep\"></span><code class=\"docstring\">Metadata (aka annotations).\n\nWe use annotations to provide hints to the pretty-printer,\nstore references to `Syntax` nodes, position information, and save information for\nelaboration procedures (e.g., we use the `inaccessible` annotation during elaboration to\nmark `Expr`s that correspond to inaccessible patterns).\n\nNote that `Expr.mdata data e` is definitionally equal to `e`.\n</code>",
+ "9557": "<code class=\"docstring\">Register a delaborator</code>",
+ "9556": "<code>Lean.PrettyPrinter.Delaborator.DelabM (α : Type) : Type</code>",
+ "9555": "<code>Lean.PrettyPrinter.Delaborator.Delab : Type</code>",
+ "9554": "<code>ListCursor Nat</code>",
+ "9553": "<code>unexpandListCursor : Unexpander</code>",
+ "9552": "<code>List Nat</code>",
+ "9551": "<code><span class=\"literal string\">\" 🚩 \"</span> : String</code>",
+ "9550":
+ "<code>ListCursor.fastForward.{u_1} {α : Type u_1} : ListCursor α → ListCursor α</code>",
  "955": "<code>List (SetTree α)</code>",
+ "9549": "<code>ListCursor α</code>",
+ "9548":
+ "<code>ListCursor.rewind.{u_1} {α : Type u_1} : ListCursor α → ListCursor α</code>",
+ "9547":
+ "<code>ListCursor.right.{u_1} {α : Type u_1} : ListCursor α → Option (ListCursor α)</code>",
+ "9546":
+ "<code>ListCursor.mk.{u_1} {α : Type u_1} (before after : List α) : ListCursor α</code>",
+ "9545":
+ "<code>ListCursor.left.{u_1} {α : Type u_1} : ListCursor α → Option (ListCursor α)</code>",
+ "9544":
+ "<code>ListCursor.after.{u_1} {α : Type u_1} (self : ListCursor α) : List α</code>",
+ "9543":
+ "<code>ListCursor.before.{u_1} {α : Type u_1} (self : ListCursor α) : List α</code>",
+ "9542": "<code>ListCursor.{u_1} (α : Type u_1) : Type u_1</code>",
+ "9541": "<code>unexpandSolo : Unexpander</code>",
+ "9540": "<code>Solo</code>",
  "954":
  "<code>RoseTree.branch.{u} {α : Type u} : List (RoseTree α) → RoseTree α</code>",
+ "9539": "<code><span class=\"literal string\">\"›\"</span> : String</code>",
+ "9538": "<code><span class=\"literal string\">\"‹\"</span> : String</code>",
+ "9537": "<code>Solo.mk : Solo</code>",
+ "9536":
+ "<code class=\"docstring\">Register an unexpander for applications of a given constant.</code>",
+ "9535":
+ "<code>Lean.PrettyPrinter.UnexpandM (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">The unexpander monad, essentially `Syntax → Option α`. The `Syntax` is the `ref`,\nand it has the possibility of failure without an error message.\n</code>",
+ "9534":
+ "<code>Lean.PrettyPrinter.Unexpander : Type</code><span class=\"sep\"></span><code class=\"docstring\">Function that tries to reverse macro expansions as a post-processing step of delaboration.\nWhile less general than an arbitrary delaborator, it can be declared without importing `Lean`.\nUsed by the `[app_unexpander]` attribute.\n</code>",
+ "9533":
+ "<code>pp.notation</code><span class=\"sep\"></span><code class=\"docstring\">(pretty printer) disable/enable notation (infix, mixfix, postfix operators and unicode characters)</code>",
+ "9532": "<code>0 &lt; x</code>",
+ "9531": "<code>trySub3 (x : Pos) : IO Pos</code>",
+ "9530":
+ "<code>Lean.Elab.Term.exprToSyntax (e : Expr) : TermElabM Term</code><span class=\"sep\"></span><code class=\"docstring\">Helper function for \"embedding\" an `Expr` in `Syntax`.\nIt creates a named hole `?m` and immediately assigns `e` to it.\nExamples:\n```lean\nlet e := mkConst ``Nat.zero\n`(Nat.succ $(← exprToSyntax e))\n```\n</code>",
  "953": "<code>RoseTree.leaf.{u} {α : Type u} : α → RoseTree α</code>",
- "9521":
- "<code>snd_eq.{u_1, u_2} {α : Type u_1} {β : Type u_2} (a : α) (b : β) : snd (a, b) = b</code>",
+ "9529": "<code>elabOpenMutMon : DoElab</code>",
+ "9528":
+ "<code>PLift.down.{u} {α : Sort u} (self : PLift α) : α</code><span class=\"sep\"></span><code class=\"docstring\">Extracts a wrapped proof or value from a universe-lifted proposition or type. </code>",
+ "9527": "<code>m (PLift (P val))</code>",
+ "9526":
+ "<code>closeInvariant.{u_1} {m : Type → Type u_1} {α : Type} {P : α → Prop} [Monad m] (val : α) (act : m (PLift (P val))) :\n  m (Subtype P)</code>",
+ "9525": "<code>_eval._proof_1 : 0 &lt; 10</code>",
+ "9524": "<code>Pos</code>",
+ "9523": "<code>Pos : Type</code>",
+ "9522":
+ "<code>Lean.mkApp (f a : Expr) : Expr</code><span class=\"sep\"></span><code class=\"docstring\">`.app f a` is now the preferred form.\n</code>",
+ "9521": "<code>elabOpenMutPure : DoElab</code>",
  "9520":
- "<code>snd.{u_1, u_2} {α : Type u_1} {β : Type u_2} (p : α × β) : β</code>",
+ "<code>rebindMut (x : Ident) (outerTy repacked : Expr) (base : FVarId) (dec : DoElemCont) : DoElabM Expr</code>",
  "952": "<code>RoseTree.{u} (α : Type u) : Type u</code>",
- "9519": "<code>fMono {x y : Nat} : x ≤ y → f x ≤ f y</code>",
+ "9519":
+ "<code>Lean.Elab.Info.ofFVarAliasInfo (i : Elab.FVarAliasInfo) : Elab.Info</code>",
  "9518":
- "<code>experimental.module</code><span class=\"sep\"></span><code class=\"docstring\">no-op, deprecated</code>",
- "9517": "<code>pow2 : Nat → Nat</code>",
+ "<code>Lean.Elab.pushInfoLeaf {m : Type → Type} [Monad m] [Elab.MonadInfoTree m] (t : Elab.Info) : m Unit</code>",
+ "9517":
+ "<code>Lean.Elab.Term.addLocalVarInfo (stx : Syntax) (fvar : Expr) : Elab.TermElabM Unit</code>",
  "9516":
- "<code class=\"docstring\">`finish` tries to close the current goal using `grind`'s default strategy </code>",
+ "<code>Lean.Elab.Do.declareMutVar {α : Type} (x : Ident) (k : DoElabM α) : DoElabM α</code><span class=\"sep\"></span><code class=\"docstring\">Register the given name as that of a `mut` variable. </code>",
  "9515":
- "<code class=\"docstring\">Shows equivalence classes of terms. </code>",
+ "<code>Lean.Meta.mkLetFVars (xs : Array Expr) (e : Expr) (usedLetOnly generalizeNondepLet : Bool := true)\n  (binderInfoForMVars : BinderInfo := BinderInfo.implicit) : MetaM Expr</code>",
  "9514":
- "<code class=\"docstring\">Instantiates theorems using E-matching.\nThe `approx` modifier is just a marker for users to easily identify automatically generated `instantiate` tactics\nthat may have redundant arguments.\n</code>",
+ "<code>DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">The continuation to elaborate the `rest` of the block. It assumes that the result of the `do`\nblock is bound to `resultName` with the correct type (that is, `resultType`, potentially refined\nby a dependent `match`).\n</code>",
  "9513":
- "<code class=\"docstring\">`sym` enters an interactive symbolic simulation mode built on `grind`.\nUnlike `grind =&gt;`, it does not eagerly introduce hypotheses or apply by-contradiction,\ngiving the user explicit control over `intro`, `apply`, and `internalize` steps.\n\nExample:\n```\nexample (x : Nat) : myP x → myQ x := by\n  sym [myP_myQ] =&gt;\n    intro h\n    finish\n```\n</code>",
- "9512": "<code>f a = f b</code>",
- "9511": "<code>∀ (x y : Nat), f x = f y → x = y</code>",
- "9510": "<code>size₂</code>",
+ "<code>Lean.Elab.Do.mkPUnit : DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">The cached `PUnit` expression. </code>",
+ "9512":
+ "<code>Lean.Core.mkFreshUserName (n : Name) : CoreM Name</code><span class=\"sep\"></span><code class=\"docstring\">Creates a name from `n` that is guaranteed to be unique.\nThis is intended to be used for creating inaccessible user names for free variables and constants.\n\nIt works by adding a fresh macro scope to `n`.\nApplying `Lean.Name.eraseMacroScopes` to the resulting name yields `n`.\n\nSee also `Lean.LocalContext.getUnusedName` (for creating a new accessible user name that is\nunused in the local context) and `Lean.Meta.mkFreshBinderNameForTactic` (for creating names\nthat are conditionally inaccessible, depending on the current value of the `tactic.hygiene` option).\n</code>",
+ "9511": "<code>Lean.Expr.fvarId! : Expr → FVarId</code>",
+ "9510": "<code>FVarId</code>",
  "951": "<code>Sort ?u.4</code>",
- "9509": "<code>α₂</code>",
+ "9509":
+ "<code>Lean.Elab.Info.ofFVarAliasInfo (i : FVarAliasInfo) : Info</code>",
  "9508":
- "<code>thisAlsoWorks.{u_1, u_2} {α₂ : Sort u_1} {size₂ : Sort u_2} (x : α₂) (y : size₂) : Unit</code>",
- "9507": "<code>size₁</code>",
+ "<code>Lean.Elab.pushInfoLeaf {m : Type → Type} [Monad m] [MonadInfoTree m] (t : Info) : m Unit</code>",
+ "9507":
+ "<code>Lean.Elab.Term.addLocalVarInfo (stx : Syntax) (fvar : Expr) : TermElabM Unit</code>",
  "9506":
- "<code>thisWorks.{u_1, u_2} {α₁ : Sort u_1} {size₁ : Sort u_2} (x : α₁) (y : size₁) : Unit</code>",
- "9505":
- "<code>thisAlsoBreaks.{u_1, u_2} (x : sorry) (y : sorry) : Unit</code>",
- "9504": "<code>α₁</code>",
+ "<code>Lean.Meta.withLetDecl.{u_1} {n : Type → Type u_1} [MonadControlT MetaM n] [Monad n] {α : Type} (name : Name)\n  (type val : Expr) (k : Expr → n α) (nondep : Bool := false) (kind : LocalDeclKind := LocalDeclKind.default) : n α</code><span class=\"sep\"></span><code class=\"docstring\">Add the local declaration `&lt;name&gt; : &lt;type&gt; := &lt;val&gt;` to the local context and execute `k x`, where `x` is a new\nfree variable corresponding to the `let`-declaration. After executing `k x`, the local context is restored.\n</code>",
+ "9505": "<code>Lean.LocalDecl.toExpr (decl : LocalDecl) : Expr</code>",
+ "9504":
+ "<code>Lean.LocalDecl.fvarId : LocalDecl → FVarId</code><span class=\"sep\"></span><code class=\"docstring\">The unique id of the free variable. </code>",
  "9503":
- "<code>thisBreaks.{u_1, u_2} {α₁ : Sort u_1} (x : α₁) (y : sorry) : Unit</code>",
- "9502": "<code>disjoinToNat (b₁ b₂ : Bool) : Nat</code>",
- "9501": "<code>A.x : Unit</code>",
- "9500": "<code>red : Color</code>",
+ "<code>Lean.Expr.getAppFnArgs (e : Expr) : Name × Array Expr</code><span class=\"sep\"></span><code class=\"docstring\">Return the function (name) and arguments of an application. </code>",
+ "9502":
+ "<code>Lean.LocalDecl.type : LocalDecl → Expr</code><span class=\"sep\"></span><code class=\"docstring\">The type of the variable. </code>",
+ "9501":
+ "<code>Lean.Meta.whnf : Expr → MetaM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Reduces an expression to its *weak head normal form*.\nThis is when the \"head\" of the top-level expression has been fully reduced.\nThe result may contain subexpressions that have not been reduced.\n\nSee `Lean.Meta.whnfImp` for the implementation.\n</code>",
+ "9500":
+ "<code>Lean.Elab.Do.throwUnlessMutVarDeclared (x : Ident) : DoElabM Unit</code><span class=\"sep\"></span><code class=\"docstring\">Throw an error if the given name is not a declared `mut` variable. </code>",
  "950": "<code>∀ (x y : α), r x y → f x = f y</code>",
  "95":
  "<code class=\"docstring\">`/-- ... -/ #guard_msgs in cmd` captures the messages generated by the command `cmd`\nand checks that they match the contents of the docstring.\n\nBasic example:\n```lean\n/--\nerror: Unknown identifier `x`\n-/\n#guard_msgs in\nexample : α := x\n```\nThis checks that there is such an error and then consumes the message.\n\nBy default, the command captures all messages, but the filter condition can be adjusted.\nFor example, we can select only warnings:\n```lean\n/--\nwarning: declaration uses 'sorry'\n-/\n#guard_msgs(warning) in\nexample : α := sorry\n```\nor only errors\n```lean\n#guard_msgs(error) in\nexample : α := sorry\n```\nIn the previous example, since warnings are not captured there is a warning on `sorry`.\nWe can drop the warning completely with\n```lean\n#guard_msgs(error, drop warning) in\nexample : α := sorry\n```\n\nIn general, `#guard_msgs` accepts a comma-separated list of configuration clauses in parentheses:\n```\n#guard_msgs (configElt,*) in cmd\n```\nBy default, the configuration list is\n`(check all, whitespace := normalized, ordering := exact, positions := false)`.\n\nMessage filters select messages by severity:\n- `info`, `warning`, `error`: (non-trace) messages with the given severity level.\n- `trace`: trace messages\n- `all`: all messages.\n\nThe filters can be prefixed with the action to take:\n- `check` (the default): capture and check the message\n- `drop`: drop the message\n- `pass`: let the message pass through\n\nIf no filter is specified, `check all` is assumed.  Otherwise, these filters are processed in\nleft-to-right order, with an implicit `pass all` at the end.\n\nWhitespace handling (after trimming leading and trailing whitespace):\n- `whitespace := exact` requires an exact whitespace match.\n- `whitespace := normalized` converts all newline characters to a space before matching\n  (the default). This allows breaking long lines.\n- `whitespace := lax` collapses whitespace to a single space before matching.\n\nMessage ordering:\n- `ordering := exact` uses the exact ordering of the messages (the default).\n- `ordering := sorted` sorts the messages in lexicographic order.\n  This helps with testing commands that are non-deterministic in their ordering.\n\nPosition reporting:\n- `positions := true` reports the ranges of all messages relative to the line on which\n  `#guard_msgs` appears.\n- `positions := false` does not report position info.\n\nSubstring matching:\n- `substring := true` checks that the docstring appears as a substring of the output\n  (after whitespace normalization). This is useful when you only care about part of the message.\n- `substring := false` (the default) requires exact matching (modulo whitespace normalization).\n\nStabilizing output:\nWhen messages contain autogenerated names (e.g., metavariables like `?m.47`), the output may\ndiffer between runs or Lean versions. Use `set_option pp.mvars.anonymous false` to replace\nanonymous metavariables with `?_` while preserving user-named metavariables like `?a`.\nAlternatively, `set_option pp.mvars false` replaces all metavariables with `?_`.\nSimilarly, `set_option pp.fvars.anonymous false` replaces loose free variable names like\n`_fvar.22` with `_fvar._`.\n\nFor example, `#guard_msgs (error, drop all) in cmd` means to check errors and drop\neverything else.\n\nThe command elaborator has special support for `#guard_msgs` for linting.\nThe `#guard_msgs` itself wants to capture linter warnings,\nso it elaborates the command it is attached to as if it were a top-level command.\nHowever, the command elaborator runs linters for *all* top-level commands,\nwhich would include `#guard_msgs` itself, and would cause duplicate and/or uncaptured linter warnings.\nThe top-level command elaborator only runs the linters if `#guard_msgs` is not present.\n</code>",
- "9499": "<code>Color.grayscale (k : Nat) : Color</code>",
- "9498": "<code>Color.rgb (r g b : Nat) : Color</code>",
- "9497": "<code>Color : Type</code>",
+ "9499": "<code>FVarId</code>",
+ "9498": "<code>Expr → Expr → FVarId → DoElabM Expr</code>",
+ "9497":
+ "<code>openMutBody (x : Ident) (seq : TSyntax `Lean.Parser.Term.doSeq) (mkClose : Expr → Expr → FVarId → DoElabM Expr) :\n  DoElabM Expr</code>",
  "9496":
- "<code>Lean.ToJson.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">Types that can be encoded as JSON.\n\nUse `deriving ToJson`\nto [automatically generate](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=deriving-instances) an instance.\nThe following encoding strategy is employed by auto-generated instances:\n\n* Basic types corresponding to JSON values are encoded as these values.\n\n  * `Bool` is encoded as `true`/`false`.\n\n  * `String`s are encoded as JSON strings.\n\n  * Numeric types are encoded as JSON numbers, with the exception of:\n\n    * `UInt64` and `USize`\n            which are encoded as JSON strings.\n            This is because, although JSON numbers proper have unbounded range,\n            in JavaScript they are parsed as [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)s\n            and these can only represent integers up to $2^{53} - 1$ safely;\n            so a roundtrip through JavaScript would result in truncation on these types.\n            \\(We use these types in the JavaScript-based Lean infoview.\\)\n\n    * Special `Float`s which are encoded as JSON strings:\n            `\"NaN\"`/`\"Infinity\"`/`\"-Infinity\"`.\n\n* `Unit` is encoded as `{}` \\(empty JSON object\\).\n\n* `Array`s and `List`s are encoded as JSON arrays.\n\n* `Option.none` is encoded as `null`,\n    whereas  `some a` has the same encoding as `a`.\n    Note that this implies `Option (Option α)` does not roundtrip,\n    since `none` and `some none` both become `null`.\n\n* General `structure`s are encoded as JSON objects in the obvious way.\n\n  * `Option` fields whose names end with `?` have special support:\n        the question mark is omitted from the JSON field name,\n        and such a field is omitted from the JSON object when its value is `none`\n        \\(as opposed to being encoded as `{ \"someField\": null }`\\).\n\n* General `inductive` types are encoded on a per-constructor basis.\n\n  * An argument-free constructor is encoded as its name \\(a JSON string\\).\n\n  * A constructor with named arguments only is encoded as the JSON object\n        `{ \"ctorName\": { \"arg1\": argVal1, ..., \"argN\": argValN } }`.\n\n  * A constructor with one unnamed argument is encoded as the JSON object\n        `{ \"ctorName\": argVal }`.\n\n  * A constructor with more than one unnamed argument is encoded as the JSON object\n        `{ \"ctorName\": [argVal1, ..., argValN] }`.\n\n* Certain other types have special handling: see the instances below. </code>",
+ "<code>Lean.Elab.Do.ControlInfo.sequence (a b : ControlInfo) : ControlInfo</code>",
  "9495":
- "<code>MyColor</code><span class=\"sep\"></span><code class=\"docstring\">`default` is a function that produces a \"default\" element of any\n`Inhabited` type. This element does not have any particular specified\nproperties, but it is often an all-zeroes value. </code>",
- "9494": "<code>Option MyColor</code>",
- "9493": "<code>forceColor (oc : Option MyColor) : MyColor</code>",
- "9492": "<code>MyColor.thistle : MyColor</code>",
- "9491": "<code>MyColor.sienna : MyColor</code>",
- "9490": "<code>MyColor.chartreuse : MyColor</code>",
+ "<code>Lean.Elab.Do.inferControlInfoSeq (doSeq : TSyntax `Lean.Parser.Term.doSeq) : TermElabM ControlInfo</code>",
+ "9494": "<code>openMutInfo : ControlInfoHandler</code>",
+ "9493": "<code>openMutMon : ParserDescr</code>",
+ "9492":
+ "<code><span class=\"literal string\">\"invariant\"</span> : String</code>",
+ "9491": "<code><span class=\"literal string\">\"do\"</span> : String</code>",
+ "9490": "<code><span class=\"literal string\">\"mut\"</span> : String</code>",
  "949":
  "<code>Quot.rec.{u, v} {α : Sort u} {r : α → α → Prop} {motive : Quot r → Sort v} (f : (a : α) → motive (Quot.mk r a))\n  (h : ∀ (a b : α) (p : r a b), ⋯ ▸ f a = f b) (q : Quot r) : motive q</code><span class=\"sep\"></span><code class=\"docstring\">A dependent recursion principle for `Quot`. It is analogous to the\n[recursor](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=recursors) for a structure, and can be used when the resulting type\nis not necessarily a proposition.\n\nWhile it is very general, this recursor can be tricky to use. The following simpler alternatives may\nbe easier to use:\n * `Quot.lift` is useful for defining non-dependent functions.\n * `Quot.ind` is useful for proving theorems about quotients.\n * `Quot.recOnSubsingleton` can be used whenever the target type is a `Subsingleton`.\n * `Quot.hrecOn` uses [heterogeneous equality](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=HEq) instead of rewriting with\n   `Quot.sound`.\n\n`Quot.recOn` is a version of this recursor that takes the quotient parameter first.\n</code>",
- "9489": "<code>MyColor : Type</code>",
- "9488":
- "<code><span class=\"literal string\">\"3meters\"</span> : String</code>",
- "9487":
- "<code><span class=\"literal string\">\"meters\"</span> : String</code>",
- "9486": "<code>x : Int</code>",
- "9485": "<code><span class=\"literal string\">\"A3\"</span> : String</code>",
- "9484": "<code><span class=\"literal string\">\"3\"</span> : String</code>",
- "9483": "<code><span class=\"literal string\">\"A\"</span> : String</code>",
- "9482": "<code>seconds.{u_1} {α : Type u_1} : List (List α) → List α</code>",
+ "9489": "<code><span class=\"literal string\">\"open\"</span> : String</code>",
+ "9488": "<code>openMutPure : ParserDescr</code>",
+ "9487": "<code>App Nat</code>",
+ "9486": "<code>App (α : Type) : Type</code>",
+ "9485":
+ "<code>Lean.Elab.Do.DoElemCont.mkBindUnlessPure (dec : DoElemCont) (e : Expr) : DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Return `$e &gt;&gt;= fun ($dec.resultName : $dec.resultType) =&gt; $(← dec.k)`, cancelling\nthe bind if `$(← dec.k)` is `pure $dec.resultName` or `e` is some `pure` computation.\n</code>",
+ "9484":
+ "<code>Lean.Elab.Do.ControlLifter.restoreCont (l : ControlLifter) : DoElabM DoElemCont</code>",
+ "9483":
+ "<code>MonadWithReaderOf.withReader.{u, v} {ρ : semiOutParam (Type u)} {m : Type u → Type v} [self : MonadWithReaderOf ρ m]\n  {α : Type u} (f : ρ → ρ) (x : m α) : m α</code><span class=\"sep\"></span><code class=\"docstring\">Locally modifies the reader monad's value while running an action.\n\nDuring the inner action `x`, reading the value returns `f` applied to the original value. After\ncontrol returns from `x`, the reader monad's value is restored.\n</code>",
+ "9482":
+ "<code>Lean.Meta.mkAppM (constName : Name) (xs : Array Expr) : MetaM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Returns the application `constName xs`.\nIt tries to fill the implicit arguments before the last element in `xs`.\n\nRemark:\n``mkAppM `arbitrary #[α]`` returns `@arbitrary.{u} α` without synthesizing\nthe implicit argument occurring after `α`.\nGiven a `x : ([Decidable p] → Bool) × Nat`, ``mkAppM `Prod.fst #[x]``,\nreturns `@Prod.fst ([Decidable p] → Bool) Nat x`.\n</code>",
  "9481":
- "<code>Exists.elim.{u} {α : Sort u} {p : α → Prop} {b : Prop} (h₁ : ∃ x, p x) (h₂ : ∀ (a : α), p a → b) : b</code>",
- "9480": "<code>(x : α) ×' p x</code>",
+ "<code>Lean.Elab.Term.synthesizeSyntheticMVarsNoPostponing (ignoreStuckTC : Bool := false) : TermElabM Unit</code>",
+ "9480":
+ "<code>Lean.mkArrow (d b : Expr) : CoreM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Creates the expression `d → b` </code>",
  "948": "<code>∀ (a : α), β (Quot.mk r a)</code>",
  "9479":
- "<code>getWitness.{u} {α : Type u} {p : α → Prop} (h : (x : α) ×' p x) : α</code>",
- "9478": "<code>∀ (x : α), p x → q</code>",
+ "<code>Lean.Elab.Do.MonadInfo.u (self : MonadInfo) : Level</code><span class=\"sep\"></span><code class=\"docstring\">The `u` in `m : Type u → Type v`. </code>",
+ "9478":
+ "<code>Lean.Elab.Do.Context.monadInfo (self : Do.Context) : MonadInfo</code><span class=\"sep\"></span><code class=\"docstring\">Inferred and cached information about the monad. </code>",
  "9477":
- "<code>useWitness.{u} {α : Type u} {p : α → Prop} {q : Prop} (h : ∃ x, p x) (hq : ∀ (x : α), p x → q) : q</code>",
- "9476": "<code>p x</code>",
- "9475": "<code>(x : α) → (h : p x) → motive ⋯</code>",
- "9474": "<code>(∃ x, p x) → Sort ?u.11</code>",
- "9473": "<code>∃ x, p x</code>",
- "9472":
- "<code>getWitness.{u} {α : Type u} {p : α → Prop} (h : ∃ x, p x) : α</code>",
- "9471": "<code>(x : α) → motive ⋯</code>",
- "9470": "<code>Nonempty α → Sort ?u.14</code>",
+ "<code>Lean.mkSort (u : Level) : Expr</code><span class=\"sep\"></span><code class=\"docstring\">`.sort u` is now the preferred form. </code>",
+ "9476":
+ "<code>Lean.Meta.mkFreshExprMVar (type? : Option Expr) (kind : MetavarKind := MetavarKind.natural)\n  (userName : Name := Name.anonymous) : MetaM Expr</code>",
+ "9475":
+ "<code>Lean.Elab.Do.ControlLifter.lift (l : ControlLifter) (elabElem : DoElemCont → DoElabM Expr) : DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">This function is like `MonadControl.liftWith fun runInBase =&gt; elabElem (runInBase pure)`.\nAll continuations should be thought of as wrapped in `runInBase`, so that their effects are embedded\nin the terminal `stM m (t m)` result type. This wrapping will be realized by\n`ControlStack.synthesizeConts`, after we know what the transformer stack `t` looks like.\nWhat `t` looks like depends on whether reassignments, early `return`, `break` and `continue` are\nused, considering *all* the use sites of `ControlLifter.lift`.\n</code>",
+ "9474":
+ "<code>Lean.Elab.Do.inferControlInfoElem (doElem : TSyntax `doElem) : TermElabM ControlInfo</code>",
+ "9473":
+ "<code>Lean.Elab.Do.ControlLifter.ofCont (info : ControlInfo) (dec : DoElemCont) : DoElabM ControlLifter</code>",
+ "9472": "<code>ControlLifter</code>",
+ "9471": "<code>elabDoLocally : DoElab</code>",
+ "9470":
+ "<code>Lean.Elab.Do.MonadInfo.u (self : Elab.Do.MonadInfo) : Level</code><span class=\"sep\"></span><code class=\"docstring\">The `u` in `m : Type u → Type v`. </code>",
  "947": "<code>Quot r → Prop</code>",
- "9469": "<code>w &gt; a + 1</code>",
- "9468":
- "<code>Nat.lt_of_succ_lt {n m : Nat} : n.succ &lt; m → n &lt; m</code>",
- "9467": "<code>∃ x, x &gt; a + 1</code>",
+ "9469":
+ "<code>Lean.Elab.Do.Context.monadInfo (self : Elab.Do.Context) : Elab.Do.MonadInfo</code><span class=\"sep\"></span><code class=\"docstring\">Inferred and cached information about the monad. </code>",
+ "9468": "<code>inferLocally : ControlInfoHandler</code>",
+ "9467": "<code><span class=\"literal string\">\" do \"</span> : String</code>",
  "9466":
- "<code>Std.Time.Internal.Bounded.LE.succ {lo hi : Int} (bounded : Std.Time.Internal.Bounded.LE lo hi) (h : bounded.val &lt; hi) :\n  Std.Time.Internal.Bounded.LE lo hi</code><span class=\"sep\"></span><code class=\"docstring\">Adds one to the value of the bounded if the value is less than the higher bound of the bounded number.\n</code>",
+ "<code>Lean.Parser.Term.termBeforeDo : Parser.Parser</code><span class=\"sep\"></span><code class=\"docstring\">`termBeforeDo` is defined as `withForbidden(\"do\", term)`, which will parse a term but\ndisallows `do` outside of a bracketing construct. This is used for parsers like `for _ in t do ...`\nor `unless t do ...`, where we do not want `t do ...` to be parsed as an application of `t` to a\n`do` block, which would otherwise be allowed. </code>",
  "9465":
- "<code>Lean.Level.PP.Result.succ : Lean.Level.PP.Result → Lean.Level.PP.Result</code>",
- "9464":
- "<code>Std.PRange.UpwardEnumerable.succ.{u} {α : Type u} [Std.PRange.UpwardEnumerable α]\n  [Std.PRange.InfinitelyUpwardEnumerable α] (a : α) : α</code><span class=\"sep\"></span><code class=\"docstring\">Maps elements of `α` to their immediate successor.\n</code>",
- "9463": "<code>Lean.Level.succ : Lean.Level → Lean.Level</code>",
- "9462": "<code>double_plus_one (x : Nat) : Nat</code>",
- "9461": "<code><span class=\"literal char\">'&gt;'</span> : Char</code>",
- "9460":
- "<code>reverseDuplicate.{u_1} {α : Type u_1} (xs : List α) : List α</code>",
+ "<code><span class=\"literal string\">\"locally \"</span> : String</code>",
+ "9464": "<code>doLocally : ParserDescr</code>",
+ "9463": "<code>Elab.Do.ControlLifter</code>",
+ "9462": "<code>Expr</code>",
+ "9461": "<code>Elab.Do.CodeLiveness</code>",
+ "9460": "<code>Elab.Do.ControlStack</code>",
  "946": "<code>Quot r</code>",
- "9459":
- "<code>Std.DTreeMap.Internal.Impl.Ordered.reverse.{u, v} {α : Type u} {β : α → Type v} [Ord α]\n  {t : Std.DTreeMap.Internal.Impl α β} (h : t.Ordered) : t.reverse.Ordered</code>",
- "9458":
- "<code>Std.Tactic.BVDecide.BVUnOp.reverse : Std.Tactic.BVDecide.BVUnOp</code><span class=\"sep\"></span><code class=\"docstring\">Reverse the bits in a bitvector.\n</code>",
- "9457":
- "<code>Std.DTreeMap.Internal.Impl.reverse.{u, v} {α : Type u} {β : α → Type v} :\n  Std.DTreeMap.Internal.Impl α β → Std.DTreeMap.Internal.Impl α β</code><span class=\"sep\"></span><code class=\"docstring\">Internal implementation detail of the tree map </code>",
+ "9459": "<code>Lean.Elab.Do.ControlStack : Type</code>",
+ "9458": "<code>Option Elab.Do.ControlStack</code>",
+ "9457": "<code>Elab.Do.DoElemCont</code>",
  "9456":
- "<code>Lean.Grind.AC.Seq.reverse (s : Lean.Grind.AC.Seq) : Lean.Grind.AC.Seq</code><span class=\"sep\"></span><code class=\"docstring\">Reverses the sequence </code>",
+ "<code>Lean.Elab.Do.ControlLifter.mk (origCont : Elab.Do.DoElemCont)\n  (returnBase? breakBase? continueBase? : Option Elab.Do.ControlStack) (pureBase : Elab.Do.ControlStack)\n  (pureDeadCode : Elab.Do.CodeLiveness) (liftedDoBlockResultType : Expr) : Elab.Do.ControlLifter</code>",
  "9455":
- "<code>List.Sublist.reverse.{u_1} {α✝ : Type u_1} {l₁ l₂ : List α✝} : l₁.Sublist l₂ → l₁.reverse.Sublist l₂.reverse</code>",
+ "<code>Lean.Elab.Do.ControlLifter.restoreCont (l : Elab.Do.ControlLifter) : Elab.Do.DoElabM Elab.Do.DoElemCont</code>",
  "9454":
- "<code>List.IsSuffix.reverse.{u_1} {α✝ : Type u_1} {l₁ l₂ : List α✝} : l₁ &lt;:+ l₂ → l₁.reverse &lt;+: l₂.reverse</code>",
+ "<code>Lean.Elab.Do.ControlLifter.lift (l : Elab.Do.ControlLifter) (elabElem : Elab.Do.DoElemCont → Elab.Do.DoElabM Expr) :\n  Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">This function is like `MonadControl.liftWith fun runInBase =&gt; elabElem (runInBase pure)`.\nAll continuations should be thought of as wrapped in `runInBase`, so that their effects are embedded\nin the terminal `stM m (t m)` result type. This wrapping will be realized by\n`ControlStack.synthesizeConts`, after we know what the transformer stack `t` looks like.\nWhat `t` looks like depends on whether reassignments, early `return`, `break` and `continue` are\nused, considering *all* the use sites of `ControlLifter.lift`.\n</code>",
  "9453":
- "<code>List.IsPrefix.reverse.{u_1} {α✝ : Type u_1} {l₁ l₂ : List α✝} : l₁ &lt;+: l₂ → l₁.reverse &lt;:+ l₂.reverse</code>",
- "9452":
- "<code>List.IsInfix.reverse.{u_1} {α✝ : Type u_1} {l₁ l₂ : List α✝} : l₁ &lt;:+: l₂ → l₁.reverse &lt;:+: l₂.reverse</code>",
- "9451": "<code>emptyNats : List Nat</code>",
- "9450": "<code>Person.familyName (self : Person) : String</code>",
+ "<code>Lean.Elab.Do.ControlLifter.ofCont (info : Elab.Do.ControlInfo) (dec : Elab.Do.DoElemCont) :\n  Elab.Do.DoElabM Elab.Do.ControlLifter</code>",
+ "9452": "<code>Lean.Elab.Do.ControlLifter : Type</code>",
+ "9451": "<code>Lean.NameSet.insert (s : NameSet) (n : Name) : NameSet</code>",
+ "9450": "<code>NameSet</code>",
  "945": "<code>∀ (a b : α), r a b → f a = f b</code>",
- "9449": "<code>Person.givenName (self : Person) : String</code>",
- "9448": "<code>n : Nat</code>",
- "9447": "<code>m : Nat</code>",
- "9446": "<code>plusTwo (x : Nat) : Nat</code>",
- "9445": "<code>identity.{u_1} {α : Sort u_1} (x : α) : α</code>",
+ "9449": "<code>Lean.NameSet.empty : NameSet</code>",
+ "9448":
+ "<code>Lean.PersistentArray.foldl.{u, u_1} {α : Type u} {β : Type u_1} (t : PersistentArray α) (f : β → α → β) (init : β)\n  (start : Nat := 0) : β</code>",
+ "9447":
+ "<code>Lean.LocalDecl.userName : LocalDecl → Name</code><span class=\"sep\"></span><code class=\"docstring\">The pretty-printable name of the variable. </code>",
+ "9446": "<code>LocalDecl</code>",
+ "9445": "<code>Option LocalDecl</code>",
  "9444":
- "<code>RoseTree.All.intro.{u_1} {α : Type u_1} {P : α → Prop} {t : RoseTree α} :\n  P t.val → List.All (All P) t.children → All P t</code>",
+ "<code>Lean.PersistentArray.map.{u} {α β : Type u} (f : α → β) (t : PersistentArray α) : PersistentArray β</code>",
  "9443":
- "<code>RoseTree.All.{u_1} {α : Type u_1} (P : α → Prop) : RoseTree α → Prop</code>",
- "9442": "<code>{α : Type ?u.6} → (α → Prop) → RoseTree α → Prop</code>",
- "9441": "<code>RoseTree α</code>",
- "9440": "<code>{α : Type ?u.6} → (α → Prop) → RoseTree α → Prop</code>",
+ "<code>Lean.LocalContext.decls (self : LocalContext) : PersistentArray (Option LocalDecl)</code>",
+ "9442":
+ "<code>Lean.MonadLCtx.getLCtx {m : Type → Type} [self : MonadLCtx m] : m LocalContext</code>",
+ "9441": "<code>doCensor.control : ControlInfoHandler</code>",
+ "9440":
+ "<code>Lean.Elab.Do.elabDoElems1 (doElems : Array (TSyntax `doElem)) (cont : DoElemCont) (catchExPostpone : Bool := true) :\n  DoElabM Expr</code>",
  "944": "<code>Sort ?u.11</code>",
  "9439":
- "<code>RoseTree.children.{u} {α : Type u} (self : RoseTree α) : List (RoseTree α)</code>",
- "9438": "<code>RoseTree.val.{u} {α : Type u} (self : RoseTree α) : α</code>",
- "9437":
- "<code>List.All.cons.{u} {α : Type u} {P : α → Prop} {x : α} {xs : List α} : P x → All P xs → All P (x :: xs)</code>",
- "9436": "<code>List.All.nil.{u} {α : Type u} {P : α → Prop} : All P []</code>",
+ "<code><span class=\"literal string\">\"There are no mutable variables to censor.\"</span> : String</code>",
+ "9438":
+ "<code>Lean.logErrorAt {m : Type → Type} [Monad m] [MonadLog m] [AddMessageContext m] [MonadOptions m] (ref : Syntax)\n  (msgData : MessageData) : m Unit</code><span class=\"sep\"></span><code class=\"docstring\">Log a new error message using the given message data. The position is provided by `ref`. </code>",
+ "9437": "<code>vars.size = 0</code>",
+ "9436": "<code>elabCensor : DoElab</code>",
  "9435":
- "<code>List.All.{u} {α : Type u} (P : α → Prop) : List α → Prop</code>",
- "9434":
- "<code>Vec.cons {α : Type} {n : Nat} : α → Vec α n → Vec α (n + 1)</code>",
- "9433": "<code>Vec.nil {α : Type} : Vec α 0</code>",
- "9432": "<code>Vec (α : Type) : Nat → Type</code>",
- "9431": "<code>Type → Nat → Type</code>",
- "9430": "<code>Type → Nat → Type</code>",
+ "<code><span class=\"literal string\">\"censor\"</span> : String</code>",
+ "9434": "<code>doCensor : ParserDescr</code>",
+ "9433": "<code>dbgMut.control : ControlInfoHandler</code>",
+ "9432":
+ "<code class=\"docstring\">`dbg_trace e` prints `e` (which can be an interpolated string literal) to stderr.\nIt should only be used for debugging.\n</code>",
+ "9431":
+ "<code>Lean.Elab.Do.elabDoElem (stx : TSyntax `doElem) (cont : DoElemCont) (catchExPostpone : Bool := true) : DoElabM Expr</code>",
+ "9430":
+ "<code>Lean.Name.toString (n : Name) (escape : Bool := true) : String</code><span class=\"sep\"></span><code class=\"docstring\">Converts a name to a string.\n\n- If `escape` is `true`, then escapes name components using `«` and `»` to ensure that\nthose names that can appear in source files round trip.\nNames with number components, anonymous names, and names containing `»` might not round trip.\nFurthermore, \"pseudo-syntax\" produced by the delaborator, such as `_`, `#0` or `?u`, is not escaped.\n</code>",
  "943": "<code>Quot r → β</code>",
- "9429": "<code>Nat.add_zero (n : Nat) : n + 0 = n</code>",
- "9428": "<code>Nat.mul_succ (n m : Nat) : n * m.succ = n * m + n</code>",
- "9427": "<code>0 * n = 0</code>",
- "9426": "<code>Nat.mul_zero (n : Nat) : n * 0 = 0</code>",
- "9425": "<code>zero_mul (m : Nat) : 0 * m = 0</code>",
- "9424":
- "<code>fromImage (f : Nat → Nat) (y : Nat) : Nat</code><span class=\"sep\"></span><code class=\"docstring\">Returns `y` if it is in the image of `f`,\nor an element of the image of `f` otherwise.\n</code>",
- "9423": "<code>endsOrDefault (ns : List Nat) : Nat × Nat</code>",
+ "9429":
+ "<code>Lean.Elab.Do.Context.mutVars (self : Context) : Array Ident</code><span class=\"sep\"></span><code class=\"docstring\">The mutable variables in declaration order. </code>",
+ "9428": "<code>Array Term</code>",
+ "9427": "<code>Context</code>",
+ "9426": "<code>elabDbgMut : DoElab</code>",
+ "9425":
+ "<code><span class=\"literal string\">\"dbg_mut\"</span> : String</code>",
+ "9424": "<code>dbgMut : ParserDescr</code>",
+ "9423":
+ "<code>Lean.Elab.Do.throwUnlessMutVarsDeclared (xs : Array Ident) : Elab.Do.DoElabM Unit</code><span class=\"sep\"></span><code class=\"docstring\">Throw an error if the given names are not declared `mut` variables. </code>",
  "9422":
- "<code>getOrDefault.{u_1} {α : Type u_1} [Inhabited α] : Option α → α</code>",
+ "<code>Lean.Elab.Do.throwUnlessMutVarDeclared (x : Ident) : Elab.Do.DoElabM Unit</code><span class=\"sep\"></span><code class=\"docstring\">Throw an error if the given name is not a declared `mut` variable. </code>",
  "9421":
- "<code>Classical.ofNonempty.{u} {α : Sort u} [Nonempty α] : α</code><span class=\"sep\"></span><code class=\"docstring\">A variation on `Classical.choice` that uses typeclass inference to\ninfer the proof of `Nonempty α`.\n</code>",
+ "<code>Lean.Elab.Do.declareMutVars {α : Type} (xs : Array Ident) (k : Elab.Do.DoElabM α) : Elab.Do.DoElabM α</code><span class=\"sep\"></span><code class=\"docstring\">Register the given names as that of `mut` variables. </code>",
  "9420":
- "<code>getOrDefault.{u_1} {α : Type u_1} [Nonempty α] : Option α → α</code>",
+ "<code>Lean.Elab.Do.declareMutVar {α : Type} (x : Ident) (k : Elab.Do.DoElabM α) : Elab.Do.DoElabM α</code><span class=\"sep\"></span><code class=\"docstring\">Register the given name as that of a `mut` variable. </code>",
  "942":
  "<code>Quot.ind.{u} {α : Sort u} {r : α → α → Prop} {β : Quot r → Prop} (mk : ∀ (a : α), β (Quot.mk r a)) (q : Quot r) : β q</code><span class=\"sep\"></span><code class=\"docstring\">A reasoning principle for quotients that allows proofs about quotients to assume that all values are\nconstructed with `Quot.mk`.\n\n`Quot.rec` is analogous to the [recursor](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=recursors) for a structure, and can\nbe used when the resulting type is not necessarily a proposition.\n\n`Quot.ind` is a built-in primitive:\n * `Quot` is the built-in quotient type.\n * `Quot.mk` places elements of the underlying type `α` into the quotient.\n * `Quot.lift` allows the definition of functions from the quotient to some other type.\n * `Quot.sound` asserts the equality of elements related by `r`.\n</code>",
- "9419": "<code>transformIfZero : Nat → Nat</code>",
- "9418": "<code>transform : Nat → Nat</code>",
- "9417": "<code>Credential.password (str : String) : Credential</code>",
- "9416": "<code>Credential.pin (num : Nat) : Credential</code>",
- "9415": "<code>Credential.password : String → Credential</code>",
- "9414": "<code>Credential.pin : Nat → Credential</code>",
- "9413": "<code>Credential : Type</code>",
- "9412": "<code>Sort ?u.2</code>",
- "9411": "<code>Tree.node {α : Type} : α → Tree α → Tree α</code>",
- "9410": "<code>Tree.leaf {α : Type} : Tree α</code>",
+ "9419":
+ "<code>Lean.Meta.getLocalDeclFromUserName (userName : Name) : MetaM LocalDecl</code><span class=\"sep\"></span><code class=\"docstring\">Given a user-facing name for a free variable, return its declaration in the current local context.\nThrow an exception if free variable is not declared.\n</code>",
+ "9418":
+ "<code>Lean.Meta.getFVarFromUserName (userName : Name) : MetaM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Given a user-facing name for a free variable, return the free variable or throw if not declared. </code>",
+ "9417":
+ "<code>Lean.Expr.fvar (fvarId : FVarId) : Expr</code><span class=\"sep\"></span><code class=\"docstring\">The `fvar` constructor represents free variables. Such a *free* variable\noccurrence is not bound by an earlier `lam`, `forallE`, or `letE`\nconstructor and its binder exists in a local context only.\n\nNote that Lean uses the *locally nameless approach*. See [McBride and McKinna](https://doi.org/10.1145/1017472.1017477)\nfor additional details.\n\nWhen \"visiting\" the body of a binding expression (i.e. `lam`, `forallE`, or `letE`),\nbound variables are converted into free variables using a unique identifier,\nand their user-facing name, type, value (for `letE`), and binder annotation\nare stored in the `LocalContext`.\n</code>",
+ "9416":
+ "<code>Lean.Name.simpMacroScopes (n : Name) : Name</code><span class=\"sep\"></span><code class=\"docstring\">Helper function we use to create binder names that do not need to be unique. </code>",
+ "9415":
+ "<code>Lean.Elab.Do.Context.mutVarDefs (self : Elab.Do.Context) : Std.HashMap Name FVarId</code><span class=\"sep\"></span><code class=\"docstring\">Maps mutable variable names to their initial FVarIds. </code>",
+ "9414":
+ "<code>Lean.Elab.Do.Context.mutVars (self : Elab.Do.Context) : Array Ident</code><span class=\"sep\"></span><code class=\"docstring\">The mutable variables in declaration order. </code>",
+ "9413":
+ "<code>TSyntax [`Lean.Parser.Term.doIdDecl, `Lean.Parser.Term.doPatDecl]</code>",
+ "9412":
+ "<code>Lean.Elab.Do.InferControlInfo.ofLetOrReassignArrow (reassignment : Bool)\n  (decl : TSyntax [`Lean.Parser.Term.doIdDecl, `Lean.Parser.Term.doPatDecl]) : Elab.TermElabM Elab.Do.ControlInfo</code>",
+ "9411": "<code>Option (TSyntax `Lean.Parser.Term.doSeqIndent)</code>",
+ "9410": "<code>Option (TSyntax `doElem)</code>",
  "941":
  "<code>Quot.lift.{u, v} {α : Sort u} {r : α → α → Prop} {β : Sort v} (f : α → β) (a : ∀ (a b : α), r a b → f a = f b) :\n  Quot r → β</code><span class=\"sep\"></span><code class=\"docstring\">Lifts a function from an underlying type to a function on a quotient, requiring that it respects the\nquotient's relation.\n\nGiven a relation `r : α → α → Prop` and a quotient `Quot r`, applying a function `f : α → β`\nrequires a proof `a` that `f` respects `r`. In this case, `Quot.lift f a : Quot r → β` computes the\nsame values as `f`.\n\nLean's type theory includes a [definitional reduction](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=type-theory) from\n`Quot.lift f h (Quot.mk r v)` to `f v`.\n\n`Quot.lift` is a built-in primitive:\n * `Quot` is the built-in quotient type.\n * `Quot.mk` places elements of the underlying type `α` into the quotient.\n * `Quot.sound` asserts the equality of elements related by `r`\n * `Quot.ind` is used to write proofs about quotients by assuming that all elements are constructed\n   with `Quot.mk`; it is analogous to the [recursor](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=recursors) for a\n   structure.\n</code>",
- "9409": "<code>Tree (α : Type) : Type</code>",
- "9408": "<code>Type → Sort ?u.3</code>",
- "9407": "<code>Type → Sort ?u.3</code>",
- "9406": "<code>thmName : TheoremStatement</code>",
+ "9409": "<code>Array Ident</code>",
+ "9408":
+ "<code>Lean.Elab.Do.InferControlInfo.ofLetOrReassign (reassigned : Array Ident) (rhs? : Option (TSyntax `doElem))\n  (otherwise? body? : Option (TSyntax `Lean.Parser.Term.doSeqIndent)) : Elab.TermElabM Elab.Do.ControlInfo</code>",
+ "9407":
+ "<code>Lean.Elab.Do.InferControlInfo.ofOptionSeq (stx? : Option (TSyntax `Lean.Parser.Term.doSeq)) :\n  Elab.TermElabM Elab.Do.ControlInfo</code>",
+ "9406":
+ "<code>Lean.Elab.Do.InferControlInfo.ofSeq (stx : TSyntax `Lean.Parser.Term.doSeq) : Elab.TermElabM Elab.Do.ControlInfo</code>",
  "9405":
- "<code>debug.skipKernelTC</code><span class=\"sep\"></span><code class=\"docstring\">skip kernel type checker. WARNING: setting this option to true may compromise soundness because your proofs will not be checked by the Lean kernel</code>",
- "9404": "<code>shell</code>",
- "9403": "<code>command</code>",
- "9402": "<code>path</code>",
- "9401": "<code>local-name</code>",
- "9400": "<code>toolchain</code>",
+ "<code>Lean.Elab.Do.InferControlInfo.ofElem (stx : TSyntax `doElem) : Elab.TermElabM Elab.Do.ControlInfo</code>",
+ "9404":
+ "<code>Lean.Elab.Do.inferControlInfoSeq (doSeq : TSyntax `Lean.Parser.Term.doSeq) : Elab.TermElabM Elab.Do.ControlInfo</code>",
+ "9403":
+ "<code>Lean.Elab.Do.inferControlInfoElem (doElem : TSyntax `doElem) : Elab.TermElabM Elab.Do.ControlInfo</code>",
+ "9402":
+ "<code>Lean.Elab.Do.ControlInfo.alternative (a b : Elab.Do.ControlInfo) : Elab.Do.ControlInfo</code>",
+ "9401":
+ "<code>Lean.Elab.Do.ControlInfo.sequence (a b : Elab.Do.ControlInfo) : Elab.Do.ControlInfo</code>",
+ "9400": "<code>Lean.NameSet : Type</code>",
  "940":
  "<code>Quot.mk.{u} {α : Sort u} (r : α → α → Prop) (a : α) : Quot r</code><span class=\"sep\"></span><code class=\"docstring\">Places an element of a type into the quotient that equates terms according to the provided relation.\n\nGiven `v : α` and relation `r : α → α → Prop`, `Quot.mk r v : Quot r` is like `v`, except all\nobservations of `v`'s value must respect `r`.\n\n`Quot.mk` is a built-in primitive:\n * `Quot` is the built-in quotient type.\n * `Quot.lift` allows the definition of functions from the quotient to some other type.\n * `Quot.sound` asserts the equality of elements related by `r`.\n * `Quot.ind` is used to write proofs about quotients by assuming that all elements are constructed\n   with `Quot.mk`.\n</code>",
  "94":
  "<code>Bool : Type</code><span class=\"sep\"></span><code class=\"docstring\">The Boolean values, `true` and `false`.\n\nLogically speaking, this is equivalent to `Prop` (the type of propositions). The distinction is\npublic important for programming: both propositions and their proofs are erased in the code generator,\nwhile `Bool` corresponds to the Boolean type in most programming languages and carries precisely one\nbit of run-time information.\n</code>",
  "9399":
- "<code>Lake.getAugmentedEnv.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] :\n  m (Array (String × Option String))</code><span class=\"sep\"></span><code class=\"docstring\">Returns the augmented environment variables set by the context's workspace. </code>",
+ "<code>NameSet</code><span class=\"sep\"></span><code class=\"docstring\">The variables that are syntactically reassigned somewhere in the `do` block. </code>",
  "9398":
- "<code>Lake.getAugmentedSharedLibPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the augmented shared library path set by the context's workspace. </code>",
+ "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">The `do` block syntactically contains an early `return`. </code>",
  "9397":
- "<code>Lake.getAugmentedLeanSrcPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the augmented `LEAN_SRC_PATH` set by the context's workspace. </code>",
- "9396":
- "<code>Lake.getAugmentedLeanPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the augmented `LEAN_PATH` set by the context's workspace. </code>",
+ "<code>Lean.Elab.Do.ControlInfo.mk (breaks continues returnsEarly : Bool) (numRegularExits : Nat) (noFallthrough : Bool)\n  (reassigns : NameSet) : Elab.Do.ControlInfo</code>",
+ "9396": "<code>Sort ?u.7</code>",
  "9395":
- "<code>Lake.getSharedLibPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the paths added to the shared library path by the context's workspace. </code>",
+ "<code>Lean.Elab.Do.ControlInfo.empty : Elab.Do.ControlInfo</code><span class=\"sep\"></span><code class=\"docstring\">The identity of `ControlInfo.alternative`: a `ControlInfo` describing a block with no branches\nat all (so no regular exits and the next element is trivially unreachable).\n</code>",
  "9394":
- "<code>Lake.getLeanSrcPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the paths added to `LEAN_SRC_PATH` by the context's workspace. </code>",
+ "<code>Lean.Elab.Do.elabDoSeq (doSeq : TSyntax `Lean.Parser.Term.doSeq) (cont : DoElemCont) (catchExPostpone : Bool := true) :\n  DoElabM Expr</code>",
  "9393":
- "<code>Lake.getLeanPath.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the paths added to `LEAN_PATH` by the context's workspace. </code>",
- "9392":
- "<code>Lake.ExternLib : Type</code><span class=\"sep\"></span><code class=\"docstring\">An external library -- its package plus its configuration. </code>",
- "9391":
- "<code>Lake.findExternLib?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (name : Lean.Name) :\n  m (Option Lake.ExternLib)</code><span class=\"sep\"></span><code class=\"docstring\">Try to find an external library in the workspace with the given name. </code>",
- "9390":
- "<code>Lake.LeanLib : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lean library -- its package plus its configuration. </code>",
+ "<code>Lean.Elab.Do.enterLoopBody {α : Type} (breakCont continueCont : DoElabM Expr) (returnCont : ReturnCont)\n  (body : DoElabM α) : DoElabM α</code><span class=\"sep\"></span><code class=\"docstring\">Prepare the context for elaborating the body of a loop.\nThis includes setting the return continuation, break continuation, continue continuation, as\nwell as the changed result type of the `do` block in the loop body.\n</code>",
+ "9392": "<code>DoElabM Expr</code>",
+ "9391": "<code>Lean.Elab.Do.getReturnCont : DoElabM ReturnCont</code>",
+ "9390": "<code>ReturnCont</code>",
  "939":
  "<code>Quotient.exact.{u} {α : Sort u} {s : Setoid α} {a b : α} : Quotient.mk s a = Quotient.mk s b → a ≈ b</code><span class=\"sep\"></span><code class=\"docstring\">If two values are equal in a quotient, then they are related by its equivalence relation.\n</code>",
  "9389":
- "<code>Lake.findLeanLib?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (name : Lean.Name) :\n  m (Option Lake.LeanLib)</code><span class=\"sep\"></span><code class=\"docstring\">Try to find a Lean library in the workspace with the given name. </code>",
+ "<code>Lean.Elab.Do.DoElemCont.withDuplicableCont (nondupDec : DoElemCont) (callerInfo : ControlInfo)\n  (caller : DoElemCont → DoElabM Expr) : DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Call `caller` with a duplicable proxy of `dec`.\nWhen the proxy is elaborated more than once, a join point is introduced so that `dec` is only\nelaborated once to fill in the RHS of this join point.\n\nThis is useful for control-flow constructs like `if` and `match`, where multiple tail-called\nbranches share the continuation.\n</code>",
  "9388":
- "<code>Lake.LeanExe : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lean executable -- its package plus its configuration. </code>",
- "9387":
- "<code>Lake.findLeanExe?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (name : Lean.Name) :\n  m (Option Lake.LeanExe)</code><span class=\"sep\"></span><code class=\"docstring\">Try to find a Lean executable in the workspace with the given name. </code>",
+ "<code>Lean.Elab.Do.DoElemCont.ensureUnit (dec : DoElemCont) : DoElabM DoElemCont</code><span class=\"sep\"></span><code class=\"docstring\">Given a continuation `dec`, returns a continuation derived from `dec` with result type `PUnit`.\nIf `dec` already has result type `PUnit`, simply returns `dec`. Otherwise, an error is logged and a\nnew continuation is returned that calls `dec` with `sorry` as a result.\n</code>",
+ "9387": "<code>elabOnce : DoElab</code>",
  "9386":
- "<code>Lake.Module : Type</code><span class=\"sep\"></span><code class=\"docstring\">A buildable Lean module of a `LeanLib`. </code>",
+ "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">The `do` block syntactically contains a `continue`. </code>",
  "9385":
- "<code>Lake.findModule?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (name : Lean.Name) :\n  m (Option Lake.Module)</code><span class=\"sep\"></span><code class=\"docstring\">Locate the named, buildable, importable, local module in the workspace. </code>",
+ "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">The `do` block syntactically contains a `break`. </code>",
  "9384":
- "<code>Lake.NPackage (n : Lean.Name) : Type</code><span class=\"sep\"></span><code class=\"docstring\">A package with a name known at type-level. </code>",
+ "<code>Lean.Elab.Do.ControlInfo.continues (self : ControlInfo) : Bool</code><span class=\"sep\"></span><code class=\"docstring\">The `do` block syntactically contains a `continue`. </code>",
  "9383":
- "<code>Lake.findPackageByKey?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (keyName : Lean.Name) :\n  m (Option (Lake.NPackage keyName))</code><span class=\"sep\"></span><code class=\"docstring\">Returns the unique package in the workspace \\(if any\\) that is identified by  `keyName`. </code>",
+ "<code>Lean.Elab.Do.ControlInfo.breaks (self : ControlInfo) : Bool</code><span class=\"sep\"></span><code class=\"docstring\">The `do` block syntactically contains a `break`. </code>",
  "9382":
- "<code>Lake.findPackageByName?.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] (name : Lean.Name) :\n  m (Option Lake.Package)</code><span class=\"sep\"></span><code class=\"docstring\">Returns the first package in the workspace \\(if any\\) that has been assigned the `name`.\n\nThis can be used to find the package corresponding to a user-provided name. If the package's unique\nidentifier is already available, use `findPackageByKey?`instead.\n</code>",
+ "<code>Lean.Elab.Do.ControlInfo.numRegularExits (self : ControlInfo) : Nat</code><span class=\"sep\"></span><code class=\"docstring\">The number of times the block wires the enclosing continuation into its elaborated expression.\nConsumed by `withDuplicableCont` to decide whether to introduce a join point (`&gt; 1`).\n</code>",
  "9381":
- "<code>Lake.Package : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lake package -- its location plus its configuration. </code>",
- "9380":
- "<code>Lake.getRootPackage.{u_1} {m : Type → Type u_1} [Lake.MonadWorkspace m] [Functor m] : m Lake.Package</code><span class=\"sep\"></span><code class=\"docstring\">Returns the root package of the context's workspace. </code>",
+ "<code>Lean.Elab.Do.InferControlInfo.ofSeq (stx : TSyntax `Lean.Parser.Term.doSeq) : TermElabM ControlInfo</code>",
+ "9380": "<code>ControlInfo</code>",
  "938":
  "<code>HEq.{u} {α : Sort u} : α → {β : Sort u} → β → Prop</code><span class=\"sep\"></span><code class=\"docstring\">Heterogeneous equality. `a ≍ b` asserts that `a` and `b` have the same\ntype, and casting `a` across the equality yields `b`, and vice versa.\n\nYou should avoid using this type if you can. Heterogeneous equality does not\nhave all the same properties as `Eq`, because the assumption that the types of\n`a` and `b` are equal is often too weak to prove theorems of interest. One\npublic important non-theorem is the analogue of `congr`: If `f ≍ g` and `x ≍ y`\nand `f x` and `g y` are well typed it does not follow that `f x ≍ g y`.\n(This does follow if you have `f = g` instead.) However if `a` and `b` have\nthe same type then `a = b` and `a ≍ b` are equivalent.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `≍` in identifiers is `heq`.</code>",
- "9379":
- "<code>Lake.Workspace : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lake workspace -- the top-level package directory. </code>",
+ "9379": "<code>inferOnce : ControlInfoHandler</code>",
  "9378":
- "<code>m Lake.Workspace</code><span class=\"sep\"></span><code class=\"docstring\">Gets the current Lake workspace. </code>",
+ "<code>Lean.Elab.Do.ControlInfo.continues (self : Elab.Do.ControlInfo) : Bool</code><span class=\"sep\"></span><code class=\"docstring\">The `do` block syntactically contains a `continue`. </code>",
  "9377":
- "<code>Lake.MonadWorkspace.mk.{u} {m : Type → Type u} (getWorkspace : m Lake.Workspace) : Lake.MonadWorkspace m</code>",
+ "<code>Lean.Elab.Do.ControlInfo.breaks (self : Elab.Do.ControlInfo) : Bool</code><span class=\"sep\"></span><code class=\"docstring\">The `do` block syntactically contains a `break`. </code>",
  "9376":
- "<code>Lake.LakeM (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">A monad equipped with a `Lake.Context`. </code>",
- "9375": "<code>Manual.lake : Verso.Doc.Elab.DirectiveExpander</code>",
- "9374":
- "<code>Lake.getLake.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the path of the `lake` binary in the detected Lake installation. </code>",
- "9373":
- "<code>Lake.getLakeLibDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the Lean library directory of the detected Lake installation. </code>",
- "9372":
- "<code>Lake.getLakeSrcDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the source directory of the detected Lake installation. </code>",
+ "<code><span class=\"literal string\">\"once \"</span> : String</code>",
+ "9375": "<code>doOnce : ParserDescr</code>",
+ "9374": "<code>Elab.Do.DoElabM α</code>",
+ "9373": "<code>Elab.Do.ReturnCont</code>",
+ "9372": "<code>Elab.Do.DoElabM Expr</code>",
  "9371":
- "<code>Lake.getLakeHome.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the root directory of the detected Lake installation \\(e.g., `LAKE_HOME`\\). </code>",
+ "<code>Lean.Elab.Do.enterLoopBody {α : Type} (breakCont continueCont : Elab.Do.DoElabM Expr) (returnCont : Elab.Do.ReturnCont)\n  (body : Elab.Do.DoElabM α) : Elab.Do.DoElabM α</code><span class=\"sep\"></span><code class=\"docstring\">Prepare the context for elaborating the body of a loop.\nThis includes setting the return continuation, break continuation, continue continuation, as\nwell as the changed result type of the `do` block in the loop body.\n</code>",
  "9370":
- "<code>Lake.LakeInstall : Type</code><span class=\"sep\"></span><code class=\"docstring\">Path information about the local Lake installation. </code>",
+ "<code>Lean.Elab.Do.getContinueCont : Elab.Do.DoElabM (Option (Elab.Do.DoElabM Expr))</code>",
  "937": "<code>∀ (a b : α), a ≈ b → f a ≍ f b</code>",
  "9369":
- "<code>Lake.getLakeInstall.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m Lake.LakeInstall</code><span class=\"sep\"></span><code class=\"docstring\">Get the detected Lake installation. </code>",
+ "<code>Lean.Elab.Do.getBreakCont : Elab.Do.DoElabM (Option (Elab.Do.DoElabM Expr))</code>",
  "9368":
- "<code>Lake.getLeanCc?.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m (Option String)</code><span class=\"sep\"></span><code class=\"docstring\">Get the optional `LEAN_CC` compiler override of the detected Lean installation. </code>",
- "9367":
- "<code>Lake.getLeanCc.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the path of C compiler in the detected Lean installation. </code>",
- "9366":
- "<code>Lake.getLeanAr.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Get the path of the `ar` binary in the detected Lean installation. </code>",
- "9365":
- "<code>Lake.getLeanSharedLib.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the path of the `libleanshared` library in the detected Lean installation. </code>",
- "9364":
- "<code>Lake.getLeanc.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the path of the `leanc` binary in the detected Lean installation. </code>",
- "9363":
- "<code>Lake.getLean.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the path of the `lean` binary in the detected Lean installation. </code>",
- "9362":
- "<code>Lake.getLeanSystemLibDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the system library directory of the detected Lean installation. </code>",
- "9361":
- "<code>Lake.getLeanIncludeDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the C include directory of the detected Lean installation. </code>",
+ "<code>Lean.Elab.Do.getReturnCont : Elab.Do.DoElabM Elab.Do.ReturnCont</code>",
+ "9367": "<code>k ∈ xs</code>",
+ "9366": "<code>n ∈ 0...5</code>",
+ "9365": "<code>xs_all_odd (x : Nat) : x ∈ xs → x % 2 = 1</code>",
+ "9364": "<code>xs : Array Nat</code>",
+ "9363": "<code>n ≥ 10</code>",
+ "9362": "<code>n &lt; 10</code>",
+ "9361": "<code>Nat → String</code>",
  "9360":
- "<code>Lake.getLeanLibDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the Lean library directory of the detected Lean installation. </code>",
+ "<code><span class=\"literal string\">\"large\"</span> : String</code>",
  "936":
  "<code>Quotient.ind.{u} {α : Sort u} {s : Setoid α} {motive : Quotient s → Prop} :\n  (∀ (a : α), motive (Quotient.mk s a)) → ∀ (q✝ : Quotient s), motive q✝</code><span class=\"sep\"></span><code class=\"docstring\">A reasoning principle for quotients that allows proofs about quotients to assume that all values are\nconstructed with `Quotient.mk`.\n</code>",
  "9359":
- "<code>Lake.getLeanSrcDir.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the Lean source directory of the detected Lean installation. </code>",
+ "<code><span class=\"literal string\">\"medium\"</span> : String</code>",
  "9358":
- "<code>Lake.getLeanSysroot.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the root directory of the detected Lean installation. </code>",
+ "<code><span class=\"literal string\">\"small\"</span> : String</code>",
  "9357":
- "<code>Lake.LeanInstall : Type</code><span class=\"sep\"></span><code class=\"docstring\">Path information about the local Lean installation. </code>",
+ "<code>Lean.Meta.mkAppOptM (constName : Name) (xs : Array (Option Expr)) : MetaM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Similar to `mkAppM`, but it allows us to specify which arguments are provided explicitly using `Option` type.\nExample:\nGiven `Pure.pure {m : Type u → Type v} [Pure m] {α : Type u} (a : α) : m α`,\n```\nmkAppOptM `Pure.pure #[m, none, none, a]\n```\nreturns a `Pure.pure` application if the instance `Pure m` can be synthesized, and the universe match.\nNote that,\n```\nmkAppM `Pure.pure #[a]\n```\nfails because the only explicit argument `(a : α)` is not sufficient for inferring the remaining arguments,\nwe would need the expected type. </code>",
  "9356":
- "<code>Lake.getLeanInstall.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m Lake.LeanInstall</code><span class=\"sep\"></span><code class=\"docstring\">Returns the detected Lean installation. </code>",
+ "<code>Lean.Elab.Do.Context.doBlockResultType (self : Do.Context) : Expr</code><span class=\"sep\"></span><code class=\"docstring\">The expected type of the current `do` block.\nThis can be different from `earlyReturnType` in `for` loop `do` blocks, for example.\n</code>",
  "9355":
- "<code>Lake.getElan?.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m (Option System.FilePath)</code><span class=\"sep\"></span><code class=\"docstring\">Returns the path of the `elan` binary in the detected Elan installation. </code>",
+ "<code>Lean.Elab.Do.mkMonadApp (resultType : Expr) : DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Constructs `m α` from `α`. </code>",
  "9354":
- "<code>Lake.getElanHome?.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m (Option System.FilePath)</code><span class=\"sep\"></span><code class=\"docstring\">Returns the root directory of the detected Elan installation \\(i.e., `ELAN_HOME`\\). </code>",
+ "<code>Lean.Elab.Do.DoElemCont.elabAsSyntacticallyDeadCode (dec : DoElemCont) : DoElabM Unit</code><span class=\"sep\"></span><code class=\"docstring\">Elaborate the `DoElemCont` with the `deadCode` flag set to `deadSyntactically` to emit warnings. </code>",
  "9353":
- "<code>Lake.ElanInstall : Type</code><span class=\"sep\"></span><code class=\"docstring\">Information about the local Elan setup. </code>",
- "9352":
- "<code>Lake.getElanInstall?.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m (Option Lake.ElanInstall)</code><span class=\"sep\"></span><code class=\"docstring\">Returns the detected Elan installation \\(if one\\). </code>",
- "9351":
- "<code>Lake.getEnvSharedLibPath.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the detected `sharedLibPathEnvVar` value of the Lake environment. </code>",
- "9350":
- "<code>Lake.getEnvLeanSrcPath.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the detected `LEAN_SRC_PATH` value of the Lake environment. </code>",
+ "<code>Lean.Elab.Term.elabTermEnsuringType (stx : Syntax) (expectedType? : Option Expr)\n  (catchExPostpone implicitLambda : Bool := true) (errorMsgHeader? : Option String := none) : TermElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Similar to `Lean.Elab.Term.elabTerm`, but ensures that the type of the elaborated term is `expectedType?`\nby inserting coercions if necessary.\n\nIf `errToSorry` is true, then if coercion insertion fails, this function returns `sorry` and logs the error.\nOtherwise, it throws the error.\n</code>",
+ "9352": "<code>TSyntax `Lean.Parser.Tactic.tacticSeq</code>",
+ "9351": "<code>Option (TSyntax `Lean.Parser.Tactic.tacticSeq)</code>",
+ "9350": "<code>elabAbsurd : DoElab</code>",
  "935":
  "<code>Eq.ndrec.{u1, u2} {α : Sort u2} {a : α} {motive : α → Sort u1} (m : motive a) {b : α} (h : a = b) : motive b</code><span class=\"sep\"></span><code class=\"docstring\">Non-dependent recursor for the equality type. </code>",
- "9349": "<code>System.SearchPath : Type</code>",
+ "9349":
+ "<code>Lean.Elab.Do.Context.doBlockResultType (self : Elab.Do.Context) : Expr</code><span class=\"sep\"></span><code class=\"docstring\">The expected type of the current `do` block.\nThis can be different from `earlyReturnType` in `for` loop `do` blocks, for example.\n</code>",
  "9348":
- "<code>Lake.getEnvLeanPath.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m System.SearchPath</code><span class=\"sep\"></span><code class=\"docstring\">Returns the detected `LEAN_PATH` value of the Lake environment. </code>",
+ "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">When `true`, asserts that the next doElem in the enclosing sequence is semantically irrelevant\n(control never falls through to it). `false` asserts nothing.\n</code>",
  "9347":
- "<code>Lake.getElanToolchain.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m String</code><span class=\"sep\"></span><code class=\"docstring\">Returns the name of Elan toolchain for the Lake environment. Empty if none. </code>",
- "9346":
- "<code>Lake.getPkgUrlMap.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] : m (Lean.NameMap String)</code><span class=\"sep\"></span><code class=\"docstring\">Returns the `LAKE_PACKAGE_URL_MAP` for the Lake environment. Empty if none. </code>",
+ "<code>Nat</code><span class=\"sep\"></span><code class=\"docstring\">The number of times the block wires the enclosing continuation into its elaborated expression.\nConsumed by `withDuplicableCont` to decide whether to introduce a join point (`&gt; 1`).\n</code>",
+ "9346": "<code>inferAbsurd : ControlInfoHandler</code>",
  "9345":
- "<code>Lake.getTryCache.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] [Lake.MonadBuild m] : m Bool</code><span class=\"sep\"></span><code class=\"docstring\">Returns whether the `LAKE_NO_CACHE`/`--no-cache` Lake configuration is **NOT** set. </code>",
+ "<code>Lean.Elab.Do.ControlInfo.noFallthrough (self : Elab.Do.ControlInfo) : Bool</code><span class=\"sep\"></span><code class=\"docstring\">When `true`, asserts that the next doElem in the enclosing sequence is semantically irrelevant\n(control never falls through to it). `false` asserts nothing.\n</code>",
  "9344":
- "<code>Lake.MonadBuild.{u} (m : Type → Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">A monad equipped with a Lake build context. </code>",
+ "<code>Lean.Elab.Do.ControlInfo.numRegularExits (self : Elab.Do.ControlInfo) : Nat</code><span class=\"sep\"></span><code class=\"docstring\">The number of times the block wires the enclosing continuation into its elaborated expression.\nConsumed by `withDuplicableCont` to decide whether to introduce a join point (`&gt; 1`).\n</code>",
  "9343":
- "<code>Lake.getNoCache.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] [Functor m] [Lake.MonadBuild m] : m Bool</code><span class=\"sep\"></span><code class=\"docstring\">Returns the `LAKE_NO_CACHE`/`--no-cache` Lake configuration. </code>",
- "9342":
- "<code>Lake.Env : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lake environment. </code>",
+ "<code>Lean.Parser.Tactic.tacticSeq : Parser.Parser</code><span class=\"sep\"></span><code class=\"docstring\">A sequence of tactics in brackets, or a delimiter-free indented sequence of tactics.\nDelimiter-free indentation is determined by the *first* tactic of the sequence. </code>",
+ "9342": "<code><span class=\"literal string\">\" by \"</span> : String</code>",
  "9341":
- "<code>Lake.getLakeEnv.{u_1} {m : Type → Type u_1} [Lake.MonadLakeEnv m] : m Lake.Env</code><span class=\"sep\"></span><code class=\"docstring\">Gets the current Lake environment.\n</code>",
- "9340":
- "<code>Lake.MonadLakeEnv.{u} (m : Type → Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">A monad equipped with a \\(read-only\\) detected environment for Lake. </code>",
+ "<code><span class=\"literal string\">\"absurd\"</span> : String</code>",
+ "9340": "<code>doAbsurd : ParserDescr</code>",
  "934": "<code>∀ (a b : α) (p : a ≈ b), ⋯ ▸ f a = f b</code>",
- "9339":
- "<code>Lake.MonadWorkspace.{u} (m : Type → Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">A monad equipped with a \\(read-only\\) Lake `Workspace`. </code>",
+ "9339": "<code>Elab.Do.DoElemCont → Elab.Do.DoElabM Expr</code>",
  "9338":
- "<code>Lake.Backend.default : Lake.Backend</code><span class=\"sep\"></span><code class=\"docstring\">Use the default backend. Can be overridden by more specific configuration.\n</code>",
- "9337":
- "<code>Lake.Backend.llvm : Lake.Backend</code><span class=\"sep\"></span><code class=\"docstring\">Force the LLVM backend.\n</code>",
+ "<code>Lean.Elab.Do.ControlInfo : Type</code><span class=\"sep\"></span><code class=\"docstring\">Represents information about what control effects a `do` block has.\n\nThe fields split by flavor:\n\n* `breaks`, `continues`, `returnsEarly`, and `reassigns` are **syntactic**: `true`/non-empty iff\n  the corresponding construct appears anywhere in the source text of the block, independent of\n  whether it is semantically reachable. Downstream elaborators must assume every such syntactic\n  effect may occur, because the elaborator visits every doElem (only top-level\n  `return`/`break`/`continue` short-circuit via `elabAsSyntacticallyDeadCode`).\n* `numRegularExits` is also **syntactic**: the number of times the block wires the enclosing\n  continuation into its elaborated expression. `withDuplicableCont` reads it as a join-point\n  duplication trigger (`&gt; 1`).\n* `noFallthrough = true` asserts that the next doElem in the enclosing sequence is semantically\n  irrelevant (control never falls through to it). `noFallthrough = false` makes no such\n  assertion. The dead-code warning fires on the next element when this is `true`.\n\nInvariant: `numRegularExits = 0 → noFallthrough`. The converse does not hold.\n</code>",
+ "9337": "<code>Elab.Do.ControlInfo</code>",
  "9336":
- "<code>Lake.Backend.c : Lake.Backend</code><span class=\"sep\"></span><code class=\"docstring\">Force the C backend.\n</code>",
+ "<code>Lean.Elab.Do.DoElemCont.withDuplicableCont (nondupDec : Elab.Do.DoElemCont) (callerInfo : Elab.Do.ControlInfo)\n  (caller : Elab.Do.DoElemCont → Elab.Do.DoElabM Expr) : Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Call `caller` with a duplicable proxy of `dec`.\nWhen the proxy is elaborated more than once, a join point is introduced so that `dec` is only\nelaborated once to fill in the RHS of this join point.\n\nThis is useful for control-flow constructs like `if` and `match`, where multiple tail-called\nbranches share the continuation.\n</code>",
  "9335":
- "<code>Lean.LeanOptionValue : Type</code><span class=\"sep\"></span><code class=\"docstring\">Restriction of `DataValue` that covers exactly those cases that Lean is able to handle when passed via the `-D` flag. </code>",
- "9334":
- "<code>Lean.LeanOptionValue</code><span class=\"sep\"></span><code class=\"docstring\">The option's value. </code>",
+ "<code>Lean.Elab.Do.DoElemCont.kind (self : Elab.Do.DoElemCont) : Elab.Do.DoElemContKind</code><span class=\"sep\"></span><code class=\"docstring\">Whether we are OK with generating the code of the continuation multiple times, e.g. in different\nbranches of a `match` or `if`.\n</code>",
+ "9334": "<code>Lean.Elab.Do.ControlInfo.pure : ControlInfo</code>",
  "9333":
- "<code>Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">The option's name. </code>",
- "9332":
- "<code>Lean.LeanOption.mk (name : Lean.Name) (value : Lean.LeanOptionValue) : Lean.LeanOption</code>",
- "9331":
- "<code>Lake.Glob.andSubmodules : Lean.Name → Lake.Glob</code><span class=\"sep\"></span><code class=\"docstring\">Selects the specified module and all submodules. </code>",
- "9330":
- "<code>Lake.Glob.submodules : Lean.Name → Lake.Glob</code><span class=\"sep\"></span><code class=\"docstring\">Selects all submodules of the specified module, but not the module itself. </code>",
+ "<code>Lean.Elab.Do.ControlInfoHandler : Type</code><span class=\"sep\"></span><code class=\"docstring\">A handler for inferring `ControlInfo` from a `doElem` syntax. Register with `@[doElem_control_info parserName]`. </code>",
+ "9332": "<code>doNothing.control : ControlInfoHandler</code>",
+ "9331": "<code>Lean.Elab.Do.ControlInfo.pure : Elab.Do.ControlInfo</code>",
+ "9330": "<code class=\"docstring\">control info inference elaborator</code>",
  "933":
  "<code>Quotient.hrecOn.{u, v} {α : Sort u} {s : Setoid α} {motive : Quotient s → Sort v} (q : Quotient s)\n  (f : (a : α) → motive (Quotient.mk s a)) (c : ∀ (a b : α), a ≈ b → f a ≍ f b) : motive q</code><span class=\"sep\"></span><code class=\"docstring\">A dependent recursion principle for `Quotient` that uses [heterogeneous\nequality](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=HEq), analogous to a [recursor](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=recursors) for\na structure.\n\n`Quotient.recOn` is a version of this recursor that uses `Eq` instead of `HEq`.\n</code>",
  "9329":
- "<code>Lake.Glob.one : Lean.Name → Lake.Glob</code><span class=\"sep\"></span><code class=\"docstring\">Selects just the specified module name. </code>",
+ "<code>Lean.Elab.Do.DoElemCont.continueWithUnit (dec : DoElemCont) : DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Return `let $k.resultName : PUnit := PUnit.unit; $(← k.k)`, ensuring that the result type of `k.k`\nis `PUnit` and then immediately zeta-reduce the `let`.\n</code>",
  "9328":
- "<code>Lake.BuildType.release : Lake.BuildType</code><span class=\"sep\"></span><code class=\"docstring\">High optimization level and no debug info, code, or asserts\n(e.g., passes `-O3 -DNDEBUG` when compiling C code).\n</code>",
- "9327":
- "<code>Lake.BuildType.release : BuildType</code><span class=\"sep\"></span><code class=\"docstring\">High optimization level and no debug info, code, or asserts\n(e.g., passes `-O3 -DNDEBUG` when compiling C code).\n</code>",
- "9326":
- "<code>Lake.BuildType.minSizeRel : Lake.BuildType</code><span class=\"sep\"></span><code class=\"docstring\">Same as `release` but optimizing for size rather than speed\n(e.g., passes `-Os -DNDEBUG` when compiling C code).\n</code>",
+ "<code>Lean.Elab.Do.DoElemCont.ensureUnitAt (dec : DoElemCont) (ref : Syntax) : DoElabM DoElemCont</code><span class=\"sep\"></span><code class=\"docstring\">Given a continuation `dec` and a reference `ref`, returns a continuation derived from `dec` with result type `PUnit`.\nIf `dec` already has result type `PUnit`, simply returns `dec`. Otherwise, an error is logged and a\nnew continuation is returned that calls `dec` with `sorry` as a result. The error is reported at `ref`.\n</code>",
+ "9327": "<code>DoElemCont</code>",
+ "9326": "<code>elabDoNothing : DoElab</code>",
  "9325":
- "<code>Lake.BuildType.relWithDebInfo : Lake.BuildType</code><span class=\"sep\"></span><code class=\"docstring\">Optimized, *with* debug info, but no debug code or asserts\n(e.g., passes `-O3 -g -DNDEBUG` when compiling C code).\n</code>",
- "9324":
- "<code>Lake.BuildType.debug : Lake.BuildType</code><span class=\"sep\"></span><code class=\"docstring\">Debug optimization, asserts enabled, custom debug code enabled, and\ndebug info included in executable (so you can step through the code with a\ndebugger and have address to source-file:line-number translation).\nFor example, passes `-O0 -g` when compiling C code.\n</code>",
+ "<code><span class=\"literal string\">\"nothing\"</span> : String</code>",
+ "9324": "<code>doNothing : ParserDescr</code>",
  "9323":
- "<code>Lake.nameToStaticLib (name : String) (libPrefixOnWindows : Bool := false) : String</code><span class=\"sep\"></span><code class=\"docstring\">Convert a library name into its static library file name for the `Platform`. </code>",
+ "<code>Lean.Elab.Do.DoElemCont.mkBindUnlessPure (dec : Elab.Do.DoElemCont) (e : Expr) : Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Return `$e &gt;&gt;= fun ($dec.resultName : $dec.resultType) =&gt; $(← dec.k)`, cancelling\nthe bind if `$(← dec.k)` is `pure $dec.resultName` or `e` is some `pure` computation.\n</code>",
  "9322":
- "<code>Lake.PackageConfig.precompileModules {p n : Lean.Name} (self : Lake.PackageConfig p n) : Bool</code><span class=\"sep\"></span><code class=\"docstring\">Whether to compile each of the package's module into a native shared library\nthat is loaded whenever the module is imported. This speeds up evaluation of\nmetaprograms and enables the interpreter to run functions marked `@[extern]`.\n\nDefaults to `false`.\n</code>",
+ "<code>Lean.Elab.Do.DoElemCont.elabAsSyntacticallyDeadCode (dec : Elab.Do.DoElemCont) : Elab.Do.DoElabM Unit</code><span class=\"sep\"></span><code class=\"docstring\">Elaborate the `DoElemCont` with the `deadCode` flag set to `deadSyntactically` to emit warnings. </code>",
  "9321":
- "<code>Lake.Job.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">A Lake job. </code>",
+ "<code>Lean.Elab.Do.DoElemCont.continueWithUnit (dec : Elab.Do.DoElemCont) : Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Return `let $k.resultName : PUnit := PUnit.unit; $(← k.k)`, ensuring that the result type of `k.k`\nis `PUnit` and then immediately zeta-reduce the `let`.\n</code>",
  "9320":
- "<code>Lake.FetchM (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">The top-level monad for Lake build functions. </code>",
+ "<code>Lean.Elab.Do.DoElemCont.ensureHasTypeAt (dec : Elab.Do.DoElemCont) (ref : Syntax) (elementType : Expr) :\n  Elab.Do.DoElabM Elab.Do.DoElemCont</code><span class=\"sep\"></span><code class=\"docstring\">Given a continuation `dec`, a reference `ref`, and an element result type `elementType`, returns a\ncontinuation derived from `dec` with result type `elementType`.\nIf `dec` already has result type `elementType`, simply returns `dec`.\nOtherwise, an error is logged and a new continuation is returned that calls `dec` with `sorry` as a\nresult. The error is reported at `ref`.\n</code>",
  "932":
  "<code>Quotient.recOn.{u, v} {α : Sort u} {s : Setoid α} {motive : Quotient s → Sort v} (q : Quotient s)\n  (f : (a : α) → motive (Quotient.mk s a)) (h : ∀ (a b : α) (p : a ≈ b), ⋯ ▸ f a = f b) : motive q</code><span class=\"sep\"></span><code class=\"docstring\">A dependent recursion principle for `Quotient`. It is analogous to the\n[recursor](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=recursors) for a structure, and can be used when the resulting type\nis not necessarily a proposition.\n\nWhile it is very general, this recursor can be tricky to use. The following simpler alternatives may\nbe easier to use:\n\n * `Quotient.lift` is useful for defining non-dependent functions.\n * `Quotient.ind` is useful for proving theorems about quotients.\n * `Quotient.recOnSubsingleton` can be used whenever the target type is a `Subsingleton`.\n * `Quotient.hrecOn` uses heterogeneous equality instead of rewriting with `Quotient.sound`.\n\n`Quotient.rec` is a version of this recursor that takes the quotient parameter last.\n</code>",
  "9319":
- "<code>Bool → Array (Lake.ModuleFacet System.FilePath)</code><span class=\"sep\"></span><code class=\"docstring\">The module facets to build and combine into the executable.\nIf `shouldExport` is true, the module facets should export any symbols\na user may expect to lookup in the executable. For example, the Lean\ninterpreter will use exported symbols in the executable. Thus, `shouldExport`\nwill be `true` if `supportInterpreter := true`.\n\nDefaults to a singleton of `Module.oExportFacet` (if `shouldExport`) or\n`Module.oFacet`. That is, the  object file compiled from the Lean source,\npotentially with exported Lean symbols.\n</code>",
+ "<code>Lean.Elab.Do.DoElemCont.ensureUnitAt (dec : Elab.Do.DoElemCont) (ref : Syntax) : Elab.Do.DoElabM Elab.Do.DoElemCont</code><span class=\"sep\"></span><code class=\"docstring\">Given a continuation `dec` and a reference `ref`, returns a continuation derived from `dec` with result type `PUnit`.\nIf `dec` already has result type `PUnit`, simply returns `dec`. Otherwise, an error is logged and a\nnew continuation is returned that calls `dec` with `sorry` as a result. The error is reported at `ref`.\n</code>",
  "9318":
- "<code>Lean.Elab.runFrontend (input : String) (opts : Lean.Options) (fileName : String) (mainModuleName : Lean.Name)\n  (trustLevel : UInt32 := 0) (oleanFileName? ileanFileName? : Option System.FilePath := none)\n  (jsonOutput : Bool := false) (errorOnKinds : Array Lean.Name := #[]) (plugins : Array Lean.Plugin := #[])\n  (printStats : Bool := false) (setup? : Option Lean.ModuleSetup := none) : IO (Option Lean.Environment)</code>",
+ "<code>Lean.Elab.Do.DoElemCont.ensureUnit (dec : Elab.Do.DoElemCont) : Elab.Do.DoElabM Elab.Do.DoElemCont</code><span class=\"sep\"></span><code class=\"docstring\">Given a continuation `dec`, returns a continuation derived from `dec` with result type `PUnit`.\nIf `dec` already has result type `PUnit`, simply returns `dec`. Otherwise, an error is logged and a\nnew continuation is returned that calls `dec` with `sorry` as a result.\n</code>",
  "9317":
- "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">Enables the executable to interpret Lean files (e.g., via\n`Lean.Elab.runFrontend`) by exposing symbols within the  executable\nto the Lean interpreter.\n\nImplementation-wise, on Windows, the Lean shared libraries are linked\nto the executable and, on other systems, the executable is linked with\n`-rdynamic`. This increases the size of the binary on Linux and, on Windows,\nrequires `libInit_shared.dll` and `libleanshared.dll` to  be co-located\nwith the executable or part of `PATH` (e.g., via `lake exe`). Thus, this\nfeature should only be enabled when necessary.\n\nDefaults to `false`.\n</code>",
+ "<code>Lean.Elab.Do.DoElemContKind.duplicable : Elab.Do.DoElemContKind</code>",
  "9316":
- "<code>Array Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">**Deprecated. Use `needs` instead.**\nAn `Array` of target names to build before the executable's modules.\n</code>",
+ "<code>Lean.Elab.Do.DoElemContKind.nonDuplicable : Elab.Do.DoElemContKind</code>",
  "9315":
- "<code>String</code><span class=\"sep\"></span><code class=\"docstring\">The name of the binary executable.\nDefaults to the target name with any `.` replaced with a `-`.\n</code>",
+ "<code>Lean.Elab.Do.DoElemContKind : Type</code><span class=\"sep\"></span><code class=\"docstring\">Whether the continuation of a `do` element is duplicable and if so whether it is just `pure r` for\nthe result variable `r`. Saying `nonDuplicable` is always safe; `duplicable` allows for more\noptimizations.\n</code>",
  "9314":
- "<code>Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">The root module of the binary executable.\nShould include a `main` definition that will serve\nas the entry point of the program.\n\nThe root is built by recursively building its\nlocal imports (i.e., fellow modules of the workspace).\n\nDefaults to the name of the target.\n</code>",
+ "<code>Elab.Do.DoElemContKind</code><span class=\"sep\"></span><code class=\"docstring\">Whether we are OK with generating the code of the continuation multiple times, e.g. in different\nbranches of a `match` or `if`.\n</code>",
  "9313":
- "<code>System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">The subdirectory of the package's source directory containing the executable's\nLean source file. Defaults simply to said `srcDir`.\n\n(This will be passed to `lean` as the `-R` option.)\n</code>",
+ "<code>Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">The continuation to elaborate the `rest` of the block. It assumes that the result of the `do`\nblock is bound to `resultName` with the correct type (that is, `resultType`, potentially refined\nby a dependent `match`).\n</code>",
  "9312":
- "<code>Lake.LeanExeConfig.mk {name : Lean.Name} (toLeanConfig : Lake.LeanConfig) (srcDir : System.FilePath) (root : Lean.Name)\n  (exeName : String) (needs : Array Lake.PartialBuildKey) (extraDepTargets : Array Lean.Name)\n  (supportInterpreter : Bool) (nativeFacets : Bool → Array (Lake.ModuleFacet System.FilePath)) : Lake.LeanExeConfig name</code>",
+ "<code>Expr</code><span class=\"sep\"></span><code class=\"docstring\">The type of the monadic result. </code>",
  "9311":
- "<code>Lake.LeanExeConfig (name : Lean.Name) : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lean executable's declarative configuration. </code>",
+ "<code>Name</code><span class=\"sep\"></span><code class=\"docstring\">The name of the monadic result variable. </code>",
  "9310":
- "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">Whether downstream packages can `import all` modules of this library.\n\nIf enabled, downstream users will be able to access the `private` internals of modules,\nincluding definition bodies not marked as `@[expose]`.\nThis may also, in the future, prevent compiler optimization which rely on `private`\ndefinitions being inaccessible outside their own package.\n\nDefaults to `false`.\n</code>",
+ "<code>Lean.Elab.Do.DoElemCont.mk (resultName : Name) (resultType : Expr) (k : Elab.Do.DoElabM Expr)\n  (kind : Elab.Do.DoElemContKind) : Elab.Do.DoElemCont</code>",
  "931": "<code>Z.add_neg_inverse (n : Z) : n + -n = 0</code>",
- "9309":
- "<code>Lake.ModuleFacet (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">A module facet name along with proof of its data type. </code>",
- "9308":
- "<code>Bool → Array (Lake.ModuleFacet System.FilePath)</code><span class=\"sep\"></span><code class=\"docstring\">The module facets to build and combine into the library's static\nand shared libraries. If `shouldExport` is true, the module facets should\nexport any symbols a user may expect to lookup in the library. For example,\nthe Lean interpreter will use exported symbols in linked libraries.\n\nDefaults to a singleton of `Module.oExportFacet` (if `shouldExport`) or\n`Module.oFacet`. That is, the  object files compiled from the Lean sources,\npotentially with exported Lean symbols.\n</code>",
- "9307":
- "<code>Array Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">An `Array` of library facets to build on a bare `lake build` of the library.\nFor example, `#[LeanLib.sharedFacet]` will build the shared library facet.\n</code>",
+ "9309": "<code>?m.168 PUnit</code>",
+ "9308": "<code>?m.47</code>",
+ "9307": "<code>?m.46 ?m.47</code>",
  "9306":
- "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">Whether to compile each of the library's modules into a native shared library\nthat is loaded whenever the module is imported. This speeds up evaluation of\nmetaprograms and enables the interpreter to run functions marked `@[extern]`.\n\nDefaults to `false`.\n</code>",
- "9305": "<code>Array Lake.PartialBuildKey</code>",
+ "<code>Lean.Elab.Do.mkPUnitUnit : Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">The cached ``PUnit.unit`` expression. </code>",
+ "9305":
+ "<code>Lean.Elab.Do.mkBindApp (α β e k : Expr) : Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">The expression ``Bind.bind (α:=α) (β:=β) e k``. </code>",
  "9304":
- "<code>Array Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">**Deprecated. Use `needs` instead.**\nAn `Array` of target names to build before the library's modules.\n</code>",
+ "<code>Lean.Elab.Do.mkPureApp (α e : Expr) : Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">The expression ``pure (α:=α) e``. </code>",
  "9303":
- "<code>Lake.PartialBuildKey : Type</code><span class=\"sep\"></span><code class=\"docstring\">A build key with some missing info.\n\n* Package names may be elided (replaced by `Name.anonymous`).\n* Facet names are unqualified (they do not include the input target kind)\n  and may also be ellided.\n</code>",
- "9302":
- "<code>Array Lake.PartialBuildKey</code><span class=\"sep\"></span><code class=\"docstring\">An `Array` of targets to build before the executable's modules. </code>",
+ "<code>Lean.Elab.Do.mkMonadApp (resultType : Expr) : Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Constructs `m α` from `α`. </code>",
+ "9302": "<code>Array (TSyntax `doElem)</code>",
  "9301":
- "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">Whether static and shared binaries of this library should be prefixed with `lib` on Windows.\n\nUnlike Unix, Windows does not require native libraries to start with `lib` and,\nby convention, they usually do not. However, for consistent naming across all platforms,\nusers may wish to enable this.\n\nDefaults to `false`.\n</code>",
- "9300":
- "<code>String</code><span class=\"sep\"></span><code class=\"docstring\">The name of the library artifact.\nUsed as a base for the file names of its static and dynamic binaries.\nDefaults to the mangled name of the target.\n</code>",
+ "<code>Lean.Elab.Do.DoElemCont : Type</code><span class=\"sep\"></span><code class=\"docstring\">Elaboration of a `do` block `do $e; $rest`, results in a call\n``elabTerm `(do $e; $rest) = elabDoElem e dec``, where `elabDoElem e ·` is the elaborator for `do`\nelement `e`, and `dec` is the `DoElemCont` describing the elaboration of the rest of the block\n`rest`.\n\nIf the semantics of `e` resumes its continuation `rest`, its elaborator must bind its result to\n`resultName`, ensure that it has type `resultType` and then elaborate `rest` using `dec`.\n\nClearly, for term elements `e : m α`, the result has type `α`.\nMore subtly, for binding elements `let x := e` or `let x ← e`, the result has type `PUnit` and is\nunrelated to the type of the bound variable `x`.\n\nExamples:\n* `return` drops the continuation; `return x; pure ()` elaborates to `pure x`.\n* `let x ← e; rest x` elaborates to `e &gt;&gt;= fun x =&gt; rest x`.\n* `let x := 3; let y ← (let x ← e); rest x` elaborates to\n  `let x := 3; e &gt;&gt;= fun x_1 =&gt; let y := (); rest x`, which is immediately zeta-reduced to\n  `let x := 3; e &gt;&gt;= fun x_1 =&gt; rest x`.\n* `one; two` elaborates to `one &gt;&gt;= fun (_ : PUnit) =&gt; two`; it is an error if `one` does not have\n  type `PUnit`.\n</code>",
+ "9300": "<code>Elab.Do.DoElemCont</code>",
  "930":
  "<code class=\"docstring\">`simp_arith` has been deprecated. It was a shorthand for `simp +arith +decide`.\nNote that `+decide` is not needed for reducing arithmetic terms since simprocs have been added to Lean.\n</code>",
  "93": "<code>_eval : Std.Format</code>",
- "9299": "<code>Array Lean.Name</code>",
+ "9299": "<code>TSyntax `doElem</code>",
  "9298":
- "<code>Lake.Glob : Type</code><span class=\"sep\"></span><code class=\"docstring\">A specification of a set of module names. </code>",
+ "<code>Lean.Elab.Do.elabDoSeq (doSeq : TSyntax `Lean.Parser.Term.doSeq) (cont : Elab.Do.DoElemCont)\n  (catchExPostpone : Bool := true) : Elab.Do.DoElabM Expr</code>",
  "9297":
- "<code>Array Lake.Glob</code><span class=\"sep\"></span><code class=\"docstring\">An `Array` of module `Glob`s to build for the library.\nDefaults to a `Glob.one` of each of the library's  `roots`.\n\nSubmodule globs build every source file within their directory.\nLocal imports of glob'ed files (i.e., fellow modules of the workspace) are\nalso recursively built.\n</code>",
+ "<code>Lean.Elab.Do.elabDoElems1 (doElems : Array (TSyntax `doElem)) (cont : Elab.Do.DoElemCont)\n  (catchExPostpone : Bool := true) : Elab.Do.DoElabM Expr</code>",
  "9296":
- "<code>Array Lean.Name</code><span class=\"sep\"></span><code class=\"docstring\">The root module(s) of the library.\nSubmodules of these roots (e.g., `Lib.Foo` of `Lib`) are considered\npart of the library.\nDefaults to a single root of the target's name.\n</code>",
+ "<code>Lean.Elab.Do.elabDoElem (stx : TSyntax `doElem) (cont : Elab.Do.DoElemCont) (catchExPostpone : Bool := true) :\n  Elab.Do.DoElabM Expr</code>",
  "9295":
- "<code>Verso.Genre.Manual.InlineLean.lean : Verso.Doc.Elab.CodeBlockExpanderOf LeanBlockConfig</code><span class=\"sep\"></span><code class=\"docstring\">Elaborates the provided Lean command in the context of the current Verso module.\n</code>",
- "9294":
- "<code>System.FilePath</code><span class=\"sep\"></span><code class=\"docstring\">The subdirectory of the package's source directory containing the library's\nLean source files. Defaults simply to said `srcDir`.\n\n(This will be passed to `lean` as the `-R` option.)\n</code>",
- "9293":
- "<code>Lake.Backend : Type</code><span class=\"sep\"></span><code class=\"docstring\">Compiler backend with which to compile Lean.\n</code>",
+ "<code>Lean.Elab.Term.elabTerm (stx : Syntax) (expectedType? : Option Expr) (catchExPostpone implicitLambda : Bool := true) :\n  Elab.TermElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Main function for elaborating terms.\nIt extracts the elaboration methods from the environment using the node kind.\nRecall that the environment has a mapping from `SyntaxNodeKind` to `TermElab` methods.\nIt creates a fresh macro scope for executing the elaboration method.\nAll unlogged trace messages produced by the elaboration method are logged using\nthe position information at `stx`. If the elaboration method throws an `Exception.error` and `errToSorry == true`,\nthe error is logged and a synthetic sorry expression is returned.\nIf the elaboration throws `Exception.postpone` and `catchExPostpone == true`,\na new synthetic metavariable of kind `SyntheticMVarKind.postponed` is created, registered,\nand returned.\nThe option `catchExPostpone == false` is used to implement `resumeElabTerm`\nto prevent the creation of another synthetic metavariable when resuming the elaboration.\n\nIf `implicitLambda == false`, then disable implicit lambdas feature for the given syntax, but not for its subterms.\nWe use this flag to implement, for example, the `@` modifier. If `Context.implicitLambda == false`, then this parameter has no effect.\n</code>",
+ "9294": "<code>?m.13 ?m.14</code>",
+ "9293": "<code>?m.13 PUnit</code>",
  "9292":
- "<code>Lake.Dynlib : Type</code><span class=\"sep\"></span><code class=\"docstring\">A dynamic/shared library artifact for linking. </code>",
- "9291":
- "<code>Lake.TargetArray (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">Shorthand for `Array (Target α)` that supports\ndot notation for Lake-specific operations (e.g., `fetch`).\n</code>",
+ "<code>Lean.Elab.Do.DoElab : Type</code><span class=\"sep\"></span><code class=\"docstring\">The type of elaborators for `do` block elements.\n\nIt is ``elabTerm `(do $e; $rest) = elabDoElem e dec``, where `elabDoElem e ·` is the elaborator for\n`do` element `e`, and `dec` is the `DoElemCont` describing the elaboration of the rest of the block\n`rest`.\n</code>",
+ "9291": "<code class=\"docstring\">do element elaborator</code>",
  "9290":
- "<code>Lean.LeanOption : Type</code><span class=\"sep\"></span><code class=\"docstring\">An option that is used by Lean as if it was passed using `-D`. </code>",
+ "<code>Expr → Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Construct `m α` from `α`. </code>",
  "929": "<code>Quotient s → Prop</code>",
  "9289":
- "<code>Lake.BuildType : Type</code><span class=\"sep\"></span><code class=\"docstring\">Lake equivalent of CMake's\n[`CMAKE_BUILD_TYPE`](https://stackoverflow.com/a/59314670).\n</code>",
- "9288":
- "<code>Lake.LeanConfig : Type</code><span class=\"sep\"></span><code class=\"docstring\">Configuration options common to targets that build modules. </code>",
- "9287":
- "<code>Lake.LeanLibConfig.mk {name : Lean.Name} (toLeanConfig : Lake.LeanConfig) (srcDir : System.FilePath)\n  (roots : Array Lean.Name) (globs : Array Lake.Glob) (libName : String) (libPrefixOnWindows : Bool)\n  (needs : Array Lake.PartialBuildKey) (extraDepTargets : Array Lean.Name) (precompileModules : Bool)\n  (defaultFacets : Array Lean.Name) (nativeFacets : Bool → Array (Lake.ModuleFacet System.FilePath))\n  (allowImportAll : Bool) : Lake.LeanLibConfig name</code>",
+ "<code>Expr → Elab.TermElabM (Option (Elab.Do.MonadInfo × Expr))</code><span class=\"sep\"></span><code class=\"docstring\">Match a monad application `m α`, returning `MonadInfo` for `m` and `α`. </code>",
+ "9288": "<code>?m.34 ?m.33 → ?m.42 ?m.43</code>",
+ "9287": "<code>?m.34 ?m.33</code>",
  "9286":
- "<code>Lake.LeanLibConfig (name : Lean.Name) : Type</code><span class=\"sep\"></span><code class=\"docstring\">A Lean library's declarative configuration. </code>",
- "9285": "<code>Lean.NameMap (α : Type) : Type</code>",
+ "<code>Expr → Option Expr</code><span class=\"sep\"></span><code class=\"docstring\">If `e` is syntactically a `pure …` application, return the pure value; otherwise `none`.\nUsed by `DoElemCont.mkBindUnlessPure` to contract `e &gt;&gt;= pure` to `e` and\n`pure e &gt;&gt;= k` to `let x := e; k x`.\n</code>",
+ "9285":
+ "<code>Expr → Expr → Expr → Expr → Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Build `bind (α:=α) (β:=β) e k : m β`. </code>",
  "9284":
- "<code>Lake.PackageConfig.version {p n : Lean.Name} (self : Lake.PackageConfig p n) : Lake.StdVer</code><span class=\"sep\"></span><code class=\"docstring\">The package version. Versions have the form:\n\n```\nv!\"&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;[-&lt;specialDescr&gt;]\"\n```\n\nA version with a `-` suffix is considered a \"prerelease\".\n\nLake suggest the following guidelines for incrementing versions:\n\n* **Major version increment** *(e.g., v1.3.0 → v2.0.0)*\n  Indicates significant breaking changes in the package.\n  Package users are not expected to update to the new version\n  without manual intervention.\n\n* **Minor version increment** *(e.g., v1.3.0 → v1.4.0)*\n  Denotes notable changes that are expected to be\n  generally backwards compatible.\n  Package users are expected to update to this version automatically\n  and should be able to fix any breakages and/or warnings easily.\n\n* **Patch version increment** *(e.g., v1.3.0 → v1.3.1)*\n  Reserved for bug fixes and small touchups.\n  Package users are expected to update automatically and should not expect\n  significant breakage, except in the edge case of users relying on the\n  behavior of patched bugs.\n\n**Note that backwards-incompatible changes may occur at any version increment.**\nThe is because the current nature of Lean (e.g., transitive imports,\nrich metaprogramming, reducibility in proofs), makes it infeasible to\ndefine a completely stable interface for a package.\nInstead, the different version levels indicate a change's intended significance\nand how difficult migration is expected to be.\n\nVersions of form the `0.x.x` are considered development versions prior to\nfirst official release. Like prerelease, they are not expected to closely\nfollow the above guidelines.\n\nPackages without a defined version default to `0.0.0`.\n</code>",
- "9283": "<code>main : List String → IO UInt32</code>",
- "9282": "<code>out-file</code>",
- "9281": "<code>lang</code>",
- "9280": "<code>staging-directory</code>",
+ "<code>Expr → Expr → Elab.Do.DoElabM Expr</code><span class=\"sep\"></span><code class=\"docstring\">Build `pure (α:=α) e : m α`. </code>",
+ "9283":
+ "<code>Lean.Elab.Do.DoOps.mk (mkPureApp : Expr → Expr → Elab.Do.DoElabM Expr)\n  (mkBindApp : Expr → Expr → Expr → Expr → Elab.Do.DoElabM Expr) (isPureApp? : Expr → Option Expr)\n  (splitMonadApp? : Expr → Elab.TermElabM (Option (Elab.Do.MonadInfo × Expr)))\n  (mkMonadApp : Expr → Elab.Do.DoElabM Expr) : Elab.Do.DoOps</code>",
+ "9282":
+ "<code>Lean.Elab.Do.DoOps : Type</code><span class=\"sep\"></span><code class=\"docstring\">Pluggable builders for the `pure` / `bind` applications emitted by the `do` elaborator. </code>",
+ "9281": "<code>Elab.Do.DoOpsRef</code>",
+ "9280": "<code>Option (Elab.Do.DoElabM Expr)</code>",
  "928":
  "<code class=\"docstring\">Assuming `x` is a variable in the local context with an inductive type,\n`induction x` applies induction on `x` to the main goal,\nproducing one goal for each constructor of the inductive type,\nin which the target is replaced by a general instance of that constructor\nand an inductive hypothesis is added for each recursive argument to the constructor.\nIf the type of an element in the local context depends on `x`,\nthat element is reverted and reintroduced afterward,\nso that the inductive hypothesis incorporates that hypothesis as well.\n\nFor example, given `n : Nat` and a goal with a hypothesis `h : P n` and target `Q n`,\n`induction n` produces one goal with hypothesis `h : P 0` and target `Q 0`,\nand one goal with hypotheses `h : P (Nat.succ a)` and `ih₁ : P a → Q a` and target `Q (Nat.succ a)`.\nHere the names `a` and `ih₁` are chosen automatically and are not accessible.\nYou can use `with` to provide the variables names for each constructor.\n- `induction e`, where `e` is an expression instead of a variable,\n  generalizes `e` in the goal, and then performs induction on the resulting variable.\n- `induction e using r` allows the user to specify the principle of induction that should be used.\n  Here `r` should be a term whose result type must be of the form `C t`,\n  where `C` is a bound variable and `t` is a (possibly empty) sequence of bound variables\n- `induction e generalizing z₁ ... zₙ`, where `z₁ ... zₙ` are variables in the local context,\n  generalizes over `z₁ ... zₙ` before applying the induction but then introduces them in each goal.\n  In other words, the net effect is that each inductive hypothesis is generalized.\n- Given `x : Nat`, `induction x with | zero =&gt; tac₁ | succ x' ih =&gt; tac₂`\n  uses tactic `tac₁` for the `zero` case, and `tac₂` for the `succ` case.\n</code>",
- "9279": "<code>&lt;target-triple&gt;</code>",
- "9278": "<code>&lt;name&gt;</code>",
- "9277": "<code>&lt;github-repo&gt;</code>",
- "9276": "<code>&lt;remote-scope&gt;</code>",
- "9275": "<code>scope-option</code>",
- "9274": "<code>remote-scope</code>",
- "9273": "<code>target-triple</code>",
- "9272": "<code>github-repo</code>",
- "9271": "<code>commit-hash</code>",
- "9270": "<code>cn</code>",
+ "9279": "<code>Lean.Elab.Do.ReturnCont : Type</code>",
+ "9278": "<code>Elab.Do.ReturnCont</code>",
+ "9277":
+ "<code>Lean.Elab.Do.ContInfo.mk (returnCont : Elab.Do.ReturnCont) (breakCont continueCont : Option (Elab.Do.DoElabM Expr)) :\n  Elab.Do.ContInfo</code>",
+ "9276":
+ "<code>Lean.Elab.Do.ContInfo : Type</code><span class=\"sep\"></span><code class=\"docstring\">Information about a success, `return`, `break` or `continue` continuation that will be filled in\nafter the code using it has been elaborated.\n</code>",
+ "9275": "<code>Elab.Do.ContInfoRef</code>",
+ "9274":
+ "<code>Lean.Elab.Do.DoOpsRef.toDoOps (r : Elab.Do.DoOpsRef) : Elab.Do.DoOps</code>",
+ "9273":
+ "<code>Lean.Elab.Do.ContInfoRef.toContInfo (m : Elab.Do.ContInfoRef) : Elab.Do.ContInfo</code>",
+ "9272":
+ "<code>Lean.Elab.Do.Context.ops (self : Elab.Do.Context) : Elab.Do.DoOpsRef</code><span class=\"sep\"></span><code class=\"docstring\">Pluggable builders for `pure` and `bind` applications. </code>",
+ "9271":
+ "<code>Lean.Elab.Do.Context.contInfo (self : Elab.Do.Context) : Elab.Do.ContInfoRef</code><span class=\"sep\"></span><code class=\"docstring\">Information about `return`, `break` and `continue` continuations. </code>",
+ "9270":
+ "<code>Lean.Elab.Do.CodeLiveness.alive : Elab.Do.CodeLiveness</code><span class=\"sep\"></span><code class=\"docstring\">The code is alive. (Or it is dead, but we failed to prove it so.)  </code>",
  "927":
  "<code>(a : α) → (b : β) → motive (Quotient.mk s₁ a) (Quotient.mk s₂ b)</code>",
- "9269": "<code>archive.tgz</code>",
- "9268": "<code>archive.tar.gz</code>",
- "9267": "<code>tag</code>",
- "9266": "<code>script</code>",
- "9265": "<code>options</code>",
- "9264": "<code>file</code>",
- "9263": "<code>cmd</code>",
- "9262": "<code>packages</code>",
- "9261": "<code>args</code>",
- "9260": "<code>exe-target</code>",
+ "9269":
+ "<code>Lean.Elab.Do.CodeLiveness.deadSemantically : Elab.Do.CodeLiveness</code><span class=\"sep\"></span><code class=\"docstring\">We inferred the code is semantically dead, but we need to elaborate it to produce a program. </code>",
+ "9268":
+ "<code>Lean.Elab.Do.CodeLiveness.deadSyntactically : Elab.Do.CodeLiveness</code><span class=\"sep\"></span><code class=\"docstring\">We inferred the code is semantically dead and don't need to elaborate it at all. </code>",
+ "9267":
+ "<code>Expr</code><span class=\"sep\"></span><code class=\"docstring\">The cached `PUnit.unit` expression. </code>",
+ "9266":
+ "<code>Expr</code><span class=\"sep\"></span><code class=\"docstring\">The cached `PUnit` expression. </code>",
+ "9265":
+ "<code>Level</code><span class=\"sep\"></span><code class=\"docstring\">The `v` in `m : Type u → Type v`. </code>",
+ "9264": "<code>Lean.Level : Type</code>",
+ "9263":
+ "<code>Level</code><span class=\"sep\"></span><code class=\"docstring\">The `u` in `m : Type u → Type v`. </code>",
+ "9262":
+ "<code>Expr</code><span class=\"sep\"></span><code class=\"docstring\">The inferred type of the monad of type `Type u → Type v`. </code>",
+ "9261":
+ "<code>Lean.Elab.Do.MonadInfo.mk (m : Expr) (u v : Level) (cachedPUnit cachedPUnitUnit : Expr) : Elab.Do.MonadInfo</code>",
+ "9260": "<code>Lean.Elab.Do.DoOpsRef : Type</code>",
  "926":
  "<code>∀ (a : α) (b : β), Subsingleton (motive (Quotient.mk s₁ a) (Quotient.mk s₂ b))</code>",
- "9259": "<code>facet</code>",
- "9258": "<code>module</code>",
- "9257": "<code>target</code>",
- "9256": "<code>package</code>",
- "9255": "<code>mappings</code>",
- "9254": "<code>targets</code>",
- "9253": "<code>language</code>",
- "9252": "<code>template</code>",
- "9251": "<code>name</code>",
- "9250":
- "<code>Lake.ScriptM (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">The type of a `Script`'s monad.\n\nIt is an `IO` monad equipped information about the Lake configuration.\n</code>",
+ "9259":
+ "<code>Elab.Do.DoOpsRef</code><span class=\"sep\"></span><code class=\"docstring\">Pluggable builders for `pure` and `bind` applications. </code>",
+ "9258":
+ "<code>Lean.Elab.Do.CodeLiveness : Type</code><span class=\"sep\"></span><code class=\"docstring\">Whether a code block is alive or dead. </code>",
+ "9257":
+ "<code>Elab.Do.CodeLiveness</code><span class=\"sep\"></span><code class=\"docstring\">Whether the current `do` element is dead code. `elabDoElem` will emit a warning if not `.alive`.\n</code>",
+ "9256": "<code>Lean.Elab.Do.ContInfoRef : Type</code>",
+ "9255":
+ "<code>Elab.Do.ContInfoRef</code><span class=\"sep\"></span><code class=\"docstring\">Information about `return`, `break` and `continue` continuations. </code>",
+ "9254":
+ "<code>Expr</code><span class=\"sep\"></span><code class=\"docstring\">The expected type of the current `do` block.\nThis can be different from `earlyReturnType` in `for` loop `do` blocks, for example.\n</code>",
+ "9253":
+ "<code>Lean.FVarId : Type</code><span class=\"sep\"></span><code class=\"docstring\">The unique free variable identifier. It is just a hierarchical name,\nbut we wrap it in `FVarId` to make sure they don't get mixed up with `MVarId`.\n\nThis is not the user-facing name for a free variable. This information is stored\nin the local context (`LocalContext`). The unique identifiers are generated using\na `NameGenerator`.\n</code>",
+ "9252":
+ "<code>Std.HashMap Name FVarId</code><span class=\"sep\"></span><code class=\"docstring\">Maps mutable variable names to their initial FVarIds. </code>",
+ "9251":
+ "<code>Array Ident</code><span class=\"sep\"></span><code class=\"docstring\">The mutable variables in declaration order. </code>",
+ "9250": "<code>Lean.Elab.Do.MonadInfo : Type</code>",
  "925": "<code>Quotient s₁ → Quotient s₂ → Sort uC</code>",
  "9249":
- "<code>Lean.PrettyPrinter.Delaborator.SubExpr.withBindingBody {α : Type} {m : Type → Type} [Monad m]\n  [MonadReaderOf Lean.SubExpr m] [MonadWithReaderOf Lean.SubExpr m] [MonadControlT Lean.MetaM m] (n : Lean.Name)\n  (x : m α) : m α</code><span class=\"sep\"></span><code class=\"docstring\">Assumes the `SubExpr` is a lambda or forall.\nCreates a local declaration for this binder using the name `n`, enters the binding body, and evaluates `x`.\n</code>",
+ "<code>Elab.Do.MonadInfo</code><span class=\"sep\"></span><code class=\"docstring\">Inferred and cached information about the monad. </code>",
  "9248":
- "<code>Lean.PrettyPrinter.Delaborator.SubExpr.withAppFnArgs {α : Type} {m : Type → Type} [Monad m]\n  [MonadReaderOf Lean.SubExpr m] [MonadWithReaderOf Lean.SubExpr m] (xf : m α) (xa : α → m α) : m α</code><span class=\"sep\"></span><code class=\"docstring\">Uses `xa` to compute the fold across the arguments of an application,\nwhere `xf` provides the initial value and is evaluated in the context of the head of the application.\n</code>",
- "9247":
- "<code>Lean.PrettyPrinter.Delaborator.SubExpr.withAppArg {α : Type} {m : Type → Type} [Monad m] [MonadReaderOf Lean.SubExpr m]\n  [MonadWithReaderOf Lean.SubExpr m] (x : m α) : m α</code>",
- "9246":
- "<code>Lean.PrettyPrinter.Delaborator.SubExpr.withAppFn {α : Type} {m : Type → Type} [Monad m] [MonadReaderOf Lean.SubExpr m]\n  [MonadWithReaderOf Lean.SubExpr m] (x : m α) : m α</code>",
- "9245":
- "<code>Lean.PrettyPrinter.Delaborator.SubExpr.getExpr {m : Type → Type} [Monad m] [MonadReaderOf Lean.SubExpr m] : m Expr</code>",
+ "<code>Lean.Elab.Do.Context.mk (monadInfo : Elab.Do.MonadInfo) (mutVars : Array Ident) (mutVarDefs : Std.HashMap Name FVarId)\n  (doBlockResultType : Expr) (contInfo : Elab.Do.ContInfoRef) (deadCode : Elab.Do.CodeLiveness)\n  (ops : Elab.Do.DoOpsRef) : Elab.Do.Context</code>",
+ "9247": "<code>Lean.Elab.Do.Context : Type</code>",
+ "9246": "<code>Lean.Elab.Do.DoElabM (α : Type) : Type</code>",
+ "9245": "<code><span class=\"literal string\">\" in \"</span> : String</code>",
  "9244":
- "<code>Lean.Expr.mdata (data : Lean.MData) (expr : Expr) : Expr</code><span class=\"sep\"></span><code class=\"docstring\">Metadata (aka annotations).\n\nWe use annotations to provide hints to the pretty-printer,\nstore references to `Syntax` nodes, position information, and save information for\nelaboration procedures (e.g., we use the `inaccessible` annotation during elaboration to\nmark `Expr`s that correspond to inaccessible patterns).\n\nNote that `Expr.mdata data e` is definitionally equal to `e`.\n</code>",
- "9243": "<code class=\"docstring\">Register a delaborator</code>",
- "9242": "<code>Lean.PrettyPrinter.Delaborator.DelabM (α : Type) : Type</code>",
- "9241": "<code>Lean.PrettyPrinter.Delaborator.Delab : Type</code>",
- "9240": "<code>ListCursor Nat</code>",
+ "<code><span class=\"literal string\">\"freeze \"</span> : String</code>",
+ "9243": "<code>n % 3 = 0</code>",
+ "9242": "<code>n % 2 = 0</code>",
+ "9241": "<code>getEven : IO { n // n % 2 = 0 ∨ n % 3 = 0 }</code>",
+ "9240": "<code>Array (TSyntax `Lean.Parser.Term.doSeq)</code>",
  "924":
  "<code>Quotient.rec.{u, v} {α : Sort u} {s : Setoid α} {motive : Quotient s → Sort v} (f : (a : α) → motive (Quotient.mk s a))\n  (h : ∀ (a b : α) (p : a ≈ b), ⋯ ▸ f a = f b) (q : Quotient s) : motive q</code><span class=\"sep\"></span><code class=\"docstring\">A dependent recursion principle for `Quotient`. It is analogous to the\n[recursor](https://lean-lang.org/doc/reference/4.31.0-rc2/find/?domain=Verso.Genre.Manual.section&name=recursors) for a structure, and can be used when the resulting type\nis not necessarily a proposition.\n\nWhile it is very general, this recursor can be tricky to use. The following simpler alternatives may\nbe easier to use:\n\n * `Quotient.lift` is useful for defining non-dependent functions.\n * `Quotient.ind` is useful for proving theorems about quotients.\n * `Quotient.recOnSubsingleton` can be used whenever the target type is a `Subsingleton`.\n * `Quotient.hrecOn` uses heterogeneous equality instead of rewriting with `Quotient.sound`.\n\n`Quotient.recOn` is a version of this recursor that takes the quotient parameter first.\n</code>",
- "9239": "<code>unexpandListCursor : Unexpander</code>",
- "9238": "<code>List Nat</code>",
- "9237": "<code><span class=\"literal string\">\" 🚩 \"</span> : String</code>",
+ "9239": "<code>Option (TSyntax `Lean.Parser.Term.doSeq)</code>",
+ "9238": "<code>TSyntax `Lean.Parser.Term.doSeq</code>",
+ "9237":
+ "<code>mkDoIf (h? : Option Ident) (g : Term) (b : TSyntax `Lean.Parser.Term.doSeq)\n  (els? : Option (TSyntax `Lean.Parser.Term.doSeq)) : MacroM (TSyntax `doElem)</code>",
  "9236":
- "<code>ListCursor.fastForward.{u_1} {α : Type u_1} : ListCursor α → ListCursor α</code>",
- "9235": "<code>ListCursor α</code>",
- "9234":
- "<code>ListCursor.rewind.{u_1} {α : Type u_1} : ListCursor α → ListCursor α</code>",
- "9233":
- "<code>ListCursor.right.{u_1} {α : Type u_1} : ListCursor α → Option (ListCursor α)</code>",
- "9232":
- "<code>ListCursor.mk.{u_1} {α : Type u_1} (before after : List α) : ListCursor α</code>",
- "9231":
- "<code>ListCursor.left.{u_1} {α : Type u_1} : ListCursor α → Option (ListCursor α)</code>",
- "9230":
- "<code>ListCursor.after.{u_1} {α : Type u_1} (self : ListCursor α) : List α</code>",
+ "<code>Lean.Parser.Category.doElem : Parser.Category</code><span class=\"sep\"></span><code class=\"docstring\">`doElem` is a builtin syntax category for elements that can appear in the `do` notation.\nFor example, `let x ← e` is a `doElem`, and a `do` block consists of a list of `doElem`s. </code>",
+ "9235": "<code>multiIf : ParserDescr</code>",
+ "9234": "<code><span class=\"literal string\">\"pos\"</span> : String</code>",
+ "9233": "<code><span class=\"literal string\">\"neg\"</span> : String</code>",
+ "9232": "<code>Array (Option (TSyntax `ident))</code>",
+ "9231": "<code>Option (TSyntax `ident)</code>",
+ "9230": "<code>Option Ident</code>",
  "923": "<code>(a : α) → motive (Quotient.mk s a)</code>",
  "9229":
- "<code>ListCursor.before.{u_1} {α : Type u_1} (self : ListCursor α) : List α</code>",
- "9228": "<code>ListCursor.{u_1} (α : Type u_1) : Type u_1</code>",
- "9227": "<code>unexpandSolo : Unexpander</code>",
- "9226": "<code>Solo</code>",
- "9225": "<code><span class=\"literal string\">\"›\"</span> : String</code>",
- "9224": "<code><span class=\"literal string\">\"‹\"</span> : String</code>",
- "9223": "<code>Solo.mk : Solo</code>",
- "9222":
- "<code class=\"docstring\">Register an unexpander for applications of a given constant.</code>",
- "9221":
- "<code>Lean.PrettyPrinter.UnexpandM (α : Type) : Type</code><span class=\"sep\"></span><code class=\"docstring\">The unexpander monad, essentially `Syntax → Option α`. The `Syntax` is the `ref`,\nand it has the possibility of failure without an error message.\n</code>",
+ "<code>mkTermIf (h? : Option Ident) (g b e : Term) : MacroM Term</code>",
+ "9228":
+ "<code><span class=\"literal string\">\" else \"</span> : String</code>",
+ "9227":
+ "<code><span class=\"literal string\">\" =&gt; \"</span> : String</code>",
+ "9226": "<code><span class=\"literal string\">\" : \"</span> : String</code>",
+ "9225":
+ "<code>Lean.Parser.checkColGe (errorMsg : String := \"checkColGe\") : Parser.Parser</code><span class=\"sep\"></span><code class=\"docstring\">The `colGe` parser requires that the next token starts from at least the column of the saved\nposition (see `withPosition`), but allows it to be more indented.\nThis can be used for whitespace sensitive syntax to ensure that a block does not go outside a\ncertain indentation scope. For example it is used in the lean grammar for `else if`, to ensure\nthat the `else` is not less indented than the `if` it matches with.\n\nThis parser has arity 0 - it does not capture anything. </code>",
+ "9224":
+ "<code>Lean.Parser.withPosition : Parser.Parser → Parser.Parser</code><span class=\"sep\"></span><code class=\"docstring\">`withPosition(p)` runs `p` while setting the \"saved position\" to the current position.\nThis has no effect on its own, but various other parsers access this position to achieve some\ncomposite effect:\n\n* `colGt`, `colGe`, `colEq` compare the column of the saved position to the current position,\n  used to implement Python-style indentation sensitive blocks\n* `lineEq` ensures that the current position is still on the same line as the saved position,\n  used to implement composite tokens\n\nThe saved position is only available in the read-only state, which is why this is a scoping parser:\nafter the `withPosition(..)` block the saved position will be restored to its original value.\n\nThis parser has the same arity as `p` - it just forwards the results of `p`. </code>",
+ "9223": "<code><span class=\"literal string\">\"if \"</span> : String</code>",
+ "9222": "<code>multiIfTerm : ParserDescr</code>",
+ "9221": "<code>Lean.Parser.Term.doExpr : Parser.Parser</code>",
  "9220":
- "<code>Lean.PrettyPrinter.Unexpander : Type</code><span class=\"sep\"></span><code class=\"docstring\">Function that tries to reverse macro expansions as a post-processing step of delaboration.\nWhile less general than an arbitrary delaborator, it can be declared without importing `Lean`.\nUsed by the `[app_unexpander]` attribute.\n</code>",
+ "<code>Lean.Parser.Term.doSeq : Parser.Parser</code><span class=\"sep\"></span><code class=\"docstring\">A `doSeq` is a sequence of `doElem`, the main argument after the `do` keyword and other\ndo elements that take blocks. It can either have the form `\"{\" (doElem \";\"?)* \"}\"` or\n`many1Indent (doElem \";\"?)`, where `many1Indent` ensures that all the items are at\nthe same or higher indentation level as the first line. </code>",
  "922":
  "<code>Subsingleton.{u} (α : Sort u) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">A _subsingleton_ is a type with at most one element. It is either empty or has a unique element.\n\nAll propositions are subsingletons because of proof irrelevance: false propositions are empty, and\nall proofs of a true proposition are equal to one another. Some non-propositional types are also\nsubsingletons.\n</code>",
  "9219":
- "<code>pp.notation</code><span class=\"sep\"></span><code class=\"docstring\">(pretty printer) disable/enable notation (infix, mixfix, postfix operators and unicode characters)</code>",
+ "<code>backward.do.legacy</code><span class=\"sep\"></span><code class=\"docstring\">Use the legacy `do` elaborator instead of the new, extensible implementation.</code>",
  "9218":
  "<code><span class=\"literal string\">\"It was \"</span> : String</code>",
  "9217":
