@@ -52,7 +52,7 @@ while let .ok line ← readLine? do
   handle line
 ```
 
-`repeat`/`while` loops also became *verifiable* ([#13209](https://github.com/leanprover/lean4/pull/13209)). They now expand through a new `whileM` combinator that admits a one-step unfolding lemma `whileM_eq`. Existing loops keep working without source changes, and the accompanying `@[spec]`. See also [#13689](https://github.com/leanprover/lean4/pull/13689) / [#13442](https://github.com/leanprover/lean4/pull/13442) / [#13447](https://github.com/leanprover/lean4/pull/13447).
+`repeat`/`while` loops also became *verifiable* ([#13209](https://github.com/leanprover/lean4/pull/13209)). `whileM` is a counterpart to `Lean.Loop.forIn` that admits a one-step unfolding lemma `whileM_eq`. Existing `repeat`/`while` loops now expand through `whileM` without source changes, and the accompanying `@[spec]` theorems let `mvcgen`/`mvcgen'` discharge loop bodies given a termination measure and an invariant. See also [#13689](https://github.com/leanprover/lean4/pull/13689) / [#13442](https://github.com/leanprover/lean4/pull/13442) / [#13447](https://github.com/leanprover/lean4/pull/13447).
 
 At the same time, the new `do` elaborator (accessible via `set_option backward.do.legacy false`) is also being developed: beyond extensibility, it already produces more precise and more actionable diagnostics:
 
