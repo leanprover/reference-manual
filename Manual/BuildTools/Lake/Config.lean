@@ -103,7 +103,7 @@ Libraries, executables, and other {tech}[targets] within a package can further a
 
 :::
 
-:::tomlFieldCategory "Testing and Linting" testDriver testDriverArgs lintDriver lintDriverArgs
+:::tomlFieldCategory "Testing and Linting" testDriver testDriverArgs lintDriver lintDriverArgs builtinLint
 
 The CLI commands {lake}`test` and {lake}`lint` use definitions configured by the {tech}[workspace]'s {tech}[root package] to perform testing and linting.
 The code that is run to perform tests and linting is referred to as the test or lint driver.
