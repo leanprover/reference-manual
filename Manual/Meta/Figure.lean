@@ -38,7 +38,7 @@ def figure : DirectiveExpander
     let cfg ← FigureConfig.parse.run args
 
     PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.caption.2)
-      (selectionRange := mkNullNode cfg.caption.2)
+      (selectionSyntax? := some <| mkNullNode cfg.caption.2)
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Figure")
 

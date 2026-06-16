@@ -115,7 +115,7 @@ def «example» : DirectiveExpanderOf ExampleConfig
       cfg.description.2.mapM elabInline
     let descriptionString := inlinesToString (← getEnv) cfg.description.2
     PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description.2)
-      (selectionRange := mkNullNode cfg.description.2)
+      (selectionSyntax? := some <| mkNullNode cfg.description.2)
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Example")
 

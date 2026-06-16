@@ -830,7 +830,7 @@ where
       return bar ++ .nest 2 (← production which stx |>.run' {})
 
 def testGetBnf (config : FreeSyntaxConfig) (isFirst : Bool) (stxs : List Syntax) : TermElabM String := do
-  let (tagged, _) ← getBnf config isFirst stxs |>.run ⟨default, default, default, default⟩ {} {partContext := ⟨⟨default, default, default, default, default⟩, default⟩}
+  let (tagged, _) ← getBnf config isFirst stxs |>.run ⟨default, default, default, default⟩ {} {partContext := ⟨⟨default, default, default, default, default, default⟩, default⟩}
   pure tagged.stripTags
 
 namespace Tests
@@ -1102,8 +1102,7 @@ def «syntax» : DirectiveExpander
       | _ =>
         content := content.push <| ← elabBlock b
 
-    Doc.PointOfInterest.save (← getRef) titleString
-      (selectionRange := (← getRef)[0])
+    Doc.PointOfInterest.save (← getRef) titleString (selectionSyntax? := some (← getRef)[0])
 
     pure #[← `(Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, $(quote config.aliases.toArray))} #[Block.para #[$(title),*], $content,*])]
 where
