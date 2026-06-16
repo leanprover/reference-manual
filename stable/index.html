@@ -1,4 +1,4 @@
-<!-- Generated from commit e303f7c60ce11b55e991101cf0d66bf72a3424f6 at 2026-06-10T09:10:20Z -->
+<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:28Z -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -97,6 +97,21 @@
   font-family: var(--verso-code-font-family,);
 }
 
+/* These lexically-classified token kinds default to the `.unknown` appearance. The rule follows
+   `.const` so it wins for the `anon-ctor` tokens, which also carry the `const` class. */
+.hl.lean .anon-ctor,
+.hl.lean .number,
+.hl.lean .char,
+.hl.lean .comment,
+.hl.lean .punctuation,
+.hl.lean .delim,
+.hl.lean .wildcard {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
 .hover-container {
   width: 0;
   height: 0;
@@ -179,7 +194,7 @@
 }
 
 @media (hover: hover) {
-  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+  .hl.lean .token.binding-hl, .hl.lean .literal:hover, .hl.lean .token.typed:hover {
     background-color: #eee;
     border-radius: 2px;
     transition: none;
@@ -359,7 +374,7 @@
   text-size-adjust: 100%;
 }
 
-.hl.lean .tactic:has(.tactic-toggle:checked) {
+.hl.lean .tactic:has(> .tactic-toggle:checked) {
   display: inline-grid;
   grid-template-columns: 1fr;
 }
@@ -378,7 +393,10 @@
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+  /* Highlight a region on hover only when its own toggle is unchecked, and only the innermost
+     hovered region: `label:hover` bubbles to ancestor labels, so suppress the highlight on a region
+     whose label contains a more deeply nested hovered tactic label. */
+  .hl.lean .tactic:has(> .tactic-toggle:not(:checked)) > label:hover:not(:has(.tactic > label:hover)) {
     background-color: #eeeeee;
   }
 }
@@ -722,6 +740,105 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
 
 </style>
 <style>
+
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/*
+The margin-note layout responds to the width of <main>, not the viewport, because the
+ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
+query container (see Html/Style.lean), so the container queries below track the actual
+content width.
+
+There are two "in the margin" regimes, split at the same width where the content stops
+being left-aligned and becomes centered (1112px and 1212px of content width; at the
+default ToC width these are the old 1400px and 1500px viewport breakpoints):
+
+  * While the content is left-aligned there is a large area to its right, so a fixed
+    13rem note with a fixed 16rem overhang fits comfortably.
+  * Once the content is centered the note must fit the symmetric right gap, whose width
+    is (content - text column) / 2. A fixed overhang would overflow the page for content
+    widths just above the centering threshold, so the note and its overhang are sized in
+    container units, which always fit that gap.
+*/
+
+/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+/* Wider than a phone: by default float the note at the right of the text column,
+   overlapping the content. The container queries below lift it into the true margin
+   once there is room. */
+@media screen and (min-width: 701px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Left-aligned content: a fixed-size note in the wide area to its right. */
+@container main (width >= 1112px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 1rem -16rem 0 0;
+  }
+}
+
+/* Centered content: size the note in container units so it always fits the symmetric
+   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
+   so the fixed-overhang note above is only ever used while the content is left-aligned.
+   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
+   content width at which the content is centered. */
+@container main (width >= 1212px) {
+  .marginalia .note {
+    width: 15cqi;
+    margin-right: -18cqi;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+
+</style>
+<style>
 .keyword-of .kw {
   font-weight: 500;
 }
@@ -771,82 +888,6 @@ div.TODO::before {
   font-size: large;
   font-weight: bold;
   transform: rotate(-90deg) translate(-2em);
-}
-
-</style>
-<style>
-
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/* Wide viewport */
-@media screen and (min-width: 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    margin-right: -16rem;
-    width: 13rem;
-    margin-top: 1rem;
-  }
-}
-
-/* Very wide viewport */
-@media screen and (min-width: 1600px) {
-  .marginalia .note {
-    margin-right: -19vw;
-    width: 15vw;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-/* Medium viewport */
-@media screen and (700px < width <= 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Narrow viewport (e.g. phone) */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
 }
 
 </style>
@@ -1654,7 +1695,7 @@ window.onload = () => {
       let parent = elem.parentNode;
       while (parent && "classList" in parent) {
         if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector("input.tactic-toggle");
+          const toggle = parent.querySelector(":scope > input.tactic-toggle");
           if (toggle) {
             return !toggle.checked;
           }
@@ -1751,7 +1792,7 @@ window.onload = () => {
         followCursor: 'initial',
         onShow(inst) {
           if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
             if (toggle && toggle.checked) {
               return false;
             }
@@ -1770,7 +1811,7 @@ window.onload = () => {
         content (tgt) {
           const content = document.createElement("span");
           if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
             state.style.display = "block";
             content.appendChild(state);
             content.style.display = "block";
@@ -1849,7 +1890,7 @@ window.onload = () => {
       // Skip tokens inside closed tactics — they interfere with tactic tippys
       const closedTactics = new Set();
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle && !toggle.checked) closedTactics.add(tactic);
       });
       function isInsideClosedTactic(el) {
@@ -1863,7 +1904,7 @@ window.onload = () => {
       // Create/destroy token tippys when tactic checkbox toggles
       const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle) toggle.addEventListener('change', () => {
           if (toggle.checked) {
             closedTactics.delete(tactic);
@@ -2118,8 +2159,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <h1 class="page-title">
               Tutorials</h1>
             <p>
-              These tutorials cover version 4.30.0 of Lean.
-   While the <a href="https://lean-lang.org/doc/reference/4.30.0/">reference manual</a> describes the system and its features in detail, these tutorials provide focused introductions to specific tools.</p>
+              These tutorials cover version 4.31.0 of Lean.
+   While the <a href="https://lean-lang.org/doc/reference/4.31.0/">reference manual</a> describes the system and its features in detail, these tutorials provide focused introductions to specific tools.</p>
             <section>
               <h2 id="tactics">
                 Tactics<span class="permalink-widget inline"><a href="#tactics" title="Permalink">🔗</a></span></h2>
