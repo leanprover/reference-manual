@@ -28,7 +28,7 @@ def Block.example (descriptionString : String) (name : Option String) (opened : 
 abbrev ExampleBlockJson := String × Option String × Bool × Option Tag × Option String
 
 structure ExampleConfig where
-  description : FileMap × TSyntaxArray `inline
+  description : TSyntaxArray `inline
   /-- Name for refs -/
   tag : Option String := none
   keep : Bool := false
@@ -110,12 +110,10 @@ def examples : Domain := {}
 @[directive]
 def «example» : DirectiveExpanderOf ExampleConfig
   | cfg, contents => do
-    let description ←
-      DocElabM.withFileMap cfg.description.1 <|
-      cfg.description.2.mapM elabInline
-    let descriptionString := inlinesToString (← getEnv) cfg.description.2
-    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description.2)
-      (selectionSyntax? := some <| mkNullNode cfg.description.2)
+    let description ← cfg.description.mapM elabInline
+    let descriptionString := inlinesToString (← getEnv) cfg.description
+    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description)
+      (selectionSyntax? := some <| mkNullNode cfg.description)
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Example")
 

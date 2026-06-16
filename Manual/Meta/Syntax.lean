@@ -81,7 +81,7 @@ structure FreeSyntaxConfig where
   name : Name
   «open» : Bool := true
   label : Option String := none
-  title : (FileMap × TSyntaxArray `inline)
+  title : TSyntaxArray `inline
 
 def FreeSyntaxConfig.getLabel (config : FreeSyntaxConfig) : String :=
   config.label.getD <|
@@ -841,7 +841,7 @@ def selectedParser : Parser := leading_parser
 
 
 elab "#test_syntax" arg:selectedParser : command => do
-  let bnf ← Command.liftTermElabM (testGetBnf {name := (TSyntax.mk arg.raw[0]).getId, title := (FileMap.ofString "", #[])} true [arg.raw[2]])
+  let bnf ← Command.liftTermElabM (testGetBnf { name := (TSyntax.mk arg.raw[0]).getId, title := #[] } true [arg.raw[2]])
   logInfo bnf
 
 /--
@@ -867,7 +867,7 @@ info: term ::= ...
 
 
 elab "#test_free_syntax" x:ident arg:free_syntaxes : command => do
-  let bnf ← Command.liftTermElabM (testGetBnf {name := x.getId, title := (FileMap.ofString "", #[])} true (FreeSyntax.decodeMany arg |>.map FreeSyntax.decode))
+  let bnf ← Command.liftTermElabM (testGetBnf { name := x.getId, title := #[] } true (FreeSyntax.decodeMany arg |>.map FreeSyntax.decode))
   logInfo bnf
 
 /--
@@ -1084,12 +1084,10 @@ def «syntax» : DirectiveExpander
   | args, blocks => do
     let config ← SyntaxConfig.parse.run args
 
-    let title ← do
-      let (fm, t) := config.title
-      DocElabM.withFileMap fm <| t.mapM elabInline
+    let title ← config.title.mapM elabInline
 
     let env ← getEnv
-    let titleString := inlinesToString env (config.title.snd)
+    let titleString := inlinesToString env (config.title)
 
     let mut content := #[]
     let mut firstGrammar := true
@@ -1160,11 +1158,9 @@ def freeSyntax : DirectiveExpander
   | args, blocks => do
     let config ← FreeSyntaxConfig.parse.run args
 
-    let title ← do
-      let (fm, t) := config.title
-      DocElabM.withFileMap fm <| t.mapM elabInline
+    let title ← config.title.mapM elabInline
     let env ← getEnv
-    let titleString := inlinesToString env config.title.snd
+    let titleString := inlinesToString env config.title
 
     let mut content := #[]
     let mut firstGrammar := true

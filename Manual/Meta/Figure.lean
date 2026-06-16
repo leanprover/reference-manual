@@ -24,7 +24,7 @@ def Block.figure (captionString : String) (name : Option String) : Block where
   data := ToJson.toJson (captionString, name, (none : Option Tag))
 
 structure FigureConfig where
-  caption : FileMap × TSyntaxArray `inline
+  caption : TSyntaxArray `inline
   /-- Name for refs -/
   tag : Option String := none
 
@@ -37,15 +37,14 @@ def figure : DirectiveExpander
   | args, contents => do
     let cfg ← FigureConfig.parse.run args
 
-    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.caption.2)
-      (selectionSyntax? := some <| mkNullNode cfg.caption.2)
+    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.caption)
+      (selectionSyntax? := some <| mkNullNode cfg.caption)
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Figure")
 
-    let caption ← DocElabM.withFileMap cfg.caption.1 <|
-      cfg.caption.2.mapM elabInline
+    let caption ← cfg.caption.mapM elabInline
 
-    let captionString := inlinesToString (← getEnv) cfg.caption.2
+    let captionString := inlinesToString (← getEnv) cfg.caption
 
     let blocks ← contents.mapM elabBlock
     -- Figures are represented using the first block to hold the caption. Storing it in the JSON
