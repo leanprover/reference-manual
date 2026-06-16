@@ -1,4 +1,4 @@
-<!-- Generated from commit e303f7c60ce11b55e991101cf0d66bf72a3424f6 at 2026-06-10T09:10:13Z -->
+<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,6 +9,32 @@
     window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
   }
 })()</script>
+    <script>
+      // Enable TypeScript checking.
+// @ts-check
+
+// Applies a saved table-of-contents width before the first paint.
+//
+// This is a tiny inline counterpart to toc-resize.js: it runs in the page head so that
+// returning desktop readers do not see the default width flash to their saved width.
+// It only records the width in the --verso-toc-user-width custom property; the
+// stylesheet clamps it and ignores it on mobile, and toc-resize.js then takes over the
+// interactive resizing. Keep the storage key in sync with toc-resize.js.
+
+(function () {
+    try {
+        const saved = localStorage.getItem("verso-toc-width");
+        // Parse to a number (as toc-resize.js does) and write that back, so a stored
+        // value with stray whitespace becomes a valid length rather than `" 420 px"`.
+        const width = saved === null ? NaN : Number(saved);
+        if (Number.isFinite(width)) {
+            document.documentElement.style.setProperty("--verso-toc-user-width", `${width}px`);
+        }
+    } catch (_) {
+        // Leave the default width in place when local storage is unavailable.
+    }
+})();
+</script>
     <base href="./../../"><meta charset="utf-8">
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Elaborators</title><link rel="stylesheet" href="book.css">
@@ -24,6 +50,7 @@
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="-verso-search/search-highlight.js" defer="defer"></script>
+    <script src="toc-resize.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1020,7 +1047,103 @@ pre.json {
   background-color: #eee;
   border-radius: 2px;
 }
-</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/*
+The margin-note layout responds to the width of <main>, not the viewport, because the
+ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
+query container (see Html/Style.lean), so the container queries below track the actual
+content width.
+
+There are two "in the margin" regimes, split at the same width where the content stops
+being left-aligned and becomes centered (1112px and 1212px of content width; at the
+default ToC width these are the old 1400px and 1500px viewport breakpoints):
+
+  * While the content is left-aligned there is a large area to its right, so a fixed
+    13rem note with a fixed 16rem overhang fits comfortably.
+  * Once the content is centered the note must fit the symmetric right gap, whose width
+    is (content - text column) / 2. A fixed overhang would overflow the page for content
+    widths just above the centering threshold, so the note and its overhang are sized in
+    container units, which always fit that gap.
+*/
+
+/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+/* Wider than a phone: by default float the note at the right of the text column,
+   overlapping the content. The container queries below lift it into the true margin
+   once there is room. */
+@media screen and (min-width: 701px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Left-aligned content: a fixed-size note in the wide area to its right. */
+@container main (width >= 1112px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 1rem -16rem 0 0;
+  }
+}
+
+/* Centered content: size the note in container units so it always fits the symmetric
+   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
+   so the fixed-overhang note above is only ever used while the content is left-aligned.
+   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
+   content width at which the content is centered. */
+@container main (width >= 1212px) {
+  .marginalia .note {
+    width: 15cqi;
+    margin-right: -18cqi;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>.example {
   border: 1px solid #98B2C0;
   border-radius: 0.5rem;
   margin-bottom: var(--verso--box-vertical-margin);
@@ -1072,182 +1195,6 @@ pre.json {
   color: var(--lean-blue);
 }
 </style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
-}
-
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
-}
-
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
-}
-</style><style>.grammar .keyword {
-  font-weight: 500 !important;
-}
-
-.grammar {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.grammar .comment {
-  font-style: italic;
-  font-family: var(--verso-text-font-family);
-  /* TODO add background and text colors to Verso theme, then compute a background here */
-  background-color: #fafafa;
-  border: 1px solid #f0f0f0;
-}
-
-.grammar .local-name {
-  font-family: var(--verso-code-font-family);
-  font-style: italic;
-}
-
-.grammar .nonterminal {
-  font-style: italic;
-}
-.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
-  display: none;
-}
-.grammar .active {
-  background-color: #eee;
-  border-radius: 2px;
-}
-.grammar a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-</style><style>
-span.TODO {
-  border: 3px solid red;
-  display: inline;
-  position: relative;
-  float: right;
-  clear: right;
-  margin-top: 1rem;
-  width: 15vw;
-  margin-right: -17vw;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-}
-</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/* Wide viewport */
-@media screen and (min-width: 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    margin-right: -16rem;
-    width: 13rem;
-    margin-top: 1rem;
-  }
-}
-
-/* Very wide viewport */
-@media screen and (min-width: 1600px) {
-  .marginalia .note {
-    margin-right: -19vw;
-    width: 15vw;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-/* Medium viewport */
-@media screen and (700px < width <= 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Narrow viewport (e.g. phone) */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
-</style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1280,6 +1227,21 @@ body {
 }
 
 .hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+/* These lexically-classified token kinds default to the `.unknown` appearance. The rule follows
+   `.const` so it wins for the `anon-ctor` tokens, which also carry the `const` class. */
+.hl.lean .anon-ctor,
+.hl.lean .number,
+.hl.lean .char,
+.hl.lean .comment,
+.hl.lean .punctuation,
+.hl.lean .delim,
+.hl.lean .wildcard {
   color: var(--verso-code-color,);
   font-weight: normal;
   font-style: normal;
@@ -1368,7 +1330,7 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+  .hl.lean .token.binding-hl, .hl.lean .literal:hover, .hl.lean .token.typed:hover {
     background-color: #eee;
     border-radius: 2px;
     transition: none;
@@ -1548,7 +1510,7 @@ body {
   text-size-adjust: 100%;
 }
 
-.hl.lean .tactic:has(.tactic-toggle:checked) {
+.hl.lean .tactic:has(> .tactic-toggle:checked) {
   display: inline-grid;
   grid-template-columns: 1fr;
 }
@@ -1567,7 +1529,10 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+  /* Highlight a region on hover only when its own toggle is unchecked, and only the innermost
+     hovered region: `label:hover` bubbles to ancestor labels, so suppress the highlight on a region
+     whose label contains a more deeply nested hovered tactic label. */
+  .hl.lean .tactic:has(> .tactic-toggle:not(:checked)) > label:hover:not(:has(.tactic > label:hover)) {
     background-color: #eeeeee;
   }
 }
@@ -1908,6 +1873,109 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
   white-space: pre-wrap;
 }
 
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+</style><style>
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
 </style><style>
 .env-var a {
   color: inherit;
@@ -2281,81 +2349,6 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      
-window.addEventListener("load", () => {
-  tippy('.keyword-of.hl.lean', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  });
-});
-</script>
-    <script>
-      
 window.onload = () => {
 
     // Don't show hovers inside of closed tactic states
@@ -2363,7 +2356,7 @@ window.onload = () => {
       let parent = elem.parentNode;
       while (parent && "classList" in parent) {
         if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector("input.tactic-toggle");
+          const toggle = parent.querySelector(":scope > input.tactic-toggle");
           if (toggle) {
             return !toggle.checked;
           }
@@ -2460,7 +2453,7 @@ window.onload = () => {
         followCursor: 'initial',
         onShow(inst) {
           if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
             if (toggle && toggle.checked) {
               return false;
             }
@@ -2479,7 +2472,7 @@ window.onload = () => {
         content (tgt) {
           const content = document.createElement("span");
           if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
             state.style.display = "block";
             content.appendChild(state);
             content.style.display = "block";
@@ -2558,7 +2551,7 @@ window.onload = () => {
       // Skip tokens inside closed tactics — they interfere with tactic tippys
       const closedTactics = new Set();
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle && !toggle.checked) closedTactics.add(tactic);
       });
       function isInsideClosedTactic(el) {
@@ -2572,7 +2565,7 @@ window.onload = () => {
       // Create/destroy token tippys when tactic checkbox toggles
       const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle) toggle.addEventListener('change', () => {
           if (toggle.checked) {
             closedTactics.delete(tactic);
@@ -2591,6 +2584,81 @@ window.onload = () => {
       });
   });
 }
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
     <script src="static/metadata.js"></script>
@@ -2626,7 +2694,7 @@ window.onload = () => {
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-language-extension" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-language-extension" checked="checked"></label><span class="number">23.</span> <span class=""><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></span></div>
-              <table><tr class="numbered"><td class="num">23.1.</td><td><a href="Notations-and-Macros/Custom-Operators/#operators">Custom Operators</a></td></tr><tr class="numbered"><td class="num">23.2.</td><td><a href="Notations-and-Macros/Precedence/#precedence">Precedence</a></td></tr><tr class="numbered"><td class="num">23.3.</td><td><a href="Notations-and-Macros/Notations/#notations">Notations</a></td></tr><tr class="numbered"><td class="num">23.4.</td><td><a href="Notations-and-Macros/Defining-New-Syntax/#syntax-ext">Defining New Syntax</a></td></tr><tr class="numbered"><td class="num">23.5.</td><td><a href="Notations-and-Macros/Macros/#macros">Macros</a></td></tr><tr class="current numbered"><td class="num">23.6.</td><td><a href="Notations-and-Macros/Elaborators/#elaborators">Elaborators</a></td></tr><tr class="numbered"><td class="num">23.7.</td><td><a href="Notations-and-Macros/Extending-Lean___s-Output/#unexpand-and-delab">Extending Lean's Output</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">23.1.</td><td><a href="Notations-and-Macros/Custom-Operators/#operators">Custom Operators</a></td></tr><tr class="numbered"><td class="num">23.2.</td><td><a href="Notations-and-Macros/Precedence/#precedence">Precedence</a></td></tr><tr class="numbered"><td class="num">23.3.</td><td><a href="Notations-and-Macros/Notations/#notations">Notations</a></td></tr><tr class="numbered"><td class="num">23.4.</td><td><a href="Notations-and-Macros/Defining-New-Syntax/#syntax-ext">Defining New Syntax</a></td></tr><tr class="numbered"><td class="num">23.5.</td><td><a href="Notations-and-Macros/Macros/#macros">Macros</a></td></tr><tr class="current numbered"><td class="num">23.6.</td><td><a href="Notations-and-Macros/Elaborators/#elaborators">Elaborators</a></td></tr><tr class="numbered"><td class="num">23.7.</td><td><a href="Notations-and-Macros/Extending--do--Notation/#do-elab">Extending <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">23.8.</td><td><a href="Notations-and-Macros/Extending-Lean___s-Output/#unexpand-and-delab">Extending Lean's Output</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-elaborators" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-elaborators" checked="checked"></label><span class="number">23.6.</span> <span class="current"><a href="Notations-and-Macros/Elaborators/#elaborators">Elaborators</a></span></div>
@@ -2658,9 +2726,10 @@ window.onload = () => {
             </ul>
           </div>
         </nav>
+      <div class="toc-resize-handle"></div>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Notations-and-Macros/Macros/#macros" rel="prev" title="23.5. Macros"><span class="arrow">←</span><span class="where">23.5. Macros</span></a><a class="local-button active" href="Notations-and-Macros/Extending-Lean___s-Output/#unexpand-and-delab" rel="next" title="23.7. Extending Lean's Output"><span class="where">23.7. Extending Lean's Output</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Notations-and-Macros/Macros/#macros" rel="prev" title="23.5. Macros"><span class="arrow">←</span><span class="where">23.5. Macros</span></a><a class="local-button active" href="Notations-and-Macros/Extending--do--Notation/#do-elab" rel="next" title="23.7. Extending do-Notation"><span class="where">23.7. Extending do-Notation</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
               23.6. Elaborators<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elaborators" title="Permalink">🔗</a></span></h1>
@@ -2699,14 +2768,14 @@ Defining a new elaborator allows a language extension to be just as powerful as 
                     <span id="--tech-term-Term-elaborators" class="def-technical-term"><em>Term elaborators</em></span> are used to implement new terms by translating the syntax into Lean's core type theory.
    They can do everything that command elaborators can do, and they additionally have access to the local context in which the term is being elaborated.
    Term elaborators can look up bound variables, bind new variables, unify two terms, and much more.
-   A term elaborator must return a value of type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3042">Lean.Expr</span></code>, which is the AST of the core type theory.</p>
+   A term elaborator must return a value of type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3030">Lean.Expr</span></code>, which is the AST of the core type theory.</p>
                   </li>
                 </ul>
               </div>
             <p>
               This section provides an overview and a few examples of elaborators.
 Because Lean's own elaborator uses the same tools, the source code of the elaborator is a good source of further examples.
-Just like macros, multiple elaborators may be associated with a syntax kind; they are tried in order, and elaborators may delegate to the next elaborator in the table by throwing the <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Macros/#Lean___Macro___Exception___unsupportedSyntax" title="Documentation for Lean.Macro.Exception.unsupportedSyntax"><span class="const token" data-binding="const-Lean.Macro.Exception.unsupportedSyntax" data-verso-hover="9076">unsupportedSyntax</span></a></code> exception.</p>
+Just like macros, multiple elaborators may be associated with a syntax kind; they are tried in order, and elaborators may delegate to the next elaborator in the table by throwing the <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Macros/#Lean___Macro___Exception___unsupportedSyntax" title="Documentation for Lean.Macro.Exception.unsupportedSyntax"><span class="const token" data-binding="const-Lean.Macro.Exception.unsupportedSyntax" data-verso-hover="9091">unsupportedSyntax</span></a></code> exception.</p>
             <div class="namedocs" id="command-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
               <span class="label">syntax</span><span class="title">Elaboration Rules</span><div class="text">
                 <p>
@@ -2749,27 +2818,27 @@ Each takes the name of a syntax kind and associates the definition with the kind
               <h2 id="The-Lean-Language-Reference--Notations-and-Macros--Elaborators--Command-Elaborators">
                 23.6.1. Command Elaborators<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Notations-and-Macros--Elaborators--Command-Elaborators" title="Permalink">🔗</a></span></h2>
               <p>
-                A command elaborator has type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Command.CommandElab" data-verso-hover="9168">CommandElab</span></code>, which is an abbreviation for <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="34">Syntax</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.Command.CommandElabM" data-verso-hover="80">CommandElabM</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></code>.
-Command elaborators may be implicitly defined using <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.elab_rules : command</code></code><a href="Notations-and-Macros/Elaborators/#Lean___Parser___Command___elab_rules"><code class="kw">elab_rules</code></a></span>, or explicitly by defining a function and applying the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="9169">command_elab</span></code> attribute.</p>
+                A command elaborator has type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Command.CommandElab" data-verso-hover="9184">CommandElab</span></code>, which is an abbreviation for <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="34">Syntax</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-3989">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.Command.CommandElabM" data-verso-hover="80">CommandElabM</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></code>.
+Command elaborators may be implicitly defined using <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.elab_rules : command</code></code><a href="Notations-and-Macros/Elaborators/#Lean___Parser___Command___elab_rules"><code class="kw">elab_rules</code></a></span>, or explicitly by defining a function and applying the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="9185">command_elab</span></code> attribute.</p>
               <details class="example"><summary class="description">Querying the Environment</summary><div class="example-content">
                   <p>
                     A command elaborator can be used to query the environment to discover how many constants have a given name.
-This example uses <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.MonadEnv.getEnv" data-verso-hover="9170">getEnv</span></code> from the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.MonadEnv" data-verso-hover="9171">MonadEnv</span></code> class to get the current environment.
-<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Environment.constants" data-verso-hover="9172">Environment.constants</span></code> yields a mapping from names to information about them (e.g. their type and whether they are a definition, <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-Inductive-types">inductive type</a> declaration, etc).
-<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.logInfoAt" data-verso-hover="9173">logInfoAt</span></code> allows informational output to be associated with syntax from the original program, and a <a class="technical-term" href="Notations-and-Macros/Macros/#--tech-term-token-antiquotations">token antiquotation</a> is used to implement the Lean convention that output from interactive commands is associated with their keyword.</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-4961">syntax</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="9174">"#count_constants "</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.ident" data-verso-hover="9140">ident</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.command" data-verso-hover="9175">command</span><span class="inter-text">
+This example uses <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.MonadEnv.getEnv" data-verso-hover="9186">getEnv</span></code> from the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.MonadEnv" data-verso-hover="9187">MonadEnv</span></code> class to get the current environment.
+<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Environment.constants" data-verso-hover="9188">Environment.constants</span></code> yields a mapping from names to information about them (e.g. their type and whether they are a definition, <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-Inductive-types">inductive type</a> declaration, etc).
+<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.logInfoAt" data-verso-hover="9189">logInfoAt</span></code> allows informational output to be associated with syntax from the original program, and a <a class="technical-term" href="Notations-and-Macros/Macros/#--tech-term-token-antiquotations">token antiquotation</a> is used to implement the Lean convention that output from interactive commands is associated with their keyword.</p>
+                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-4961">syntax</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="9190">"#count_constants "</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.ident" data-verso-hover="9156">ident</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.syntax-4961">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.command" data-verso-hover="9191">command</span><span class="inter-text">
 
-</span><a href="Notations-and-Macros/Elaborators/#Lean___Parser___Command___elab_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.elab_rules-5005">elab_rules</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">command</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="keyword token" data-binding="kw-occ-token_antiquot-5032">#count_constants</span><span class="unknown token" data-binding="">%</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.194" data-verso-hover="1024">tok</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.191" data-verso-hover="9148">x</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-5061">do</span></a><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-5068">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.217" data-verso-hover="2032">pattern</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.191" data-verso-hover="9148">x</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___TSyntax___getId" title="Documentation for Lean.TSyntax.getId"><span class="const token" data-binding="const-Lean.TSyntax.getId" data-verso-hover="9176">getId</span></a><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-5095">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.277" data-verso-hover="2052">env</span><span class="inter-text"> </span><span class="unknown token" data-binding="">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.MonadEnv.getEnv" data-verso-hover="2053">getEnv</span><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-5118">let</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-5122">mut</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.407" data-verso-hover="11">count</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">0</span><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-5141" data-verso-hover="1272">for</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.432" data-verso-hover="2032">y</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doForDecl-5145">in</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.277" data-verso-hover="2052">env</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-Lean.Environment.constants" data-verso-hover="9177">constants</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-5141" data-verso-hover="1272">do</span><span class="inter-text">
-      </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-5178">if</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.217" data-verso-hover="2032">pattern</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-Lean.Name.isSuffixOf" data-verso-hover="9178">isSuffixOf</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.432" data-verso-hover="2032">y</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-5178">then</span><span class="inter-text">
-        </span><span class="var token" data-binding="var-_uniq.407" data-verso-hover="11">count</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.407" data-verso-hover="11">count</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">1</span><span class="inter-text">
-    </span><span class="const token" data-binding="const-Lean.logInfoAt" data-verso-hover="9179">logInfoAt</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.194" data-verso-hover="1024">tok</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.termM!_-5252">m!</span><span class="unknown token" data-binding="">"Found {</span><span class="var token" data-binding="var-_uniq.407" data-verso-hover="11">count</span><span class="unknown token" data-binding="">} instances of '{</span><span class="var token" data-binding="var-_uniq.217" data-verso-hover="2032">pattern</span><span class="unknown token" data-binding="">}'"</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5322">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-interestingName" data-verso-hover="9180" id="interestingName-_LPAR_in-Querying-the-Environment_RPAR_">interestingName</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">55</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5348">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-NS.interestingName" data-verso-hover="9181" id="NS___interestingName-_LPAR_in-Querying-the-Environment_RPAR_">NS.interestingName</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="9182">"Another one"</span><span class="inter-text">
+</span><a href="Notations-and-Macros/Elaborators/#Lean___Parser___Command___elab_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.elab_rules-5005">elab_rules</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.elab_rules-5005">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">command</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-5028">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="keyword token" data-binding="kw-occ-token_antiquot-5032">#count_constants</span><span class="punctuation operator token" data-binding="kw-occ-token_antiquot-5032">%</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.194" data-verso-hover="1029">tok</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.191" data-verso-hover="9164">x</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.quot-5030">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-5028">=&gt;</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-5061">do</span></a><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-5068">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.217" data-verso-hover="2034">pattern</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-5072">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.191" data-verso-hover="9164">x</span><span class="built-in delim token" data-binding="">.</span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___TSyntax___getId" title="Documentation for Lean.TSyntax.getId"><span class="const token" data-binding="const-Lean.TSyntax.getId" data-verso-hover="9192">getId</span></a><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-5095">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.244" data-verso-hover="2054">env</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIdDecl-5099">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.MonadEnv.getEnv" data-verso-hover="2055">getEnv</span><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-5118">let</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-5118">mut</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.341" data-verso-hover="11">count</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-5126">:=</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">0</span><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-5141" data-verso-hover="1276">for</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5145">(</span><span class="var token" data-binding="var-_uniq.366" data-verso-hover="2034">y</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5145">,</span><span class="inter-text"> </span><span class="wildcard token" data-binding="">_</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5145">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doForDecl-5145">in</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.244" data-verso-hover="2054">env</span><span class="built-in delim token" data-binding="">.</span><span class="const token" data-binding="const-Lean.Environment.constants" data-verso-hover="9193">constants</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-5141" data-verso-hover="1276">do</span><span class="inter-text">
+      </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-5178">if</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.217" data-verso-hover="2034">pattern</span><span class="built-in delim token" data-binding="">.</span><span class="const token" data-binding="const-Lean.Name.isSuffixOf" data-verso-hover="9194">isSuffixOf</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.366" data-verso-hover="2034">y</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-5178">then</span><span class="inter-text">
+        </span><span class="var token" data-binding="var-_uniq.341" data-verso-hover="11">count</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDeclNoBinders-5215">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.341" data-verso-hover="11">count</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-5224">+</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="inter-text">
+    </span><span class="const token" data-binding="const-Lean.logInfoAt" data-verso-hover="9195">logInfoAt</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.194" data-verso-hover="1029">tok</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.termM!_-5252">m!</span><span class="literal string interpolation token" data-binding="">"Found {</span><span class="var token" data-binding="var-_uniq.341" data-verso-hover="11">count</span><span class="literal string interpolation token" data-binding="">} instances of '{</span><span class="var token" data-binding="var-_uniq.217" data-verso-hover="2034">pattern</span><span class="literal string interpolation token" data-binding="">}'"</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5322">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-interestingName" data-verso-hover="9196" id="interestingName-_LPAR_in-Querying-the-Environment_RPAR_">interestingName</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-5342">:=</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">55</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5348">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-NS.interestingName" data-verso-hover="9197" id="NS___interestingName-_LPAR_in-Querying-the-Environment_RPAR_">NS.interestingName</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-5371">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="9198">"Another one"</span><span class="inter-text">
 
 </span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">Found </span><span class="text">2</span><span class="text"> instances of '</span><span class="text">interestingName</span><span class="text">'</span></code></span></span><span class="keyword token" data-binding="kw-occ-«command#count_constants_»-5389">#count_constants</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">interestingName</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Found </span><span class="text">2</span><span class="text"> instances of '</span><span class="text">interestingName</span><span class="text">'</span></span></pre><div class="live-link">
@@ -2780,94 +2849,94 @@ This example uses <code class="hl lean inline" data-lean-context="examples"><spa
               <h2 id="The-Lean-Language-Reference--Notations-and-Macros--Elaborators--Term-Elaborators">
                 23.6.2. Term Elaborators<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Notations-and-Macros--Elaborators--Term-Elaborators" title="Permalink">🔗</a></span></h2>
               <p>
-                A term elaborator has type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Term.TermElab" data-verso-hover="9183">TermElab</span></code>, which is an abbreviation for <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="34">Syntax</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option"><span class="const token" data-binding="const-Option" data-verso-hover="49">Option</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3042">Expr</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.Term.TermElabM" data-verso-hover="81">TermElabM</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3042">Expr</span></code>.
-The optional <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3042">Expr</span></code> parameter is the type expected for the term being elaborated, which is <code>none</code> if no type is yet known.
-Like command elaborators, term elaborators may be implicitly defined using <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.elab_rules : command</code></code><a href="Notations-and-Macros/Elaborators/#Lean___Parser___Command___elab_rules"><code class="kw">elab_rules</code></a></span>, or explicitly by defining a function and applying the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="9184">term_elab</span></code> attribute.</p>
+                A term elaborator has type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Term.TermElab" data-verso-hover="9199">TermElab</span></code>, which is an abbreviation for <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="34">Syntax</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-5657">→</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option"><span class="const token" data-binding="const-Option" data-verso-hover="49">Option</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3030">Expr</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-5668">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.Term.TermElabM" data-verso-hover="81">TermElabM</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3030">Expr</span></code>.
+The optional <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3030">Expr</span></code> parameter is the type expected for the term being elaborated, which is <code>none</code> if no type is yet known.
+Like command elaborators, term elaborators may be implicitly defined using <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.elab_rules : command</code></code><a href="Notations-and-Macros/Elaborators/#Lean___Parser___Command___elab_rules"><code class="kw">elab_rules</code></a></span>, or explicitly by defining a function and applying the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="9200">term_elab</span></code> attribute.</p>
               <details class="example"><summary class="description">Avoiding a Type</summary><div class="example-content">
                   <p>
                     This examples demonstrates an elaborator for syntax that is the opposite of a type ascription.
 The provided term may have any type <em>other</em> than the one indicated, and metavariables are solved pessimistically.
-In this example, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Term.elabType" data-verso-hover="9185">elabType</span></code> invokes the term elaborator and then ensures that the resulting term is a type.
-<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Meta.inferType" data-verso-hover="9186">Meta.inferType</span></code> infers a type for a term, and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Meta.isDefEq" data-verso-hover="9187">Meta.isDefEq</span></code> attempts to make two terms <a class="technical-term" href="The-Type-System/#--tech-term-definitional-equality">definitionally equal</a> by unification, returning <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a></code> if it succeeds.</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-6701">syntax</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namedName-6708">name</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-notType" data-verso-hover="9188" id="notType-_LPAR_in-Avoiding-a-Type_RPAR_">notType</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="182">"("</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="1035">term</span><span class="inter-text">  </span><span class="literal string token" data-binding="" data-verso-hover="9189">" !: "</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="1035">term</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="185">")"</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="1035">term</span><span class="inter-text">
+In this example, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Term.elabType" data-verso-hover="9201">elabType</span></code> invokes the term elaborator and then ensures that the resulting term is a type.
+<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Meta.inferType" data-verso-hover="9202">Meta.inferType</span></code> infers a type for a term, and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Meta.isDefEq" data-verso-hover="9203">Meta.isDefEq</span></code> attempts to make two terms <a class="technical-term" href="The-Type-System/#--tech-term-definitional-equality">definitionally equal</a> by unification, returning <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a></code> if it succeeds.</p>
+                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-6701">syntax</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.namedName-6708">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namedName-6708">name</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.namedName-6708">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-notType" data-verso-hover="9204" id="notType-_LPAR_in-Avoiding-a-Type_RPAR_">notType</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.namedName-6708">)</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="183">"("</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="1040">term</span><span class="inter-text">  </span><span class="literal string token" data-binding="" data-verso-hover="9205">" !: "</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="1040">term</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="186">")"</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.syntax-6701">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="1040">term</span><span class="inter-text">
 
-</span><span class="unknown token" data-binding="">@[</span><span class="unknown token" data-binding="">term_elab</span><span class="inter-text"> </span><a href="Notations-and-Macros/Elaborators/#notType-_LPAR_in-Avoiding-a-Type_RPAR_" title="Definition of example"><span class="const token" data-binding="const-notType" data-verso-hover="9188">notType</span></a><span class="unknown token" data-binding="">]</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6781">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-elabNotType" data-verso-hover="9190" id="elabNotType-_LPAR_in-Avoiding-a-Type_RPAR_">elabNotType</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.Term.TermElab" data-verso-hover="9183">TermElab</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-6811">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.237" data-verso-hover="1024">stx</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-6824">do</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetElse-6829">let</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.322" data-verso-hover="1034">tm</span><span class="unknown token" data-binding="">:</span><span class="keyword token" data-binding="kw-occ-antiquotName-6839">term</span><span class="inter-text"> </span><span class="unknown token" data-binding="">!:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.315" data-verso-hover="1034">ty</span><span class="unknown token" data-binding="">:</span><span class="keyword token" data-binding="kw-occ-antiquotName-6851">term</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.237" data-verso-hover="1024">stx</span><span class="inter-text">
-    </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.throwUnsupportedSyntax" data-verso-hover="9191">throwUnsupportedSyntax</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-6897">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.474" data-verso-hover="3047">unexpected</span><span class="inter-text"> </span><span class="unknown token" data-binding="">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.Term.elabType" data-verso-hover="9192">elabType</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.315" data-verso-hover="1034">ty</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-6930">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.628" data-verso-hover="3047">e</span><span class="inter-text"> </span><span class="unknown token" data-binding="">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.Term.elabTerm" data-verso-hover="9193">elabTerm</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.322" data-verso-hover="1034">tm</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.none"><span class="const token" data-binding="const-Option.none" data-verso-hover="52">none</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-6959">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.770" data-verso-hover="3047">eTy</span><span class="inter-text"> </span><span class="unknown token" data-binding="">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Meta.inferType" data-verso-hover="9194">Meta.inferType</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.628" data-verso-hover="3047">e</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-6990">if</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Meta.isDefEq" data-verso-hover="2937">Meta.isDefEq</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.770" data-verso-hover="3047">eTy</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.474" data-verso-hover="3047">unexpected</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-6990">then</span><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.termThrowErrorAt____-7036" data-verso-hover="9195">throwErrorAt</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.322" data-verso-hover="1034">tm</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.termM!_-7052">m!</span><span class="unknown token" data-binding="">"Got unwanted type {</span><span class="var token" data-binding="var-_uniq.770" data-verso-hover="3047">eTy</span><span class="unknown token" data-binding="">}"</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-null-7082">else</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1029">pure</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.628" data-verso-hover="3047">e</span><span class="inter-text">
+</span><span class="unknown token" data-binding="">@[</span><span class="unknown token" data-binding="">term_elab</span><span class="inter-text"> </span><a href="Notations-and-Macros/Elaborators/#notType-_LPAR_in-Avoiding-a-Type_RPAR_" title="Definition of example"><span class="const token" data-binding="const-notType" data-verso-hover="9204">notType</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.attributes-6760">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6781">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-elabNotType" data-verso-hover="9206" id="elabNotType-_LPAR_in-Avoiding-a-Type_RPAR_">elabNotType</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6797">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.Term.TermElab" data-verso-hover="9199">TermElab</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-6808">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-6811">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.237" data-verso-hover="1029">stx</span><span class="inter-text"> </span><span class="wildcard token" data-binding="">_</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-6815">=&gt;</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-6824">do</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetElse-6829">let</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="punctuation bracket token" data-binding="kw-occ-notType-6835">(</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.322" data-verso-hover="1039">tm</span><span class="built-in delim token" data-binding="kw-occ-antiquotName-6839">:</span><span class="keyword token" data-binding="kw-occ-antiquotName-6839">term</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-notType-6835">!:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.315" data-verso-hover="1039">ty</span><span class="built-in delim token" data-binding="kw-occ-antiquotName-6851">:</span><span class="keyword token" data-binding="kw-occ-antiquotName-6851">term</span><span class="punctuation bracket token" data-binding="kw-occ-notType-6835">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.quot-6833">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doLetElse-6829">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.237" data-verso-hover="1029">stx</span><span class="inter-text">
+    </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doLetElse-6829">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.throwUnsupportedSyntax" data-verso-hover="9207">throwUnsupportedSyntax</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-6897">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.441" data-verso-hover="3035">unexpected</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIdDecl-6901">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.Term.elabType" data-verso-hover="9208">elabType</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.315" data-verso-hover="1039">ty</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-6930">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.562" data-verso-hover="3035">e</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIdDecl-6934">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Elab.Term.elabTerm" data-verso-hover="9209">elabTerm</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.322" data-verso-hover="1039">tm</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.none"><span class="const token" data-binding="const-Option.none" data-verso-hover="52">none</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-6959">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.671" data-verso-hover="3035">eTy</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIdDecl-6963">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Meta.inferType" data-verso-hover="9210">Meta.inferType</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.562" data-verso-hover="3035">e</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-6990">if</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6993">(</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.liftMethod-6994">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Meta.isDefEq" data-verso-hover="2928">Meta.isDefEq</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.671" data-verso-hover="3035">eTy</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.441" data-verso-hover="3035">unexpected</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-6993">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-6990">then</span><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.termThrowErrorAt____-7036" data-verso-hover="9211">throwErrorAt</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.322" data-verso-hover="1039">tm</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.termM!_-7052">m!</span><span class="literal string interpolation token" data-binding="">"Got unwanted type {</span><span class="var token" data-binding="var-_uniq.671" data-verso-hover="3035">eTy</span><span class="literal string interpolation token" data-binding="">}"</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-6990">else</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1034">pure</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.562" data-verso-hover="3035">e</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     If the type position does not contain a type, then <code>elabType</code> throws an error:</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7211" data-verso-hover="10">#eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">!:</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">type expected, got</span><span class="text">
-</span><span class="text">  (</span><span class="highlighted"><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="9196">"not a type"</span><span class="inter-text"></span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"></span></span><span class="text">)</span></code></span></span><span class="literal string token" data-binding="" data-verso-hover="9196">"not a type"</span></span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7211" data-verso-hover="10">#eval</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-notType-7217">(</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-7218">[</span><span class="literal number token" data-binding="">1</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-7218">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-7218">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-7218">]</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-notType-7217">!:</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">type expected, got</span><span class="text">
+</span><span class="text">  (</span><span class="highlighted"><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="9212">"not a type"</span><span class="inter-text"></span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"></span></span><span class="text">)</span></code></span></span><span class="literal string token" data-binding="" data-verso-hover="9212">"not a type"</span></span><span class="punctuation bracket token" data-binding="kw-occ-notType-7217">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">type expected, got</span><span class="text">
-</span><span class="text">  (</span><span class="highlighted"><span class="literal string token" data-binding="" data-verso-hover="9196">"not a type"</span></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a></span><span class="text">)</span></span></pre><p>
+</span><span class="text">  (</span><span class="highlighted"><span class="literal string token" data-binding="" data-verso-hover="9212">"not a type"</span></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a></span><span class="text">)</span></span></pre><p>
                     If the term's type is definitely not equal to the provided type, then elaboration succeeds:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">[</span></a><span class="inter-text"></span><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">]</span></a></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7434" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="11">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">3</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">!:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">[</span></a><span class="inter-text"></span><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">]</span></a></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7434" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-notType-7440">(</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-7441">[</span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-7441">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-7441">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-7441">]</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-notType-7440">!:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-notType-7440">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">[</span></a><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">]</span></a></span></span></pre><p>
                     If the types match, an error is thrown:</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7568" data-verso-hover="10">#eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Got unwanted type </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"></span></span></code></span></span><span class="typed token" data-binding="" data-verso-hover="11">5</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">!:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7568" data-verso-hover="10">#eval</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-notType-7574">(</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Got unwanted type </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"></span></span></code></span></span><span class="literal number token" data-binding="" data-verso-hover="11">5</span></span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-notType-7574">!:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-notType-7574">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Got unwanted type </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></span></span></pre><p>
                     The type equality check may fill in missing information, so <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-7722" data-verso-hover="79">sorry</span></code> (which may have any type) is also rejected:</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7803" data-verso-hover="10">#eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Got unwanted type </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"></span></span></code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-7810" data-verso-hover="79">sorry</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">!:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7803" data-verso-hover="10">#eval</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-notType-7809">(</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Got unwanted type </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"></span></span></code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-7810" data-verso-hover="79">sorry</span></span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-notType-7809">!:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-notType-7809">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Got unwanted type </span><span class="highlighted"><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a></span></span></pre><div class="live-link">
                     <a href="javascript:openLiveLink(&quot;JYWwDg9gTgLgBAGQKYEMB2A6AogGxQIwChCIwk1FULcC4AVJKEYgZwE80YUAPOACjQoQSOAC4AvHDQQYdNmQCUcAER9lcGIxBwVcAISjdmpioXrDx5oQACAbUsB9JHnxSZcsgF1CAEyQAzOGcCADl3eRFDBiYaVwk4fwBXChYYXgc4cQA+OB8IQh0cJHgAAz4+ABIYEFFLfUMqtlqtBSV41O4CnTgAHw0ACygIAHcAVTQWRLBIWCQfAGUOLk7C4rhkpG4yAGNNHzhABMIglw8RGDYuovgRI+D8aO1qtzQkS7WkOUO4AFlilAxgGh/IxTkEusBAnwjr8uACWAARAJYACOQU+Gy2SF2cyUMH65C6OjxQ2GWCgQygAEF4E8QHplABxGTrNDDdB7DQROAAbw+bAAvsous4WCIwIkoCJXoQAMRIABuKBw/FsAEYADRwABMmoAzJ56nB5jAoICAOYKIA&quot;)">Live ↪</a></div>
                   </div>
                 </details><details class="example"><summary class="description">Using Any Local Variable</summary><div class="example-content">
                   <p>
                     Term elaborators have access to the expected type and to the local context.
-This can be used to create a term analogue of the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#assumption" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="1284">assumption</span></a></code> tactic.</p>
+This can be used to create a term analogue of the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#assumption" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="1288">assumption</span></a></code> tactic.</p>
                   <p>
-                    The first step is to access the local context using <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.getLocalHyps" data-verso-hover="9197">getLocalHyps</span></code>.
+                    The first step is to access the local context using <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.getLocalHyps" data-verso-hover="9213">getLocalHyps</span></code>.
 It returns the context with the outermost bindings on the left, so it is traversed in reverse order.
-For each local assumption, a type is inferred with <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Meta.inferType" data-verso-hover="9186">Meta.inferType</span></code>.
+For each local assumption, a type is inferred with <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Meta.inferType" data-verso-hover="9202">Meta.inferType</span></code>.
 If it can be equal to the expected type, then the assumption is returned; if no assumption is suitable, then an error is produced.</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-8535">syntax</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="9198">"anything!"</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="1035">term</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-8535">syntax</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="9214">"anything!"</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.syntax-8535">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="1040">term</span><span class="inter-text">
 
-</span><a href="Notations-and-Macros/Elaborators/#Lean___Parser___Command___elab_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.elab_rules-8562">elab_rules</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="3047">expected</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="keyword token" data-binding="kw-occ-termAnything!-8591">anything!</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-8605">do</span></a><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-8612">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.273" data-verso-hover="9199">hyps</span><span class="inter-text"> </span><span class="unknown token" data-binding="">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.getLocalHyps" data-verso-hover="9200">getLocalHyps</span><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-8642" data-verso-hover="1272">for</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.412" data-verso-hover="3047">h</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doForDecl-8646">in</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.273" data-verso-hover="9199">hyps</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___reverse" title="Documentation for Array.reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1023">reverse</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-8642" data-verso-hover="1272">do</span><span class="inter-text">
-      </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-8673">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.565" data-verso-hover="3047">t</span><span class="inter-text"> </span><span class="unknown token" data-binding="">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Meta.inferType" data-verso-hover="9194">Meta.inferType</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.412" data-verso-hover="3047">h</span><span class="inter-text">
-      </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-8706">if</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Meta.isDefEq" data-verso-hover="2937">Meta.isDefEq</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.565" data-verso-hover="3047">t</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="3047">expected</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-8706">then</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-8744" data-verso-hover="400">return</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.412" data-verso-hover="3047">h</span><span class="inter-text">
+</span><a href="Notations-and-Macros/Elaborators/#Lean___Parser___Command___elab_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.elab_rules-8562">elab_rules</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Command.elab_rules-8562">&lt;=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="3035">expected</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-8587">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="keyword token" data-binding="kw-occ-termAnything!-8591">anything!</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.quot-8589">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-8587">=&gt;</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-8605">do</span></a><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-8612">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.246" data-verso-hover="9215">hyps</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIdDecl-8616">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.getLocalHyps" data-verso-hover="9216">getLocalHyps</span><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-8642" data-verso-hover="1276">for</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.352" data-verso-hover="3035">h</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doForDecl-8646">in</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.246" data-verso-hover="9215">hyps</span><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___reverse" title="Documentation for Array.reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1028">reverse</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-8642" data-verso-hover="1276">do</span><span class="inter-text">
+      </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-8673">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.472" data-verso-hover="3035">t</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIdDecl-8677">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Meta.inferType" data-verso-hover="9210">Meta.inferType</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.352" data-verso-hover="3035">h</span><span class="inter-text">
+      </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-8706">if</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-8709">(</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.liftMethod-8710">←</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Meta.isDefEq" data-verso-hover="2928">Meta.isDefEq</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.472" data-verso-hover="3035">t</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="3035">expected</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-8709">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-8706">then</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-8744" data-verso-hover="405">return</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.352" data-verso-hover="3035">h</span><span class="inter-text">
 
-    </span><span class="keyword token" data-binding="kw-occ-Lean.termThrowError__-8758" data-verso-hover="9201">throwError</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.termM!_-8769">m!</span><span class="unknown token" data-binding="">"No assumption in {</span><span class="var token" data-binding="var-_uniq.273" data-verso-hover="9199">hyps</span><span class="unknown token" data-binding="">} has type {</span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="3047">expected</span><span class="unknown token" data-binding="">}"</span><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.termThrowError__-8758" data-verso-hover="9217">throwError</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.termM!_-8769">m!</span><span class="literal string interpolation token" data-binding="">"No assumption in {</span><span class="var token" data-binding="var-_uniq.246" data-verso-hover="9215">hyps</span><span class="literal string interpolation token" data-binding="">} has type {</span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="3035">expected</span><span class="literal string interpolation token" data-binding="">}"</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     The new syntax finds the function's bound variable:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">7</span><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-8896" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-8903">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-termAnything!-8924">anything!</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">5</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">7</span><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-8896" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-8902">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-8903">fun</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-8907">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-8907">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-8907">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-8907">=&gt;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-8920">+</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-termAnything!-8924">anything!</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-8902">)</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">5</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">7</span></span></span></pre><p>
                     It chooses the most recent suitable variable, as desired:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="9202">"It was y"</span><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-9047" data-verso-hover="10">#eval</span></a></span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9055" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="168">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="684">"x"</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9070" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="168">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="685">"y"</span><span class="inter-text">
-  </span><span class="literal string token" data-binding="" data-verso-hover="9203">"It was "</span><span class="inter-text"> </span><span class="unknown token" data-binding="">++</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="168">y</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="literal string token" data-binding="" data-verso-hover="9202">"It was y"</span></span></span></pre><p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="9218">"It was y"</span><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-9047" data-verso-hover="10">#eval</span></a></span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9055" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="168">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-9059">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="690">"x"</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9070" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="168">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-9074">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="691">"y"</span><span class="inter-text">
+  </span><span class="literal string token" data-binding="" data-verso-hover="9219">"It was "</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_++_»-9085">++</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="168">y</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="literal string token" data-binding="" data-verso-hover="9218">"It was y"</span></span></span></pre><p>
                     When no assumption is suitable, it returns an error that describes the attempt:</p>
                   <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-9250" data-verso-hover="10">#eval</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9258" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.zero"><span class="const token" data-binding="const-Nat.zero" data-verso-hover="1194">Nat.zero</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9278" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="168">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2449">"hello"</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-9297">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1161">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text">
-    </span><span class="unknown token" data-binding="">(</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">No assumption in </span><span class="text">[</span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">x</span><span class="inter-text"></span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="168">y</span><span class="inter-text"></span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1161">f</span><span class="inter-text"></span></span><span class="text">]</span><span class="text"> has type </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a></span></code></span></span><span class="keyword token" data-binding="kw-occ-termAnything!-9327">anything!</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">No assumption in </span><span class="text">[</span><span class="highlighted"><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">x</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.8" data-verso-hover="168">y</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1161">f</span></span><span class="text">]</span><span class="text"> has type </span><span class="highlighted"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a></span></span></pre><p>
-                    Because it uses unification, the natural number literal is chosen here, because numeric literals may have any type with an <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="280">OfNat</span></a></code> instance.
-Unfortunately, there is no <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="280">OfNat</span></a></code> instance for functions, so instance synthesis later fails.</p>
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9258" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-9262">:=</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.zero"><span class="const token" data-binding="const-Nat.zero" data-verso-hover="1199">Nat.zero</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9278" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="168">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-9282">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2449">"hello"</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-9297">fun</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-9301">(</span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1166">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-9301">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-9306">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-9301">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-9301">=&gt;</span><span class="inter-text">
+    </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-9326">(</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">No assumption in </span><span class="text">[</span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">x</span><span class="inter-text"></span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="168">y</span><span class="inter-text"></span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1166">f</span><span class="inter-text"></span></span><span class="text">]</span><span class="text"> has type </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a></span></code></span></span><span class="keyword token" data-binding="kw-occ-termAnything!-9327">anything!</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-9326">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-9339">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-9326">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">No assumption in </span><span class="text">[</span><span class="highlighted"><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">x</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.8" data-verso-hover="168">y</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1166">f</span></span><span class="text">]</span><span class="text"> has type </span><span class="highlighted"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a></span></span></pre><p>
+                    Because it uses unification, the natural number literal is chosen here, because numeric literals may have any type with an <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="281">OfNat</span></a></code> instance.
+Unfortunately, there is no <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="281">OfNat</span></a></code> instance for functions, so instance synthesis later fails.</p>
                   <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-9706" data-verso-hover="10">#eval</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9714" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="3525">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">failed to synthesize instance of type class</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="280">OfNat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">5</span></span><span class="text"></span><span class="text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9714" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="3509">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-9718">:=</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">failed to synthesize instance of type class</span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="281">OfNat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">5</span></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">numerals are polymorphic in Lean, but the numeral `</span><span class="text">5</span><span class="text">` cannot be used in a context where the expected type is</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a></span><span class="text"></span><span class="text">
 </span><span class="text">due to the absence of the instance above</span><span class="text">
 </span><span class="text">
-</span><span class="text">Hint: </span><span class="text">Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.</span><span class="text"></span></code></span></span><span class="typed token" data-binding="" data-verso-hover="3525">5</span></span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9727" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="168">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2449">"hello"</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-termAnything!-9747">anything!</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="text">Hint: </span><span class="text">Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.</span><span class="text"></span></code></span></span><span class="literal number token" data-binding="" data-verso-hover="3509">5</span></span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-9727" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="168">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-9731">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2449">"hello"</span><span class="inter-text">
+  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-9746">(</span><span class="keyword token" data-binding="kw-occ-termAnything!-9747">anything!</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-9746">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-9759">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-9746">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">failed to synthesize instance of type class</span><span class="text">
-  </span><span class="highlighted"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="280">OfNat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">5</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="281">OfNat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">5</span></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">numerals are polymorphic in Lean, but the numeral `</span><span class="text">5</span><span class="text">` cannot be used in a context where the expected type is</span><span class="text">
   </span><span class="highlighted"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a></span><span class="text"></span><span class="text">
 </span><span class="text">due to the absence of the instance above</span><span class="text">
@@ -2885,7 +2954,7 @@ Unfortunately, there is no <code class="hl lean inline" data-lean-context="examp
               </section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Notations-and-Macros/Macros/#macros" rel="prev" title="23.5. Macros"><span class="arrow">←</span><span class="where">23.5. Macros</span></a><a class="local-button active" href="Notations-and-Macros/Extending-Lean___s-Output/#unexpand-and-delab" rel="next" title="23.7. Extending Lean's Output"><span class="where">23.7. Extending Lean's Output</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Notations-and-Macros/Macros/#macros" rel="prev" title="23.5. Macros"><span class="arrow">←</span><span class="where">23.5. Macros</span></a><a class="local-button active" href="Notations-and-Macros/Extending--do--Notation/#do-elab" rel="next" title="23.7. Extending do-Notation"><span class="where">23.7. Extending do-Notation</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

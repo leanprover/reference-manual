@@ -1,4 +1,4 @@
-<!-- Generated from commit e303f7c60ce11b55e991101cf0d66bf72a3424f6 at 2026-06-10T09:10:13Z -->
+<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,6 +9,32 @@
     window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
   }
 })()</script>
+    <script>
+      // Enable TypeScript checking.
+// @ts-check
+
+// Applies a saved table-of-contents width before the first paint.
+//
+// This is a tiny inline counterpart to toc-resize.js: it runs in the page head so that
+// returning desktop readers do not see the default width flash to their saved width.
+// It only records the width in the --verso-toc-user-width custom property; the
+// stylesheet clamps it and ignores it on mobile, and toc-resize.js then takes over the
+// interactive resizing. Keep the storage key in sync with toc-resize.js.
+
+(function () {
+    try {
+        const saved = localStorage.getItem("verso-toc-width");
+        // Parse to a number (as toc-resize.js does) and write that back, so a stored
+        // value with stray whitespace becomes a valid length rather than `" 420 px"`.
+        const width = saved === null ? NaN : Number(saved);
+        if (Number.isFinite(width)) {
+            document.documentElement.style.setProperty("--verso-toc-user-width", `${width}px`);
+        }
+    } catch (_) {
+        // Leave the default width in place when local storage is unavailable.
+    }
+})();
+</script>
     <base href="./../"><meta charset="utf-8">
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>The Type System</title><link rel="stylesheet" href="book.css">
@@ -24,6 +50,7 @@
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="-verso-search/search-highlight.js" defer="defer"></script>
+    <script src="toc-resize.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1020,7 +1047,103 @@ pre.json {
   background-color: #eee;
   border-radius: 2px;
 }
-</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/*
+The margin-note layout responds to the width of <main>, not the viewport, because the
+ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
+query container (see Html/Style.lean), so the container queries below track the actual
+content width.
+
+There are two "in the margin" regimes, split at the same width where the content stops
+being left-aligned and becomes centered (1112px and 1212px of content width; at the
+default ToC width these are the old 1400px and 1500px viewport breakpoints):
+
+  * While the content is left-aligned there is a large area to its right, so a fixed
+    13rem note with a fixed 16rem overhang fits comfortably.
+  * Once the content is centered the note must fit the symmetric right gap, whose width
+    is (content - text column) / 2. A fixed overhang would overflow the page for content
+    widths just above the centering threshold, so the note and its overhang are sized in
+    container units, which always fit that gap.
+*/
+
+/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+/* Wider than a phone: by default float the note at the right of the text column,
+   overlapping the content. The container queries below lift it into the true margin
+   once there is room. */
+@media screen and (min-width: 701px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Left-aligned content: a fixed-size note in the wide area to its right. */
+@container main (width >= 1112px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 1rem -16rem 0 0;
+  }
+}
+
+/* Centered content: size the note in container units so it always fits the symmetric
+   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
+   so the fixed-overhang note above is only ever used while the content is left-aligned.
+   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
+   content width at which the content is centered. */
+@container main (width >= 1212px) {
+  .marginalia .note {
+    width: 15cqi;
+    margin-right: -18cqi;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>.example {
   border: 1px solid #98B2C0;
   border-radius: 0.5rem;
   margin-bottom: var(--verso--box-vertical-margin);
@@ -1072,182 +1195,6 @@ pre.json {
   color: var(--lean-blue);
 }
 </style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
-}
-
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
-}
-
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
-}
-</style><style>.grammar .keyword {
-  font-weight: 500 !important;
-}
-
-.grammar {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.grammar .comment {
-  font-style: italic;
-  font-family: var(--verso-text-font-family);
-  /* TODO add background and text colors to Verso theme, then compute a background here */
-  background-color: #fafafa;
-  border: 1px solid #f0f0f0;
-}
-
-.grammar .local-name {
-  font-family: var(--verso-code-font-family);
-  font-style: italic;
-}
-
-.grammar .nonterminal {
-  font-style: italic;
-}
-.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
-  display: none;
-}
-.grammar .active {
-  background-color: #eee;
-  border-radius: 2px;
-}
-.grammar a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-</style><style>
-span.TODO {
-  border: 3px solid red;
-  display: inline;
-  position: relative;
-  float: right;
-  clear: right;
-  margin-top: 1rem;
-  width: 15vw;
-  margin-right: -17vw;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-}
-</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/* Wide viewport */
-@media screen and (min-width: 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    margin-right: -16rem;
-    width: 13rem;
-    margin-top: 1rem;
-  }
-}
-
-/* Very wide viewport */
-@media screen and (min-width: 1600px) {
-  .marginalia .note {
-    margin-right: -19vw;
-    width: 15vw;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-/* Medium viewport */
-@media screen and (700px < width <= 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Narrow viewport (e.g. phone) */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
-</style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1280,6 +1227,21 @@ body {
 }
 
 .hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+/* These lexically-classified token kinds default to the `.unknown` appearance. The rule follows
+   `.const` so it wins for the `anon-ctor` tokens, which also carry the `const` class. */
+.hl.lean .anon-ctor,
+.hl.lean .number,
+.hl.lean .char,
+.hl.lean .comment,
+.hl.lean .punctuation,
+.hl.lean .delim,
+.hl.lean .wildcard {
   color: var(--verso-code-color,);
   font-weight: normal;
   font-style: normal;
@@ -1368,7 +1330,7 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+  .hl.lean .token.binding-hl, .hl.lean .literal:hover, .hl.lean .token.typed:hover {
     background-color: #eee;
     border-radius: 2px;
     transition: none;
@@ -1548,7 +1510,7 @@ body {
   text-size-adjust: 100%;
 }
 
-.hl.lean .tactic:has(.tactic-toggle:checked) {
+.hl.lean .tactic:has(> .tactic-toggle:checked) {
   display: inline-grid;
   grid-template-columns: 1fr;
 }
@@ -1567,7 +1529,10 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+  /* Highlight a region on hover only when its own toggle is unchecked, and only the innermost
+     hovered region: `label:hover` bubbles to ancestor labels, so suppress the highlight on a region
+     whose label contains a more deeply nested hovered tactic label. */
+  .hl.lean .tactic:has(> .tactic-toggle:not(:checked)) > label:hover:not(:has(.tactic > label:hover)) {
     background-color: #eeeeee;
   }
 }
@@ -1908,6 +1873,109 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
   white-space: pre-wrap;
 }
 
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+</style><style>
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
 </style><style>
 .env-var a {
   color: inherit;
@@ -2281,81 +2349,6 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      
-window.addEventListener("load", () => {
-  tippy('.keyword-of.hl.lean', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  });
-});
-</script>
-    <script>
-      
 window.onload = () => {
 
     // Don't show hovers inside of closed tactic states
@@ -2363,7 +2356,7 @@ window.onload = () => {
       let parent = elem.parentNode;
       while (parent && "classList" in parent) {
         if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector("input.tactic-toggle");
+          const toggle = parent.querySelector(":scope > input.tactic-toggle");
           if (toggle) {
             return !toggle.checked;
           }
@@ -2460,7 +2453,7 @@ window.onload = () => {
         followCursor: 'initial',
         onShow(inst) {
           if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
             if (toggle && toggle.checked) {
               return false;
             }
@@ -2479,7 +2472,7 @@ window.onload = () => {
         content (tgt) {
           const content = document.createElement("span");
           if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
             state.style.display = "block";
             content.appendChild(state);
             content.style.display = "block";
@@ -2558,7 +2551,7 @@ window.onload = () => {
       // Skip tokens inside closed tactics — they interfere with tactic tippys
       const closedTactics = new Set();
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle && !toggle.checked) closedTactics.add(tactic);
       });
       function isInsideClosedTactic(el) {
@@ -2572,7 +2565,7 @@ window.onload = () => {
       // Create/destroy token tippys when tactic checkbox toggles
       const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle) toggle.addEventListener('change', () => {
           if (toggle.checked) {
             closedTactics.delete(tactic);
@@ -2591,6 +2584,81 @@ window.onload = () => {
       });
   });
 }
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
     <script src="static/metadata.js"></script>
@@ -2638,6 +2706,7 @@ window.onload = () => {
             </ul>
           </div>
         </nav>
+      <div class="toc-resize-handle"></div>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
             <a class="local-button active" href="Interacting-with-Lean/#interaction" rel="prev" title="3. Interacting with Lean"><span class="arrow">←</span><span class="where">3. Interacting with Lean</span></a><a class="local-button active" href="The-Type-System/Functions/#functions" rel="next" title="4.1. Functions"><span class="where">4.1. Functions</span><span class="arrow">→</span></a></nav>
@@ -2678,7 +2747,7 @@ Definitional equality includes the following forms of <span id="--tech-term-redu
               Terms in which all possible reductions have been carried out are in <span id="--tech-term-normal-form" class="def-technical-term"><em>normal form</em></span>.</p>
             <p>
               Definitional equality includes <span id="--tech-term-___-equivalence" class="def-technical-term">η-equivalence</span> of functions and single-constructor inductive types.
-That is, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-3450">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="299">f</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="50">x</span></code> is definitionally equal to <code class="hl lean inline" data-lean-context="examples"><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="299">f</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-S.mk" data-verso-hover="300">S.mk</span><span class="inter-text"> </span><span class="const token" data-binding="const-x" data-verso-hover="301">x</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-S.f1" data-verso-hover="302">f1</span><span class="inter-text"> </span><span class="const token" data-binding="const-x" data-verso-hover="301">x</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-S.f2" data-verso-hover="303">f2</span></code> is definitionally equal to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-x" data-verso-hover="301">x</span></code>, if <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Inductive-Types/#S" title="Definition of example"><span class="const token" data-binding="const-S" data-verso-hover="304">S</span></a></code> is a structure with fields <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-S.f1" data-verso-hover="302">f1</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-S.f2" data-verso-hover="303">f2</span></code>.
+That is, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-3450">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-3454">=&gt;</span><span class="inter-text"> </span><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="300">f</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="50">x</span></code> is definitionally equal to <code class="hl lean inline" data-lean-context="examples"><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="300">f</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-S.mk" data-verso-hover="301">S.mk</span><span class="inter-text"> </span><a href="releases/v4.31.0/#x" title="Definition of example"><span class="const token" data-binding="const-x" data-verso-hover="302">x</span></a><span class="built-in delim token" data-binding="">.</span><span class="const token" data-binding="const-S.f1" data-verso-hover="303">f1</span><span class="inter-text"> </span><a href="releases/v4.31.0/#x" title="Definition of example"><span class="const token" data-binding="const-x" data-verso-hover="302">x</span></a><span class="built-in delim token" data-binding="">.</span><span class="const token" data-binding="const-S.f2" data-verso-hover="304">f2</span></code> is definitionally equal to <code class="hl lean inline" data-lean-context="examples"><a href="releases/v4.31.0/#x" title="Definition of example"><span class="const token" data-binding="const-x" data-verso-hover="302">x</span></a></code>, if <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Inductive-Types/#S" title="Definition of example"><span class="const token" data-binding="const-S" data-verso-hover="305">S</span></a></code> is a structure with fields <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-S.f1" data-verso-hover="303">f1</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-S.f2" data-verso-hover="304">f2</span></code>.
 It also features <span id="--tech-term-proof-irrelevance" class="def-technical-term"><em>proof irrelevance</em></span>: any two proofs of the same proposition are definitionally equal.
 It is reflexive and symmetric, but not transitive.</p>
             <p>
@@ -2686,39 +2755,39 @@ It is reflexive and symmetric, but not transitive.</p>
 Because definitional equality includes reduction, types can result from computations over data.</p>
             <details class="example"><summary class="description">Computing types</summary><div class="example-content">
                 <p>
-                  When passed a natural number, the function <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="305">LengthList</span></a></code> computes a type that corresponds to a list with precisely that many entries in it:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4273">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-LengthList" data-verso-hover="305" id="LengthList-_LPAR_in-Computing-types_RPAR_">LengthList</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="61">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="61">u</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit"><span class="const token" data-binding="const-PUnit" data-verso-hover="306">PUnit</span></a><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.108" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">×</span><span class="inter-text"> </span><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="305">LengthList</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.108" data-verso-hover="11">n</span><span class="inter-text">
+                  When passed a natural number, the function <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="306">LengthList</span></a></code> computes a type that corresponds to a list with precisely that many entries in it:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4273">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-LengthList" data-verso-hover="306" id="LengthList-_LPAR_in-Computing-types_RPAR_">LengthList</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4288">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4288">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="61">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4288">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4302">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-4304">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="61">u</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-4321">|</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">0</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-4321">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit"><span class="const token" data-binding="const-PUnit" data-verso-hover="307">PUnit</span></a><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-4321">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.108" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-4338">+</span><span class="inter-text"> </span><span class="literal number token" data-binding="">1</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-4321">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_×_»-4347">×</span><span class="inter-text"> </span><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="306">LengthList</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.108" data-verso-hover="11">n</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   Because Lean's tuples nest to the right, multiple nested parentheses are not needed:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4467">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="305">LengthList</span></a><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4467">example</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4475">:</span><span class="inter-text"> </span><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="306">LengthList</span></a><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">0</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4494">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4497">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4497">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4501">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="305">LengthList</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">(</span><span class="literal string token" data-binding="" data-verso-hover="307">"Hello"</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="308">"there"</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4501">example</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4509">:</span><span class="inter-text"> </span><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="306">LengthList</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4531">:=</span><span class="inter-text">
+  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4536">(</span><span class="literal string token" data-binding="" data-verso-hover="308">"Hello"</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-4536">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="309">"there"</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-4536">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4555">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4555">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4536">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   If the length does not match the number of entries, then the computed type will not match the term:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4698">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="305">LengthList</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">5</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">(</span><span class="literal string token" data-binding="" data-verso-hover="309">"Wrong"</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="310">"number"</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Application type mismatch: The </span><span class="text">argument</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="311">(</span></a><span class="inter-text"></span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="311">)</span></a></span><span class="text"></span><span class="text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4698">example</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4706">:</span><span class="inter-text"> </span><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="306">LengthList</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">5</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4728">:=</span><span class="inter-text">
+  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4733">(</span><span class="literal string token" data-binding="" data-verso-hover="310">"Wrong"</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-4733">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="311">"number"</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-4733">,</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Application type mismatch: The </span><span class="text">argument</span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="312">(</span></a><span class="inter-text"></span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="312">)</span></a></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">has type</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a><span class="inter-text"></span></span><span class="text"></span><span class="text">
 </span><span class="text">but is expected to have type</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="305">LengthList</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="306">LengthList</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">in the application</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="312">(</span></a><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="310">"number"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="312">,</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="311">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="311">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="312">)</span></a></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span></span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="311">"number"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="312">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="312">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a></span><span class="text"></span></code></span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4753">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4753">)</span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4733">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Application type mismatch: The </span><span class="text">argument</span><span class="text">
-  </span><span class="highlighted"><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="311">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="311">)</span></a></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="312">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="312">)</span></a></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">has type</span><span class="text">
   </span><span class="highlighted"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></span><span class="text"></span><span class="text">
 </span><span class="text">but is expected to have type</span><span class="text">
-  </span><span class="highlighted"><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="305">LengthList</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><a href="The-Type-System/#LengthList-_LPAR_in-Computing-types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-LengthList" data-verso-hover="306">LengthList</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">in the application</span><span class="text">
-  </span><span class="highlighted"><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="312">(</span></a><span class="literal string token" data-binding="" data-verso-hover="310">"number"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="312">,</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="311">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="311">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="312">)</span></a></span><span class="text"></span></span></pre><div class="live-link">
+  </span><span class="highlighted"><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="311">"number"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="312">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="312">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a></span><span class="text"></span></span></pre><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;CYUwZgBAMiB2DmAXAFlAlgZ0RAFIRuAIAuCAFQE8AHECAVwEoiIA5AQ20CTCUy6mgKAggAfCAAYIAXgB8EAAoBVWGkT8hEWBADUEAIwTpBAOvQ4SVJmwFYvXiAAeLALYUANtWIwEKdFggBJWNhihOK4dNZ2ji5uxp5mPgDKiABOaAgQAExE4io4AEQAEiDOzgD2uQA0ELkoIEkgFaF0QA&quot;)">Live ↪</a></div>
                 </div>
               </details><p>
-              The basic types in Lean are <a class="technical-term" href="The-Type-System/Universes/#--tech-term-universes">universes</a>, <a class="technical-term" href="The-Type-System/Functions/#--tech-term-Functions">function</a> types, the quotient former <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Quotients/#Quot" title="Documentation for Quot"><span class="const token" data-binding="const-Quot" data-verso-hover="313">Quot</span></a></code>, and <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-type-constructors">type constructors</a> of <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-Inductive-types">inductive types</a>.
+              The basic types in Lean are <a class="technical-term" href="The-Type-System/Universes/#--tech-term-universes">universes</a>, <a class="technical-term" href="The-Type-System/Functions/#--tech-term-Functions">function</a> types, the quotient former <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Quotients/#Quot" title="Documentation for Quot"><span class="const token" data-binding="const-Quot" data-verso-hover="314">Quot</span></a></code>, and <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-type-constructors">type constructors</a> of <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-Inductive-types">inductive types</a>.
 <a class="technical-term" href="The-Type-System/#--tech-term-defined-constants">Defined constants</a>, applications of <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-recursor">recursors</a>, function application, <a class="technical-term" href="Axioms/#--tech-term-Axioms">axioms</a> or <a class="technical-term" href="Definitions/Definitions/#--tech-term-Opaque-constants">opaque constants</a> may additionally give types, just as they can give rise to terms in any other type.</p>
             <ol class="section-toc">
               <li>

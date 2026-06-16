@@ -1,4 +1,4 @@
-<!-- Generated from commit e303f7c60ce11b55e991101cf0d66bf72a3424f6 at 2026-06-10T09:10:13Z -->
+<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,6 +9,32 @@
     window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
   }
 })()</script>
+    <script>
+      // Enable TypeScript checking.
+// @ts-check
+
+// Applies a saved table-of-contents width before the first paint.
+//
+// This is a tiny inline counterpart to toc-resize.js: it runs in the page head so that
+// returning desktop readers do not see the default width flash to their saved width.
+// It only records the width in the --verso-toc-user-width custom property; the
+// stylesheet clamps it and ignores it on mobile, and toc-resize.js then takes over the
+// interactive resizing. Keep the storage key in sync with toc-resize.js.
+
+(function () {
+    try {
+        const saved = localStorage.getItem("verso-toc-width");
+        // Parse to a number (as toc-resize.js does) and write that back, so a stored
+        // value with stray whitespace becomes a valid length rather than `" 420 px"`.
+        const width = saved === null ? NaN : Number(saved);
+        if (Number.isFinite(width)) {
+            document.documentElement.style.setProperty("--verso-toc-user-width", `${width}px`);
+        }
+    } catch (_) {
+        // Leave the default width in place when local storage is unavailable.
+    }
+})();
+</script>
     <base href="./../../"><meta charset="utf-8">
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>About:  inferBinderTypeFailed</title><link rel="stylesheet" href="book.css">
@@ -24,6 +50,7 @@
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="-verso-search/search-highlight.js" defer="defer"></script>
+    <script src="toc-resize.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1020,7 +1047,103 @@ pre.json {
   background-color: #eee;
   border-radius: 2px;
 }
-</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/*
+The margin-note layout responds to the width of <main>, not the viewport, because the
+ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
+query container (see Html/Style.lean), so the container queries below track the actual
+content width.
+
+There are two "in the margin" regimes, split at the same width where the content stops
+being left-aligned and becomes centered (1112px and 1212px of content width; at the
+default ToC width these are the old 1400px and 1500px viewport breakpoints):
+
+  * While the content is left-aligned there is a large area to its right, so a fixed
+    13rem note with a fixed 16rem overhang fits comfortably.
+  * Once the content is centered the note must fit the symmetric right gap, whose width
+    is (content - text column) / 2. A fixed overhang would overflow the page for content
+    widths just above the centering threshold, so the note and its overhang are sized in
+    container units, which always fit that gap.
+*/
+
+/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+/* Wider than a phone: by default float the note at the right of the text column,
+   overlapping the content. The container queries below lift it into the true margin
+   once there is room. */
+@media screen and (min-width: 701px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Left-aligned content: a fixed-size note in the wide area to its right. */
+@container main (width >= 1112px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 1rem -16rem 0 0;
+  }
+}
+
+/* Centered content: size the note in container units so it always fits the symmetric
+   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
+   so the fixed-overhang note above is only ever used while the content is left-aligned.
+   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
+   content width at which the content is centered. */
+@container main (width >= 1212px) {
+  .marginalia .note {
+    width: 15cqi;
+    margin-right: -18cqi;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>.example {
   border: 1px solid #98B2C0;
   border-radius: 0.5rem;
   margin-bottom: var(--verso--box-vertical-margin);
@@ -1072,182 +1195,6 @@ pre.json {
   color: var(--lean-blue);
 }
 </style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
-}
-
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
-}
-
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
-}
-</style><style>.grammar .keyword {
-  font-weight: 500 !important;
-}
-
-.grammar {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.grammar .comment {
-  font-style: italic;
-  font-family: var(--verso-text-font-family);
-  /* TODO add background and text colors to Verso theme, then compute a background here */
-  background-color: #fafafa;
-  border: 1px solid #f0f0f0;
-}
-
-.grammar .local-name {
-  font-family: var(--verso-code-font-family);
-  font-style: italic;
-}
-
-.grammar .nonterminal {
-  font-style: italic;
-}
-.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
-  display: none;
-}
-.grammar .active {
-  background-color: #eee;
-  border-radius: 2px;
-}
-.grammar a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-</style><style>
-span.TODO {
-  border: 3px solid red;
-  display: inline;
-  position: relative;
-  float: right;
-  clear: right;
-  margin-top: 1rem;
-  width: 15vw;
-  margin-right: -17vw;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-}
-</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/* Wide viewport */
-@media screen and (min-width: 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    margin-right: -16rem;
-    width: 13rem;
-    margin-top: 1rem;
-  }
-}
-
-/* Very wide viewport */
-@media screen and (min-width: 1600px) {
-  .marginalia .note {
-    margin-right: -19vw;
-    width: 15vw;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-/* Medium viewport */
-@media screen and (700px < width <= 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Narrow viewport (e.g. phone) */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
-</style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1280,6 +1227,21 @@ body {
 }
 
 .hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+/* These lexically-classified token kinds default to the `.unknown` appearance. The rule follows
+   `.const` so it wins for the `anon-ctor` tokens, which also carry the `const` class. */
+.hl.lean .anon-ctor,
+.hl.lean .number,
+.hl.lean .char,
+.hl.lean .comment,
+.hl.lean .punctuation,
+.hl.lean .delim,
+.hl.lean .wildcard {
   color: var(--verso-code-color,);
   font-weight: normal;
   font-style: normal;
@@ -1368,7 +1330,7 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+  .hl.lean .token.binding-hl, .hl.lean .literal:hover, .hl.lean .token.typed:hover {
     background-color: #eee;
     border-radius: 2px;
     transition: none;
@@ -1548,7 +1510,7 @@ body {
   text-size-adjust: 100%;
 }
 
-.hl.lean .tactic:has(.tactic-toggle:checked) {
+.hl.lean .tactic:has(> .tactic-toggle:checked) {
   display: inline-grid;
   grid-template-columns: 1fr;
 }
@@ -1567,7 +1529,10 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+  /* Highlight a region on hover only when its own toggle is unchecked, and only the innermost
+     hovered region: `label:hover` bubbles to ancestor labels, so suppress the highlight on a region
+     whose label contains a more deeply nested hovered tactic label. */
+  .hl.lean .tactic:has(> .tactic-toggle:not(:checked)) > label:hover:not(:has(.tactic > label:hover)) {
     background-color: #eeeeee;
   }
 }
@@ -1908,6 +1873,109 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
   white-space: pre-wrap;
 }
 
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+</style><style>
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
 </style><style>
 .env-var a {
   color: inherit;
@@ -2281,81 +2349,6 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      
-window.addEventListener("load", () => {
-  tippy('.keyword-of.hl.lean', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  });
-});
-</script>
-    <script>
-      
 window.onload = () => {
 
     // Don't show hovers inside of closed tactic states
@@ -2363,7 +2356,7 @@ window.onload = () => {
       let parent = elem.parentNode;
       while (parent && "classList" in parent) {
         if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector("input.tactic-toggle");
+          const toggle = parent.querySelector(":scope > input.tactic-toggle");
           if (toggle) {
             return !toggle.checked;
           }
@@ -2460,7 +2453,7 @@ window.onload = () => {
         followCursor: 'initial',
         onShow(inst) {
           if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
             if (toggle && toggle.checked) {
               return false;
             }
@@ -2479,7 +2472,7 @@ window.onload = () => {
         content (tgt) {
           const content = document.createElement("span");
           if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
             state.style.display = "block";
             content.appendChild(state);
             content.style.display = "block";
@@ -2558,7 +2551,7 @@ window.onload = () => {
       // Skip tokens inside closed tactics — they interfere with tactic tippys
       const closedTactics = new Set();
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle && !toggle.checked) closedTactics.add(tactic);
       });
       function isInsideClosedTactic(el) {
@@ -2572,7 +2565,7 @@ window.onload = () => {
       // Create/destroy token tippys when tactic checkbox toggles
       const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle) toggle.addEventListener('change', () => {
           if (toggle.checked) {
             closedTactics.delete(tactic);
@@ -2591,6 +2584,81 @@ window.onload = () => {
       });
   });
 }
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
     <script src="static/metadata.js"></script>
@@ -2642,6 +2710,7 @@ window.onload = () => {
             </ul>
           </div>
         </nav>
+      <div class="toc-resize-handle"></div>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
             <a class="local-button active" href="Error-Explanations/About___--inductiveParamMissing/#The-Lean-Language-Reference--Error-Explanations--About___--inductiveParamMissing" rel="prev" title="About: inductiveParamMissing"><span class="arrow">←</span><span class="where">About: inductiveParamMissing</span></a><a class="local-button active" href="Error-Explanations/About___--inferDefTypeFailed/#The-Lean-Language-Reference--Error-Explanations--About___--inferDefTypeFailed" rel="next" title="About: inferDefTypeFailed"><span class="where">About: inferDefTypeFailed</span><span class="arrow">→</span></a></nav>
@@ -2708,11 +2777,11 @@ that does not support this. Such situations include:</p>
                       <button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-panel-1">Fixed</button></div>
                     <div class="error-example-tab-view">
                       <div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-button-0">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2697">def</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer type of </span><span class="text">definition `</span><span class="text">identity</span><span class="text">`</span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">identity</span></span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">x</span><span class="text">`</span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="116">x</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2697">def</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer type of </span><span class="text">definition `</span><span class="text">identity</span><span class="text">`</span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">identity</span></span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">x</span><span class="text">`</span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="116">x</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2712">:=</span><span class="inter-text">
   </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="116">x</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">x</span><span class="text">`</span><span class="text"></span></span></pre></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-button-1">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2781">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-identity" data-verso-hover="9430" id="identity-_LPAR_in-Binder-Type-Requires-New-Type-Variable_RPAR_">identity</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="153">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2781">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-identity" data-verso-hover="9776" id="identity-_LPAR_in-Binder-Type-Requires-New-Type-Variable_RPAR_">identity</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2794">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2794">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="153">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2794">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2803">:=</span><span class="inter-text">
   </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="50">x</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       </div>
@@ -2730,16 +2799,16 @@ parameter automatically.</p>
                       <button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-panel-1">Fixed</button></div>
                     <div class="error-example-tab-view">
                       <div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-button-0">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3325">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-plusTwo" data-verso-hover="9431">plusTwo</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">x</span><span class="text">`</span><span class="text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3325">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-plusTwo" data-verso-hover="9777">plusTwo</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">x</span><span class="text">`</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">Because this declaration's type has been explicitly provided, all parameter types and holes (e.g., `_`) in its header are resolved before its body is processed; information from the declaration body cannot be used to infer what these values should be</span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="11">x</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">2</span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">Because this declaration's type has been explicitly provided, all parameter types and holes (e.g., `_`) in its header are resolved before its body is processed; information from the declaration body cannot be used to infer what these values should be</span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="11">x</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3339">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3345">:=</span><span class="inter-text">
+  </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-3350">+</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">x</span><span class="text">`</span><span class="text">
 </span><span class="text">
 </span><span class="text">Note: </span><span class="text">Because this declaration's type has been explicitly provided, all parameter types and holes (e.g., `_`) in its header are resolved before its body is processed; information from the declaration body cannot be used to infer what these values should be</span><span class="text"></span></span></pre></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-button-1">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3676">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-plusTwo" data-verso-hover="9431">plusTwo</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">2</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3676">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-plusTwo" data-verso-hover="9777">plusTwo</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3688">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3688">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3688">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3698">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3704">:=</span><span class="inter-text">
+  </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-3709">+</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       </div>
                     </div>
@@ -2758,14 +2827,14 @@ its binder.</p>
                       <div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-button-0">
                         <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4195">example</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">trivial_proof</span><span class="text">`</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">Examples do not have names. </span><span class="text">The identifier</span><span class="text"></span><span class="text"> </span><span class="text">`</span><span class="text">trivial_proof</span><span class="text">`</span><span class="text"> </span><span class="text">is</span><span class="text"> being interpreted as </span><span class="text">a parameter</span><span class="text"> </span><span class="text">`(</span><span class="text">trivial_proof</span><span class="text"> : _)`</span><span class="text">.</span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="74">trivial_proof</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="429">True</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-trivial" data-verso-hover="2799">trivial</span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">Examples do not have names. </span><span class="text">The identifier</span><span class="text"></span><span class="text"> </span><span class="text">`</span><span class="text">trivial_proof</span><span class="text">`</span><span class="text"> </span><span class="text">is</span><span class="text"> being interpreted as </span><span class="text">a parameter</span><span class="text"> </span><span class="text">`(</span><span class="text">trivial_proof</span><span class="text"> : _)`</span><span class="text">.</span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="74">trivial_proof</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4217">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="434">True</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4224">:=</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-trivial" data-verso-hover="2793">trivial</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">trivial_proof</span><span class="text">`</span><span class="text">
 </span><span class="text">
 </span><span class="text">Note: </span><span class="text">Examples do not have names. </span><span class="text">The identifier</span><span class="text"></span><span class="text"> </span><span class="text">`</span><span class="text">trivial_proof</span><span class="text">`</span><span class="text"> </span><span class="text">is</span><span class="text"> being interpreted as </span><span class="text">a parameter</span><span class="text"> </span><span class="text">`(</span><span class="text">trivial_proof</span><span class="text"> : _)`</span><span class="text">.</span><span class="text"></span></span></pre></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-button-1">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4436">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="429">True</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-trivial" data-verso-hover="2799">trivial</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4436">example</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4444">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="434">True</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4451">:=</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-trivial" data-verso-hover="2793">trivial</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       </div>
                     </div>
@@ -2783,13 +2852,13 @@ defined using a declaration form that supports naming, such as <code>def</code> 
                       <div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-button-0">
                         <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.opaque-4940">opaque</span><span class="inter-text"> </span><span class="unknown token" data-binding="">m</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">n</span><span class="text">`</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">Multiple constants cannot be declared in a single declaration. </span><span class="text">The identifier</span><span class="text"></span><span class="text"> </span><span class="text">`</span><span class="text">n</span><span class="text">`</span><span class="text"> </span><span class="text">is</span><span class="text"> being interpreted as </span><span class="text">a parameter</span><span class="text"> </span><span class="text">`(</span><span class="text">n</span><span class="text"> : _)`</span><span class="text">.</span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="74">n</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">Multiple constants cannot be declared in a single declaration. </span><span class="text">The identifier</span><span class="text"></span><span class="text"> </span><span class="text">`</span><span class="text">n</span><span class="text">`</span><span class="text"> </span><span class="text">is</span><span class="text"> being interpreted as </span><span class="text">a parameter</span><span class="text"> </span><span class="text">`(</span><span class="text">n</span><span class="text"> : _)`</span><span class="text">.</span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="74">n</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4951">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">n</span><span class="text">`</span><span class="text">
 </span><span class="text">
 </span><span class="text">Note: </span><span class="text">Multiple constants cannot be declared in a single declaration. </span><span class="text">The identifier</span><span class="text"></span><span class="text"> </span><span class="text">`</span><span class="text">n</span><span class="text">`</span><span class="text"> </span><span class="text">is</span><span class="text"> being interpreted as </span><span class="text">a parameter</span><span class="text"> </span><span class="text">`(</span><span class="text">n</span><span class="text"> : _)`</span><span class="text">.</span><span class="text"></span></span></pre></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-button-1">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.opaque-5155">opaque</span><span class="inter-text"> </span><span class="const token" data-binding="const-m" data-verso-hover="9432" id="m-_LPAR_in-Attempting-to-Define-Multiple-Opaque-Constants-at-Once_RPAR_">m</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.opaque-5170">opaque</span><span class="inter-text"> </span><span class="const token" data-binding="const-n" data-verso-hover="9433" id="n-_LPAR_in-Attempting-to-Define-Multiple-Opaque-Constants-at-Once_RPAR_">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.opaque-5155">opaque</span><span class="inter-text"> </span><span class="const token" data-binding="const-m" data-verso-hover="9778" id="m-_LPAR_in-Attempting-to-Define-Multiple-Opaque-Constants-at-Once_RPAR_">m</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5164">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.opaque-5170">opaque</span><span class="inter-text"> </span><span class="const token" data-binding="const-n" data-verso-hover="9779" id="n-_LPAR_in-Attempting-to-Define-Multiple-Opaque-Constants-at-Once_RPAR_">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5179">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       </div>
                     </div>
@@ -2807,20 +2876,20 @@ global constants, it is necessary to declare each separately.</p>
                       <button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-panel-1">Fixed (Fixed (separate lines))</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-button-2" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-panel-2">Fixed (Fixed (parenthesized))</button></div>
                     <div class="error-example-tab-view">
                       <div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-button-0">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-5840">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Person" data-verso-hover="9396">Person</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-5857">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">givenName</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">familyName</span><span class="text">`</span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="74">familyName</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text">
-  </span><span class="unknown token" data-binding="">age</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-5840">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Person" data-verso-hover="9743">Person</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-5840">where</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">givenName</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">familyName</span><span class="text">`</span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="74">familyName</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5886">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">age</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5901">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Failed to infer </span><span class="text">type of binder `</span><span class="text">familyName</span><span class="text">`</span><span class="text"></span></span></pre></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-button-1">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6003">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Person" data-verso-hover="2108">Person</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-6020">where</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-Person.givenName" data-verso-hover="9434">givenName</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text">
-  </span><span class="const token" data-binding="const-Person.familyName" data-verso-hover="9435">familyName</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text">
-  </span><span class="const token" data-binding="const-Person.age" data-verso-hover="2110">age</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6003">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Person" data-verso-hover="2110">Person</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-6003">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Person.givenName" data-verso-hover="9780">givenName</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6038">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text">
+  </span><span class="const token" data-binding="const-Person.familyName" data-verso-hover="9781">familyName</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6060">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text">
+  </span><span class="const token" data-binding="const-Person.age" data-verso-hover="2112">age</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6075">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-panel-2" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-button-2">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6118">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Person" data-verso-hover="2108">Person</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-6135">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-Person.givenName" data-verso-hover="9434">givenName</span><span class="inter-text"> </span><span class="const token" data-binding="const-Person.familyName" data-verso-hover="9435">familyName</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-Person.age" data-verso-hover="2110">age</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6118">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Person" data-verso-hover="2110">Person</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-6118">where</span><span class="inter-text">
+  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.structExplicitBinder-6143">(</span><span class="const token" data-binding="const-Person.givenName" data-verso-hover="9780">givenName</span><span class="inter-text"> </span><span class="const token" data-binding="const-Person.familyName" data-verso-hover="9781">familyName</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6165">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.structExplicitBinder-6143">)</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Person.age" data-verso-hover="2112">age</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6181">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       </div>
                     </div>

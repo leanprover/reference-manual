@@ -1,4 +1,4 @@
-<!-- Generated from commit e303f7c60ce11b55e991101cf0d66bf72a3424f6 at 2026-06-10T09:10:13Z -->
+<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,6 +9,32 @@
     window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
   }
 })()</script>
+    <script>
+      // Enable TypeScript checking.
+// @ts-check
+
+// Applies a saved table-of-contents width before the first paint.
+//
+// This is a tiny inline counterpart to toc-resize.js: it runs in the page head so that
+// returning desktop readers do not see the default width flash to their saved width.
+// It only records the width in the --verso-toc-user-width custom property; the
+// stylesheet clamps it and ignores it on mobile, and toc-resize.js then takes over the
+// interactive resizing. Keep the storage key in sync with toc-resize.js.
+
+(function () {
+    try {
+        const saved = localStorage.getItem("verso-toc-width");
+        // Parse to a number (as toc-resize.js does) and write that back, so a stored
+        // value with stray whitespace becomes a valid length rather than `" 420 px"`.
+        const width = saved === null ? NaN : Number(saved);
+        if (Number.isFinite(width)) {
+            document.documentElement.style.setProperty("--verso-toc-user-width", `${width}px`);
+        }
+    } catch (_) {
+        // Leave the default width in place when local storage is unavailable.
+    }
+})();
+</script>
     <base href="./../../"><meta charset="utf-8">
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>About:  unknownIdentifier</title><link rel="stylesheet" href="book.css">
@@ -24,6 +50,7 @@
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="-verso-search/search-highlight.js" defer="defer"></script>
+    <script src="toc-resize.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1020,7 +1047,103 @@ pre.json {
   background-color: #eee;
   border-radius: 2px;
 }
-</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/*
+The margin-note layout responds to the width of <main>, not the viewport, because the
+ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
+query container (see Html/Style.lean), so the container queries below track the actual
+content width.
+
+There are two "in the margin" regimes, split at the same width where the content stops
+being left-aligned and becomes centered (1112px and 1212px of content width; at the
+default ToC width these are the old 1400px and 1500px viewport breakpoints):
+
+  * While the content is left-aligned there is a large area to its right, so a fixed
+    13rem note with a fixed 16rem overhang fits comfortably.
+  * Once the content is centered the note must fit the symmetric right gap, whose width
+    is (content - text column) / 2. A fixed overhang would overflow the page for content
+    widths just above the centering threshold, so the note and its overhang are sized in
+    container units, which always fit that gap.
+*/
+
+/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+/* Wider than a phone: by default float the note at the right of the text column,
+   overlapping the content. The container queries below lift it into the true margin
+   once there is room. */
+@media screen and (min-width: 701px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Left-aligned content: a fixed-size note in the wide area to its right. */
+@container main (width >= 1112px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 1rem -16rem 0 0;
+  }
+}
+
+/* Centered content: size the note in container units so it always fits the symmetric
+   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
+   so the fixed-overhang note above is only ever used while the content is left-aligned.
+   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
+   content width at which the content is centered. */
+@container main (width >= 1212px) {
+  .marginalia .note {
+    width: 15cqi;
+    margin-right: -18cqi;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>.example {
   border: 1px solid #98B2C0;
   border-radius: 0.5rem;
   margin-bottom: var(--verso--box-vertical-margin);
@@ -1072,182 +1195,6 @@ pre.json {
   color: var(--lean-blue);
 }
 </style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
-}
-
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
-}
-
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
-}
-</style><style>.grammar .keyword {
-  font-weight: 500 !important;
-}
-
-.grammar {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.grammar .comment {
-  font-style: italic;
-  font-family: var(--verso-text-font-family);
-  /* TODO add background and text colors to Verso theme, then compute a background here */
-  background-color: #fafafa;
-  border: 1px solid #f0f0f0;
-}
-
-.grammar .local-name {
-  font-family: var(--verso-code-font-family);
-  font-style: italic;
-}
-
-.grammar .nonterminal {
-  font-style: italic;
-}
-.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
-  display: none;
-}
-.grammar .active {
-  background-color: #eee;
-  border-radius: 2px;
-}
-.grammar a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-</style><style>
-span.TODO {
-  border: 3px solid red;
-  display: inline;
-  position: relative;
-  float: right;
-  clear: right;
-  margin-top: 1rem;
-  width: 15vw;
-  margin-right: -17vw;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-}
-</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/* Wide viewport */
-@media screen and (min-width: 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    margin-right: -16rem;
-    width: 13rem;
-    margin-top: 1rem;
-  }
-}
-
-/* Very wide viewport */
-@media screen and (min-width: 1600px) {
-  .marginalia .note {
-    margin-right: -19vw;
-    width: 15vw;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-/* Medium viewport */
-@media screen and (700px < width <= 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Narrow viewport (e.g. phone) */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
-</style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1280,6 +1227,21 @@ body {
 }
 
 .hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+/* These lexically-classified token kinds default to the `.unknown` appearance. The rule follows
+   `.const` so it wins for the `anon-ctor` tokens, which also carry the `const` class. */
+.hl.lean .anon-ctor,
+.hl.lean .number,
+.hl.lean .char,
+.hl.lean .comment,
+.hl.lean .punctuation,
+.hl.lean .delim,
+.hl.lean .wildcard {
   color: var(--verso-code-color,);
   font-weight: normal;
   font-style: normal;
@@ -1368,7 +1330,7 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+  .hl.lean .token.binding-hl, .hl.lean .literal:hover, .hl.lean .token.typed:hover {
     background-color: #eee;
     border-radius: 2px;
     transition: none;
@@ -1548,7 +1510,7 @@ body {
   text-size-adjust: 100%;
 }
 
-.hl.lean .tactic:has(.tactic-toggle:checked) {
+.hl.lean .tactic:has(> .tactic-toggle:checked) {
   display: inline-grid;
   grid-template-columns: 1fr;
 }
@@ -1567,7 +1529,10 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+  /* Highlight a region on hover only when its own toggle is unchecked, and only the innermost
+     hovered region: `label:hover` bubbles to ancestor labels, so suppress the highlight on a region
+     whose label contains a more deeply nested hovered tactic label. */
+  .hl.lean .tactic:has(> .tactic-toggle:not(:checked)) > label:hover:not(:has(.tactic > label:hover)) {
     background-color: #eeeeee;
   }
 }
@@ -1908,6 +1873,109 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
   white-space: pre-wrap;
 }
 
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+</style><style>
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
 </style><style>
 .env-var a {
   color: inherit;
@@ -2281,81 +2349,6 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      
-window.addEventListener("load", () => {
-  tippy('.keyword-of.hl.lean', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  });
-});
-</script>
-    <script>
-      
 window.onload = () => {
 
     // Don't show hovers inside of closed tactic states
@@ -2363,7 +2356,7 @@ window.onload = () => {
       let parent = elem.parentNode;
       while (parent && "classList" in parent) {
         if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector("input.tactic-toggle");
+          const toggle = parent.querySelector(":scope > input.tactic-toggle");
           if (toggle) {
             return !toggle.checked;
           }
@@ -2460,7 +2453,7 @@ window.onload = () => {
         followCursor: 'initial',
         onShow(inst) {
           if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
             if (toggle && toggle.checked) {
               return false;
             }
@@ -2479,7 +2472,7 @@ window.onload = () => {
         content (tgt) {
           const content = document.createElement("span");
           if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
             state.style.display = "block";
             content.appendChild(state);
             content.style.display = "block";
@@ -2558,7 +2551,7 @@ window.onload = () => {
       // Skip tokens inside closed tactics — they interfere with tactic tippys
       const closedTactics = new Set();
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle && !toggle.checked) closedTactics.add(tactic);
       });
       function isInsideClosedTactic(el) {
@@ -2572,7 +2565,7 @@ window.onload = () => {
       // Create/destroy token tippys when tactic checkbox toggles
       const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle) toggle.addEventListener('change', () => {
           if (toggle.checked) {
             closedTactics.delete(tactic);
@@ -2591,6 +2584,81 @@ window.onload = () => {
       });
   });
 }
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
     <script src="static/metadata.js"></script>
@@ -2642,6 +2710,7 @@ window.onload = () => {
             </ul>
           </div>
         </nav>
+      <div class="toc-resize-handle"></div>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
             <a class="local-button active" href="Error-Explanations/About___--synthInstanceFailed/#The-Lean-Language-Reference--Error-Explanations--About___--synthInstanceFailed" rel="prev" title="About: synthInstanceFailed"><span class="arrow">←</span><span class="where">About: synthInstanceFailed</span></a><a class="local-button active" href="releases/#release-notes" rel="next" title="Release Notes"><span class="where">Release Notes</span><span class="arrow">→</span></a></nav>
@@ -2689,18 +2758,18 @@ message itself.</p>
                       <button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1">Fixed</button></div>
                     <div class="error-example-tab-view">
                       <div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2186">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5988">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk" title="Documentation for IO.FS.Stream"><span class="const token" data-binding="const-IO.FS.Stream" data-verso-hover="4076">IO.FS.Stream</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-2216">do</span></a><span class="inter-text">
-  </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___withStdout" title="Documentation for IO.withStdout"><span class="const token" data-binding="const-IO.withStdout" data-verso-hover="8275">IO.withStdout</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5988">s</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-2237">do</span></a><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-2244">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.547" data-verso-hover="168">text</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="307">"Hello"</span><span class="inter-text">
-    </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="7">IO.println</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.547" data-verso-hover="168">text</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="7">IO.println</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-termS!_-2297">s!</span><span class="unknown token" data-binding="">"Wrote '{</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">text</span><span class="text">`</span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">text</span></span><span class="unknown token" data-binding="">}' to stream"</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2186">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2194">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="6002">s</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2194">:</span><span class="inter-text"> </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk" title="Documentation for IO.FS.Stream"><span class="const token" data-binding="const-IO.FS.Stream" data-verso-hover="4052">IO.FS.Stream</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2194">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2213">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-2216">do</span></a><span class="inter-text">
+  </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___withStdout" title="Documentation for IO.withStdout"><span class="const token" data-binding="const-IO.withStdout" data-verso-hover="8290">IO.withStdout</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="6002">s</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-2237">do</span></a><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-2244">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.445" data-verso-hover="168">text</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-2248">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="308">"Hello"</span><span class="inter-text">
+    </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="7">IO.println</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.445" data-verso-hover="168">text</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="7">IO.println</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-termS!_-2297">s!</span><span class="literal string interpolation token" data-binding="">"Wrote '{</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">text</span><span class="text">`</span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">text</span></span><span class="literal string interpolation token" data-binding="">}' to stream"</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">text</span><span class="text">`</span><span class="text"></span><span class="text"></span><span class="text"></span></span></pre></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2379">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5988">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk" title="Documentation for IO.FS.Stream"><span class="const token" data-binding="const-IO.FS.Stream" data-verso-hover="4076">IO.FS.Stream</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-2409">do</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-2414">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="168">text</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="307">"Hello"</span><span class="inter-text">
-  </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___withStdout" title="Documentation for IO.withStdout"><span class="const token" data-binding="const-IO.withStdout" data-verso-hover="8275">IO.withStdout</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5988">s</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-2452">do</span></a><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2379">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2387">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="6002">s</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2387">:</span><span class="inter-text"> </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk" title="Documentation for IO.FS.Stream"><span class="const token" data-binding="const-IO.FS.Stream" data-verso-hover="4052">IO.FS.Stream</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2387">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2406">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-2409">do</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-2414">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="168">text</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-2418">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="308">"Hello"</span><span class="inter-text">
+  </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___withStdout" title="Documentation for IO.withStdout"><span class="const token" data-binding="const-IO.withStdout" data-verso-hover="8290">IO.withStdout</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="6002">s</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-2452">do</span></a><span class="inter-text">
     </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="7">IO.println</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="168">text</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="7">IO.println</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-termS!_-2488">s!</span><span class="unknown token" data-binding="">"Wrote '{</span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="168">text</span><span class="unknown token" data-binding="">}' to stream"</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="7">IO.println</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-termS!_-2488">s!</span><span class="literal string interpolation token" data-binding="">"Wrote '{</span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="168">text</span><span class="literal string interpolation token" data-binding="">}' to stream"</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       </div>
                     </div>
@@ -2739,29 +2808,29 @@ in scope in the inner block as well—resolves the issue.</p>
                       <button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1">Fixed (qualified name)</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-2" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-2">Fixed (open namespace)</button></div>
                     <div class="error-example-tab-view">
                       <div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3054" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9482">Color</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-3070">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.rgb" data-verso-hover="9483">rgb</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">r</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="11">g</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="11">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.grayscale" data-verso-hover="9484">grayscale</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="11">k</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3054" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9828">Color</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3054" data-verso-hover="26">where</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-3078">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.rgb" data-verso-hover="9829">rgb</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3084">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">r</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="11">g</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="11">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3084">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3084">)</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-3100">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.grayscale" data-verso-hover="9830">grayscale</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3112">(</span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="11">k</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3112">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3112">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3123">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-red" data-verso-hover="9485">red</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9482">Color</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">rgb</span><span class="text">`</span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">rgb</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">255</span><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3123">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-red" data-verso-hover="9831">red</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3131">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9828">Color</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3139">:=</span><span class="inter-text">
+  </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">rgb</span><span class="text">`</span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">rgb</span></span><span class="inter-text"> </span><span class="literal number token" data-binding="">255</span><span class="inter-text"> </span><span class="literal number token" data-binding="">0</span><span class="inter-text"> </span><span class="literal number token" data-binding="">0</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">rgb</span><span class="text">`</span><span class="text"></span><span class="text"></span><span class="text"></span></span></pre></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3225" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9482">Color</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-3241">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.rgb" data-verso-hover="9483">rgb</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">r</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="11">g</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="11">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.grayscale" data-verso-hover="9484">grayscale</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="11">k</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3225" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9828">Color</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3225" data-verso-hover="26">where</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-3249">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.rgb" data-verso-hover="9829">rgb</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3255">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">r</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="11">g</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="11">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3255">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3255">)</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-3271">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.grayscale" data-verso-hover="9830">grayscale</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3283">(</span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="11">k</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3283">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3283">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3294">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-red" data-verso-hover="9485">red</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9482">Color</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-Color.rgb" data-verso-hover="9483">Color.rgb</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">255</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">0</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">0</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3294">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-red" data-verso-hover="9831">red</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3302">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9828">Color</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3310">:=</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Color.rgb" data-verso-hover="9829">Color.rgb</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">255</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">0</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">0</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-2" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-2">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3363" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9482">Color</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-3379">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.rgb" data-verso-hover="9483">rgb</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">r</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="11">g</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="11">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.grayscale" data-verso-hover="9484">grayscale</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="11">k</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3363" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9828">Color</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3363" data-verso-hover="26">where</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-3387">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.rgb" data-verso-hover="9829">rgb</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3393">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="11">r</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="11">g</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="11">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3393">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3393">)</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-3409">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.grayscale" data-verso-hover="9830">grayscale</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3421">(</span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="11">k</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3421">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3421">)</span><span class="inter-text">
 
 </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-3432" data-verso-hover="146">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">Color</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-3432">in</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3446">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-red" data-verso-hover="9485">red</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9482">Color</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-Color.rgb" data-verso-hover="9483">rgb</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">255</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">0</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="11">0</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3446">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-red" data-verso-hover="9831">red</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3454">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="9828">Color</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3462">:=</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Color.rgb" data-verso-hover="9829">rgb</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">255</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">0</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">0</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       </div>
                     </div>
@@ -2782,25 +2851,25 @@ from the identifier.</p>
                       <button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1">Fixed (qualified name)</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-2" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-2">Fixed (restricted open)</button></div>
                     <div class="error-example-tab-view">
                       <div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.protected-4244">protected</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4254">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="9486">A.x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.protected-4244">protected</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4254">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="9832">A.x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4262">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4265">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4265">)</span><span class="inter-text">
 
 </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-4269" data-verso-hover="146">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">A</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4277">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">x</span><span class="text">`</span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">x</span></span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4277">example</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4285">:=</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">x</span><span class="text">`</span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">x</span></span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">x</span><span class="text">`</span><span class="text"></span><span class="text"></span><span class="text"></span></span></pre></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.protected-4357">protected</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4367">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="9486">A.x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.protected-4357">protected</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4367">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="9832">A.x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4375">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4378">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4378">)</span><span class="inter-text">
 
 </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-4382" data-verso-hover="146">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">A</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4390">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="9486">A.x</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4390">example</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4398">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="9832">A.x</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-2" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-2">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.protected-4436">protected</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4446">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="9486">A.x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.protected-4436">protected</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4446">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="9832">A.x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4454">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4457">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4457">)</span><span class="inter-text">
 
-</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-4461" data-verso-hover="146">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">A</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-A.x" data-verso-hover="9486">x</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-4461" data-verso-hover="146">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">A</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.openOnly-4466">(</span><span class="const token" data-binding="const-A.x" data-verso-hover="9832">x</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.openOnly-4466">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4473">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="9486">x</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4473">example</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4481">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="9832">x</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       </div>
                     </div>
@@ -2819,22 +2888,22 @@ remainder of the namespace in which it occurs (see the manual section on
                       <button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1">Fixed (generalized field notation)</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-2" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-2">Fixed (qualified name)</button></div>
                     <div class="error-example-tab-view">
                       <div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5249">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-disjoinToNat" data-verso-hover="9487">disjoinToNat</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="208">b₁</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="208">b₂</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5249">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-disjoinToNat" data-verso-hover="9833">disjoinToNat</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5266">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="209">b₁</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="209">b₂</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5266">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5266">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5285">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-5291">:=</span><span class="inter-text">
   </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown constant `</span><span class="text">Nat.toNat</span><span class="text">`</span><span class="text">
 </span><span class="text">
 </span><span class="text">Note: </span><span class="text">Inferred this name from the expected resulting type of `.</span><span class="text">toNat</span><span class="text">`:</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">.toNat</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">b₁</span><span class="inter-text"> </span><span class="unknown token" data-binding="">||</span><span class="inter-text"> </span><span class="unknown token" data-binding="">b₂</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">.toNat</span></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5303">(</span><span class="unknown token" data-binding="">b₁</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_||_»-5304">||</span><span class="inter-text"> </span><span class="unknown token" data-binding="">b₂</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-5303">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Unknown constant `</span><span class="text">Nat.toNat</span><span class="text">`</span><span class="text">
 </span><span class="text">
 </span><span class="text">Note: </span><span class="text">Inferred this name from the expected resulting type of `.</span><span class="text">toNat</span><span class="text">`:</span><span class="text">
   </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></span><span class="text"></span></span></pre></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5481">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-disjoinToNat" data-verso-hover="9487">disjoinToNat</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="208">b₁</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="208">b₂</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="208">b₁</span><span class="inter-text"> </span><span class="unknown token" data-binding="">||</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="208">b₂</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Booleans/#Bool___toNat" title="Documentation for Bool.toNat"><span class="const token" data-binding="const-Bool.toNat" data-verso-hover="5888">toNat</span></a><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5481">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-disjoinToNat" data-verso-hover="9833">disjoinToNat</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5498">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="209">b₁</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="209">b₂</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5498">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5498">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5517">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-5523">:=</span><span class="inter-text">
+  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5528">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="209">b₁</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_||_»-5529">||</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="209">b₂</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-5528">)</span><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Booleans/#Bool___toNat" title="Documentation for Bool.toNat"><span class="const token" data-binding="const-Bool.toNat" data-verso-hover="5903">toNat</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-2" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-2">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5579">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-disjoinToNat" data-verso-hover="9487">disjoinToNat</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="208">b₁</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="208">b₂</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><a href="Basic-Types/Booleans/#Bool___toNat" title="Documentation for Bool.toNat"><span class="const token" data-binding="const-Bool.toNat" data-verso-hover="5888">Bool.toNat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="208">b₁</span><span class="inter-text"> </span><span class="unknown token" data-binding="">||</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="208">b₂</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5579">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-disjoinToNat" data-verso-hover="9833">disjoinToNat</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5596">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="209">b₁</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="209">b₂</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5596">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5596">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5615">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-5621">:=</span><span class="inter-text">
+  </span><a href="Basic-Types/Booleans/#Bool___toNat" title="Documentation for Bool.toNat"><span class="const token" data-binding="const-Bool.toNat" data-verso-hover="5903">Bool.toNat</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5637">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="209">b₁</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_||_»-5638">||</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="209">b₂</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-5637">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       </div>
                     </div>
@@ -2853,49 +2922,65 @@ qualified function name.</p>
                       <button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1">Fixed (modifying options)</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-2" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-2">Fixed (add implicit bindings for the unknown identifiers)</button></div>
                     <div class="error-example-tab-view">
                       <div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6314" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#relaxedAutoImplicit" title="Documentation for option relaxedAutoImplicit"><span class="option token" data-binding="option-relaxedAutoImplicit" data-verso-hover="1126">relaxedAutoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6314" data-verso-hover="102">false</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-6314">in</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6354">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisBreaks" data-verso-hover="9488" id="thisBreaks-_LPAR_in-Auto-bound-variables_RPAR_">thisBreaks</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="9489">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="153">α₁</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="417">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">size₁</span><span class="text">`</span><span class="text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6314" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#relaxedAutoImplicit" title="Documentation for option relaxedAutoImplicit"><span class="option token" data-binding="option-relaxedAutoImplicit" data-verso-hover="1131">relaxedAutoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6314" data-verso-hover="102">false</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-6314">in</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6354">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisBreaks" data-verso-hover="9834" id="thisBreaks-_LPAR_in-Auto-bound-variables_RPAR_">thisBreaks</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6369">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="9835">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6369">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="153">α₁</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6369">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6381">(</span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="422">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6381">:</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">size₁</span><span class="text">`</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">It is not possible to treat `</span><span class="text">size₁</span><span class="text">` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a><span class="inter-text"></span></span><span class="text">`.</span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">size₁</span></span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">It is not possible to treat `</span><span class="text">size₁</span><span class="text">` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a><span class="inter-text"></span></span><span class="text">`.</span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">size₁</span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6381">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-6395">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6398">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-6398">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6402" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="415">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6402" data-verso-hover="102">false</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-6402">in</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6435">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisAlsoBreaks" data-verso-hover="9490" id="thisAlsoBreaks-_LPAR_in-Auto-bound-variables_RPAR_">thisAlsoBreaks</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.73" data-verso-hover="417">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">α₂</span><span class="text">`</span><span class="text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6402" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="420">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6402" data-verso-hover="102">false</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-6402">in</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6435">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisAlsoBreaks" data-verso-hover="9836" id="thisAlsoBreaks-_LPAR_in-Auto-bound-variables_RPAR_">thisAlsoBreaks</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6454">(</span><span class="var token" data-binding="var-_uniq.73" data-verso-hover="422">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6454">:</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">α₂</span><span class="text">`</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">It is not possible to treat `</span><span class="text">α₂</span><span class="text">` as an implicitly bound variable here because the `autoImplicit` option is set to `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a><span class="inter-text"></span></span><span class="text">`.</span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">α₂</span></span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.76" data-verso-hover="417">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">size₂</span><span class="text">`</span><span class="text">
+</span><span class="text">Note: </span><span class="text">It is not possible to treat `</span><span class="text">α₂</span><span class="text">` as an implicitly bound variable here because the `autoImplicit` option is set to `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a><span class="inter-text"></span></span><span class="text">`.</span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">α₂</span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6454">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6466">(</span><span class="var token" data-binding="var-_uniq.76" data-verso-hover="422">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6466">:</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">size₂</span><span class="text">`</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">It is not possible to treat `</span><span class="text">size₂</span><span class="text">` as an implicitly bound variable here because the `autoImplicit` option is set to `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a><span class="inter-text"></span></span><span class="text">`.</span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">size₂</span></span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">It is not possible to treat `</span><span class="text">size₂</span><span class="text">` as an implicitly bound variable here because the `autoImplicit` option is set to `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a><span class="inter-text"></span></span><span class="text">`.</span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">size₂</span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6466">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-6480">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6483">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-6483">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">size₁</span><span class="text">`</span><span class="text">
 </span><span class="text">
 </span><span class="text">Note: </span><span class="text">It is not possible to treat `</span><span class="text">size₁</span><span class="text">` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `</span><span class="highlighted"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a></span><span class="text">`.</span><span class="text"></span><span class="text"></span></span></pre></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6737" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#relaxedAutoImplicit" title="Documentation for option relaxedAutoImplicit"><span class="option token" data-binding="option-relaxedAutoImplicit" data-verso-hover="1126">relaxedAutoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6737" data-verso-hover="102">true</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-6737">in</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6776">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisWorks" data-verso-hover="9491">thisWorks</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">unused variable `</span><span class="text">x</span><span class="text">`</span><span class="text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6737" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#relaxedAutoImplicit" title="Documentation for option relaxedAutoImplicit"><span class="option token" data-binding="option-relaxedAutoImplicit" data-verso-hover="1131">relaxedAutoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6737" data-verso-hover="102">true</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-6737">in</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6776">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisWorks" data-verso-hover="9837">thisWorks</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6790">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">Variable name `</span><span class="text">x</span><span class="text">` is not explicitly referenced.</span><span class="text">
+</span><span class="text"></span><span class="text">
+</span><span class="text">The binding can be removed (if unused) or named `_` (if used implicitly).</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="9489">x</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="153">α₁</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">unused variable `</span><span class="text">y</span><span class="text">`</span><span class="text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="9835">x</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6790">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="153">α₁</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6790">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6802">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">Variable name `</span><span class="text">y</span><span class="text">` is not explicitly referenced.</span><span class="text">
+</span><span class="text"></span><span class="text">
+</span><span class="text">The binding can be removed (if unused) or named `_` (if used implicitly).</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="9492">y</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="362">size₁</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="9838">y</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6802">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="367">size₁</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6802">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-6816">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6819">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-6819">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6823" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="415">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6823" data-verso-hover="102">true</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-6823">in</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6855">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisAlsoWorks" data-verso-hover="9493">thisAlsoWorks</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">unused variable `</span><span class="text">x</span><span class="text">`</span><span class="text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6823" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="420">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6823" data-verso-hover="102">true</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-6823">in</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6855">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisAlsoWorks" data-verso-hover="9839">thisAlsoWorks</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6873">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">Variable name `</span><span class="text">x</span><span class="text">` is not explicitly referenced.</span><span class="text">
+</span><span class="text"></span><span class="text">
+</span><span class="text">The binding can be removed (if unused) or named `_` (if used implicitly).</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.101" data-verso-hover="9494">x</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="153">α₂</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">unused variable `</span><span class="text">y</span><span class="text">`</span><span class="text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.101" data-verso-hover="9840">x</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6873">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="153">α₂</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6873">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6885">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">Variable name `</span><span class="text">y</span><span class="text">` is not explicitly referenced.</span><span class="text">
+</span><span class="text"></span><span class="text">
+</span><span class="text">The binding can be removed (if unused) or named `_` (if used implicitly).</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.103" data-verso-hover="9495">y</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.99" data-verso-hover="362">size₂</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.103" data-verso-hover="9841">y</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6885">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.99" data-verso-hover="367">size₂</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6885">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-6899">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6902">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-6902">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       <div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-2" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-2">
-                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6970" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#relaxedAutoImplicit" title="Documentation for option relaxedAutoImplicit"><span class="option token" data-binding="option-relaxedAutoImplicit" data-verso-hover="1126">relaxedAutoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6970" data-verso-hover="102">false</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-6970">in</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7010">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisWorks" data-verso-hover="9491">thisWorks</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="362">size₁</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">unused variable `</span><span class="text">x</span><span class="text">`</span><span class="text">
+                        <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6970" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#relaxedAutoImplicit" title="Documentation for option relaxedAutoImplicit"><span class="option token" data-binding="option-relaxedAutoImplicit" data-verso-hover="1131">relaxedAutoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-6970" data-verso-hover="102">false</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-6970">in</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7010">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisWorks" data-verso-hover="9837">thisWorks</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-7024">{</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="367">size₁</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-7024">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7034">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">Variable name `</span><span class="text">x</span><span class="text">` is not explicitly referenced.</span><span class="text">
+</span><span class="text"></span><span class="text">
+</span><span class="text">The binding can be removed (if unused) or named `_` (if used implicitly).</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="9489">x</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="153">α₁</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">unused variable `</span><span class="text">y</span><span class="text">`</span><span class="text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="9835">x</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7034">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="153">α₁</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7034">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7046">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">Variable name `</span><span class="text">y</span><span class="text">` is not explicitly referenced.</span><span class="text">
+</span><span class="text"></span><span class="text">
+</span><span class="text">The binding can be removed (if unused) or named `_` (if used implicitly).</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="9492">y</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="362">size₁</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="9838">y</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7046">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="367">size₁</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7046">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-7060">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-7063">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-7063">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-7067" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="415">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-7067" data-verso-hover="102">false</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-7067">in</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7100">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisAlsoWorks" data-verso-hover="9493">thisAlsoWorks</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.92" data-verso-hover="153">α₂</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.95" data-verso-hover="362">size₂</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">unused variable `</span><span class="text">x</span><span class="text">`</span><span class="text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-7067" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="420">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-7067" data-verso-hover="102">false</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-7067">in</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7100">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-thisAlsoWorks" data-verso-hover="9839">thisAlsoWorks</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-7118">{</span><span class="var token" data-binding="var-_uniq.92" data-verso-hover="153">α₂</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.95" data-verso-hover="367">size₂</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-7118">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7134">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">Variable name `</span><span class="text">x</span><span class="text">` is not explicitly referenced.</span><span class="text">
+</span><span class="text"></span><span class="text">
+</span><span class="text">The binding can be removed (if unused) or named `_` (if used implicitly).</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.97" data-verso-hover="9494">x</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.92" data-verso-hover="153">α₂</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">unused variable `</span><span class="text">y</span><span class="text">`</span><span class="text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.97" data-verso-hover="9840">x</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7134">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.92" data-verso-hover="153">α₂</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7134">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7146">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">Variable name `</span><span class="text">y</span><span class="text">` is not explicitly referenced.</span><span class="text">
+</span><span class="text"></span><span class="text">
+</span><span class="text">The binding can be removed (if unused) or named `_` (if used implicitly).</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.99" data-verso-hover="9495">y</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.95" data-verso-hover="362">size₂</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.99" data-verso-hover="9841">y</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7146">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.95" data-verso-hover="367">size₂</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7146">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-7160">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-7163">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-7163">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                       </div>
                     </div>
@@ -2903,9 +2988,9 @@ qualified function name.</p>
                     Lean's default behavior, when it encounters an identifier it can't identify in the type of a
 definition, is to add <a href="Definitions/Headers-and-Signatures/#automatic-implicit-parameters">automatic implicit parameters</a>
 for those unknown identifiers. However, many files or projects disable this feature by setting the
-<code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="415">autoImplicit</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#relaxedAutoImplicit" title="Documentation for option relaxedAutoImplicit"><span class="option token" data-binding="option-relaxedAutoImplicit" data-verso-hover="1126">relaxedAutoImplicit</span></a></code> options to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a></code>.</p>
+<code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="420">autoImplicit</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#relaxedAutoImplicit" title="Documentation for option relaxedAutoImplicit"><span class="option token" data-binding="option-relaxedAutoImplicit" data-verso-hover="1131">relaxedAutoImplicit</span></a></code> options to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a></code>.</p>
                   <p>
-                    Without re-enabling the <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="415">autoImplicit</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#relaxedAutoImplicit" title="Documentation for option relaxedAutoImplicit"><span class="option token" data-binding="option-relaxedAutoImplicit" data-verso-hover="1126">relaxedAutoImplicit</span></a></code> options, the easiest
+                    Without re-enabling the <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="420">autoImplicit</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#relaxedAutoImplicit" title="Documentation for option relaxedAutoImplicit"><span class="option token" data-binding="option-relaxedAutoImplicit" data-verso-hover="1131">relaxedAutoImplicit</span></a></code> options, the easiest
 way to fix this error is to add the unknown identifiers as
 <a href="Terms/Functions/#implicit-functions">ordinary implicit parameters</a> as shown in the example above.</p>
                   </div>

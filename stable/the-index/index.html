@@ -1,4 +1,4 @@
-<!-- Generated from commit e303f7c60ce11b55e991101cf0d66bf72a3424f6 at 2026-06-10T09:10:13Z -->
+<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,6 +9,32 @@
     window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
   }
 })()</script>
+    <script>
+      // Enable TypeScript checking.
+// @ts-check
+
+// Applies a saved table-of-contents width before the first paint.
+//
+// This is a tiny inline counterpart to toc-resize.js: it runs in the page head so that
+// returning desktop readers do not see the default width flash to their saved width.
+// It only records the width in the --verso-toc-user-width custom property; the
+// stylesheet clamps it and ignores it on mobile, and toc-resize.js then takes over the
+// interactive resizing. Keep the storage key in sync with toc-resize.js.
+
+(function () {
+    try {
+        const saved = localStorage.getItem("verso-toc-width");
+        // Parse to a number (as toc-resize.js does) and write that back, so a stored
+        // value with stray whitespace becomes a valid length rather than `" 420 px"`.
+        const width = saved === null ? NaN : Number(saved);
+        if (Number.isFinite(width)) {
+            document.documentElement.style.setProperty("--verso-toc-user-width", `${width}px`);
+        }
+    } catch (_) {
+        // Leave the default width in place when local storage is unavailable.
+    }
+})();
+</script>
     <base href="./../"><meta charset="utf-8">
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Index</title><link rel="stylesheet" href="book.css">
@@ -24,6 +50,7 @@
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="-verso-search/search-highlight.js" defer="defer"></script>
+    <script src="toc-resize.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1020,7 +1047,103 @@ pre.json {
   background-color: #eee;
   border-radius: 2px;
 }
-</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/*
+The margin-note layout responds to the width of <main>, not the viewport, because the
+ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
+query container (see Html/Style.lean), so the container queries below track the actual
+content width.
+
+There are two "in the margin" regimes, split at the same width where the content stops
+being left-aligned and becomes centered (1112px and 1212px of content width; at the
+default ToC width these are the old 1400px and 1500px viewport breakpoints):
+
+  * While the content is left-aligned there is a large area to its right, so a fixed
+    13rem note with a fixed 16rem overhang fits comfortably.
+  * Once the content is centered the note must fit the symmetric right gap, whose width
+    is (content - text column) / 2. A fixed overhang would overflow the page for content
+    widths just above the centering threshold, so the note and its overhang are sized in
+    container units, which always fit that gap.
+*/
+
+/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+/* Wider than a phone: by default float the note at the right of the text column,
+   overlapping the content. The container queries below lift it into the true margin
+   once there is room. */
+@media screen and (min-width: 701px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Left-aligned content: a fixed-size note in the wide area to its right. */
+@container main (width >= 1112px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 1rem -16rem 0 0;
+  }
+}
+
+/* Centered content: size the note in container units so it always fits the symmetric
+   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
+   so the fixed-overhang note above is only ever used while the content is left-aligned.
+   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
+   content width at which the content is centered. */
+@container main (width >= 1212px) {
+  .marginalia .note {
+    width: 15cqi;
+    margin-right: -18cqi;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>.example {
   border: 1px solid #98B2C0;
   border-radius: 0.5rem;
   margin-bottom: var(--verso--box-vertical-margin);
@@ -1072,182 +1195,6 @@ pre.json {
   color: var(--lean-blue);
 }
 </style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
-}
-
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
-}
-
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
-}
-</style><style>.grammar .keyword {
-  font-weight: 500 !important;
-}
-
-.grammar {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.grammar .comment {
-  font-style: italic;
-  font-family: var(--verso-text-font-family);
-  /* TODO add background and text colors to Verso theme, then compute a background here */
-  background-color: #fafafa;
-  border: 1px solid #f0f0f0;
-}
-
-.grammar .local-name {
-  font-family: var(--verso-code-font-family);
-  font-style: italic;
-}
-
-.grammar .nonterminal {
-  font-style: italic;
-}
-.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
-  display: none;
-}
-.grammar .active {
-  background-color: #eee;
-  border-radius: 2px;
-}
-.grammar a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-</style><style>
-span.TODO {
-  border: 3px solid red;
-  display: inline;
-  position: relative;
-  float: right;
-  clear: right;
-  margin-top: 1rem;
-  width: 15vw;
-  margin-right: -17vw;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-}
-</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/* Wide viewport */
-@media screen and (min-width: 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    margin-right: -16rem;
-    width: 13rem;
-    margin-top: 1rem;
-  }
-}
-
-/* Very wide viewport */
-@media screen and (min-width: 1600px) {
-  .marginalia .note {
-    margin-right: -19vw;
-    width: 15vw;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-/* Medium viewport */
-@media screen and (700px < width <= 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Narrow viewport (e.g. phone) */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
-</style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1280,6 +1227,21 @@ body {
 }
 
 .hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+/* These lexically-classified token kinds default to the `.unknown` appearance. The rule follows
+   `.const` so it wins for the `anon-ctor` tokens, which also carry the `const` class. */
+.hl.lean .anon-ctor,
+.hl.lean .number,
+.hl.lean .char,
+.hl.lean .comment,
+.hl.lean .punctuation,
+.hl.lean .delim,
+.hl.lean .wildcard {
   color: var(--verso-code-color,);
   font-weight: normal;
   font-style: normal;
@@ -1368,7 +1330,7 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+  .hl.lean .token.binding-hl, .hl.lean .literal:hover, .hl.lean .token.typed:hover {
     background-color: #eee;
     border-radius: 2px;
     transition: none;
@@ -1548,7 +1510,7 @@ body {
   text-size-adjust: 100%;
 }
 
-.hl.lean .tactic:has(.tactic-toggle:checked) {
+.hl.lean .tactic:has(> .tactic-toggle:checked) {
   display: inline-grid;
   grid-template-columns: 1fr;
 }
@@ -1567,7 +1529,10 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+  /* Highlight a region on hover only when its own toggle is unchecked, and only the innermost
+     hovered region: `label:hover` bubbles to ancestor labels, so suppress the highlight on a region
+     whose label contains a more deeply nested hovered tactic label. */
+  .hl.lean .tactic:has(> .tactic-toggle:not(:checked)) > label:hover:not(:has(.tactic > label:hover)) {
     background-color: #eeeeee;
   }
 }
@@ -1908,6 +1873,109 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
   white-space: pre-wrap;
 }
 
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+</style><style>
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
 </style><style>
 .env-var a {
   color: inherit;
@@ -2281,81 +2349,6 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      
-window.addEventListener("load", () => {
-  tippy('.keyword-of.hl.lean', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  });
-});
-</script>
-    <script>
-      
 window.onload = () => {
 
     // Don't show hovers inside of closed tactic states
@@ -2363,7 +2356,7 @@ window.onload = () => {
       let parent = elem.parentNode;
       while (parent && "classList" in parent) {
         if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector("input.tactic-toggle");
+          const toggle = parent.querySelector(":scope > input.tactic-toggle");
           if (toggle) {
             return !toggle.checked;
           }
@@ -2460,7 +2453,7 @@ window.onload = () => {
         followCursor: 'initial',
         onShow(inst) {
           if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
             if (toggle && toggle.checked) {
               return false;
             }
@@ -2479,7 +2472,7 @@ window.onload = () => {
         content (tgt) {
           const content = document.createElement("span");
           if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
             state.style.display = "block";
             content.appendChild(state);
             content.style.display = "block";
@@ -2558,7 +2551,7 @@ window.onload = () => {
       // Skip tokens inside closed tactics — they interfere with tactic tippys
       const closedTactics = new Set();
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle && !toggle.checked) closedTactics.add(tactic);
       });
       function isInsideClosedTactic(el) {
@@ -2572,7 +2565,7 @@ window.onload = () => {
       // Create/destroy token tippys when tactic checkbox toggles
       const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle) toggle.addEventListener('change', () => {
           if (toggle.checked) {
             closedTactics.delete(tactic);
@@ -2591,6 +2584,81 @@ window.onload = () => {
       });
   });
 }
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
     <script src="static/metadata.js"></script>
@@ -2638,6 +2706,7 @@ window.onload = () => {
             </ul>
           </div>
         </nav>
+      <div class="toc-resize-handle"></div>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
             <a class="local-button active" href="platforms/#platforms" rel="prev" title="Supported Platforms"><span class="arrow">←</span><span class="where">Supported Platforms</span></a><div></div>
@@ -3539,7 +3608,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-allowImportAll-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>allow&shy;Import&shy;All</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3527"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3626"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -3578,6 +3647,12 @@ window.onload = () => {
                     <span id="---entry-alter-Std___TreeMap___alter"><code>alter</code></span><ol>
                       <li>
                         <a href="Basic-Types/Maps-and-Sets/#Std___TreeMap___alter"><span id="---entry-___key___---___k___-2808"><code>Std.<wbr>TreeMap.<wbr>alter</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-alternative-Lean___Elab___Do___ControlInfo___alternative"><code>alternative</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___alternative"><span id="---entry-___key___---___k___-3598"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>alternative</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -4119,7 +4194,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-Backend-Lake___Backend"><code>Backend</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3558"><code>Lake.<wbr>Backend</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3657"><code>Lake.<wbr>Backend</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -4393,7 +4468,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-BuildType-Lake___BuildType"><code>Build&shy;Type</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3545"><code>Lake.<wbr>Build&shy;Type</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3644"><code>Lake.<wbr>Build&shy;Type</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -4568,6 +4643,8 @@ window.onload = () => {
                         <a href="Basic-Types/Strings/#String___Slice___back___"><span id="---entry-___key___---___k___-1728"><code>String.<wbr>Slice.<wbr>back?</code></span></a></li>
                       </ol>
                     </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#backward___do___legacy"><span id="---entry-backward___do___legacy"><code>backward.<wbr>do.<wbr>legacy</code></span></a></li>
                   <li>
                     <a href="Type-Classes/Instance-Synthesis/#backward___inferInstanceAs___wrap"><span id="---entry-backward___inferInstanceAs___wrap"><code>backward.<wbr>infer&shy;InstanceAs.<wbr>wrap</code></span></a></li>
                   <li>
@@ -4859,6 +4936,24 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-breakBase___-Lean___Elab___Do___ControlLifter___breakBase___-_LPAR_structure-field_RPAR_"><code>break&shy;Base?</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3612"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>break&shy;Base?</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-breakCont-Lean___Elab___Do___ContInfo___breakCont-_LPAR_structure-field_RPAR_"><code>break&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ContInfo___mk"><span id="---entry-___key___---___k___-3547"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ContInfo.<wbr>break&shy;Cont</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-breaks-Lean___Elab___Do___ControlInfo___breaks-_LPAR_structure-field_RPAR_"><code>breaks</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___mk"><span id="---entry-___key___---___k___-3589"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>breaks</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-bsize-Substring___Raw___bsize"><code>bsize</code></span><ol>
                       <li>
                         <a href="Basic-Types/Strings/#Substring___Raw___bsize"><span id="---entry-___key___---___k___-1801"><code>Substring.<wbr>Raw.<wbr>bsize</code></span></a></li>
@@ -5029,6 +5124,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-CodeLiveness-Lean___Elab___Do___CodeLiveness"><code>Code&shy;Liveness</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___CodeLiveness___deadSyntactically"><span id="---entry-___key___---___k___-3540"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Code&shy;Liveness</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <a href="Coercions/#Coe___mk"><span id="---entry-Coe"><code>Coe</code></span></a></li>
                   <li>
                     <span id="---entry-Coe___mk-Instance-constructor-of-Coe"><code>Coe.<wbr>mk</code></span><ol>
@@ -5179,6 +5280,36 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-ContInfo-Lean___Elab___Do___ContInfo"><code>Cont&shy;Info</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ContInfo___mk"><span id="---entry-___key___---___k___-3545"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Cont&shy;Info</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-Context-Lean___Elab___Do___Context"><code>Context</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___Context___mk"><span id="---entry-___key___---___k___-3524"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ControlInfo-Lean___Elab___Do___ControlInfo"><code>Control&shy;Info</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___mk"><span id="---entry-___key___---___k___-3587"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Info</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ControlInfoHandler-Lean___Elab___Do___ControlInfoHandler"><code>Control&shy;Info&shy;Handler</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfoHandler"><span id="---entry-___key___---___k___-3586"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Info&shy;Handler</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ControlLifter-Lean___Elab___Do___ControlLifter"><code>Control&shy;Lifter</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3610"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Lifter</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-Cursor-List___Cursor"><code>Cursor</code></span><ol>
                       <li>
                         <a href="The--mvcgen--tactic/Predicate-Transformers/#List___Cursor___mk"><span id="---entry-___key___---___k___-578"><code>List.<wbr>Cursor</code></span></a></li>
@@ -5198,6 +5329,18 @@ window.onload = () => {
                     <a href="Build-Tools-and-Distribution/Lake/#cache-stage"><span id="---entry-cache-stage-_LPAR_Lake-command_RPAR_"><code>cache stage</code> (Lake command)</span></a></li>
                   <li>
                     <a href="Build-Tools-and-Distribution/Lake/#cache-unstage"><span id="---entry-cache-unstage-_LPAR_Lake-command_RPAR_"><code>cache unstage</code> (Lake command)</span></a></li>
+                  <li>
+                    <span id="---entry-cachedPUnit-Lean___Elab___Do___MonadInfo___cachedPUnit-_LPAR_structure-field_RPAR_"><code>cached&shy;PUnit</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MonadInfo___mk"><span id="---entry-___key___---___k___-3535"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>MonadInfo.<wbr>cached&shy;PUnit</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-cachedPUnitUnit-Lean___Elab___Do___MonadInfo___cachedPUnitUnit-_LPAR_structure-field_RPAR_"><code>cached&shy;PUnit&shy;Unit</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MonadInfo___mk"><span id="---entry-___key___---___k___-3536"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>MonadInfo.<wbr>cached&shy;PUnit&shy;Unit</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
                   <li>
                     <a href="Tactic-Proofs/Tactic-Reference/#calc"><span id="---entry-calc"><code>calc</code></span></a></li>
                   <li>
@@ -5697,6 +5840,12 @@ window.onload = () => {
                   <li>
                     <span id="---entry-constructor">constructor</span> <a href="The-Type-System/Inductive-Types/#--index--next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">(0)</a> <a href="Tactic-Proofs/Tactic-Reference/#constructor">(1)</a></li>
                   <li>
+                    <span id="---entry-contInfo-Lean___Elab___Do___Context___contInfo-_LPAR_structure-field_RPAR_"><code>cont&shy;Info</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___Context___mk"><span id="---entry-___key___---___k___-3526"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context.<wbr>cont&shy;Info</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-contains-Array___contains"><code>contains</code></span><ol>
                       <li>
                         <a href="Basic-Types/Arrays/#Array___contains"><span id="---entry-___key___---___k___-2254"><code>Array.<wbr>contains</code></span></a></li>
@@ -5880,6 +6029,30 @@ window.onload = () => {
                     <span id="---entry-contextual-Lean___Meta___Simp___Config___contextual-_LPAR_structure-field_RPAR_"><code>contextual</code></span><ol>
                       <li>
                         <a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk"><span id="---entry-___key___---___k___-370"><code>Lean.<wbr>Meta.<wbr>Simp.<wbr>Config.<wbr>contextual</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-continueBase___-Lean___Elab___Do___ControlLifter___continueBase___-_LPAR_structure-field_RPAR_"><code>continue&shy;Base?</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3613"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>continue&shy;Base?</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-continueCont-Lean___Elab___Do___ContInfo___continueCont-_LPAR_structure-field_RPAR_"><code>continue&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ContInfo___mk"><span id="---entry-___key___---___k___-3548"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ContInfo.<wbr>continue&shy;Cont</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-continueWithUnit-Lean___Elab___Do___DoElemCont___continueWithUnit"><code>continue&shy;With&shy;Unit</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___continueWithUnit"><span id="---entry-___key___---___k___-3578"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>continue&shy;With&shy;Unit</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-continues-Lean___Elab___Do___ControlInfo___continues-_LPAR_structure-field_RPAR_"><code>continues</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___mk"><span id="---entry-___key___---___k___-3590"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>continues</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -6119,6 +6292,30 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-DoElab-Lean___Elab___Do___DoElab"><code>Do&shy;Elab</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElab"><span id="---entry-___key___---___k___-3558"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elab</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-DoElemCont-Lean___Elab___Do___DoElemCont"><code>Do&shy;Elem&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___mk"><span id="---entry-___key___---___k___-3566"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elem&shy;Cont</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-DoElemContKind-Lean___Elab___Do___DoElemContKind"><code>Do&shy;Elem&shy;Cont&shy;Kind</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemContKind___nonDuplicable"><span id="---entry-___key___---___k___-3572"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elem&shy;Cont&shy;Kind</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-DoOps-Lean___Elab___Do___DoOps"><code>Do&shy;Ops</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOps___mk"><span id="---entry-___key___---___k___-3551"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Ops</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <a href="Type-Classes/Basic-Classes/#Dvd___mk"><span id="---entry-Dvd"><code>Dvd</code></span></a></li>
                   <li>
                     <span id="---entry-Dvd___mk-Instance-constructor-of-Dvd"><code>Dvd.<wbr>mk</code></span><ol>
@@ -6152,6 +6349,12 @@ window.onload = () => {
                     <span id="---entry-dcond-Bool___dcond"><code>dcond</code></span><ol>
                       <li>
                         <a href="Basic-Types/Booleans/#Bool___dcond"><span id="---entry-___key___---___k___-1856"><code>Bool.<wbr>dcond</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-deadCode-Lean___Elab___Do___Context___deadCode-_LPAR_structure-field_RPAR_"><code>dead&shy;Code</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___Context___mk"><span id="---entry-___key___---___k___-3527"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context.<wbr>dead&shy;Code</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -6443,6 +6646,18 @@ window.onload = () => {
                   <li>
                     <a href="Tactic-Proofs/Tactic-Reference/#decide_cbv"><span id="---entry-decide_cbv"><code>decide_cbv</code></span></a></li>
                   <li>
+                    <span id="---entry-declareMutVar-Lean___Elab___Do___declareMutVar"><code>declare&shy;Mut&shy;Var</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___declareMutVar"><span id="---entry-___key___---___k___-3606"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>declare&shy;Mut&shy;Var</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-declareMutVars-Lean___Elab___Do___declareMutVars"><code>declare&shy;Mut&shy;Vars</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___declareMutVars"><span id="---entry-___key___---___k___-3607"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>declare&shy;Mut&shy;Vars</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-decreaseBy-String___Pos___Raw___decreaseBy"><code>decrease&shy;By</code></span><ol>
                       <li>
                         <a href="Basic-Types/Strings/#String___Pos___Raw___decreaseBy"><span id="---entry-___key___---___k___-1610"><code>String.<wbr>Pos.<wbr>Raw.<wbr>decrease&shy;By</code></span></a></li>
@@ -6495,7 +6710,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-defaultFacets-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>default&shy;Facets</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3528"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3627"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -6648,6 +6863,12 @@ window.onload = () => {
                     <span id="---entry-div_eq_mul_inv-_LSQ_anonymous_RSQ_-_LPAR_class-method_RPAR_"><code>div_eq_mul_inv</code></span><ol>
                       <li>
                         <a href="The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/#Lean___Grind___Field___mk"><span id="---entry-___key___---___k___-475"><code>[anonymous]</code> (class method)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-doBlockResultType-Lean___Elab___Do___Context___doBlockResultType-_LPAR_structure-field_RPAR_"><code>do&shy;Block&shy;Result&shy;Type</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___Context___mk"><span id="---entry-___key___---___k___-3528"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context.<wbr>do&shy;Block&shy;Result&shy;Type</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -7185,6 +7406,30 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-elabAsSyntacticallyDeadCode-Lean___Elab___Do___DoElemCont___elabAsSyntacticallyDeadCode"><code>elab&shy;As&shy;Syntactically&shy;Dead&shy;Code</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___elabAsSyntacticallyDeadCode"><span id="---entry-___key___---___k___-3579"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>elab&shy;As&shy;Syntactically&shy;Dead&shy;Code</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-elabDoElem-Lean___Elab___Do___elabDoElem"><code>elab&shy;Do&shy;Elem</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___elabDoElem"><span id="---entry-___key___---___k___-3559"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>elab&shy;Do&shy;Elem</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-elabDoElems1-Lean___Elab___Do___elabDoElems1"><code>elab&shy;Do&shy;Elems1</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___elabDoElems1"><span id="---entry-___key___---___k___-3561"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>elab&shy;Do&shy;Elems1</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-elabDoSeq-Lean___Elab___Do___elabDoSeq"><code>elab&shy;Do&shy;Seq</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___elabDoSeq"><span id="---entry-___key___---___k___-3560"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>elab&shy;Do&shy;Seq</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-elem-Array___elem"><code>elem</code></span><ol>
                       <li>
                         <a href="Basic-Types/Arrays/#Array___elem"><span id="---entry-___key___---___k___-2255"><code>Array.<wbr>elem</code></span></a></li>
@@ -7302,6 +7547,12 @@ window.onload = () => {
                     <span id="---entry-empty-ByteSlice___empty"><code>empty</code></span><ol>
                       <li>
                         <a href="Basic-Types/Byte-Arrays/#ByteSlice___empty"><span id="---entry-___key___---___k___-2356"><code>ByteSlice.<wbr>empty</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-empty-Lean___Elab___Do___ControlInfo___empty"><code>empty</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___empty"><span id="---entry-___key___---___k___-3596"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>empty</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -7437,6 +7688,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-ensureHasTypeAt-Lean___Elab___Do___DoElemCont___ensureHasTypeAt"><code>ensure&shy;Has&shy;Type&shy;At</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___ensureHasTypeAt"><span id="---entry-___key___---___k___-3577"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>ensure&shy;Has&shy;Type&shy;At</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-ensureTermination-Std___Iter___ensureTermination"><code>ensure&shy;Termination</code></span><ol>
                       <li>
                         <a href="Iterators/Iterator-Definitions/#Std___Iter___ensureTermination"><span id="---entry-___key___---___k___-3280"><code>Std.<wbr>Iter.<wbr>ensure&shy;Termination</code></span></a></li>
@@ -7446,6 +7703,18 @@ window.onload = () => {
                     <span id="---entry-ensureTermination-Std___IterM___ensureTermination"><code>ensure&shy;Termination</code></span><ol>
                       <li>
                         <a href="Iterators/Iterator-Definitions/#Std___IterM___ensureTermination"><span id="---entry-___key___---___k___-3281"><code>Std.<wbr>IterM.<wbr>ensure&shy;Termination</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ensureUnit-Lean___Elab___Do___DoElemCont___ensureUnit"><code>ensure&shy;Unit</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___ensureUnit"><span id="---entry-___key___---___k___-3575"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>ensure&shy;Unit</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ensureUnitAt-Lean___Elab___Do___DoElemCont___ensureUnitAt"><code>ensure&shy;Unit&shy;At</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___ensureUnitAt"><span id="---entry-___key___---___k___-3576"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>ensure&shy;Unit&shy;At</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -7462,6 +7731,12 @@ window.onload = () => {
                     </li>
                   <li>
                     <a href="Tactic-Proofs/Targeted-Rewriting-with--conv/#Lean___Parser___Tactic___Conv___enter"><span id="---entry-enter"><code>enter</code></span></a></li>
+                  <li>
+                    <span id="---entry-enterLoopBody-Lean___Elab___Do___enterLoopBody"><code>enter&shy;Loop&shy;Body</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___enterLoopBody"><span id="---entry-___key___---___k___-3585"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>enter&shy;Loop&shy;Body</code></span></a></li>
+                      </ol>
+                    </li>
                   <li>
                     <span id="---entry-entryAtIdx___-Std___TreeMap___entryAtIdx___"><code>entry&shy;At&shy;Idx!</code></span><ol>
                       <li>
@@ -7737,7 +8012,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-exeName-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>exe&shy;Name</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3541"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3640"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -7825,7 +8100,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-extraDepTargets-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>extra&shy;Dep&shy;Targets</code></span><ol>
                       <li>
-                        <span id="---entry-___key___---___k___-3529"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
+                        <span id="---entry-___key___---___k___-3628"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
                       </ol>
                     </li>
                   <li>
@@ -8765,7 +9040,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-findExternLib___-Lake___findExternLib___"><code>find&shy;Extern&shy;Lib?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findExternLib___"><span id="---entry-___key___---___k___-3601"><code>Lake.<wbr>find&shy;Extern&shy;Lib?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findExternLib___"><span id="---entry-___key___---___k___-3700"><code>Lake.<wbr>find&shy;Extern&shy;Lib?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -8825,13 +9100,13 @@ window.onload = () => {
                   <li>
                     <span id="---entry-findLeanExe___-Lake___findLeanExe___"><code>find&shy;Lean&shy;Exe?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findLeanExe___"><span id="---entry-___key___---___k___-3599"><code>Lake.<wbr>find&shy;Lean&shy;Exe?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findLeanExe___"><span id="---entry-___key___---___k___-3698"><code>Lake.<wbr>find&shy;Lean&shy;Exe?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-findLeanLib___-Lake___findLeanLib___"><code>find&shy;Lean&shy;Lib?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findLeanLib___"><span id="---entry-___key___---___k___-3600"><code>Lake.<wbr>find&shy;Lean&shy;Lib?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findLeanLib___"><span id="---entry-___key___---___k___-3699"><code>Lake.<wbr>find&shy;Lean&shy;Lib?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -8861,19 +9136,19 @@ window.onload = () => {
                   <li>
                     <span id="---entry-findModule___-Lake___findModule___"><code>find&shy;Module?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findModule___"><span id="---entry-___key___---___k___-3598"><code>Lake.<wbr>find&shy;Module?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findModule___"><span id="---entry-___key___---___k___-3697"><code>Lake.<wbr>find&shy;Module?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-findPackageByKey___-Lake___findPackageByKey___"><code>find&shy;Package&shy;By&shy;Key?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findPackageByKey___"><span id="---entry-___key___---___k___-3597"><code>Lake.<wbr>find&shy;Package&shy;By&shy;Key?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findPackageByKey___"><span id="---entry-___key___---___k___-3696"><code>Lake.<wbr>find&shy;Package&shy;By&shy;Key?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-findPackageByName___-Lake___findPackageByName___"><code>find&shy;Package&shy;By&shy;Name?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findPackageByName___"><span id="---entry-___key___---___k___-3596"><code>Lake.<wbr>find&shy;Package&shy;By&shy;Name?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findPackageByName___"><span id="---entry-___key___---___k___-3695"><code>Lake.<wbr>find&shy;Package&shy;By&shy;Name?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -9849,7 +10124,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-Glob-Lake___Glob"><code>Glob</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3550"><code>Lake.<wbr>Glob</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3649"><code>Lake.<wbr>Glob</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -10205,31 +10480,43 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getAugmentedEnv-Lake___getAugmentedEnv"><code>get&shy;Augmented&shy;Env</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedEnv"><span id="---entry-___key___---___k___-3608"><code>Lake.<wbr>get&shy;Augmented&shy;Env</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedEnv"><span id="---entry-___key___---___k___-3707"><code>Lake.<wbr>get&shy;Augmented&shy;Env</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getAugmentedLeanPath-Lake___getAugmentedLeanPath"><code>get&shy;Augmented&shy;Lean&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedLeanPath"><span id="---entry-___key___---___k___-3605"><code>Lake.<wbr>get&shy;Augmented&shy;Lean&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedLeanPath"><span id="---entry-___key___---___k___-3704"><code>Lake.<wbr>get&shy;Augmented&shy;Lean&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getAugmentedLeanSrcPath-Lake___getAugmentedLeanSrcPath"><code>get&shy;Augmented&shy;Lean&shy;Src&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedLeanSrcPath"><span id="---entry-___key___---___k___-3606"><code>Lake.<wbr>get&shy;Augmented&shy;Lean&shy;Src&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedLeanSrcPath"><span id="---entry-___key___---___k___-3705"><code>Lake.<wbr>get&shy;Augmented&shy;Lean&shy;Src&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getAugmentedSharedLibPath-Lake___getAugmentedSharedLibPath"><code>get&shy;Augmented&shy;Shared&shy;Lib&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedSharedLibPath"><span id="---entry-___key___---___k___-3607"><code>Lake.<wbr>get&shy;Augmented&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedSharedLibPath"><span id="---entry-___key___---___k___-3706"><code>Lake.<wbr>get&shy;Augmented&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-getBreakCont-Lean___Elab___Do___getBreakCont"><code>get&shy;Break&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___getBreakCont"><span id="---entry-___key___---___k___-3583"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>get&shy;Break&shy;Cont</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getChar-Lean___TSyntax___getChar"><code>get&shy;Char</code></span><ol>
                       <li>
                         <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___TSyntax___getChar"><span id="---entry-___key___---___k___-3504"><code>Lean.<wbr>TSyntax.<wbr>get&shy;Char</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-getContinueCont-Lean___Elab___Do___getContinueCont"><code>get&shy;Continue&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___getContinueCont"><span id="---entry-___key___---___k___-3584"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>get&shy;Continue&shy;Cont</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -10337,25 +10624,25 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getElan___-Lake___getElan___"><code>get&shy;Elan?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElan___"><span id="---entry-___key___---___k___-3574"><code>Lake.<wbr>get&shy;Elan?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElan___"><span id="---entry-___key___---___k___-3673"><code>Lake.<wbr>get&shy;Elan?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getElanHome___-Lake___getElanHome___"><code>get&shy;Elan&shy;Home?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanHome___"><span id="---entry-___key___---___k___-3573"><code>Lake.<wbr>get&shy;Elan&shy;Home?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanHome___"><span id="---entry-___key___---___k___-3672"><code>Lake.<wbr>get&shy;Elan&shy;Home?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getElanInstall___-Lake___getElanInstall___"><code>get&shy;Elan&shy;Install?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanInstall___"><span id="---entry-___key___---___k___-3572"><code>Lake.<wbr>get&shy;Elan&shy;Install?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanInstall___"><span id="---entry-___key___---___k___-3671"><code>Lake.<wbr>get&shy;Elan&shy;Install?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getElanToolchain-Lake___getElanToolchain"><code>get&shy;Elan&shy;Toolchain</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanToolchain"><span id="---entry-___key___---___k___-3568"><code>Lake.<wbr>get&shy;Elan&shy;Toolchain</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanToolchain"><span id="---entry-___key___---___k___-3667"><code>Lake.<wbr>get&shy;Elan&shy;Toolchain</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -10499,19 +10786,19 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getEnvLeanPath-Lake___getEnvLeanPath"><code>get&shy;Env&shy;Lean&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvLeanPath"><span id="---entry-___key___---___k___-3569"><code>Lake.<wbr>get&shy;Env&shy;Lean&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvLeanPath"><span id="---entry-___key___---___k___-3668"><code>Lake.<wbr>get&shy;Env&shy;Lean&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getEnvLeanSrcPath-Lake___getEnvLeanSrcPath"><code>get&shy;Env&shy;Lean&shy;Src&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvLeanSrcPath"><span id="---entry-___key___---___k___-3570"><code>Lake.<wbr>get&shy;Env&shy;Lean&shy;Src&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvLeanSrcPath"><span id="---entry-___key___---___k___-3669"><code>Lake.<wbr>get&shy;Env&shy;Lean&shy;Src&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getEnvSharedLibPath-Lake___getEnvSharedLibPath"><code>get&shy;Env&shy;Shared&shy;Lib&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvSharedLibPath"><span id="---entry-___key___---___k___-3571"><code>Lake.<wbr>get&shy;Env&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvSharedLibPath"><span id="---entry-___key___---___k___-3670"><code>Lake.<wbr>get&shy;Env&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -10877,37 +11164,37 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getLake-Lake___getLake"><code>get&shy;Lake</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLake"><span id="---entry-___key___---___k___-3591"><code>Lake.<wbr>get&shy;Lake</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLake"><span id="---entry-___key___---___k___-3690"><code>Lake.<wbr>get&shy;Lake</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLakeEnv-Lake___getLakeEnv"><code>get&shy;Lake&shy;Env</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeEnv"><span id="---entry-___key___---___k___-3564"><code>Lake.<wbr>get&shy;Lake&shy;Env</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeEnv"><span id="---entry-___key___---___k___-3663"><code>Lake.<wbr>get&shy;Lake&shy;Env</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLakeHome-Lake___getLakeHome"><code>get&shy;Lake&shy;Home</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeHome"><span id="---entry-___key___---___k___-3588"><code>Lake.<wbr>get&shy;Lake&shy;Home</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeHome"><span id="---entry-___key___---___k___-3687"><code>Lake.<wbr>get&shy;Lake&shy;Home</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLakeInstall-Lake___getLakeInstall"><code>get&shy;Lake&shy;Install</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeInstall"><span id="---entry-___key___---___k___-3587"><code>Lake.<wbr>get&shy;Lake&shy;Install</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeInstall"><span id="---entry-___key___---___k___-3686"><code>Lake.<wbr>get&shy;Lake&shy;Install</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLakeLibDir-Lake___getLakeLibDir"><code>get&shy;Lake&shy;Lib&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeLibDir"><span id="---entry-___key___---___k___-3590"><code>Lake.<wbr>get&shy;Lake&shy;Lib&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeLibDir"><span id="---entry-___key___---___k___-3689"><code>Lake.<wbr>get&shy;Lake&shy;Lib&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLakeSrcDir-Lake___getLakeSrcDir"><code>get&shy;Lake&shy;Src&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeSrcDir"><span id="---entry-___key___---___k___-3589"><code>Lake.<wbr>get&shy;Lake&shy;Src&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeSrcDir"><span id="---entry-___key___---___k___-3688"><code>Lake.<wbr>get&shy;Lake&shy;Src&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -10937,85 +11224,85 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getLean-Lake___getLean"><code>get&shy;Lean</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLean"><span id="---entry-___key___---___k___-3581"><code>Lake.<wbr>get&shy;Lean</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLean"><span id="---entry-___key___---___k___-3680"><code>Lake.<wbr>get&shy;Lean</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanAr-Lake___getLeanAr"><code>get&shy;Lean&shy;Ar</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanAr"><span id="---entry-___key___---___k___-3584"><code>Lake.<wbr>get&shy;Lean&shy;Ar</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanAr"><span id="---entry-___key___---___k___-3683"><code>Lake.<wbr>get&shy;Lean&shy;Ar</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanCc-Lake___getLeanCc"><code>get&shy;Lean&shy;Cc</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanCc"><span id="---entry-___key___---___k___-3585"><code>Lake.<wbr>get&shy;Lean&shy;Cc</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanCc"><span id="---entry-___key___---___k___-3684"><code>Lake.<wbr>get&shy;Lean&shy;Cc</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanCc___-Lake___getLeanCc___"><code>get&shy;Lean&shy;Cc?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanCc___"><span id="---entry-___key___---___k___-3586"><code>Lake.<wbr>get&shy;Lean&shy;Cc?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanCc___"><span id="---entry-___key___---___k___-3685"><code>Lake.<wbr>get&shy;Lean&shy;Cc?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanIncludeDir-Lake___getLeanIncludeDir"><code>get&shy;Lean&shy;Include&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanIncludeDir"><span id="---entry-___key___---___k___-3579"><code>Lake.<wbr>get&shy;Lean&shy;Include&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanIncludeDir"><span id="---entry-___key___---___k___-3678"><code>Lake.<wbr>get&shy;Lean&shy;Include&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanInstall-Lake___getLeanInstall"><code>get&shy;Lean&shy;Install</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanInstall"><span id="---entry-___key___---___k___-3575"><code>Lake.<wbr>get&shy;Lean&shy;Install</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanInstall"><span id="---entry-___key___---___k___-3674"><code>Lake.<wbr>get&shy;Lean&shy;Install</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanLibDir-Lake___getLeanLibDir"><code>get&shy;Lean&shy;Lib&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanLibDir"><span id="---entry-___key___---___k___-3578"><code>Lake.<wbr>get&shy;Lean&shy;Lib&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanLibDir"><span id="---entry-___key___---___k___-3677"><code>Lake.<wbr>get&shy;Lean&shy;Lib&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanPath-Lake___getLeanPath"><code>get&shy;Lean&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanPath"><span id="---entry-___key___---___k___-3602"><code>Lake.<wbr>get&shy;Lean&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanPath"><span id="---entry-___key___---___k___-3701"><code>Lake.<wbr>get&shy;Lean&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanSharedLib-Lake___getLeanSharedLib"><code>get&shy;Lean&shy;Shared&shy;Lib</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSharedLib"><span id="---entry-___key___---___k___-3583"><code>Lake.<wbr>get&shy;Lean&shy;Shared&shy;Lib</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSharedLib"><span id="---entry-___key___---___k___-3682"><code>Lake.<wbr>get&shy;Lean&shy;Shared&shy;Lib</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanSrcDir-Lake___getLeanSrcDir"><code>get&shy;Lean&shy;Src&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSrcDir"><span id="---entry-___key___---___k___-3577"><code>Lake.<wbr>get&shy;Lean&shy;Src&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSrcDir"><span id="---entry-___key___---___k___-3676"><code>Lake.<wbr>get&shy;Lean&shy;Src&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanSrcPath-Lake___getLeanSrcPath"><code>get&shy;Lean&shy;Src&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSrcPath"><span id="---entry-___key___---___k___-3603"><code>Lake.<wbr>get&shy;Lean&shy;Src&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSrcPath"><span id="---entry-___key___---___k___-3702"><code>Lake.<wbr>get&shy;Lean&shy;Src&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanSysroot-Lake___getLeanSysroot"><code>get&shy;Lean&shy;Sysroot</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSysroot"><span id="---entry-___key___---___k___-3576"><code>Lake.<wbr>get&shy;Lean&shy;Sysroot</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSysroot"><span id="---entry-___key___---___k___-3675"><code>Lake.<wbr>get&shy;Lean&shy;Sysroot</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanSystemLibDir-Lake___getLeanSystemLibDir"><code>get&shy;Lean&shy;System&shy;Lib&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSystemLibDir"><span id="---entry-___key___---___k___-3580"><code>Lake.<wbr>get&shy;Lean&shy;System&shy;Lib&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSystemLibDir"><span id="---entry-___key___---___k___-3679"><code>Lake.<wbr>get&shy;Lean&shy;System&shy;Lib&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanc-Lake___getLeanc"><code>get&shy;Leanc</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanc"><span id="---entry-___key___---___k___-3582"><code>Lake.<wbr>get&shy;Leanc</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanc"><span id="---entry-___key___---___k___-3681"><code>Lake.<wbr>get&shy;Leanc</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11107,7 +11394,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getNoCache-Lake___getNoCache"><code>get&shy;No&shy;Cache</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getNoCache"><span id="---entry-___key___---___k___-3565"><code>Lake.<wbr>get&shy;No&shy;Cache</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getNoCache"><span id="---entry-___key___---___k___-3664"><code>Lake.<wbr>get&shy;No&shy;Cache</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11125,13 +11412,19 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getPkgUrlMap-Lake___getPkgUrlMap"><code>get&shy;Pkg&shy;Url&shy;Map</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getPkgUrlMap"><span id="---entry-___key___---___k___-3567"><code>Lake.<wbr>get&shy;Pkg&shy;Url&shy;Map</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getPkgUrlMap"><span id="---entry-___key___---___k___-3666"><code>Lake.<wbr>get&shy;Pkg&shy;Url&shy;Map</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getRandomBytes-IO___getRandomBytes"><code>get&shy;Random&shy;Bytes</code></span><ol>
                       <li>
                         <a href="IO/Random-Numbers/#IO___getRandomBytes"><span id="---entry-___key___---___k___-3190"><code>IO.<wbr>get&shy;Random&shy;Bytes</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-getReturnCont-Lean___Elab___Do___getReturnCont"><code>get&shy;Return&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___getReturnCont"><span id="---entry-___key___---___k___-3582"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>get&shy;Return&shy;Cont</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11149,7 +11442,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getRootPackage-Lake___getRootPackage"><code>get&shy;Root&shy;Package</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getRootPackage"><span id="---entry-___key___---___k___-3595"><code>Lake.<wbr>get&shy;Root&shy;Package</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getRootPackage"><span id="---entry-___key___---___k___-3694"><code>Lake.<wbr>get&shy;Root&shy;Package</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11161,7 +11454,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getSharedLibPath-Lake___getSharedLibPath"><code>get&shy;Shared&shy;Lib&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getSharedLibPath"><span id="---entry-___key___---___k___-3604"><code>Lake.<wbr>get&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getSharedLibPath"><span id="---entry-___key___---___k___-3703"><code>Lake.<wbr>get&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11247,7 +11540,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getTryCache-Lake___getTryCache"><code>get&shy;Try&shy;Cache</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getTryCache"><span id="---entry-___key___---___k___-3566"><code>Lake.<wbr>get&shy;Try&shy;Cache</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getTryCache"><span id="---entry-___key___---___k___-3665"><code>Lake.<wbr>get&shy;Try&shy;Cache</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11271,7 +11564,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-getWorkspace-Lake___MonadWorkspace___getWorkspace-_LPAR_class-method_RPAR_"><code>get&shy;Workspace</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3594"><code>Lake.<wbr>MonadWorkspace.<wbr>get&shy;Workspace</code> (class method)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3693"><code>Lake.<wbr>MonadWorkspace.<wbr>get&shy;Workspace</code> (class method)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11281,7 +11574,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-globs-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>globs</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3530"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3629"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -12289,9 +12582,9 @@ window.onload = () => {
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#ISize___ofInt"><span id="---entry-ISize___ofInt"><code>ISize.<wbr>of&shy;Int</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#ISize___ofIntLE"><span id="---entry-ISize___ofIntLE"><code>ISize.<wbr>of&shy;Int&shy;LE</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#ISize___ofIntClamp"><span id="---entry-ISize___ofIntClamp"><code>ISize.<wbr>of&shy;Int&shy;Clamp</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#ISize___ofIntTruncate"><span id="---entry-ISize___ofIntTruncate"><code>ISize.<wbr>of&shy;Int&shy;Truncate</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#ISize___ofIntLE"><span id="---entry-ISize___ofIntLE"><code>ISize.<wbr>of&shy;Int&shy;LE</code></span></a></li>
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#ISize___ofNat"><span id="---entry-ISize___ofNat"><code>ISize.<wbr>of&shy;Nat</code></span></a></li>
                   <li>
@@ -12487,9 +12780,9 @@ window.onload = () => {
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#Int16___ofInt"><span id="---entry-Int16___ofInt"><code>Int16.<wbr>of&shy;Int</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#Int16___ofIntLE"><span id="---entry-Int16___ofIntLE"><code>Int16.<wbr>of&shy;Int&shy;LE</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#Int16___ofIntClamp"><span id="---entry-Int16___ofIntClamp"><code>Int16.<wbr>of&shy;Int&shy;Clamp</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#Int16___ofIntTruncate"><span id="---entry-Int16___ofIntTruncate"><code>Int16.<wbr>of&shy;Int&shy;Truncate</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#Int16___ofIntLE"><span id="---entry-Int16___ofIntLE"><code>Int16.<wbr>of&shy;Int&shy;LE</code></span></a></li>
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#Int16___ofNat"><span id="---entry-Int16___ofNat"><code>Int16.<wbr>of&shy;Nat</code></span></a></li>
                   <li>
@@ -12565,9 +12858,9 @@ window.onload = () => {
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#Int32___ofInt"><span id="---entry-Int32___ofInt"><code>Int32.<wbr>of&shy;Int</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#Int32___ofIntLE"><span id="---entry-Int32___ofIntLE"><code>Int32.<wbr>of&shy;Int&shy;LE</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#Int32___ofIntClamp"><span id="---entry-Int32___ofIntClamp"><code>Int32.<wbr>of&shy;Int&shy;Clamp</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#Int32___ofIntTruncate"><span id="---entry-Int32___ofIntTruncate"><code>Int32.<wbr>of&shy;Int&shy;Truncate</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#Int32___ofIntLE"><span id="---entry-Int32___ofIntLE"><code>Int32.<wbr>of&shy;Int&shy;LE</code></span></a></li>
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#Int32___ofNat"><span id="---entry-Int32___ofNat"><code>Int32.<wbr>of&shy;Nat</code></span></a></li>
                   <li>
@@ -12643,9 +12936,9 @@ window.onload = () => {
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#Int64___ofInt"><span id="---entry-Int64___ofInt"><code>Int64.<wbr>of&shy;Int</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#Int64___ofIntLE"><span id="---entry-Int64___ofIntLE"><code>Int64.<wbr>of&shy;Int&shy;LE</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#Int64___ofIntClamp"><span id="---entry-Int64___ofIntClamp"><code>Int64.<wbr>of&shy;Int&shy;Clamp</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#Int64___ofIntTruncate"><span id="---entry-Int64___ofIntTruncate"><code>Int64.<wbr>of&shy;Int&shy;Truncate</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#Int64___ofIntLE"><span id="---entry-Int64___ofIntLE"><code>Int64.<wbr>of&shy;Int&shy;LE</code></span></a></li>
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#Int64___ofNat"><span id="---entry-Int64___ofNat"><code>Int64.<wbr>of&shy;Nat</code></span></a></li>
                   <li>
@@ -12721,9 +13014,9 @@ window.onload = () => {
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#Int8___ofInt"><span id="---entry-Int8___ofInt"><code>Int8.<wbr>of&shy;Int</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#Int8___ofIntLE"><span id="---entry-Int8___ofIntLE"><code>Int8.<wbr>of&shy;Int&shy;LE</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#Int8___ofIntClamp"><span id="---entry-Int8___ofIntClamp"><code>Int8.<wbr>of&shy;Int&shy;Clamp</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#Int8___ofIntTruncate"><span id="---entry-Int8___ofIntTruncate"><code>Int8.<wbr>of&shy;Int&shy;Truncate</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#Int8___ofIntLE"><span id="---entry-Int8___ofIntLE"><code>Int8.<wbr>of&shy;Int&shy;LE</code></span></a></li>
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#Int8___ofNat"><span id="---entry-Int8___ofNat"><code>Int8.<wbr>of&shy;Nat</code></span></a></li>
                   <li>
@@ -13084,6 +13377,18 @@ window.onload = () => {
                     <span id="---entry-inductiveCheckResultingUniverse-bootstrap___inductiveCheckResultingUniverse"><code>inductive&shy;Check&shy;Resulting&shy;Universe</code></span><ol>
                       <li>
                         <a href="The-Type-System/Inductive-Types/#bootstrap___inductiveCheckResultingUniverse"><span id="---entry-___key___---___k___-79"><code>bootstrap.<wbr>inductive&shy;Check&shy;Resulting&shy;Universe</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-inferControlInfoElem-Lean___Elab___Do___inferControlInfoElem"><code>infer&shy;Control&shy;Info&shy;Elem</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___inferControlInfoElem"><span id="---entry-___key___---___k___-3599"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>infer&shy;Control&shy;Info&shy;Elem</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-inferControlInfoSeq-Lean___Elab___Do___inferControlInfoSeq"><code>infer&shy;Control&shy;Info&shy;Seq</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___inferControlInfoSeq"><span id="---entry-___key___---___k___-3600"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>infer&shy;Control&shy;Info&shy;Seq</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -13925,6 +14230,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-isPureApp___-Lean___Elab___Do___DoOps___isPureApp___-_LPAR_structure-field_RPAR_"><code>is&shy;Pure&shy;App?</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOps___mk"><span id="---entry-___key___---___k___-3553"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>DoOps.<wbr>is&shy;Pure&shy;App?</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-isRelative-System___FilePath___isRelative"><code>is&shy;Relative</code></span><ol>
                       <li>
                         <a href="IO/Files___-File-Handles___-and-Streams/#System___FilePath___isRelative"><span id="---entry-___key___---___k___-3060"><code>System.<wbr>FilePath.<wbr>is&shy;Relative</code></span></a></li>
@@ -14275,6 +14586,12 @@ window.onload = () => {
                   K</h2>
                 <ol>
                   <li>
+                    <span id="---entry-k-Lean___Elab___Do___DoElemCont___k-_LPAR_structure-field_RPAR_"><code>k</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___mk"><span id="---entry-___key___---___k___-3568"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>k</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-keyAtIdx___-Std___TreeMap___keyAtIdx___"><code>key&shy;At&shy;Idx!</code></span><ol>
                       <li>
                         <a href="Basic-Types/Maps-and-Sets/#Std___TreeMap___keyAtIdx___"><span id="---entry-___key___---___k___-2789"><code>Std.<wbr>TreeMap.<wbr>key&shy;At&shy;Idx!</code></span></a></li>
@@ -14377,6 +14694,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-kind-Lean___Elab___Do___DoElemCont___kind-_LPAR_structure-field_RPAR_"><code>kind</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___mk"><span id="---entry-___key___---___k___-3569"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>kind</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-kleisliLeft-Bind___kleisliLeft"><code>kleisli&shy;Left</code></span><ol>
                       <li>
                         <a href="Functors___-Monads-and--do--Notation/API-Reference/#Bind___kleisliLeft"><span id="---entry-___key___---___k___-662"><code>Bind.<wbr>kleisli&shy;Left</code></span></a></li>
@@ -14453,19 +14776,19 @@ window.onload = () => {
                   <li>
                     <span id="---entry-Lake___Backend___c-Constructor-of-Lake___Backend"><code>Lake.<wbr>Backend.<wbr>c</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3559">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3658">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___Backend___default-Constructor-of-Lake___Backend"><code>Lake.<wbr>Backend.<wbr>default</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3560">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3659">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___Backend___llvm-Constructor-of-Lake___Backend"><code>Lake.<wbr>Backend.<wbr>llvm</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3561">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3660">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14473,25 +14796,25 @@ window.onload = () => {
                   <li>
                     <span id="---entry-Lake___BuildType___debug-Constructor-of-Lake___BuildType"><code>Lake.<wbr>BuildType.<wbr>debug</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3546">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3645">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___BuildType___minSizeRel-Constructor-of-Lake___BuildType"><code>Lake.<wbr>BuildType.<wbr>min&shy;Size&shy;Rel</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3547">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3646">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___BuildType___relWithDebInfo-Constructor-of-Lake___BuildType"><code>Lake.<wbr>BuildType.<wbr>rel&shy;With&shy;Deb&shy;Info</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3548">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3647">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___BuildType___release-Constructor-of-Lake___BuildType"><code>Lake.<wbr>BuildType.<wbr>release</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3549">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3648">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14499,19 +14822,19 @@ window.onload = () => {
                   <li>
                     <span id="---entry-Lake___Glob___andSubmodules-Constructor-of-Lake___Glob"><code>Lake.<wbr>Glob.<wbr>and&shy;Submodules</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3551">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3650">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___Glob___one-Constructor-of-Lake___Glob"><code>Lake.<wbr>Glob.<wbr>one</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3552">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3651">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___Glob___submodules-Constructor-of-Lake___Glob"><code>Lake.<wbr>Glob.<wbr>submodules</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3553">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3652">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14519,7 +14842,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-Lake___LeanExeConfig___mk-Constructor-of-Lake___LeanExeConfig"><code>Lake.<wbr>Lean&shy;ExeConfig.<wbr>mk</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3539">Constructor of <code>Lake.<wbr>Lean&shy;Exe&shy;Config</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3638">Constructor of <code>Lake.<wbr>Lean&shy;Exe&shy;Config</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14527,7 +14850,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-Lake___LeanLibConfig___mk-Constructor-of-Lake___LeanLibConfig"><code>Lake.<wbr>Lean&shy;LibConfig.<wbr>mk</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3525">Constructor of <code>Lake.<wbr>Lean&shy;Lib&shy;Config</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3624">Constructor of <code>Lake.<wbr>Lean&shy;Lib&shy;Config</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14537,7 +14860,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-Lake___MonadWorkspace___mk-Instance-constructor-of-Lake___MonadWorkspace"><code>Lake.<wbr>MonadWorkspace.<wbr>mk</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3592">Instance constructor of <code>Lake.<wbr>Monad&shy;Workspace</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3691">Instance constructor of <code>Lake.<wbr>Monad&shy;Workspace</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14695,6 +15018,176 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___CodeLiveness___deadSyntactically"><span id="---entry-Lean___Elab___Do___CodeLiveness"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Code&shy;Liveness</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___CodeLiveness___alive-Constructor-of-Lean___Elab___Do___CodeLiveness"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>CodeLiveness.<wbr>alive</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___CodeLiveness___deadSyntactically"><span id="---entry-___key___---___k___-3541">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Code&shy;Liveness</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___CodeLiveness___deadSemantically-Constructor-of-Lean___Elab___Do___CodeLiveness"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>CodeLiveness.<wbr>dead&shy;Semantically</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___CodeLiveness___deadSyntactically"><span id="---entry-___key___---___k___-3542">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Code&shy;Liveness</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___CodeLiveness___deadSyntactically-Constructor-of-Lean___Elab___Do___CodeLiveness"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>CodeLiveness.<wbr>dead&shy;Syntactically</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___CodeLiveness___deadSyntactically"><span id="---entry-___key___---___k___-3543">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Code&shy;Liveness</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ContInfo___mk"><span id="---entry-Lean___Elab___Do___ContInfo"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Cont&shy;Info</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___ContInfo___mk-Constructor-of-Lean___Elab___Do___ContInfo"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ContInfo.<wbr>mk</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ContInfo___mk"><span id="---entry-___key___---___k___-3546">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Cont&shy;Info</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ContInfoRef___toContInfo"><span id="---entry-Lean___Elab___Do___ContInfoRef___toContInfo"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Cont&shy;InfoRef.<wbr>to&shy;Cont&shy;Info</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___Context___mk"><span id="---entry-Lean___Elab___Do___Context"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___Context___mk-Constructor-of-Lean___Elab___Do___Context"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context.<wbr>mk</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___Context___mk"><span id="---entry-___key___---___k___-3525">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___mk"><span id="---entry-Lean___Elab___Do___ControlInfo"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Info</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___alternative"><span id="---entry-Lean___Elab___Do___ControlInfo___alternative"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>alternative</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___empty"><span id="---entry-Lean___Elab___Do___ControlInfo___empty"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>empty</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___ControlInfo___mk-Constructor-of-Lean___Elab___Do___ControlInfo"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>mk</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___mk"><span id="---entry-___key___---___k___-3588">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Info</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___pure"><span id="---entry-Lean___Elab___Do___ControlInfo___pure"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>pure</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___sequence"><span id="---entry-Lean___Elab___Do___ControlInfo___sequence"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>sequence</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfoHandler"><span id="---entry-Lean___Elab___Do___ControlInfoHandler"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Info&shy;Handler</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-Lean___Elab___Do___ControlLifter"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Lifter</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___lift"><span id="---entry-Lean___Elab___Do___ControlLifter___lift"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>lift</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___ControlLifter___mk-Constructor-of-Lean___Elab___Do___ControlLifter"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>mk</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3611">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Lifter</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___ofCont"><span id="---entry-Lean___Elab___Do___ControlLifter___ofCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>of&shy;Cont</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___restoreCont"><span id="---entry-Lean___Elab___Do___ControlLifter___restoreCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>restore&shy;Cont</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElab"><span id="---entry-Lean___Elab___Do___DoElab"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elab</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___mk"><span id="---entry-Lean___Elab___Do___DoElemCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elem&shy;Cont</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___continueWithUnit"><span id="---entry-Lean___Elab___Do___DoElemCont___continueWithUnit"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>continue&shy;With&shy;Unit</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___elabAsSyntacticallyDeadCode"><span id="---entry-Lean___Elab___Do___DoElemCont___elabAsSyntacticallyDeadCode"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>elab&shy;As&shy;Syntactically&shy;Dead&shy;Code</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___ensureHasTypeAt"><span id="---entry-Lean___Elab___Do___DoElemCont___ensureHasTypeAt"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>ensure&shy;Has&shy;Type&shy;At</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___ensureUnit"><span id="---entry-Lean___Elab___Do___DoElemCont___ensureUnit"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>ensure&shy;Unit</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___ensureUnitAt"><span id="---entry-Lean___Elab___Do___DoElemCont___ensureUnitAt"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>ensure&shy;Unit&shy;At</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___DoElemCont___mk-Constructor-of-Lean___Elab___Do___DoElemCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>mk</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___mk"><span id="---entry-___key___---___k___-3567">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elem&shy;Cont</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___mkBindUnlessPure"><span id="---entry-Lean___Elab___Do___DoElemCont___mkBindUnlessPure"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>mk&shy;Bind&shy;Unless&shy;Pure</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___withDuplicableCont"><span id="---entry-Lean___Elab___Do___DoElemCont___withDuplicableCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>with&shy;Duplicable&shy;Cont</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemContKind___nonDuplicable"><span id="---entry-Lean___Elab___Do___DoElemContKind"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elem&shy;Cont&shy;Kind</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___DoElemContKind___duplicable-Constructor-of-Lean___Elab___Do___DoElemContKind"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elem&shy;ContKind.<wbr>duplicable</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemContKind___nonDuplicable"><span id="---entry-___key___---___k___-3573">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elem&shy;Cont&shy;Kind</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___DoElemContKind___nonDuplicable-Constructor-of-Lean___Elab___Do___DoElemContKind"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elem&shy;ContKind.<wbr>non&shy;Duplicable</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemContKind___nonDuplicable"><span id="---entry-___key___---___k___-3574">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elem&shy;Cont&shy;Kind</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOps___mk"><span id="---entry-Lean___Elab___Do___DoOps"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Ops</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___DoOps___mk-Constructor-of-Lean___Elab___Do___DoOps"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>DoOps.<wbr>mk</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOps___mk"><span id="---entry-___key___---___k___-3552">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Ops</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOpsRef___toDoOps"><span id="---entry-Lean___Elab___Do___DoOpsRef___toDoOps"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;OpsRef.<wbr>to&shy;Do&shy;Ops</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofElem"><span id="---entry-Lean___Elab___Do___InferControlInfo___ofElem"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Elem</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofLetOrReassign"><span id="---entry-Lean___Elab___Do___InferControlInfo___ofLetOrReassign"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Let&shy;Or&shy;Reassign</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofLetOrReassignArrow"><span id="---entry-Lean___Elab___Do___InferControlInfo___ofLetOrReassignArrow"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Let&shy;Or&shy;Reassign&shy;Arrow</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofOptionSeq"><span id="---entry-Lean___Elab___Do___InferControlInfo___ofOptionSeq"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Option&shy;Seq</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofSeq"><span id="---entry-Lean___Elab___Do___InferControlInfo___ofSeq"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Seq</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MonadInfo___mk"><span id="---entry-Lean___Elab___Do___MonadInfo"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Monad&shy;Info</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___MonadInfo___mk-Constructor-of-Lean___Elab___Do___MonadInfo"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>MonadInfo.<wbr>mk</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MonadInfo___mk"><span id="---entry-___key___---___k___-3533">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Monad&shy;Info</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___declareMutVar"><span id="---entry-Lean___Elab___Do___declareMutVar"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>declare&shy;Mut&shy;Var</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___declareMutVars"><span id="---entry-Lean___Elab___Do___declareMutVars"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>declare&shy;Mut&shy;Vars</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___elabDoElem"><span id="---entry-Lean___Elab___Do___elabDoElem"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>elab&shy;Do&shy;Elem</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___elabDoElems1"><span id="---entry-Lean___Elab___Do___elabDoElems1"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>elab&shy;Do&shy;Elems1</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___elabDoSeq"><span id="---entry-Lean___Elab___Do___elabDoSeq"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>elab&shy;Do&shy;Seq</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___enterLoopBody"><span id="---entry-Lean___Elab___Do___enterLoopBody"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>enter&shy;Loop&shy;Body</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___getBreakCont"><span id="---entry-Lean___Elab___Do___getBreakCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>get&shy;Break&shy;Cont</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___getContinueCont"><span id="---entry-Lean___Elab___Do___getContinueCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>get&shy;Continue&shy;Cont</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___getReturnCont"><span id="---entry-Lean___Elab___Do___getReturnCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>get&shy;Return&shy;Cont</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___inferControlInfoElem"><span id="---entry-Lean___Elab___Do___inferControlInfoElem"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>infer&shy;Control&shy;Info&shy;Elem</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___inferControlInfoSeq"><span id="---entry-Lean___Elab___Do___inferControlInfoSeq"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>infer&shy;Control&shy;Info&shy;Seq</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___mkBindApp"><span id="---entry-Lean___Elab___Do___mkBindApp"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>mk&shy;Bind&shy;App</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___mkMonadApp"><span id="---entry-Lean___Elab___Do___mkMonadApp"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>mk&shy;Monad&shy;App</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___mkPUnitUnit"><span id="---entry-Lean___Elab___Do___mkPUnitUnit"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>mk&shy;PUnit&shy;Unit</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___mkPureApp"><span id="---entry-Lean___Elab___Do___mkPureApp"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>mk&shy;Pure&shy;App</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___throwUnlessMutVarDeclared"><span id="---entry-Lean___Elab___Do___throwUnlessMutVarDeclared"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>throw&shy;Unless&shy;Mut&shy;Var&shy;Declared</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___throwUnlessMutVarsDeclared"><span id="---entry-Lean___Elab___Do___throwUnlessMutVarsDeclared"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>throw&shy;Unless&shy;Mut&shy;Vars&shy;Declared</code></span></a></li>
+                  <li>
                     <a href="Type-Classes/Deriving-Instances/#Lean___Elab___registerDerivingHandler"><span id="---entry-Lean___Elab___registerDerivingHandler"><code>Lean.<wbr>Elab.<wbr>register&shy;Deriving&shy;Handler</code></span></a></li>
                   <li>
                     <a href="The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/#Lean___Grind___AddRightCancel___mk"><span id="---entry-Lean___Grind___AddRightCancel"><code>Lean.<wbr>Grind.<wbr>Add&shy;Right&shy;Cancel</code></span></a></li>
@@ -14833,7 +15326,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-Lean___LeanOption___mk-Constructor-of-Lean___LeanOption"><code>Lean.<wbr>LeanOption.<wbr>mk</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3554">Constructor of <code>Lean.<wbr>Lean&shy;Option</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3653">Constructor of <code>Lean.<wbr>Lean&shy;Option</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -15217,19 +15710,19 @@ window.onload = () => {
                   <li>
                     <span id="---entry-LeanExeConfig-Lake___LeanExeConfig"><code>Lean&shy;Exe&shy;Config</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3540"><code>Lake.<wbr>Lean&shy;Exe&shy;Config</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3639"><code>Lake.<wbr>Lean&shy;Exe&shy;Config</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-LeanLibConfig-Lake___LeanLibConfig"><code>Lean&shy;Lib&shy;Config</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3526"><code>Lake.<wbr>Lean&shy;Lib&shy;Config</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3625"><code>Lake.<wbr>Lean&shy;Lib&shy;Config</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-LeanOption-Lean___LeanOption"><code>Lean&shy;Option</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3555"><code>Lean.<wbr>Lean&shy;Option</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3654"><code>Lean.<wbr>Lean&shy;Option</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -15993,6 +16486,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-legacy-backward___do___legacy"><code>legacy</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#backward___do___legacy"><span id="---entry-___key___---___k___-3523"><code>backward.<wbr>do.<wbr>legacy</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-length-List___length"><code>length</code></span><ol>
                       <li>
                         <a href="Basic-Types/Linked-Lists/#List___length"><span id="---entry-___key___---___k___-1992"><code>List.<wbr>length</code></span></a></li>
@@ -16099,13 +16598,13 @@ window.onload = () => {
                   <li>
                     <span id="---entry-libName-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>lib&shy;Name</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3531"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3630"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-libPrefixOnWindows-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>lib&shy;Prefix&shy;On&shy;Windows</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3532"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3631"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -16118,6 +16617,12 @@ window.onload = () => {
                     <span id="---entry-lift-ExceptT___lift"><code>lift</code></span><ol>
                       <li>
                         <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#ExceptT___lift"><span id="---entry-___key___---___k___-743"><code>ExceptT.<wbr>lift</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-lift-Lean___Elab___Do___ControlLifter___lift"><code>lift</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___lift"><span id="---entry-___key___---___k___-3620"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>lift</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -16212,6 +16717,12 @@ window.onload = () => {
                     </li>
                   <li>
                     <a href="Tactic-Proofs/Tactic-Reference/#lift_lets"><span id="---entry-lift_lets"><code>lift_lets</code></span></a></li>
+                  <li>
+                    <span id="---entry-liftedDoBlockResultType-Lean___Elab___Do___ControlLifter___liftedDoBlockResultType-_LPAR_structure-field_RPAR_"><code>lifted&shy;Do&shy;Block&shy;Result&shy;Type</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3614"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>lifted&shy;Do&shy;Block&shy;Result&shy;Type</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
                   <li>
                     <span id="---entry-lift___-Quotient___lift___"><code>lift₂</code></span><ol>
                       <li>
@@ -16717,9 +17228,15 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-MonadInfo-Lean___Elab___Do___MonadInfo"><code>Monad&shy;Info</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MonadInfo___mk"><span id="---entry-___key___---___k___-3534"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Monad&shy;Info</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-MonadLakeEnv-Lake___MonadLakeEnv"><code>Monad&shy;Lake&shy;Env</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadLakeEnv"><span id="---entry-___key___---___k___-3563"><code>Lake.<wbr>Monad&shy;Lake&shy;Env</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadLakeEnv"><span id="---entry-___key___---___k___-3662"><code>Lake.<wbr>Monad&shy;Lake&shy;Env</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -16799,7 +17316,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-MonadWorkspace-Lake___MonadWorkspace"><code>Monad&shy;Workspace</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3593"><code>Lake.<wbr>Monad&shy;Workspace</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3692"><code>Lake.<wbr>Monad&shy;Workspace</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -16820,6 +17337,12 @@ window.onload = () => {
                     <span id="---entry-Mutex-Std___Mutex"><code>Mutex</code></span><ol>
                       <li>
                         <a href="IO/Tasks-and-Threads/#Std___Mutex"><span id="---entry-___key___---___k___-3243"><code>Std.<wbr>Mutex</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-m-Lean___Elab___Do___MonadInfo___m-_LPAR_structure-field_RPAR_"><code>m</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MonadInfo___mk"><span id="---entry-___key___---___k___-3537"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>MonadInfo.<wbr>m</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -17641,6 +18164,24 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-mkBindApp-Lean___Elab___Do___DoOps___mkBindApp-_LPAR_structure-field_RPAR_"><code>mk&shy;Bind&shy;App</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOps___mk"><span id="---entry-___key___---___k___-3554"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>DoOps.<wbr>mk&shy;Bind&shy;App</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-mkBindApp-Lean___Elab___Do___mkBindApp"><code>mk&shy;Bind&shy;App</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___mkBindApp"><span id="---entry-___key___---___k___-3564"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>mk&shy;Bind&shy;App</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-mkBindUnlessPure-Lean___Elab___Do___DoElemCont___mkBindUnlessPure"><code>mk&shy;Bind&shy;Unless&shy;Pure</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___mkBindUnlessPure"><span id="---entry-___key___---___k___-3580"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>mk&shy;Bind&shy;Unless&shy;Pure</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-mkCApp-Lean___Syntax___mkCApp"><code>mk&shy;CApp</code></span><ol>
                       <li>
                         <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___mkCApp"><span id="---entry-___key___---___k___-3485"><code>Lean.<wbr>Syntax.<wbr>mk&shy;CApp</code></span></a></li>
@@ -17719,6 +18260,18 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-mkMonadApp-Lean___Elab___Do___DoOps___mkMonadApp-_LPAR_structure-field_RPAR_"><code>mk&shy;Monad&shy;App</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOps___mk"><span id="---entry-___key___---___k___-3555"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>DoOps.<wbr>mk&shy;Monad&shy;App</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-mkMonadApp-Lean___Elab___Do___mkMonadApp"><code>mk&shy;Monad&shy;App</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___mkMonadApp"><span id="---entry-___key___---___k___-3562"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>mk&shy;Monad&shy;App</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-mkNameLit-Lean___Syntax___mkNameLit"><code>mk&shy;Name&shy;Lit</code></span><ol>
                       <li>
                         <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___mkNameLit"><span id="---entry-___key___---___k___-3492"><code>Lean.<wbr>Syntax.<wbr>mk&shy;Name&shy;Lit</code></span></a></li>
@@ -17740,6 +18293,24 @@ window.onload = () => {
                     <span id="---entry-mkOptionalNode-Lean___mkOptionalNode"><code>mk&shy;Optional&shy;Node</code></span><ol>
                       <li>
                         <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___mkOptionalNode"><span id="---entry-___key___---___k___-3493"><code>Lean.<wbr>mk&shy;Optional&shy;Node</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-mkPUnitUnit-Lean___Elab___Do___mkPUnitUnit"><code>mk&shy;PUnit&shy;Unit</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___mkPUnitUnit"><span id="---entry-___key___---___k___-3565"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>mk&shy;PUnit&shy;Unit</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-mkPureApp-Lean___Elab___Do___DoOps___mkPureApp-_LPAR_structure-field_RPAR_"><code>mk&shy;Pure&shy;App</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOps___mk"><span id="---entry-___key___---___k___-3556"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>DoOps.<wbr>mk&shy;Pure&shy;App</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-mkPureApp-Lean___Elab___Do___mkPureApp"><code>mk&shy;Pure&shy;App</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___mkPureApp"><span id="---entry-___key___---___k___-3563"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>mk&shy;Pure&shy;App</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -18079,6 +18650,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-monadInfo-Lean___Elab___Do___Context___monadInfo-_LPAR_structure-field_RPAR_"><code>monad&shy;Info</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___Context___mk"><span id="---entry-___key___---___k___-3529"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context.<wbr>monad&shy;Info</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-monadLift-MonadLift___monadLift-_LPAR_class-method_RPAR_"><code>monad&shy;Lift</code></span><ol>
                       <li>
                         <a href="Functors___-Monads-and--do--Notation/Lifting-Monads/#MonadLift___mk"><span id="---entry-___key___---___k___-635"><code>MonadLift.<wbr>monad&shy;Lift</code> (class method)</span></a></li>
@@ -18326,6 +18903,18 @@ window.onload = () => {
                     <span id="---entry-mul_zero-Lean___Grind___Semiring___right_distrib-_LPAR_class-method_RPAR_"><code>mul_zero</code></span><ol>
                       <li>
                         <a href="The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/#Lean___Grind___Semiring___mk"><span id="---entry-___key___---___k___-438"><code>Lean.<wbr>Grind.<wbr>Semiring.<wbr>right_distrib</code> (class method)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-mutVarDefs-Lean___Elab___Do___Context___mutVarDefs-_LPAR_structure-field_RPAR_"><code>mut&shy;Var&shy;Defs</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___Context___mk"><span id="---entry-___key___---___k___-3530"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context.<wbr>mut&shy;Var&shy;Defs</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-mutVars-Lean___Elab___Do___Context___mutVars-_LPAR_structure-field_RPAR_"><code>mut&shy;Vars</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___Context___mk"><span id="---entry-___key___---___k___-3531"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context.<wbr>mut&shy;Vars</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -18601,7 +19190,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-name-Lean___LeanOption___name-_LPAR_structure-field_RPAR_"><code>name</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3556"><code>Lean.<wbr>LeanOption.<wbr>name</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3655"><code>Lean.<wbr>LeanOption.<wbr>name</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -18643,7 +19232,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-nativeFacets-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>native&shy;Facets</code></span><ol>
                       <li>
-                        <span id="---entry-___key___---___k___-3533"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
+                        <span id="---entry-___key___---___k___-3632"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
                       </ol>
                     </li>
                   <li>
@@ -18669,7 +19258,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-needs-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>needs</code></span><ol>
                       <li>
-                        <span id="---entry-___key___---___k___-3534"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
+                        <span id="---entry-___key___---___k___-3633"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
                       </ol>
                     </li>
                   <li>
@@ -18979,6 +19568,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-noFallthrough-Lean___Elab___Do___ControlInfo___noFallthrough-_LPAR_structure-field_RPAR_"><code>no&shy;Fallthrough</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___mk"><span id="---entry-___key___---___k___-3591"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>no&shy;Fallthrough</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-noThrow-Std___Do___PostCond___noThrow"><code>no&shy;Throw</code></span><ol>
                       <li>
                         <a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do___PostCond___noThrow"><span id="---entry-___key___---___k___-542"><code>Std.<wbr>Do.<wbr>PostCond.<wbr>no&shy;Throw</code></span></a></li>
@@ -19092,6 +19687,12 @@ window.onload = () => {
                     <span id="---entry-numLitKind-Lean___numLitKind"><code>num&shy;Lit&shy;Kind</code></span><ol>
                       <li>
                         <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___numLitKind"><span id="---entry-___key___---___k___-3440"><code>Lean.<wbr>num&shy;Lit&shy;Kind</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-numRegularExits-Lean___Elab___Do___ControlInfo___numRegularExits-_LPAR_structure-field_RPAR_"><code>num&shy;Regular&shy;Exits</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___mk"><span id="---entry-___key___---___k___-3592"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>num&shy;Regular&shy;Exits</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   </ol>
@@ -19457,9 +20058,21 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-ofCont-Lean___Elab___Do___ControlLifter___ofCont"><code>of&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___ofCont"><span id="---entry-___key___---___k___-3619"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>of&shy;Cont</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-ofCopy-String___Pos___ofCopy"><code>of&shy;Copy</code></span><ol>
                       <li>
                         <a href="Basic-Types/Strings/#String___Pos___ofCopy"><span id="---entry-___key___---___k___-1586"><code>String.<wbr>Pos.<wbr>of&shy;Copy</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ofElem-Lean___Elab___Do___InferControlInfo___ofElem"><code>of&shy;Elem</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofElem"><span id="---entry-___key___---___k___-3601"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Elem</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -19577,6 +20190,36 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-ofIntClamp-ISize___ofIntClamp"><code>of&shy;Int&shy;Clamp</code></span><ol>
+                      <li>
+                        <a href="Basic-Types/Fixed-Precision-Integers/#ISize___ofIntClamp"><span id="---entry-___key___---___k___-1014"><code>ISize.<wbr>of&shy;Int&shy;Clamp</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ofIntClamp-Int16___ofIntClamp"><code>of&shy;Int&shy;Clamp</code></span><ol>
+                      <li>
+                        <a href="Basic-Types/Fixed-Precision-Integers/#Int16___ofIntClamp"><span id="---entry-___key___---___k___-1016"><code>Int16.<wbr>of&shy;Int&shy;Clamp</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ofIntClamp-Int32___ofIntClamp"><code>of&shy;Int&shy;Clamp</code></span><ol>
+                      <li>
+                        <a href="Basic-Types/Fixed-Precision-Integers/#Int32___ofIntClamp"><span id="---entry-___key___---___k___-1017"><code>Int32.<wbr>of&shy;Int&shy;Clamp</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ofIntClamp-Int64___ofIntClamp"><code>of&shy;Int&shy;Clamp</code></span><ol>
+                      <li>
+                        <a href="Basic-Types/Fixed-Precision-Integers/#Int64___ofIntClamp"><span id="---entry-___key___---___k___-1018"><code>Int64.<wbr>of&shy;Int&shy;Clamp</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ofIntClamp-Int8___ofIntClamp"><code>of&shy;Int&shy;Clamp</code></span><ol>
+                      <li>
+                        <a href="Basic-Types/Fixed-Precision-Integers/#Int8___ofIntClamp"><span id="---entry-___key___---___k___-1015"><code>Int8.<wbr>of&shy;Int&shy;Clamp</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-ofIntLE-ISize___ofIntLE"><code>of&shy;Int&shy;LE</code></span><ol>
                       <li>
                         <a href="Basic-Types/Fixed-Precision-Integers/#ISize___ofIntLE"><span id="---entry-___key___---___k___-1019"><code>ISize.<wbr>of&shy;Int&shy;LE</code></span></a></li>
@@ -19607,33 +20250,15 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
-                    <span id="---entry-ofIntTruncate-ISize___ofIntTruncate"><code>of&shy;Int&shy;Truncate</code></span><ol>
+                    <span id="---entry-ofLetOrReassign-Lean___Elab___Do___InferControlInfo___ofLetOrReassign"><code>of&shy;Let&shy;Or&shy;Reassign</code></span><ol>
                       <li>
-                        <a href="Basic-Types/Fixed-Precision-Integers/#ISize___ofIntTruncate"><span id="---entry-___key___---___k___-1014"><code>ISize.<wbr>of&shy;Int&shy;Truncate</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofLetOrReassign"><span id="---entry-___key___---___k___-3604"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Let&shy;Or&shy;Reassign</code></span></a></li>
                       </ol>
                     </li>
                   <li>
-                    <span id="---entry-ofIntTruncate-Int16___ofIntTruncate"><code>of&shy;Int&shy;Truncate</code></span><ol>
+                    <span id="---entry-ofLetOrReassignArrow-Lean___Elab___Do___InferControlInfo___ofLetOrReassignArrow"><code>of&shy;Let&shy;Or&shy;Reassign&shy;Arrow</code></span><ol>
                       <li>
-                        <a href="Basic-Types/Fixed-Precision-Integers/#Int16___ofIntTruncate"><span id="---entry-___key___---___k___-1016"><code>Int16.<wbr>of&shy;Int&shy;Truncate</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <span id="---entry-ofIntTruncate-Int32___ofIntTruncate"><code>of&shy;Int&shy;Truncate</code></span><ol>
-                      <li>
-                        <a href="Basic-Types/Fixed-Precision-Integers/#Int32___ofIntTruncate"><span id="---entry-___key___---___k___-1017"><code>Int32.<wbr>of&shy;Int&shy;Truncate</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <span id="---entry-ofIntTruncate-Int64___ofIntTruncate"><code>of&shy;Int&shy;Truncate</code></span><ol>
-                      <li>
-                        <a href="Basic-Types/Fixed-Precision-Integers/#Int64___ofIntTruncate"><span id="---entry-___key___---___k___-1018"><code>Int64.<wbr>of&shy;Int&shy;Truncate</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <span id="---entry-ofIntTruncate-Int8___ofIntTruncate"><code>of&shy;Int&shy;Truncate</code></span><ol>
-                      <li>
-                        <a href="Basic-Types/Fixed-Precision-Integers/#Int8___ofIntTruncate"><span id="---entry-___key___---___k___-1015"><code>Int8.<wbr>of&shy;Int&shy;Truncate</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofLetOrReassignArrow"><span id="---entry-___key___---___k___-3605"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Let&shy;Or&shy;Reassign&shy;Arrow</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -19805,6 +20430,36 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-ofNatClamp-UInt16___ofNatClamp"><code>of&shy;Nat&shy;Clamp</code></span><ol>
+                      <li>
+                        <a href="Basic-Types/Fixed-Precision-Integers/#UInt16___ofNatClamp"><span id="---entry-___key___---___k___-1042"><code>UInt16.<wbr>of&shy;Nat&shy;Clamp</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ofNatClamp-UInt32___ofNatClamp"><code>of&shy;Nat&shy;Clamp</code></span><ol>
+                      <li>
+                        <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofNatClamp"><span id="---entry-___key___---___k___-1043"><code>UInt32.<wbr>of&shy;Nat&shy;Clamp</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ofNatClamp-UInt64___ofNatClamp"><code>of&shy;Nat&shy;Clamp</code></span><ol>
+                      <li>
+                        <a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofNatClamp"><span id="---entry-___key___---___k___-1044"><code>UInt64.<wbr>of&shy;Nat&shy;Clamp</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ofNatClamp-UInt8___ofNatClamp"><code>of&shy;Nat&shy;Clamp</code></span><ol>
+                      <li>
+                        <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofNatClamp"><span id="---entry-___key___---___k___-1041"><code>UInt8.<wbr>of&shy;Nat&shy;Clamp</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ofNatClamp-USize___ofNatClamp"><code>of&shy;Nat&shy;Clamp</code></span><ol>
+                      <li>
+                        <a href="Basic-Types/Fixed-Precision-Integers/#USize___ofNatClamp"><span id="---entry-___key___---___k___-1040"><code>USize.<wbr>of&shy;Nat&shy;Clamp</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-ofNatLT-BitVec___ofNatLT"><code>of&shy;Nat&shy;LT</code></span><ol>
                       <li>
                         <a href="Basic-Types/Bitvectors/#BitVec___ofNatLT"><span id="---entry-___key___---___k___-1338"><code>BitVec.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
@@ -19841,36 +20496,6 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
-                    <span id="---entry-ofNatTruncate-UInt16___ofNatTruncate"><code>of&shy;Nat&shy;Truncate</code></span><ol>
-                      <li>
-                        <a href="Basic-Types/Fixed-Precision-Integers/#UInt16___ofNatTruncate"><span id="---entry-___key___---___k___-1042"><code>UInt16.<wbr>of&shy;Nat&shy;Truncate</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <span id="---entry-ofNatTruncate-UInt32___ofNatTruncate"><code>of&shy;Nat&shy;Truncate</code></span><ol>
-                      <li>
-                        <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofNatTruncate"><span id="---entry-___key___---___k___-1043"><code>UInt32.<wbr>of&shy;Nat&shy;Truncate</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <span id="---entry-ofNatTruncate-UInt64___ofNatTruncate"><code>of&shy;Nat&shy;Truncate</code></span><ol>
-                      <li>
-                        <a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofNatTruncate"><span id="---entry-___key___---___k___-1044"><code>UInt64.<wbr>of&shy;Nat&shy;Truncate</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <span id="---entry-ofNatTruncate-UInt8___ofNatTruncate"><code>of&shy;Nat&shy;Truncate</code></span><ol>
-                      <li>
-                        <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofNatTruncate"><span id="---entry-___key___---___k___-1041"><code>UInt8.<wbr>of&shy;Nat&shy;Truncate</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <span id="---entry-ofNatTruncate-USize___ofNatTruncate"><code>of&shy;Nat&shy;Truncate</code></span><ol>
-                      <li>
-                        <a href="Basic-Types/Fixed-Precision-Integers/#USize___ofNatTruncate"><span id="---entry-___key___---___k___-1040"><code>USize.<wbr>of&shy;Nat&shy;Truncate</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
                     <span id="---entry-ofNat_eq_natCast-Lean___Grind___Semiring___pow_succ-_LPAR_class-method_RPAR_"><code>of&shy;Nat_eq_nat&shy;Cast</code></span><ol>
                       <li>
                         <a href="The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/#Lean___Grind___Semiring___mk"><span id="---entry-___key___---___k___-444"><code>Lean.<wbr>Grind.<wbr>Semiring.<wbr>pow_succ</code> (class method)</span></a></li>
@@ -19889,6 +20514,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-ofOptionSeq-Lean___Elab___Do___InferControlInfo___ofOptionSeq"><code>of&shy;Option&shy;Seq</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofOptionSeq"><span id="---entry-___key___---___k___-3603"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Option&shy;Seq</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-ofScientific-Float___ofScientific"><code>of&shy;Scientific</code></span><ol>
                       <li>
                         <a href="Basic-Types/Floating-Point-Numbers/#Float___ofScientific"><span id="---entry-___key___---___k___-1411"><code>Float.<wbr>of&shy;Scientific</code></span></a></li>
@@ -19904,6 +20535,12 @@ window.onload = () => {
                     <span id="---entry-ofScientific-OfScientific___ofScientific-_LPAR_class-method_RPAR_"><code>of&shy;Scientific</code></span><ol>
                       <li>
                         <a href="Terms/Numeric-Literals/#OfScientific___mk"><span id="---entry-___key___---___k___-323"><code>OfScientific.<wbr>of&shy;Scientific</code> (class method)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-ofSeq-Lean___Elab___Do___InferControlInfo___ofSeq"><code>of&shy;Seq</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofSeq"><span id="---entry-___key___---___k___-3602"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Seq</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -20043,6 +20680,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-ops-Lean___Elab___Do___Context___ops-_LPAR_structure-field_RPAR_"><code>ops</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___Context___mk"><span id="---entry-___key___---___k___-3532"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Context.<wbr>ops</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <a href="Terms/Function-Application/#optParam"><span id="---entry-optParam"><code>opt&shy;Param</code></span></a></li>
                   <li>
                     <a href="Functors___-Monads-and--do--Notation/API-Reference/#optional"><span id="---entry-optional"><code>optional</code></span></a></li>
@@ -20142,6 +20785,12 @@ window.onload = () => {
                     <span id="---entry-orelse___-MonadExcept___orelse___"><code>orelse'</code></span><ol>
                       <li>
                         <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___orelse___"><span id="---entry-___key___---___k___-737"><code>MonadExcept.<wbr>orelse'</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-origCont-Lean___Elab___Do___ControlLifter___origCont-_LPAR_structure-field_RPAR_"><code>orig&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3615"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>orig&shy;Cont</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -20751,7 +21400,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-precompileModules-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>precompile&shy;Modules</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3535"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3634"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -20979,6 +21628,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-pure-Lean___Elab___Do___ControlInfo___pure"><code>pure</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___pure"><span id="---entry-___key___---___k___-3595"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>pure</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-pure-OptionT___pure"><code>pure</code></span><ol>
                       <li>
                         <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#OptionT___pure"><span id="---entry-___key___---___k___-716"><code>OptionT.<wbr>pure</code></span></a></li>
@@ -21030,6 +21685,18 @@ window.onload = () => {
                     <span id="---entry-pure-Thunk___pure"><code>pure</code></span><ol>
                       <li>
                         <a href="Basic-Types/Lazy-Computations/#Thunk___pure"><span id="---entry-___key___---___k___-2964"><code>Thunk.<wbr>pure</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-pureBase-Lean___Elab___Do___ControlLifter___pureBase-_LPAR_structure-field_RPAR_"><code>pure&shy;Base</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3616"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>pure&shy;Base</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-pureDeadCode-Lean___Elab___Do___ControlLifter___pureDeadCode-_LPAR_structure-field_RPAR_"><code>pure&shy;Dead&shy;Code</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3617"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>pure&shy;Dead&shy;Code</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -21585,6 +22252,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-reassigns-Lean___Elab___Do___ControlInfo___reassigns-_LPAR_structure-field_RPAR_"><code>reassigns</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___mk"><span id="---entry-___key___---___k___-3593"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>reassigns</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-rec-Quot___rec"><code>rec</code></span><ol>
                       <li>
                         <a href="The-Type-System/Quotients/#Quot___rec"><span id="---entry-___key___---___k___-114"><code>Quot.<wbr>rec</code></span></a></li>
@@ -21913,6 +22586,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-restoreCont-Lean___Elab___Do___ControlLifter___restoreCont"><code>restore&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___restoreCont"><span id="---entry-___key___---___k___-3621"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>restore&shy;Cont</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-restoreM-MonadControl___restoreM-_LPAR_class-method_RPAR_"><code>restore&shy;M</code></span><ol>
                       <li>
                         <a href="Functors___-Monads-and--do--Notation/Lifting-Monads/#MonadControl___mk"><span id="---entry-___key___---___k___-644"><code>MonadControl.<wbr>restore&shy;M</code> (class method)</span></a></li>
@@ -21946,6 +22625,36 @@ window.onload = () => {
                     <span id="---entry-resultD-IO___Promise___resultD"><code>result&shy;D</code></span><ol>
                       <li>
                         <a href="IO/Tasks-and-Threads/#IO___Promise___resultD"><span id="---entry-___key___---___k___-3232"><code>IO.<wbr>Promise.<wbr>result&shy;D</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-resultName-Lean___Elab___Do___DoElemCont___resultName-_LPAR_structure-field_RPAR_"><code>result&shy;Name</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___mk"><span id="---entry-___key___---___k___-3570"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>result&shy;Name</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-resultType-Lean___Elab___Do___DoElemCont___resultType-_LPAR_structure-field_RPAR_"><code>result&shy;Type</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___mk"><span id="---entry-___key___---___k___-3571"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>result&shy;Type</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-returnBase___-Lean___Elab___Do___ControlLifter___returnBase___-_LPAR_structure-field_RPAR_"><code>return&shy;Base?</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3618"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>return&shy;Base?</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-returnCont-Lean___Elab___Do___ContInfo___returnCont-_LPAR_structure-field_RPAR_"><code>return&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ContInfo___mk"><span id="---entry-___key___---___k___-3549"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ContInfo.<wbr>return&shy;Cont</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-returnsEarly-Lean___Elab___Do___ControlInfo___returnsEarly-_LPAR_structure-field_RPAR_"><code>returns&shy;Early</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___mk"><span id="---entry-___key___---___k___-3594"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>returns&shy;Early</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -22091,13 +22800,13 @@ window.onload = () => {
                   <li>
                     <span id="---entry-root-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>root</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3542"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3641"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-roots-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>roots</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3536"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3635"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -22335,7 +23044,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-ScriptM-Lake___ScriptM"><code>Script&shy;M</code></span><ol>
                       <li>
-                        <span id="---entry-___key___---___k___-3562"><code>Lake.<wbr>Script&shy;M</code></span> <a href="Build-Tools-and-Distribution/Lake/#Lake___ScriptM">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___ScriptM-next">(1)</a></li>
+                        <span id="---entry-___key___---___k___-3661"><code>Lake.<wbr>Script&shy;M</code></span> <a href="Build-Tools-and-Distribution/Lake/#Lake___ScriptM">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___ScriptM-next">(1)</a></li>
                       </ol>
                     </li>
                   <li>
@@ -25507,6 +26216,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-sequence-Lean___Elab___Do___ControlInfo___sequence"><code>sequence</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfo___sequence"><span id="---entry-___key___---___k___-3597"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlInfo.<wbr>sequence</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-sequence-Option___sequence"><code>sequence</code></span><ol>
                       <li>
                         <a href="Basic-Types/Optional-Values/#Option___sequence"><span id="---entry-___key___---___k___-1899"><code>Option.<wbr>sequence</code></span></a></li>
@@ -26423,6 +27138,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-splitMonadApp___-Lean___Elab___Do___DoOps___splitMonadApp___-_LPAR_structure-field_RPAR_"><code>split&shy;Monad&shy;App?</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOps___mk"><span id="---entry-___key___---___k___-3557"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>DoOps.<wbr>split&shy;Monad&shy;App?</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-splitOn-String___splitOn"><code>split&shy;On</code></span><ol>
                       <li>
                         <a href="Basic-Types/Strings/#String___splitOn"><span id="---entry-___key___---___k___-1654"><code>String.<wbr>split&shy;On</code></span></a></li>
@@ -26455,7 +27176,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-srcDir-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>src&shy;Dir</code></span><ol>
                       <li>
-                        <span id="---entry-___key___---___k___-3537"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
+                        <span id="---entry-___key___---___k___-3636"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
                       </ol>
                     </li>
                   <li>
@@ -26947,7 +27668,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-supportInterpreter-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>support&shy;Interpreter</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3543"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3642"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -27493,6 +28214,18 @@ window.onload = () => {
                   <li>
                     <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#throwThe"><span id="---entry-throwThe"><code>throw&shy;The</code></span></a></li>
                   <li>
+                    <span id="---entry-throwUnlessMutVarDeclared-Lean___Elab___Do___throwUnlessMutVarDeclared"><code>throw&shy;Unless&shy;Mut&shy;Var&shy;Declared</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___throwUnlessMutVarDeclared"><span id="---entry-___key___---___k___-3608"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>throw&shy;Unless&shy;Mut&shy;Var&shy;Declared</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-throwUnlessMutVarsDeclared-Lean___Elab___Do___throwUnlessMutVarsDeclared"><code>throw&shy;Unless&shy;Mut&shy;Vars&shy;Declared</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___throwUnlessMutVarsDeclared"><span id="---entry-___key___---___k___-3609"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>throw&shy;Unless&shy;Mut&shy;Vars&shy;Declared</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-throwUnsupported-Lean___Macro___throwUnsupported"><code>throw&shy;Unsupported</code></span><ol>
                       <li>
                         <a href="Notations-and-Macros/Macros/#Lean___Macro___throwUnsupported"><span id="---entry-___key___---___k___-3513"><code>Lean.<wbr>Macro.<wbr>throw&shy;Unsupported</code></span></a></li>
@@ -27781,6 +28514,12 @@ window.onload = () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-toContInfo-Lean___Elab___Do___ContInfoRef___toContInfo"><code>to&shy;Cont&shy;Info</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ContInfoRef___toContInfo"><span id="---entry-___key___---___k___-3544"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Cont&shy;InfoRef.<wbr>to&shy;Cont&shy;Info</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-toDigits-Nat___toDigits"><code>to&shy;Digits</code></span><ol>
                       <li>
                         <a href="Basic-Types/Natural-Numbers/#Nat___toDigits"><span id="---entry-___key___---___k___-871"><code>Nat.<wbr>to&shy;Digits</code></span></a></li>
@@ -27790,6 +28529,12 @@ window.onload = () => {
                     <span id="---entry-toDiv-_LSQ_anonymous_RSQ_-_LPAR_class-method_RPAR_"><code>to&shy;Div</code></span><ol>
                       <li>
                         <a href="The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/#Lean___Grind___Field___mk"><span id="---entry-___key___---___k___-479"><code>[anonymous]</code> (class method)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-toDoOps-Lean___Elab___Do___DoOpsRef___toDoOps"><code>to&shy;Do&shy;Ops</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOpsRef___toDoOps"><span id="---entry-___key___---___k___-3550"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;OpsRef.<wbr>to&shy;Do&shy;Ops</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -28473,13 +29218,13 @@ window.onload = () => {
                   <li>
                     <span id="---entry-toLeanConfig-Lake___LeanExeConfig___toLeanConfig-_LPAR_structure-field_RPAR_"><code>to&shy;Lean&shy;Config</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3544"><code>Lake.<wbr>Lean&shy;ExeConfig.<wbr>to&shy;Lean&shy;Config</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3643"><code>Lake.<wbr>Lean&shy;ExeConfig.<wbr>to&shy;Lean&shy;Config</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-toLeanConfig-Lake___LeanLibConfig___toLeanConfig-_LPAR_structure-field_RPAR_"><code>to&shy;Lean&shy;Config</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3538"><code>Lake.<wbr>Lean&shy;LibConfig.<wbr>to&shy;Lean&shy;Config</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3637"><code>Lake.<wbr>Lean&shy;LibConfig.<wbr>to&shy;Lean&shy;Config</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -29641,9 +30386,9 @@ window.onload = () => {
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#UInt16___ofNat"><span id="---entry-UInt16___ofNat"><code>UInt16.<wbr>of&shy;Nat</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt16___ofNatLT"><span id="---entry-UInt16___ofNatLT"><code>UInt16.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt16___ofNatClamp"><span id="---entry-UInt16___ofNatClamp"><code>UInt16.<wbr>of&shy;Nat&shy;Clamp</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt16___ofNatTruncate"><span id="---entry-UInt16___ofNatTruncate"><code>UInt16.<wbr>of&shy;Nat&shy;Truncate</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt16___ofNatLT"><span id="---entry-UInt16___ofNatLT"><code>UInt16.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#UInt16___shiftLeft"><span id="---entry-UInt16___shiftLeft"><code>UInt16.<wbr>shift&shy;Left</code></span></a></li>
                   <li>
@@ -29715,9 +30460,9 @@ window.onload = () => {
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofNat"><span id="---entry-UInt32___ofNat"><code>UInt32.<wbr>of&shy;Nat</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofNatLT"><span id="---entry-UInt32___ofNatLT"><code>UInt32.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofNatClamp"><span id="---entry-UInt32___ofNatClamp"><code>UInt32.<wbr>of&shy;Nat&shy;Clamp</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofNatTruncate"><span id="---entry-UInt32___ofNatTruncate"><code>UInt32.<wbr>of&shy;Nat&shy;Truncate</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofNatLT"><span id="---entry-UInt32___ofNatLT"><code>UInt32.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___shiftLeft"><span id="---entry-UInt32___shiftLeft"><code>UInt32.<wbr>shift&shy;Left</code></span></a></li>
                   <li>
@@ -29787,9 +30532,9 @@ window.onload = () => {
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofNat"><span id="---entry-UInt64___ofNat"><code>UInt64.<wbr>of&shy;Nat</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofNatLT"><span id="---entry-UInt64___ofNatLT"><code>UInt64.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofNatClamp"><span id="---entry-UInt64___ofNatClamp"><code>UInt64.<wbr>of&shy;Nat&shy;Clamp</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofNatTruncate"><span id="---entry-UInt64___ofNatTruncate"><code>UInt64.<wbr>of&shy;Nat&shy;Truncate</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofNatLT"><span id="---entry-UInt64___ofNatLT"><code>UInt64.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#UInt64___shiftLeft"><span id="---entry-UInt64___shiftLeft"><code>UInt64.<wbr>shift&shy;Left</code></span></a></li>
                   <li>
@@ -29859,9 +30604,9 @@ window.onload = () => {
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofNat"><span id="---entry-UInt8___ofNat"><code>UInt8.<wbr>of&shy;Nat</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofNatLT"><span id="---entry-UInt8___ofNatLT"><code>UInt8.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofNatClamp"><span id="---entry-UInt8___ofNatClamp"><code>UInt8.<wbr>of&shy;Nat&shy;Clamp</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofNatTruncate"><span id="---entry-UInt8___ofNatTruncate"><code>UInt8.<wbr>of&shy;Nat&shy;Truncate</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofNatLT"><span id="---entry-UInt8___ofNatLT"><code>UInt8.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___shiftLeft"><span id="---entry-UInt8___shiftLeft"><code>UInt8.<wbr>shift&shy;Left</code></span></a></li>
                   <li>
@@ -29941,9 +30686,9 @@ window.onload = () => {
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#USize___ofNat32"><span id="---entry-USize___ofNat32"><code>USize.<wbr>of&shy;Nat32</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#USize___ofNatLT"><span id="---entry-USize___ofNatLT"><code>USize.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#USize___ofNatClamp"><span id="---entry-USize___ofNatClamp"><code>USize.<wbr>of&shy;Nat&shy;Clamp</code></span></a></li>
                   <li>
-                    <a href="Basic-Types/Fixed-Precision-Integers/#USize___ofNatTruncate"><span id="---entry-USize___ofNatTruncate"><code>USize.<wbr>of&shy;Nat&shy;Truncate</code></span></a></li>
+                    <a href="Basic-Types/Fixed-Precision-Integers/#USize___ofNatLT"><span id="---entry-USize___ofNatLT"><code>USize.<wbr>of&shy;Nat&shy;LT</code></span></a></li>
                   <li>
                     <a href="Basic-Types/Fixed-Precision-Integers/#USize___repr"><span id="---entry-USize___repr"><code>USize.<wbr>repr</code></span></a></li>
                   <li>
@@ -29977,13 +30722,13 @@ window.onload = () => {
                   <li>
                     <span id="---entry-UnexpandM-Lean___PrettyPrinter___UnexpandM"><code>Unexpand&shy;M</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___UnexpandM"><span id="---entry-___key___---___k___-3524"><code>Lean.<wbr>PrettyPrinter.<wbr>Unexpand&shy;M</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___UnexpandM"><span id="---entry-___key___---___k___-3623"><code>Lean.<wbr>PrettyPrinter.<wbr>Unexpand&shy;M</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Unexpander-Lean___PrettyPrinter___Unexpander"><code>Unexpander</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander"><span id="---entry-___key___---___k___-3523"><code>Lean.<wbr>PrettyPrinter.<wbr>Unexpander</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander"><span id="---entry-___key___---___k___-3622"><code>Lean.<wbr>PrettyPrinter.<wbr>Unexpander</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -29994,6 +30739,12 @@ window.onload = () => {
                     <span id="---entry-UpwardEnumerable-Std___PRange___UpwardEnumerable"><code>Upward&shy;Enumerable</code></span><ol>
                       <li>
                         <a href="Basic-Types/Ranges/#Std___PRange___UpwardEnumerable___mk"><span id="---entry-___key___---___k___-2447"><code>Std.<wbr>PRange.<wbr>Upward&shy;Enumerable</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-u-Lean___Elab___Do___MonadInfo___u-_LPAR_structure-field_RPAR_"><code>u</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MonadInfo___mk"><span id="---entry-___key___---___k___-3538"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>MonadInfo.<wbr>u</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -30361,6 +31112,12 @@ window.onload = () => {
                   V</h2>
                 <ol>
                   <li>
+                    <span id="---entry-v-Lean___Elab___Do___MonadInfo___v-_LPAR_structure-field_RPAR_"><code>v</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MonadInfo___mk"><span id="---entry-___key___---___k___-3539"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>MonadInfo.<wbr>v</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-val-Char___val-_LPAR_structure-field_RPAR_"><code>val</code></span><ol>
                       <li>
                         <a href="Basic-Types/Characters/#Char___mk"><span id="---entry-___key___---___k___-1522"><code>Char.<wbr>val</code> (structure field)</span></a></li>
@@ -30393,7 +31150,7 @@ window.onload = () => {
                   <li>
                     <span id="---entry-value-Lean___LeanOption___value-_LPAR_structure-field_RPAR_"><code>value</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3557"><code>Lean.<wbr>LeanOption.<wbr>value</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3656"><code>Lean.<wbr>LeanOption.<wbr>value</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -30624,6 +31381,12 @@ window.onload = () => {
                     <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#which"><span id="---entry-which-_LPAR_Elan-command_RPAR_"><code>which</code> (Elan command)</span></a></li>
                   <li>
                     <a href="Tactic-Proofs/Targeted-Rewriting-with--conv/#Lean___Parser___Tactic___Conv___whnf"><span id="---entry-whnf"><code>whnf</code></span></a></li>
+                  <li>
+                    <span id="---entry-withDuplicableCont-Lean___Elab___Do___DoElemCont___withDuplicableCont"><code>with&shy;Duplicable&shy;Cont</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___withDuplicableCont"><span id="---entry-___key___---___k___-3581"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;ElemCont.<wbr>with&shy;Duplicable&shy;Cont</code></span></a></li>
+                      </ol>
+                    </li>
                   <li>
                     <span id="---entry-withEarlyReturn-Std___Do___Invariant___withEarlyReturn"><code>with&shy;Early&shy;Return</code></span><ol>
                       <li>

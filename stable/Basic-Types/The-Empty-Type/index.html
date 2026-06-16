@@ -1,4 +1,4 @@
-<!-- Generated from commit e303f7c60ce11b55e991101cf0d66bf72a3424f6 at 2026-06-10T09:10:13Z -->
+<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,6 +9,32 @@
     window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
   }
 })()</script>
+    <script>
+      // Enable TypeScript checking.
+// @ts-check
+
+// Applies a saved table-of-contents width before the first paint.
+//
+// This is a tiny inline counterpart to toc-resize.js: it runs in the page head so that
+// returning desktop readers do not see the default width flash to their saved width.
+// It only records the width in the --verso-toc-user-width custom property; the
+// stylesheet clamps it and ignores it on mobile, and toc-resize.js then takes over the
+// interactive resizing. Keep the storage key in sync with toc-resize.js.
+
+(function () {
+    try {
+        const saved = localStorage.getItem("verso-toc-width");
+        // Parse to a number (as toc-resize.js does) and write that back, so a stored
+        // value with stray whitespace becomes a valid length rather than `" 420 px"`.
+        const width = saved === null ? NaN : Number(saved);
+        if (Number.isFinite(width)) {
+            document.documentElement.style.setProperty("--verso-toc-user-width", `${width}px`);
+        }
+    } catch (_) {
+        // Leave the default width in place when local storage is unavailable.
+    }
+})();
+</script>
     <base href="./../../"><meta charset="utf-8">
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>The Empty Type</title><link rel="stylesheet" href="book.css">
@@ -24,6 +50,7 @@
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="-verso-search/search-highlight.js" defer="defer"></script>
+    <script src="toc-resize.js" defer="defer"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
@@ -1020,7 +1047,103 @@ pre.json {
   background-color: #eee;
   border-radius: 2px;
 }
-</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/*
+The margin-note layout responds to the width of <main>, not the viewport, because the
+ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
+query container (see Html/Style.lean), so the container queries below track the actual
+content width.
+
+There are two "in the margin" regimes, split at the same width where the content stops
+being left-aligned and becomes centered (1112px and 1212px of content width; at the
+default ToC width these are the old 1400px and 1500px viewport breakpoints):
+
+  * While the content is left-aligned there is a large area to its right, so a fixed
+    13rem note with a fixed 16rem overhang fits comfortably.
+  * Once the content is centered the note must fit the symmetric right gap, whose width
+    is (content - text column) / 2. A fixed overhang would overflow the page for content
+    widths just above the centering threshold, so the note and its overhang are sized in
+    container units, which always fit that gap.
+*/
+
+/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+/* Wider than a phone: by default float the note at the right of the text column,
+   overlapping the content. The container queries below lift it into the true margin
+   once there is room. */
+@media screen and (min-width: 701px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Left-aligned content: a fixed-size note in the wide area to its right. */
+@container main (width >= 1112px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 1rem -16rem 0 0;
+  }
+}
+
+/* Centered content: size the note in container units so it always fits the symmetric
+   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
+   so the fixed-overhang note above is only ever used while the content is left-aligned.
+   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
+   content width at which the content is centered. */
+@container main (width >= 1212px) {
+  .marginalia .note {
+    width: 15cqi;
+    margin-right: -18cqi;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>.example {
   border: 1px solid #98B2C0;
   border-radius: 0.5rem;
   margin-bottom: var(--verso--box-vertical-margin);
@@ -1072,182 +1195,6 @@ pre.json {
   color: var(--lean-blue);
 }
 </style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
-}
-
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
-}
-
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
-}
-</style><style>.grammar .keyword {
-  font-weight: 500 !important;
-}
-
-.grammar {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.grammar .comment {
-  font-style: italic;
-  font-family: var(--verso-text-font-family);
-  /* TODO add background and text colors to Verso theme, then compute a background here */
-  background-color: #fafafa;
-  border: 1px solid #f0f0f0;
-}
-
-.grammar .local-name {
-  font-family: var(--verso-code-font-family);
-  font-style: italic;
-}
-
-.grammar .nonterminal {
-  font-style: italic;
-}
-.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
-  display: none;
-}
-.grammar .active {
-  background-color: #eee;
-  border-radius: 2px;
-}
-.grammar a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-</style><style>
-span.TODO {
-  border: 3px solid red;
-  display: inline;
-  position: relative;
-  float: right;
-  clear: right;
-  margin-top: 1rem;
-  width: 15vw;
-  margin-right: -17vw;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-}
-</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/* Wide viewport */
-@media screen and (min-width: 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    margin-right: -16rem;
-    width: 13rem;
-    margin-top: 1rem;
-  }
-}
-
-/* Very wide viewport */
-@media screen and (min-width: 1600px) {
-  .marginalia .note {
-    margin-right: -19vw;
-    width: 15vw;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-/* Medium viewport */
-@media screen and (700px < width <= 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Narrow viewport (e.g. phone) */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
-</style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1280,6 +1227,21 @@ body {
 }
 
 .hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+/* These lexically-classified token kinds default to the `.unknown` appearance. The rule follows
+   `.const` so it wins for the `anon-ctor` tokens, which also carry the `const` class. */
+.hl.lean .anon-ctor,
+.hl.lean .number,
+.hl.lean .char,
+.hl.lean .comment,
+.hl.lean .punctuation,
+.hl.lean .delim,
+.hl.lean .wildcard {
   color: var(--verso-code-color,);
   font-weight: normal;
   font-style: normal;
@@ -1368,7 +1330,7 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+  .hl.lean .token.binding-hl, .hl.lean .literal:hover, .hl.lean .token.typed:hover {
     background-color: #eee;
     border-radius: 2px;
     transition: none;
@@ -1548,7 +1510,7 @@ body {
   text-size-adjust: 100%;
 }
 
-.hl.lean .tactic:has(.tactic-toggle:checked) {
+.hl.lean .tactic:has(> .tactic-toggle:checked) {
   display: inline-grid;
   grid-template-columns: 1fr;
 }
@@ -1567,7 +1529,10 @@ body {
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+  /* Highlight a region on hover only when its own toggle is unchecked, and only the innermost
+     hovered region: `label:hover` bubbles to ancestor labels, so suppress the highlight on a region
+     whose label contains a more deeply nested hovered tactic label. */
+  .hl.lean .tactic:has(> .tactic-toggle:not(:checked)) > label:hover:not(:has(.tactic > label:hover)) {
     background-color: #eeeeee;
   }
 }
@@ -1908,6 +1873,109 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
   white-space: pre-wrap;
 }
 
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+</style><style>
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
 </style><style>
 .env-var a {
   color: inherit;
@@ -2281,81 +2349,6 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      
-window.addEventListener("load", () => {
-  tippy('.keyword-of.hl.lean', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  });
-});
-</script>
-    <script>
-      
 window.onload = () => {
 
     // Don't show hovers inside of closed tactic states
@@ -2363,7 +2356,7 @@ window.onload = () => {
       let parent = elem.parentNode;
       while (parent && "classList" in parent) {
         if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector("input.tactic-toggle");
+          const toggle = parent.querySelector(":scope > input.tactic-toggle");
           if (toggle) {
             return !toggle.checked;
           }
@@ -2460,7 +2453,7 @@ window.onload = () => {
         followCursor: 'initial',
         onShow(inst) {
           if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
             if (toggle && toggle.checked) {
               return false;
             }
@@ -2479,7 +2472,7 @@ window.onload = () => {
         content (tgt) {
           const content = document.createElement("span");
           if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
             state.style.display = "block";
             content.appendChild(state);
             content.style.display = "block";
@@ -2558,7 +2551,7 @@ window.onload = () => {
       // Skip tokens inside closed tactics — they interfere with tactic tippys
       const closedTactics = new Set();
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle && !toggle.checked) closedTactics.add(tactic);
       });
       function isInsideClosedTactic(el) {
@@ -2572,7 +2565,7 @@ window.onload = () => {
       // Create/destroy token tippys when tactic checkbox toggles
       const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
       document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector('input.tactic-toggle');
+        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
         if (toggle) toggle.addEventListener('change', () => {
           if (toggle.checked) {
             closedTactics.delete(tactic);
@@ -2591,6 +2584,81 @@ window.onload = () => {
       });
   });
 }
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
     <script src="static/metadata.js"></script>
@@ -2654,6 +2722,7 @@ window.onload = () => {
             </ul>
           </div>
         </nav>
+      <div class="toc-resize-handle"></div>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
             <a class="local-button active" href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type" rel="prev" title="20.9. The Unit Type"><span class="arrow">←</span><span class="where">20.9. The Unit Type</span></a><a class="local-button active" href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans" rel="next" title="20.11. Booleans"><span class="where">20.11. Booleans</span><span class="arrow">→</span></a></nav>
@@ -2661,34 +2730,34 @@ window.onload = () => {
             <h1>
               20.10. The Empty Type<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=empty" title="Permalink">🔗</a></span></h1>
             <p>
-              The empty type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a></code> represents impossible values.
+              The empty type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a></code> represents impossible values.
 It is an inductive type with no constructors whatsoever.</p>
             <p>
-              While the trivial type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></code>, which has a single constructor that takes no parameters, can be used to model computations where a result is unwanted or uninteresting, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a></code> can be used in situations where no computation should be possible at all.
-Instantiating a polymorphic type with <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a></code> can mark some of its constructors—those with a parameter of the corresponding type—as impossible; this can rule out certain code paths that are not desired.</p>
+              While the trivial type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></code>, which has a single constructor that takes no parameters, can be used to model computations where a result is unwanted or uninteresting, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a></code> can be used in situations where no computation should be possible at all.
+Instantiating a polymorphic type with <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a></code> can mark some of its constructors—those with a parameter of the corresponding type—as impossible; this can rule out certain code paths that are not desired.</p>
             <p>
-              The presence of a term with type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a></code> indicates that an impossible code path has been reached.
+              The presence of a term with type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a></code> indicates that an impossible code path has been reached.
 There will never be a value with this type, due to the lack of constructors.
-On an impossible code path, there's no reason to write further code; the function <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1737">Empty.elim</span></a></code> can be used to escape an impossible path.</p>
+On an impossible code path, there's no reason to write further code; the function <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1739">Empty.elim</span></a></code> can be used to escape an impossible path.</p>
             <p>
-              The universe-polymorphic equivalent of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a></code> is <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="643">PEmpty</span></a></code>.</p>
+              The universe-polymorphic equivalent of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a></code> is <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="649">PEmpty</span></a></code>.</p>
             <div class="namedocs" id="Empty">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Empty" title="Permalink">🔗</a></span><span class="label">inductive type</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span></div><div class="narrow-only"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Empty" title="Permalink">🔗</a></span><span class="label">inductive type</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span></div><div class="narrow-only"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span></div></pre><div class="text">
                 <p>
                   The empty type. It has no constructors.</p>
                 <p>
-                  Use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1737">Empty.elim</span></a></code> in contexts where a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a></code> is in scope.</p>
+                  Use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1739">Empty.elim</span></a></code> in contexts where a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a></code> is in scope.</p>
                 <h1>
                   Constructors</h1>
                 </div>
               </div>
             <div class="namedocs" id="PEmpty">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=PEmpty" title="Permalink">🔗</a></span><span class="label">inductive type</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="643">PEmpty.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="329">Sort u</span></div><div class="narrow-only"><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="643">PEmpty.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="329">Sort u</span></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=PEmpty" title="Permalink">🔗</a></span><span class="label">inductive type</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="649">PEmpty.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="330">Sort u</span></div><div class="narrow-only"><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="649">PEmpty.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="330">Sort u</span></div></pre><div class="text">
                 <p>
                   The universe-polymorphic empty type, with no constructors.</p>
                 <p>
-                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="643">PEmpty</span></a></code> can be used in any universe, but this flexibility can lead to worse error messages and more
-challenges with universe level unification. Prefer the type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a></code> or the proposition <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="13">False</span></a></code> when
+                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="649">PEmpty</span></a></code> can be used in any universe, but this flexibility can lead to worse error messages and more
+challenges with universe level unification. Prefer the type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a></code> or the proposition <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="13">False</span></a></code> when
 possible.</p>
                 <h1>
                   Constructors</h1>
@@ -2696,16 +2765,16 @@ possible.</p>
               </div>
             <details class="example"><summary class="description">Impossible Code Paths</summary><div class="example-content">
                 <p>
-                  The type signature of the function <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#f-_LPAR_in-Impossible-Code-Paths_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="5869">f</span></a></code> indicates that it might throw exceptions, but allows the exception type to be anything:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-1559">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-f" data-verso-hover="5869" id="f-_LPAR_in-Impossible-Code-Paths_RPAR_">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error" title="Documentation for Except"><span class="const token" data-binding="const-Except" data-verso-hover="1753">Except</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="48">ε</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1029">pure</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="11">n</span><span class="inter-text">
+                  The type signature of the function <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#f-_LPAR_in-Impossible-Code-Paths_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="5884">f</span></a></code> indicates that it might throw exceptions, but allows the exception type to be anything:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-1559">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-f" data-verso-hover="5884" id="f-_LPAR_in-Impossible-Code-Paths_RPAR_">f</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1565">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1565">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1565">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1575">:</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error" title="Documentation for Except"><span class="const token" data-binding="const-Except" data-verso-hover="1755">Except</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="48">ε</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-1591">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1034">pure</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="11">n</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                  Instantiating <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#f-_LPAR_in-Impossible-Code-Paths_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="5869">f</span></a></code>'s exception type with <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a></code> exploits the fact that <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#f-_LPAR_in-Impossible-Code-Paths_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="5869">f</span></a></code> never actually throws an exception to convert it to a function whose type indicates that no exceptions will be thrown.
-In particular, it allows <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1737">Empty.elim</span></a></code> to be used to avoid handing the impossible exception value.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-1931">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-g" data-verso-hover="1315" id="g-_LPAR_in-Impossible-Code-Paths_RPAR_">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-1958" data-verso-hover="57">match</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#f-_LPAR_in-Impossible-Code-Paths_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="5869">f</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">ε</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">n</span><span class="inter-text"> </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-1958" data-verso-hover="57">with</span></a><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error" title="Documentation for Except.error"><span class="const token" data-binding="const-Except.error" data-verso-hover="2675">.error</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="5870">e</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text">
-    </span><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1737">Empty.elim</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="5870">e</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error" title="Documentation for Except.ok"><span class="const token" data-binding="const-Except.ok" data-verso-hover="2677">.ok</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.35" data-verso-hover="11">v</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.35" data-verso-hover="11">v</span><span class="inter-text">
+                  Instantiating <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#f-_LPAR_in-Impossible-Code-Paths_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="5884">f</span></a></code>'s exception type with <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a></code> exploits the fact that <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#f-_LPAR_in-Impossible-Code-Paths_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="5884">f</span></a></code> never actually throws an exception to convert it to a function whose type indicates that no exceptions will be thrown.
+In particular, it allows <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1739">Empty.elim</span></a></code> to be used to avoid handing the impossible exception value.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-1931">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-g" data-verso-hover="1319" id="g-_LPAR_in-Impossible-Code-Paths_RPAR_">g</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1937">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1937">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1937">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1947">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-1953">:=</span><span class="inter-text">
+  </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-1958" data-verso-hover="57">match</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#f-_LPAR_in-Impossible-Code-Paths_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="5884">f</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-1966">(</span><span class="unknown token" data-binding="">ε</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-1966">:=</span><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-1966">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">n</span><span class="inter-text"> </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-1958" data-verso-hover="57">with</span></a><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-1989">|</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error" title="Documentation for Except.error"><span class="const token" data-binding="const-Except.error" data-verso-hover="2675">.error</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="5885">e</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-1989">=&gt;</span><span class="inter-text">
+    </span><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1739">Empty.elim</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="5885">e</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-1989">|</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error" title="Documentation for Except.ok"><span class="const token" data-binding="const-Except.ok" data-verso-hover="2677">.ok</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.35" data-verso-hover="11">v</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-1989">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.35" data-verso-hover="11">v</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;CYUwZgBJAUB2EC4IDkCGAXAlIiBRAHgMYgAO6EgrcAoaIC8EJArgE4gSwBQHokA5hHBxosQmglocIEALYZCACygCq4vNLIBPbPADuAS3TzJEAD4QAdCGbMA9swhtaAPmNTc69BssAbPdIfGZuY2ANYQAG4QzhFAA&quot;)">Live ↪</a></div>
                 </div>
@@ -2713,18 +2782,18 @@ In particular, it allows <code class="hl lean inline" data-lean-context="example
               <h2 id="The-Lean-Language-Reference--Basic-Types--The-Empty-Type--API-Reference">
                 20.10.1. API Reference<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Basic-Types--The-Empty-Type--API-Reference" title="Permalink">🔗</a></span></h2>
               <div class="namedocs" id="Empty___elim">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Empty.elim" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1737">Empty.elim.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.42" data-verso-hover="328">C</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="329">Sort u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.42" data-verso-hover="328">C</span></div><div class="narrow-only"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1737">Empty.elim.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.42" data-verso-hover="328">C</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="329">Sort u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.42" data-verso-hover="328">C</span></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Empty.elim" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1739">Empty.elim.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.42" data-verso-hover="329">C</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="330">Sort u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.42" data-verso-hover="329">C</span></div><div class="narrow-only"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1739">Empty.elim.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.42" data-verso-hover="329">C</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="330">Sort u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.42" data-verso-hover="329">C</span></div></pre><div class="text">
                   <p>
-                    <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1737">Empty.elim</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.32" data-verso-hover="328">C</span></code> says that a value of any type can be constructed from
-<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="435">Empty</span></a></code>. This can be thought of as a compiler-checked assertion that a code path is unreachable.</p>
+                    <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#Empty___elim" title="Documentation for Empty.elim"><span class="const token" data-binding="const-Empty.elim" data-verso-hover="1739">Empty.elim</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Verso.Genre.Manual.docMetavar-0">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-13">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.32" data-verso-hover="329">C</span></code> says that a value of any type can be constructed from
+<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="440">Empty</span></a></code>. This can be thought of as a compiler-checked assertion that a code path is unreachable.</p>
                   </div>
                 </div>
               <div class="namedocs" id="PEmpty___elim">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=PEmpty.elim" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Types/The-Empty-Type/#PEmpty___elim" title="Documentation for PEmpty.elim"><span class="const token" data-binding="const-PEmpty.elim" data-verso-hover="5871">PEmpty.elim.{u_1, u_2}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.193" data-verso-hover="153">C</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="329">Sort u_1</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="643">PEmpty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.193" data-verso-hover="153">C</span></div><div class="narrow-only"><a href="Basic-Types/The-Empty-Type/#PEmpty___elim" title="Documentation for PEmpty.elim"><span class="const token" data-binding="const-PEmpty.elim" data-verso-hover="5871">PEmpty.elim.{u_1, u_2}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.193" data-verso-hover="153">C</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="329">Sort u_1</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
-  </span><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="643">PEmpty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.193" data-verso-hover="153">C</span></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=PEmpty.elim" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Types/The-Empty-Type/#PEmpty___elim" title="Documentation for PEmpty.elim"><span class="const token" data-binding="const-PEmpty.elim" data-verso-hover="5886">PEmpty.elim.{u_1, u_2}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.193" data-verso-hover="153">C</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="330">Sort u_1</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="649">PEmpty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.193" data-verso-hover="153">C</span></div><div class="narrow-only"><a href="Basic-Types/The-Empty-Type/#PEmpty___elim" title="Documentation for PEmpty.elim"><span class="const token" data-binding="const-PEmpty.elim" data-verso-hover="5886">PEmpty.elim.{u_1, u_2}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.193" data-verso-hover="153">C</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="330">Sort u_1</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+  </span><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="649">PEmpty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.193" data-verso-hover="153">C</span></div></pre><div class="text">
                   <p>
-                    <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">PEmpty.elim</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">Empty</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="unknown token" data-binding="">C</span></code> says that a value of any type can be constructed from
-<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="643">PEmpty</span></a></code>. This can be thought of as a compiler-checked assertion that a code path is unreachable.</p>
+                    <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">PEmpty.elim</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">Empty</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="">→</span><span class="inter-text"> </span><span class="unknown token" data-binding="">C</span></code> says that a value of any type can be constructed from
+<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Empty-Type/#PEmpty" title="Documentation for PEmpty"><span class="const token" data-binding="const-PEmpty" data-verso-hover="649">PEmpty</span></a></code>. This can be thought of as a compiler-checked assertion that a code path is unreachable.</p>
                   </div>
                 </div>
               </section>
