@@ -421,7 +421,7 @@ import Std.Async
 import Std.Sync.Channel
 ```
 ```lean -show
-open Std
+open Std Async
 ```
 {name}`Selectable.tryOne` checks whether any selector has already resolved and returns the corresponding value immediately, or {name}`none` if none has, rather than blocking.
 Defining selection with `:=` rather than `←` makes `pick` the {name}`Async` computation itself rather than its result, so the same poll can be run more than once.
@@ -451,7 +451,7 @@ import Std.Async
 import Std.Sync.Channel
 ```
 ```lean -show
-open Std
+open Std Async
 ```
 A {name}`CloseableChannel` provides a selector via {name}`CloseableChannel.recvSelector` that resolves when the channel receives a value.
 {name}`Selector.sleep` is a selector that resolves after the specified number of milliseconds have passed.
@@ -486,7 +486,7 @@ import Std.Async
 import Std.Sync.Channel
 ```
 ```lean -show
-open Std
+open Std Async
 ```
 A {name}`CloseableChannel` provides a selector via {name}`CloseableChannel.recvSelector` that resolves when the channel receives a value.
 The function {name}`recv2` selects the first value returned on either channel:
@@ -623,6 +623,12 @@ This two-phase protocol ensures that there is no data loss, because selectors on
 {docstring Waiter.checkFinished}
 
 :::example "Natural Number Ticker"
+```imports -show
+import Std.Async
+```
+```lean -show
+open Std.Async
+```
 
 A {name}`natTicker` is a selector that makes a {name}`Nat` available every 100 milliseconds, incrementing each time.
 Its state is determined by two values:
