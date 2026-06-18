@@ -25,6 +25,9 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 
 #doc (Manual) "Asynchronous Programming" =>
+%%%
+file := some "Async"
+%%%
 
 The {name}`Async` monad provides tools and abstractions for constructing asynchronous programs that can safely multiplex different sources of data.
 Typical use cases include network servers and other interactive applications that perform IO and must react to a variety of events, such as incoming data, timeouts, and disconnections.
