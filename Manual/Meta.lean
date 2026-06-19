@@ -23,6 +23,8 @@ import Manual.Meta.CustomStyle
 import Manual.Meta.Env
 import Manual.Meta.Example
 import Manual.Meta.Figure
+import Manual.Meta.GrindTactic
+import Manual.Meta.GrindTacticExample
 import Manual.Meta.LakeCheck
 import Manual.Meta.LakeCmd
 import Manual.Meta.LakeLean
