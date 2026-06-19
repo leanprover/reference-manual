@@ -401,8 +401,10 @@ Because there are infinitely many {name}`Nat`s, using {name}`Iter.ensureTerminat
     IO.println s!"{x}"
 ```
 ```leanOutput natterm
-failed to synthesize instance for 'for_in%' notation
-  ForIn (EIO IO.Error) (Iter.Total Nat) ?m.12
+failed to synthesize instance of type class
+  ForIn IO (Iter.Total Nat) ?α
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 :::
 ::::

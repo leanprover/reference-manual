@@ -500,11 +500,8 @@ xs x : List α✝
 h : (rev xs).run = x
 out✝ : List α✝ := []
 ⊢ (wp⟦do
-      let r ←
-        forIn xs out✝ fun x r => do
-            pure PUnit.unit
-            pure (ForInStep.yield (x :: r))
-      pure r⟧
+      let __s ← forIn xs out✝ fun x __s => pure (ForInStep.yield (x :: __s))
+      pure __s⟧
     (PostCond.noThrow fun a => { down := a = xs.reverse })).down
 ```
 When the verification condition is just the original problem, without even any simplification of {name}`bind`, the problem is usually a missing {name}`WPMonad` instance.

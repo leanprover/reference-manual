@@ -607,8 +607,7 @@ inst✝ : DecidablePred p
 xs : Array α
 out✝ : Array Nat := #[]
 i : Nat
-r✝ : Array Nat
-out : Array Nat := r✝
+out : Array Nat := __s✝
 ⊢ i < xs.size
 -/
 #check_msgs in
@@ -822,7 +821,11 @@ The rules are as follows:
     set 6
     return
 
-/-- error: must be last element in a `do` sequence -/
+/--
+warning: This `do` element and its control-flow region are dead code. Consider removing it.
+---
+info: ((), 6)
+-/
 #check_msgs in
 #eval (·.run 0) <| show StateM Nat Unit from do
   set 5
@@ -875,7 +878,7 @@ end
 set_option pp.all true
 
 /--
-info: @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) Unit α e1 fun (x : PUnit.{1}) => es : m α
+info: @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) PUnit.{1} α e1 fun (__r : PUnit.{1}) => es : m α
 -/
 #check_msgs in
 #check do e1; es
@@ -899,7 +902,8 @@ variable {e1 : m β} {e2 : m γ} {f : β → γ → m Unit} {g : γ → α} {h :
 /--
 info: @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) β α e1 fun (__do_lift : β) =>
   @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) γ α e2 fun (__do_lift_1 : γ) =>
-    @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) Unit α (f __do_lift __do_lift_1) fun (x : PUnit.{1}) => es : m α
+    @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) PUnit.{1} α (f __do_lift __do_lift_1) fun (__r : PUnit.{1}) =>
+      es : m α
 -/
 #check_msgs in
 #check do f (← e1) (← e2); es

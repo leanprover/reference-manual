@@ -208,7 +208,8 @@ This means that mutable variables in the surrounding block cannot be modified:
   return y
 ```
 ```leanOutput noMutFreeze
-`y` cannot be mutated, only variables declared using `let mut` can be mutated. If you did not intend to mutate but define `y`, consider using `let y` instead
+Variable `y` cannot be mutated. Only variables declared using `let mut` can be mutated.
+      If you did not intend to mutate but define `y`, consider using `let y` instead
 ```
 Additionally, an early {keywordOf Lean.Parser.Term.doReturn}`return` exits the inner {keywordOf Lean.Parser.Term.do}`do`, rather than the surrounding one, as indicated by the fact that it is expected to return a {lean}`Unit` (in this case, the universe-polymorphic {name}`PUnit`):
 ```lean +error (name := noInnerReturn)
@@ -221,14 +222,12 @@ Additionally, an early {keywordOf Lean.Parser.Term.doReturn}`return` exits the i
   return y
 ```
 ```leanOutput noInnerReturn
-Application type mismatch: The argument
+Type mismatch
   x
 has type
   Nat
 but is expected to have type
   PUnit
-in the application
-  pure x
 ```
 ::::
 
