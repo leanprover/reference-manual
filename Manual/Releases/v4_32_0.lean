@@ -35,7 +35,7 @@ and 27 other changes.
 
 # Language
 
-````markdown
+```markdown
 
 - [#14039](https://github.com/leanprover/lean4/pull/14039)
   fixes a bug where the builting docstring roles for asserting equalities did not properly highlight their contents for downstream consumers of rich docstring info, and exposes a structure that was mistakenly made private.
@@ -91,11 +91,11 @@ and 27 other changes.
 - [#13305](https://github.com/leanprover/lean4/pull/13305)
   makes the new `do` elaborator (#12459) the default by flipping `backward.do.legacy` to `false`. Legacy behavior remains available via `set_option backward.do.legacy true`.
 
-````
+```
 
 # Library
 
-````markdown
+```markdown
 
 - [#14054](https://github.com/leanprover/lean4/pull/14054)
   upstreams `Nat.sqrt` from Batteries and just enough theory from mathlib to characterize the function without having to expose its internals.
@@ -142,11 +142,11 @@ and 27 other changes.
 - [#13891](https://github.com/leanprover/lean4/pull/13891)
   adds opt-in support for serializing closures (functions with captured values) to `.olean` files via `CompactedRegion.save (allowClosures := true)`, so a saved function can be loaded back and called, including from a separate process. Regular module data is unaffected and continues to reject closures.
 
-````
+```
 
 # Tactics
 
-````markdown
+```markdown
 
 - [#14031](https://github.com/leanprover/lean4/pull/14031)
   implements `SymM` simprocs for reducing bit-vector conversion operations.
@@ -211,11 +211,11 @@ and 27 other changes.
 - [#13870](https://github.com/leanprover/lean4/pull/13870)
   lets `mvcgen'` decompose programs whose head is a typeclass method projection (e.g. `Add.add inst a b`) by reducing through the kernel projection to the instance body.
 
-````
+```
 
 # Compiler
 
-````markdown
+```markdown
 
 - [#14044](https://github.com/leanprover/lean4/pull/14044)
   introduces constant folding for `Nat.reprFast`.
@@ -241,20 +241,20 @@ and 27 other changes.
 - [#13924](https://github.com/leanprover/lean4/pull/13924)
   fixes a code generator panic that occurred when a recursive definition (well-founded or structural) was marked by a `noncomputable section` and then referenced from computable code. The compiler now reports a clean error, or accepts the second definition when everything occurs in a `noncomputable section`.
 
-````
+```
 
 # FFI
 
-````markdown
+```markdown
 
 - [#13952](https://github.com/leanprover/lean4/pull/13952)
   declares the `extern "C"` parameter of `lean_mk_bool_data_value` as `uint8` to match its `@[export]`ed Lean definition (where a `Bool` argument lowers to `uint8_t` at the C ABI), fixing a `wasm32`-emscripten/LTO ABI mismatch that trapped during module initialization.
 
-````
+```
 
 # Lake
 
-````markdown
+```markdown
 
 - [#14060](https://github.com/leanprover/lean4/pull/14060)
   has Lake deduplicate artifacts by their hash when uploading or downloading to the cache (e.g., in `lake cache put` or `lake cache get`). This fixes possible errors when `curl` was asked to transfer to the same file and/or URL multiple times.
@@ -271,11 +271,11 @@ and 27 other changes.
 - [#13936](https://github.com/leanprover/lean4/pull/13936)
   fixes an issue where `depPkgs` was not properly set for a transitive dependency that was overriden by a package at a higher level in the dependency graph.
 
-````
+```
 
 # Other
 
-````markdown
+```markdown
 
 - [#14028](https://github.com/leanprover/lean4/pull/14028)
   fixes an issue where existence of potential stray files could influence whether a module is loaded under the module system, resulting in unexpected behavior
@@ -286,4 +286,4 @@ and 27 other changes.
 - [#13965](https://github.com/leanprover/lean4/pull/13965)
   adds **experimental** CLI flags that cache `lean`'s post-import elaboration state across invocations: `--incr-save FILE` writes a full snapshot at end of run, `--incr-load FILE` reuses one at startup, and `--incr-header-save FILE` writes a header-only snapshot (post-import `Environment`, no command bodies). A loaded snapshot will be reused as far as unchanged syntax (i.e. import header plus subsequent commands, if saved) allows for.
 
-````
+```
