@@ -64,6 +64,7 @@ This `do` element and its control-flow region are dead code. Consider removing i
 The legacy elaborator instead rejects the same program with a coarser, purely structural error:
 
 ```lean +error (name := oldDo)
+set_option backward.do.legacy true in
 example : IO Nat := do
   return 5
   IO.println "never runs"

@@ -510,7 +510,7 @@ Spaces are not allowed between the dollar sign and the identifier.
 def ex2 (e) := show m _ from `(2 + $ e:num)
 ```
 ```leanOutput ex2err1
-<example>:1:34-1:36: unexpected token '$'; expected '`(tactic|' or no space before spliced term
+<example>:1:34-1:36: unexpected token '$'; expected '`(tactic|', 'do' or no space before spliced term
 ```
 
 Spaces are also not allowed before the colon:
@@ -1198,6 +1198,14 @@ elab "dbg_type " e:term ";" body:term : term => do
 info: TSyntax `str
 ---
 info: TSyntax Name.anonymous
+---
+info: Syntax.TSepArray `num ","
+---
+info: Syntax.TSepArray `num ","
+---
+info: TSyntax Name.anonymous
+---
+info: Syntax.TSepArray `num ","
 ---
 info: Syntax.TSepArray `num ","
 -/
