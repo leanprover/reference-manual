@@ -377,11 +377,11 @@ axiom α : Prop
 
  * {lean}`Float` is represented by a pointer to a Lean object that contains a “double”.
 
- * An {deftech}_enum inductive_ type of at least 2 and at most $`2^{32}` constructors, each of which has no parameters, is represented by the first type of {c}`uint8_t`, {c}`uint16_t`, {c}`uint32_t` that is sufficient to assign a unique value to each constructor. For example, the type {lean}`Bool` is represented by {c}`uint8_t`, with values {c}`0` for {lean}`false` and {c}`1` for {lean}`true`. {TODO}[Find out whether this should say “no relevant parameters”]
+ * An {deftech}_enum inductive_ type of at least 2 and at most $`2^{32}` constructors, each of which has no parameters, is represented by the first type of {C}`uint8_t`, {C}`uint16_t`, {C}`uint32_t` that is sufficient to assign a unique value to each constructor. For example, the type {lean}`Bool` is represented by {C}`uint8_t`, with values {C}`0` for {lean}`false` and {C}`1` for {lean}`true`. {TODO}[Find out whether this should say “no relevant parameters”]
 
  * {lean}`Decidable α` is represented the same way as `Bool` {TODO}[Aren't Decidable and Bool just special cases of the rules for trivial constructors and irrelevance?]
 
- * {lean}`Nat` and {lean}`Int` are represented by {c}`lean_object *`.
+ * {lean}`Nat` and {lean}`Int` are represented by {C}`lean_object *`.
   Their representations are described in more detail in {ref "nat-runtime"}[the section on natural numbers] and {ref "int-runtime"}[the section on integers].
 
 :::
@@ -435,7 +435,7 @@ Thus, subtypes impose no runtime overhead in compiled code, and are represented 
 
 :::example "Signed Integers"
 The signed integer types {lean}`Int8`, ..., {lean}`Int64`, {lean}`ISize` are structures with a single field that wraps the corresponding unsigned integer type.
-They are represented by the unsigned C types {c}`uint8_t`, ..., {c}`uint64_t`, {c}`size_t`, respectively, because they have a trivial structure.
+They are represented by the unsigned C types {C}`uint8_t`, ..., {C}`uint64_t`, {C}`size_t`, respectively, because they have a trivial structure.
 :::
 
 ## Other Inductive Types
@@ -457,23 +457,23 @@ Elaborating recursive functions to recursors serves to provide reliable terminat
 tag := "inductive-types-ffi"
 %%%
 
-From the perspective of C, these other inductive types are represented by {c}`lean_object *`.
-Each constructor is stored as a {c}`lean_ctor_object`, and {c}`lean_is_ctor` will return true.
-A {c}`lean_ctor_object` stores the constructor index in its header, and the fields are stored in the {c}`m_objs` portion of the object.
-Lean assumes that {c}`sizeof(size_t) == sizeof(void*)`—while this is not guaranteed by C, the Lean run-time system contains an assertion that fails if this is not the case.
+From the perspective of C, these other inductive types are represented by {C}`lean_object *`.
+Each constructor is stored as a {C}`lean_ctor_object`, and {C}`lean_is_ctor` will return true.
+A {C}`lean_ctor_object` stores the constructor index in its header, and the fields are stored in the {C}`m_objs` portion of the object.
+Lean assumes that {C}`sizeof(size_t) == sizeof(void*)`—while this is not guaranteed by C, the Lean run-time system contains an assertion that fails if this is not the case.
 
 
 The memory order of the fields is derived from the types and order of the fields in the declaration. They are ordered as follows:
 
-* Non-scalar fields stored as {c}`lean_object *`
+* Non-scalar fields stored as {C}`lean_object *`
 * Fields of type {lean}`USize`
 * Other scalar fields, in decreasing order by size
 
 Within each group the fields are ordered in declaration order. *Warning*: Trivial wrapper types count as their underlying wrapped type for this purpose.
 
-* To access fields of the first kind, use {c}`lean_ctor_get(val, i)` to get the `i`th non-scalar field.
-* To access {lean}`USize` fields, use {c}`lean_ctor_get_usize(val, n+i)` to get the {c}`i`th `USize` field and {c}`n` is the total number of fields of the first kind.
-* To access other scalar fields, use {c}`lean_ctor_get_uintN(val, off)` or {c}`lean_ctor_get_usize(val, off)` as appropriate. Here `off` is the byte offset of the field in the structure, starting at {c}`n*sizeof(void*)` where `n` is the number of fields of the first two kinds.
+* To access fields of the first kind, use {C}`lean_ctor_get(val, i)` to get the `i`th non-scalar field.
+* To access {lean}`USize` fields, use {C}`lean_ctor_get_usize(val, n+i)` to get the {C}`i`th `USize` field and {C}`n` is the total number of fields of the first kind.
+* To access other scalar fields, use {C}`lean_ctor_get_uintN(val, off)` or {C}`lean_ctor_get_usize(val, off)` as appropriate. Here `off` is the byte offset of the field in the structure, starting at {C}`n*sizeof(void*)` where `n` is the number of fields of the first two kinds.
 
 ::::keepEnv
 
@@ -498,19 +498,19 @@ structure S where
 ```
 would get re-sorted into the following memory order:
 
-* {name}`S.ptr_1`: {c}`lean_ctor_get(val, 0)`
-* {name}`S.usize_1`: {c}`lean_ctor_get_usize(val, 1)`
-* {name}`S.usize_2`: {c}`lean_ctor_get_usize(val, 2)`
-* {name}`S.sc64_1`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3)`
-* {name}`S.sc64_2`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 8)`
-* {name}`S.sc64_3`: {c}`lean_ctor_get_float(val, sizeof(void*)*3 + 16)`
-* {name}`S.sc64_4`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 24)`
-* {name}`S.sc32_1`: {c}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 32)`
-* {name}`S.sc32_2`: {c}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 36)`
-* {name}`S.sc16_1`: {c}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 40)`
-* {name}`S.sc16_2`: {c}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 42)`
-* {name}`S.sc8_1`: {c}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 44)`
-* {name}`S.sc8_2`: {c}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 45)`
+* {name}`S.ptr_1`: {C}`lean_ctor_get(val, 0)`
+* {name}`S.usize_1`: {C}`lean_ctor_get_usize(val, 1)`
+* {name}`S.usize_2`: {C}`lean_ctor_get_usize(val, 2)`
+* {name}`S.sc64_1`: {C}`lean_ctor_get_uint64(val, sizeof(void*)*3)`
+* {name}`S.sc64_2`: {C}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 8)`
+* {name}`S.sc64_3`: {C}`lean_ctor_get_float(val, sizeof(void*)*3 + 16)`
+* {name}`S.sc64_4`: {C}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 24)`
+* {name}`S.sc32_1`: {C}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 32)`
+* {name}`S.sc32_2`: {C}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 36)`
+* {name}`S.sc16_1`: {C}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 40)`
+* {name}`S.sc16_2`: {C}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 42)`
+* {name}`S.sc8_1`: {C}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 44)`
+* {name}`S.sc8_2`: {C}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 45)`
 
 ::::
 
@@ -865,3 +865,9 @@ Mutual inductive types are represented identically to {ref "run-time-inductives"
 The restrictions on mutual inductive types exist to ensure Lean's consistency as a logic, and do not impact compiled code.
 
 {include 2 Manual.Language.InductiveTypes.Nested}
+
+## Lattice-Theoretic Inductive and Coinductive Predicates
+
+The syntax of inductive type declarations can be used to specify both inductive and coinductive predicates.
+These are not a built-in feature of Lean's type system, but are instead elaborated to a suitable encoding.
+They are described in {ref "coinductive-predicates"}[a dedicated section].

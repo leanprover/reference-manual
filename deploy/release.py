@@ -4,15 +4,31 @@ import sys
 import shutil
 import tempfile
 import argparse
+import datetime
 from release_utils import run_git_command, find_latest_version, find_latest_stable_version, git_has_changes
 
-def deploy_version(source_dir, version, branch):
+
+def stamp_html_files(source_dir, commit_sha):
+    """Prepend a commit stamp comment to every HTML file in source_dir."""
+    timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    stamp = f"<!-- Generated from commit {commit_sha} at {timestamp} -->\n"
+    for root, _, files in os.walk(source_dir):
+        for filename in files:
+            if filename.lower().endswith((".html", ".htm")):
+                filepath = os.path.join(root, filename)
+                with open(filepath, "r", encoding="utf-8") as f:
+                    content = f.read()
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write(stamp + content)
+
+def deploy_version(source_dir, version, commit_sha, branch):
     """
     Deploy a version by copying from source directory to versioned directory.
 
     Args:
         source_dir (str): Source directory to copy content from
         version (str): Version string (will be used as the directory name)
+        commit_sha (str): Full SHA of the commit being deployed
         branch (str): Git branch to checkout
     """
     # Save current git commit to restore later
@@ -43,6 +59,8 @@ def deploy_version(source_dir, version, branch):
             # Copy from temporary directory to version directory
             print(f"Copying content to version directory: {version_dir}")
             shutil.copytree(temp_source, version_dir)
+            print(f"Stamping HTML files with commit {commit_sha}")
+            stamp_html_files(version_dir, commit_sha)
 
             run_git_command(["git", "add", version_dir])
 
@@ -102,13 +120,14 @@ def main():
     parser = argparse.ArgumentParser(description="Deploys a build of the reference manual or tutorials to the deployment branch")
     parser.add_argument("source_dir", help="Source directory to copy content from on the current branch (e.g., html/site/reference or html/site/tutorials)")
     parser.add_argument("version", help="Lean version string (will be used as the directory name)")
+    parser.add_argument("commit_sha", help="Full SHA of the commit being deployed")
     parser.add_argument("branch", help="Git branch for deployment (should be an orphan branch a la gh-pages)")
 
     args = parser.parse_args()
 
     print(f"Deploying from {args.source_dir} as version {args.version} into {args.branch}")
 
-    deploy_version(args.source_dir, args.version, args.branch)
+    deploy_version(args.source_dir, args.version, args.commit_sha, args.branch)
 
 if __name__ == "__main__":
     main()

@@ -198,15 +198,15 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 {docstring Int64.ofInt}
 
 
-{docstring ISize.ofIntTruncate}
+{docstring ISize.ofIntClamp}
 
-{docstring Int8.ofIntTruncate}
+{docstring Int8.ofIntClamp}
 
-{docstring Int16.ofIntTruncate}
+{docstring Int16.ofIntClamp}
 
-{docstring Int32.ofIntTruncate}
+{docstring Int32.ofIntClamp}
 
-{docstring Int64.ofIntTruncate}
+{docstring Int64.ofIntClamp}
 
 
 {docstring ISize.ofIntLE}
@@ -254,15 +254,15 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring UInt64.ofNatLT}
 
-{docstring USize.ofNatTruncate}
+{docstring USize.ofNatClamp}
 
-{docstring UInt8.ofNatTruncate}
+{docstring UInt8.ofNatClamp}
 
-{docstring UInt16.ofNatTruncate}
+{docstring UInt16.ofNatClamp}
 
-{docstring UInt32.ofNatTruncate}
+{docstring UInt32.ofNatClamp}
 
-{docstring UInt64.ofNatTruncate}
+{docstring UInt64.ofNatClamp}
 
 {docstring USize.toNat}
 

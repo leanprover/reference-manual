@@ -25,6 +25,7 @@ import Manual.Meta.Example
 import Manual.Meta.Figure
 import Manual.Meta.LakeCheck
 import Manual.Meta.LakeCmd
+import Manual.Meta.LakeManifest
 import Manual.Meta.LakeOpt
 import Manual.Meta.LakeToml
 import Manual.Meta.Lean
@@ -38,6 +39,7 @@ import Manual.Meta.Markdown
 import Manual.Meta.Namespace
 import Manual.Meta.SectionNotes
 import Manual.Meta.ConfigFile
+import Manual.Meta.Diagram
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
@@ -159,6 +161,37 @@ span.TODO {
     open Verso.Output.Html in
     some <| fun go _ _ content => do
       pure {{<span class="TODO">{{← content.mapM go}}</span>}}
+
+def Block.warn : Block where
+  name := `Manual.warn
+
+@[directive_expander warn]
+def warn : DirectiveExpander
+  | args, blocks => do
+    ArgParse.done.run args
+    let content ← blocks.mapM elabBlock
+    pure #[← `(Block.other Block.warn #[$content,*])]
+
+@[block_extension warn]
+def warn.descr : BlockDescr where
+  traverse _ _ _ := pure none
+  toTeX := none
+  extraCss := [r#"
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+"#]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ goB _ _ content => do
+      pure {{
+        <div class="namedocs warn">
+          <span class="label">"Warning"</span>
+          <div class="text">
+            {{← content.mapM goB}}
+          </div>
+        </div>
+      }}
 
 def Inline.noVale : Inline where
   name := `Manual.noVale

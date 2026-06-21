@@ -141,7 +141,7 @@ structure TomlFieldOpts where
   type : Name
   sort : Option Nat
 
-instance [Inhabited α] [Applicative f] : Inhabited (f α) where
+local instance [Inhabited α] [Applicative f] : Inhabited (f α) where
   default := pure default
 
 @[specialize]
@@ -695,7 +695,6 @@ deriving instance Test for Lake.NConfigDecl
 deriving instance Test for Lake.Package
 
 
-
 open Lake Toml in
 def report [Monad m] [Lean.MonadLog m] [MonadFileMap m] [Test α] (val : α) (errs : Array DecodeError) : m String := do
     let mut result := ""
@@ -828,6 +827,8 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
         baseName := name
         wsIdx := 0
         origName := name
+        keyName := name
+        relManifestFile := Lake.defaultManifestFile
       }
 
     .ok <$> report pkg errs

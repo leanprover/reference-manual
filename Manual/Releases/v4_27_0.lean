@@ -207,14 +207,6 @@ These updates include some *breaking changes*, namely:
   `f <| s.drop 1 |>.dropEnd 1 |>.copy` instead. Also, instead of `(s.drop
   1).copy = "Hello"`, write `s.drop 1 == "Hello".toSlice`.
 
-- [#11446](https://github.com/leanprover/lean4/pull/11446) moves many constants of the iterator API from `Std.Iterators` to
-  the `Std` namespace in order to make them more convenient to use. These
-  constants include, but are not limited to, {name}`Iter`, {name}`IterM` and
-  {name}`IteratorLoop`. This is a breaking change. If something breaks, try
-  adding `open Std` in order to make these constants available again. If
-  some constants in the `Std.Iterators` namespace cannot be found, they
-  can be found directly in `Std` now.
-
 ## Breaking Changes
 
 - [#11474](https://github.com/leanprover/lean4/pull/11474) and
