@@ -25,7 +25,6 @@ set_option linter.unusedVariables false
 open Lean
 
 #doc (Manual) "Extending `do`-Notation" =>
-
 %%%
 tag := "do-elab"
 %%%
