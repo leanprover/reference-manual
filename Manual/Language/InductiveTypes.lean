@@ -421,9 +421,17 @@ However, in cases where some representation is required (such as when they are a
 tag := "inductive-types-trivial-wrappers"
 %%%
 
-If an inductive type has exactly one constructor, and that constructor has exactly one run-time relevant parameter, then the inductive type is represented identically to its parameter.
+:::paragraph
+An inductive type is a {deftech}[trivial wrapper] if it has has exactly one constructor and that constructor has exactly one run-time relevant parameter.
+Trivial wrappers are represented identically to their constructor's parameter in the following circumstances:
 
-For a public inductive type under the module system, any private information that prevents these conditions from being tested in other modules will disable this optimization even in the current module.
+ * The inductive type is private.
+
+ * The type is public, and the {tech}[public scope] of the module in which it is defined contains enough information to determine that it is a trivial wrapper.
+
+ * The type is defined in a source file that is not a {tech}[module].
+
+:::
 
 :::example "Zero-Overhead Subtypes"
 The structure {name}`Subtype` bundles an element of some type with a proof that it satisfies a predicate.
@@ -461,10 +469,12 @@ tag := "inductive-types-ffi"
 
 From the perspective of C, these other inductive types are represented by {C}`lean_object *`.
 Each constructor is stored as a {C}`lean_ctor_object`, and {C}`lean_is_ctor` will return true.
-The exact field layout is implementation-defined.
+
+The exact layout of fields in a constructor object is implementation defined.
 Constructor objects should only be created or unpacked by functions defined in Lean code.
 These functions can be made available to C via the {attr}`export` attribute.
-
+Because the resulting C and Lean code call symbols defined in each other, they should be linked together.
+Each C should be compiled to an object file using a custom target in Lake and added to the Lean library configuration's {tomlField}`moreLinkObjs` field.
 
 # Mutual Inductive Types
 %%%
