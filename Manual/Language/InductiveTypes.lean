@@ -474,7 +474,7 @@ The exact layout of fields in a constructor object is implementation defined.
 Constructor objects should only be created or unpacked by functions defined in Lean code.
 These functions can be made available to C via the {attr}`export` attribute.
 Because the resulting C and Lean code call symbols defined in each other, they should be linked together.
-Each C should be compiled to an object file using a custom target in Lake and added to the Lean library configuration's {tomlField}`moreLinkObjs` field.
+Each C should be compiled to an object file using a custom target in Lake and added to the Lean library configuration's {tomlField Lake.LeanLibConfig}`moreLinkObjs` field.
 
 # Mutual Inductive Types
 %%%
