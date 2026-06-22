@@ -470,8 +470,8 @@ tag := "inductive-types-ffi"
 From the perspective of C, these other inductive types are represented by {C}`lean_object *`.
 Each constructor is stored as a {C}`lean_ctor_object`, and {C}`lean_is_ctor` will return true.
 
-The exact layout of fields in a constructor object is implementation defined.
-Constructor objects should only be created or unpacked by functions defined in Lean code.
+There are no guarantees about the exact layout of fields in a constructor object; the compiler is free to select any layout.
+Thus, constructor objects should only be created or unpacked by functions defined in Lean code.
 These functions can be made available to C via the {attr}`export` attribute.
 Because the resulting C and Lean code call symbols defined in each other, they should be linked together.
 Each C should be compiled to an object file using a custom target in Lake and added to the Lean library configuration's {tomlField Lake.LeanLibConfig}`moreLinkObjs` field.
