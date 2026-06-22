@@ -421,7 +421,17 @@ However, in cases where some representation is required (such as when they are a
 tag := "inductive-types-trivial-wrappers"
 %%%
 
-If an inductive type has exactly one constructor, and that constructor has exactly one run-time relevant parameter, then the inductive type is represented identically to its parameter.
+:::paragraph
+An inductive type is a {deftech}[trivial wrapper] if it has has exactly one constructor and that constructor has exactly one run-time relevant parameter.
+Trivial wrappers are represented identically to their constructor's parameter in the following circumstances:
+
+ * The inductive type is private.
+
+ * The type is public, and the {tech}[public scope] of the module in which it is defined contains enough information to determine that it is a trivial wrapper.
+
+ * The type is defined in a source file that is not a {tech}[module].
+
+:::
 
 :::example "Zero-Overhead Subtypes"
 The structure {name}`Subtype` bundles an element of some type with a proof that it satisfies a predicate.
@@ -459,65 +469,12 @@ tag := "inductive-types-ffi"
 
 From the perspective of C, these other inductive types are represented by {C}`lean_object *`.
 Each constructor is stored as a {C}`lean_ctor_object`, and {C}`lean_is_ctor` will return true.
-A {C}`lean_ctor_object` stores the constructor index in its header, and the fields are stored in the {C}`m_objs` portion of the object.
-Lean assumes that {C}`sizeof(size_t) == sizeof(void*)`—while this is not guaranteed by C, the Lean run-time system contains an assertion that fails if this is not the case.
 
-
-The memory order of the fields is derived from the types and order of the fields in the declaration. They are ordered as follows:
-
-* Non-scalar fields stored as {C}`lean_object *`
-* Fields of type {lean}`USize`
-* Other scalar fields, in decreasing order by size
-
-Within each group the fields are ordered in declaration order. *Warning*: Trivial wrapper types count as their underlying wrapped type for this purpose.
-
-* To access fields of the first kind, use {C}`lean_ctor_get(val, i)` to get the `i`th non-scalar field.
-* To access {lean}`USize` fields, use {C}`lean_ctor_get_usize(val, n+i)` to get the {C}`i`th `USize` field and {C}`n` is the total number of fields of the first kind.
-* To access other scalar fields, use {C}`lean_ctor_get_uintN(val, off)` or {C}`lean_ctor_get_usize(val, off)` as appropriate. Here `off` is the byte offset of the field in the structure, starting at {C}`n*sizeof(void*)` where `n` is the number of fields of the first two kinds.
-
-::::keepEnv
-
-For example, a structure such as
-```lean
-structure S where
-  ptr_1 : Array Nat
-  usize_1 : USize
-  sc64_1 : UInt64
-   -- Wrappers of scalars count as scalars:
-  sc64_2 : { x : UInt64 // x > 0 }
-  sc64_3 : Float -- `Float` is 64 bit
-  sc8_1 : Bool
-  sc16_1 : UInt16
-  sc8_2 : UInt8
-  sc64_4 : UInt64
-  usize_2 : USize
-  -- Trivial wrapper around `UInt32`
-  sc32_1 : Char
-  sc32_2 : UInt32
-  sc16_2 : UInt16
-```
-would get re-sorted into the following memory order:
-
-* {name}`S.ptr_1`: {C}`lean_ctor_get(val, 0)`
-* {name}`S.usize_1`: {C}`lean_ctor_get_usize(val, 1)`
-* {name}`S.usize_2`: {C}`lean_ctor_get_usize(val, 2)`
-* {name}`S.sc64_1`: {C}`lean_ctor_get_uint64(val, sizeof(void*)*3)`
-* {name}`S.sc64_2`: {C}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 8)`
-* {name}`S.sc64_3`: {C}`lean_ctor_get_float(val, sizeof(void*)*3 + 16)`
-* {name}`S.sc64_4`: {C}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 24)`
-* {name}`S.sc32_1`: {C}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 32)`
-* {name}`S.sc32_2`: {C}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 36)`
-* {name}`S.sc16_1`: {C}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 40)`
-* {name}`S.sc16_2`: {C}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 42)`
-* {name}`S.sc8_1`: {C}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 44)`
-* {name}`S.sc8_2`: {C}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 45)`
-
-::::
-
-::: TODO
-Figure out how to test/validate/CI these statements
-:::
-
+There are no guarantees about the exact layout of fields in a constructor object; the compiler is free to select any layout.
+Thus, constructor objects should only be created or unpacked by functions defined in Lean code.
+These functions can be made available to C via the {attr}`export` attribute.
+Because the resulting C and Lean code call symbols defined in each other, they should be linked together.
+Each C should be compiled to an object file using a custom target in Lake and added to the Lean library configuration's {tomlField Lake.LeanLibConfig}`moreLinkObjs` field.
 
 # Mutual Inductive Types
 %%%
