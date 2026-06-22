@@ -332,8 +332,10 @@ Ranges can't be iterated over:
     IO.println s!"It's {repr d}"
 ```
 ```leanOutput noIter
-failed to synthesize instance for 'for_in%' notation
-  ForIn (EIO IO.Error) (Std.Rcc Day) ?m.11
+failed to synthesize instance of type class
+  ForIn IO (Std.Rcc Day) ?α
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 Nor can they be enumerated, even though the type is finite:
 ```lean +error (name := noEnum)
@@ -508,8 +510,10 @@ It's also possible to create an iterator that can be enumerated, but it can't ye
     IO.println s!"It's {repr d}."
 ```
 ```leanOutput iterForNo
-failed to synthesize instance for 'for_in%' notation
-  ForIn (EIO IO.Error) (Std.Iter Day) ?m.12
+failed to synthesize instance of type class
+  ForIn IO (Std.Iter Day) ?α
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 :::

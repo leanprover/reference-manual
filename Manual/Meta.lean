@@ -25,7 +25,9 @@ import Manual.Meta.Example
 import Manual.Meta.Figure
 import Manual.Meta.LakeCheck
 import Manual.Meta.LakeCmd
+import Manual.Meta.LakeLean
 import Manual.Meta.LakeManifest
+import Manual.Meta.LakeSession
 import Manual.Meta.LakeOpt
 import Manual.Meta.LakeToml
 import Manual.Meta.Lean

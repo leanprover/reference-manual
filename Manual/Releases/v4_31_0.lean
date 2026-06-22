@@ -12,17 +12,13 @@ open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
+open Lean.MessageSeverity
 
-#doc (Manual) "Lean 4.31.0-rc2 (2026-06-04)" =>
+#doc (Manual) "Lean 4.31.0 (2026-06-13)" =>
 %%%
 tag := "release-v4.31.0"
 file := "v4.31.0"
 %%%
-
-:::warn
-These release notes describe a _release candidate_, not the final release.
-They may be incomplete and are subject to change.
-:::
 
 For this release, 305 changes landed.
 In addition to the 105 feature additions,
@@ -32,6 +28,148 @@ there were 17 refactoring changes,
 13 performance improvements,
 15 improvements to the test suite,
 and 48 other changes.
+
+# Highlights
+
+Lean 4.31.0 is a consolidation-heavy release: alongside a handful of new user-facing features — `do` blocks elaboration, Lake built-in linting, and richer editor hovers — it lands a large, coordinated effort to make definitional-equality checking properly respect transparency levels, a faster and reimplemented `mvcgen'`, significant development in libraries including HTTP, and broad performance work including an LLVM 22 upgrade.
+
+_This highlights section was contributed by Juanjo Madrigal._
+
+## `do` Notation: New Loop Forms and New Elaborator
+
+The `while` condition in `do` blocks now accepts any condition form already allowed by `if` ([#13534](https://github.com/leanprover/lean4/pull/13534)). In addition to `while c do …` and `while h : c do …`, you can now match against a pattern, binding either with `:=` or with `←`:
+
+```
+while let some x := stack.pop? do
+  process x
+
+while let .ok line ← readLine? do
+  handle line
+```
+
+`repeat`/`while` loops also became *verifiable* ([#13209](https://github.com/leanprover/lean4/pull/13209)). `whileM` is a counterpart to `Lean.Loop.forIn` that admits a one-step unfolding lemma `whileM_eq`. Existing `repeat`/`while` loops now expand through `whileM` without source changes, and the accompanying `@[spec]` theorems let `mvcgen`/`mvcgen'` discharge loop bodies given a termination measure and an invariant. See also [#13689](https://github.com/leanprover/lean4/pull/13689) / [#13442](https://github.com/leanprover/lean4/pull/13442) / [#13447](https://github.com/leanprover/lean4/pull/13447).
+
+At the same time, the new `do` elaborator (accessible via `set_option backward.do.legacy false`) is also being developed: beyond extensibility, it already produces more precise and more actionable diagnostics:
+
+```lean (name := newDo)
+set_option backward.do.legacy false in
+example : IO Nat := do
+  return 5
+  IO.println "never runs"
+```
+```leanOutput newDo (severity := warning)
+This `do` element and its control-flow region are dead code. Consider removing it.
+```
+
+The legacy elaborator instead rejects the same program with a coarser, purely structural error:
+
+```lean +error (name := oldDo)
+set_option backward.do.legacy true in
+example : IO Nat := do
+  return 5
+  IO.println "never runs"
+```
+```leanOutput oldDo (severity := error)
+must be last element in a `do` sequence
+```
+
+Related development in [#13404](https://github.com/leanprover/lean4/pull/13404) / [#13542](https://github.com/leanprover/lean4/pull/13542) / [#13491](https://github.com/leanprover/lean4/pull/13491) / [#13494](https://github.com/leanprover/lean4/pull/13494) / [#13502](https://github.com/leanprover/lean4/pull/13502) / [#13506](https://github.com/leanprover/lean4/pull/13506) / [#13486](https://github.com/leanprover/lean4/pull/13486) / [#13397](https://github.com/leanprover/lean4/pull/13397) / [#13396](https://github.com/leanprover/lean4/pull/13396) / [#13399](https://github.com/leanprover/lean4/pull/13399) / [#13413](https://github.com/leanprover/lean4/pull/13413) / [#13434](https://github.com/leanprover/lean4/pull/13434) / [#13437](https://github.com/leanprover/lean4/pull/13437) / [#13507](https://github.com/leanprover/lean4/pull/13507) / [#13255](https://github.com/leanprover/lean4/pull/13255) / [#13250](https://github.com/leanprover/lean4/pull/13250).
+
+## Monadic Program Verification: `mvcgen'`
+
+Work continues on the monadic verification framework. [#12965](https://github.com/leanprover/lean4/pull/12965) introduces new foundations for reasoning about monadic Lean code, generalizing the assertion language for pre-/post-conditions of monadic Hoare triples from `SPred` to any `CompleteLattice`, separating post-conditions on terminating and abrupt paths, and resolving several universe-polymorphism issues.
+
+Building on this, [#13644](https://github.com/leanprover/lean4/pull/13644) adds the experimental `mvcgen'` tactic, a from-scratch reimplementation of `mvcgen` on the new `SymM`-based symbolic-evaluation framework. It can outperform {tactic}`mvcgen` by a factor of over 100x on some synthetic benchmarks and aspires to be feature-complete with it. `mvcgen'` can also be used as a step inside interactive `sym => …` blocks, where leftover verification conditions become subgoals for subsequent `grind` steps ([#13680](https://github.com/leanprover/lean4/pull/13680)).
+
+## Transparency and Defeq Discipline
+
+A cross-cutting theme of this release is making definitional-equality checking properly respect *transparency*: how aggressively Lean unfolds definitions when deciding whether two terms are *definitionally equal*. A plain `def` is defeq to its body at `.default` transparency, but `simp`/`dsimp` operate at the lower `.reducible` level, where it does not unfold:
+
+```lean +error
+def x : Nat := 5
+
+-- `rfl` checks defeq at `.default` transparency, so it closes the goal:
+example : x = 5 := rfl
+
+-- but `with_reducible` (where `simp`/`dsimp` run) won't unfold it:
+example : x = 5 := by with_reducible refl
+
+-- and `simp`/`dsimp` does not work either:
+example : x = 5 := by simp
+```
+
+Previously such transparency mismatches were common and hard to diagnose. The usual fix is to let the constant unfold at the lower transparency by marking it `@[reducible]`:
+
+```lean (name := defeqFix)
+@[reducible] def y : Nat := 5
+example : y = 5 := by with_reducible rfl
+example : y = 5 := by simp
+```
+
+*Migration:* if proofs break under the stricter regime, the most common fixes are to scope `set_option backward.defeqAttrib.useBackward true in` over the affected declaration, switch `simpa using` to `simpa using!`, mark the relevant constants `@[implicit_reducible]`, or add the now-required projections explicitly to `simp`/`dsimp` calls. The diagnostics above (and `set_option diagnostics true` with `set_option trace.diagnostics true`) help locate the affected spots.
+
+Related development: [#13492](https://github.com/leanprover/lean4/pull/13492) / [#13363](https://github.com/leanprover/lean4/pull/13363) / [#13281](https://github.com/leanprover/lean4/pull/13281) / [#13512](https://github.com/leanprover/lean4/pull/13512) / [#13636](https://github.com/leanprover/lean4/pull/13636) / [#13833](https://github.com/leanprover/lean4/pull/13833) / [#13317](https://github.com/leanprover/lean4/pull/13317) / [#13368](https://github.com/leanprover/lean4/pull/13368) / [#13793](https://github.com/leanprover/lean4/pull/13793) / [#13280](https://github.com/leanprover/lean4/pull/13280) / [#13768](https://github.com/leanprover/lean4/pull/13768) / [#13772](https://github.com/leanprover/lean4/pull/13772).
+
+## Deprecating Modules, Syntax, and Options
+
+This release adds a family of tools for library authors to manage deprecations:
+
+- [#13002](https://github.com/leanprover/lean4/pull/13002) adds a `deprecated_module` command that marks the current module as deprecated; importers receive a warning suggesting replacements. A `#show_deprecated_modules` command lists deprecated modules in the environment.
+
+  ```
+  deprecated_module "use NewModule instead" (since := "2026-03-30")
+  ```
+
+- [#13108](https://github.com/leanprover/lean4/pull/13108) adds a `deprecated_syntax` command that marks syntax kinds as deprecated, emitting a linter warning when the deprecated syntax is elaborated, including through macro expansion.
+- [#13195](https://github.com/leanprover/lean4/pull/13195) allows options to be marked deprecated, warning on `set_option` uses (controlled by `linter.deprecated.options`).
+
+A related set of new linters warns about redundant modifiers: `linter.redundantVisibility` for `private`/`public` that matches the default ([#13132](https://github.com/leanprover/lean4/pull/13132)), `linter.redundantExpose` for no-op `@[expose]`/`@[no_expose]` ([#13359](https://github.com/leanprover/lean4/pull/13359)), and warnings for `@[simp]` theorems with a variable or unrecognized head symbol ([#13325](https://github.com/leanprover/lean4/pull/13325)).
+
+## Lake: Built-in Linting
+
+Lake gains a built-in linting framework, accessible through `lake lint` flags ([#13393](https://github.com/leanprover/lean4/pull/13393), [#13431](https://github.com/leanprover/lean4/pull/13431)). It ships with environment linters upstreamed from Batteries/Mathlib (`defLemma`/`defProp`, `checkUnivs`) — see also the core upstreaming in [#13356](https://github.com/leanprover/lean4/pull/13356) — and a `builtinLint` package configuration option. Flags include `--builtin-lint`, `--builtin-only`, `--clippy`, `--lint-all`, and `--lint-only <name>`, and a `@[builtin_nolint]` attribute suppresses specific linters per declaration.
+
+[#13513](https://github.com/leanprover/lean4/pull/13513) extends this to *text* linters by persisting their warnings into each module's `.olean`, and [#13843](https://github.com/leanprover/lean4/pull/13843) makes module-system targets lint their public surface, matching what downstream consumers see.
+
+## Performance
+
+This release includes broad performance work:
+
+- [#13545](https://github.com/leanprover/lean4/pull/13545) upgrades the bundled compiler toolchain from LLVM 19 to LLVM 22, bringing general improvements of up to 5% instructions depending on the benchmark.
+- [#13788](https://github.com/leanprover/lean4/pull/13788) generates specialized `dec` code for values of known shape, and [#13669](https://github.com/leanprover/lean4/pull/13669) optimizes the `lean_dec_ref_cold` cold path.
+- [#13796](https://github.com/leanprover/lean4/pull/13796) reduces `String.compare` to a single `memcmp`, and [#13235](https://github.com/leanprover/lean4/pull/13235) uses `memcmp` for {name}`ByteArray` equality.
+- [#13651](https://github.com/leanprover/lean4/pull/13651) replaces the tactic configuration elaboration system with one that directly constructs configuration objects and can skip term elaboration entirely; configuration evaluation now takes about 6.2% of the time it did before. The new system also supports custom configuration syntaxes and user configuration options for {tactic}`simp` (e.g. `(user.optionName := …)`).
+- Elaboration itself is faster for structure instance notation with many fields ([#13760](https://github.com/leanprover/lean4/pull/13760)) and for `Expr.instantiateBetaRevRange` in the common case ([#13758](https://github.com/leanprover/lean4/pull/13758)).
+
+## Library Highlights
+
+The standard HTTP library introduced last release grows into a working server: [#12146](https://github.com/leanprover/lean4/pull/12146) adds the `H1` pure HTTP/1.1 state machine and [#12151](https://github.com/leanprover/lean4/pull/12151) adds an async HTTP/1.1 `Server`. Importantly, [#13511](https://github.com/leanprover/lean4/pull/13511) graduates the `Async` and `Http` modules out of `Internal` into `Std`.
+
+Other notable library additions:
+
+- Date/time gains a `WallTime` type for local-time points and a simplified `Timestamp` API ([#13675](https://github.com/leanprover/lean4/pull/13675)), plus `Locale`/`LocaleSymbols` for configurable formatting ([#13567](https://github.com/leanprover/lean4/pull/13567)).
+- `List.prod`/`Array.prod`/`Vector.prod` mirror the existing `sum` API, with simp and grind lemmas ([#13200](https://github.com/leanprover/lean4/pull/13200)).
+- More {name}`ByteArray` `push`/`set!` lemmas ([#13457](https://github.com/leanprover/lean4/pull/13457)) and `Vector` append lemmas generalized to differently-sized vectors ([#13693](https://github.com/leanprover/lean4/pull/13693)).
+- Verification of `String.dropWhile`/`String.takeWhile` continues the String verification effort ([#13155](https://github.com/leanprover/lean4/pull/13155)).
+
+A number of runtime robustness fixes also turn previously silent memory-exhaustion failures into proper errors or panics instead of segfaults and corruption ([#13392](https://github.com/leanprover/lean4/pull/13392), [#13546](https://github.com/leanprover/lean4/pull/13546), [#13547](https://github.com/leanprover/lean4/pull/13547), [#13548](https://github.com/leanprover/lean4/pull/13548), [#13549](https://github.com/leanprover/lean4/pull/13549), [#13521](https://github.com/leanprover/lean4/pull/13521)). For security-sensitive deployments, [#13401](https://github.com/leanprover/lean4/pull/13401) adds a `LEAN_MI_SECURE` build option enabling additional mimalloc memory-safety mitigations.
+
+## Editor and UX Improvements
+
+[#13260](https://github.com/leanprover/lean4/pull/13260) adds server-side support for *incremental diagnostics*. Previously, reporting diagnostics while a file was being processed required re-sending the full set each time, a quadratic amount of work over the course of a file. Clients that advertise `incrementalDiagnosticSupport` now receive a `PublishDiagnosticsParams.isIncremental` flag telling them to append rather than replace, eliminating the quadratic reporting. A client-side implementation for the VS Code extension is tracked in [vscode-lean4#752](https://github.com/leanprover/vscode-lean4/pull/752).
+
+There is also significant development in the display of metavariables ([#13446](https://github.com/leanprover/lean4/pull/13446)) and hovering ([#13728](https://github.com/leanprover/lean4/pull/13728) / [#13399](https://github.com/leanprover/lean4/pull/13399) / [#13678](https://github.com/leanprover/lean4/pull/13678) / [#13715](https://github.com/leanprover/lean4/pull/13715)).
+
+## Breaking Changes
+
+Beyond the transparency-related changes above, note the following:
+
+- [#13807](https://github.com/leanprover/lean4/pull/13807) makes the application elaborator beta-reduce arguments while substituting them into later expected types, consistent with `inferType` and `instantiateMVars`. *Breaking change:* some tactic proofs may need unnecessary steps removed, e.g. `dsimp only` steps that previously existed only to perform these beta reductions. Relatedly, [#13528](https://github.com/leanprover/lean4/pull/13528) changes metavariable bookkeeping so that metaprograms can no longer assume an `MVarId` changes merely because metavariables were assigned (for example, `change` no longer changes the `MVarId` when its only effect is incidental assignments); it also revealed many `dsimp`s that did nothing and can be deleted.
+- [#13243](https://github.com/leanprover/lean4/pull/13243) no longer applies a structure's default values when elaborating structure instance notation *in patterns* (e.g. `s matches { x := 1 }`). *Breaking change:* such patterns may now report “field missing” errors and need the missing fields supplied or a `..` added.
+- [#13476](https://github.com/leanprover/lean4/pull/13476) filters assigned metavariables before computing `apply`/`rewrite` subgoal tags, so a single remaining goal now inherits the input goal's tag. *Breaking change:* scripts relying on the previous tag names (e.g. `case h => …` after `funext`) may need updating.
+- [#13030](https://github.com/leanprover/lean4/pull/13030) changes level-metavariable pretty printing to use per-definition indices. *Breaking metaprogramming change:* level pretty printing should use `delabLevel` or `MessageData.ofLevel`; `format`/`toString` lack access to the indices and print the raw internal identifier as `?_mvar.nnn`. Some tests needed `maxHeartbeats` raised 20–50% due to index-recording allocations.
+- [#13627](https://github.com/leanprover/lean4/pull/13627) renames `UInt8.ofNatTruncate` to `UInt8.ofNatClamp` (and the other width variants) for consistency with the rest of the `UIntX` API.
+- [#13516](https://github.com/leanprover/lean4/pull/13516) adds the missing `namespace Lake` to `Lake.Util.Opaque`; code referring to `Opaque` without `open Lake` must be updated.
 
 # Language
 
