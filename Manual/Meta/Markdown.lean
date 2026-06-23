@@ -30,8 +30,11 @@ def Block.noVale.descr : BlockDescr where
 
 /-- Closes the last-opened section, throwing an error on failure. -/
 def closeEnclosingSection : PartElabM Unit := do
-  -- We use `default` as the source position because the Markdown doesn't have one
-  if let some ctxt' := (← getThe PartElabM.State).partContext.close default then
+  -- Markdown headers carry no source extent of their own, so end the section at the end of the
+  -- current reference. This keeps each part's range valid (the selection stays within
+  -- `[rangeStart, endPos]`) for the TOC range conversion.
+  let endPos := (← getRef).getTailPos?.getD default
+  if let some ctxt' := (← getThe PartElabM.State).partContext.close endPos then
     modifyThe PartElabM.State fun st => {st with partContext := ctxt'}
   else
     throwError m!"Failed to close the last-opened explanation part"
@@ -51,7 +54,7 @@ def markdown : PartCommand
        logErrorAt arg m!"No arguments expected{h}"
      let some ast := MD4Lean.parse txt.getString
        | throwError "Failed to parse body of markdown code block"
-     let mut currentHeaderLevels : Markdown.HeaderMapping := default
+     let mut currentHeaderLevels : Markdown.HeaderMapping := {}
      for block in ast.blocks do
        currentHeaderLevels ← Markdown.addPartFromMarkdown block currentHeaderLevels
      closeEnclosingSections currentHeaderLevels

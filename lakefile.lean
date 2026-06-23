@@ -13,6 +13,22 @@ require illuminate from git "https://github.com/leanprover/illuminate"@"main"
 require verso from git "https://github.com/leanprover/verso.git"@"nightly-testing"
 
 
+open Lean System in
+/--
+Resolves to the `lean` arguments that load Lake's shared library as a plugin (computed when this
+configuration is elaborated).
+
+Lake's builtin attributes (such as `@[test_driver]` and `@[lint_driver]`) are registered during
+`builtin_initialize`, so they are only available once Lake's native code is loaded into the
+elaborating process. This is required to reference those attributes with the `attr` role in the
+manual's prose. Lake loads this plugin automatically on macOS when a target has native dependencies,
+but not on other platforms, so the manual requests it explicitly.
+-/
+elab "lakePluginArgs%" : term => do
+  let sysroot ← findSysroot
+  let plugin := (sysroot / "lib" / "lean" / s!"libLake_shared.{Lake.sharedLibExt}").toString
+  return toExpr (#["--plugin", plugin] : Array String)
+
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
@@ -41,6 +57,17 @@ lean_lib IndexMapGrind where
 
 @[default_target]
 lean_lib Manual where
+  weakLeanArgs := lakePluginArgs%
+
+/--
+Elaborates Lean-format `lakefile.lean` examples for the manual, emitting both the elaborated
+package configuration and its SubVerso highlighting. Used by the `lakeLean` directive.
+-/
+@[default_target]
+lean_exe «extract-lakefile» where
+  root := `ExtractLakefile
+  -- The package configuration is evaluated via the interpreter (`Environment.evalConst`).
+  supportInterpreter := true
 
 /-- Ensure that the subverso-extract-mod executable is available -/
 target subversoExtractMod : FilePath := do
@@ -52,7 +79,7 @@ target subversoExtractMod : FilePath := do
 
 @[default_target]
 lean_exe "generate-manual" where
-  needs := #[`@/subversoExtractMod]
+  needs := #[`@/subversoExtractMod, `@/«extract-lakefile»]
   root := `Main
 
 @[default_target]

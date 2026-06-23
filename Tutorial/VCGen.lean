@@ -227,7 +227,7 @@ theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
   apply Id.of_wp_run_eq h
   mvcgen
   invariants
-  · Invariant.withEarlyReturn
+  · Invariant.withEarlyReturnNewDo
       (onReturn := fun ret seen => ⌜ret = false ∧ ¬l.Nodup⌝)
       (onContinue := fun xs seen =>
         ⌜(∀ x, x ∈ seen ↔ x ∈ xs.prefix) ∧ xs.prefix.Nodup⌝)
@@ -246,7 +246,7 @@ axiom onExcept : ExceptConds PostShape.pure
 ```
 The proof has the same succinct structure as for the initial {name}`mySum` example, because we again offload all proofs to {tactic}`grind` and its existing automation around {name}`List.Nodup`.
 Therefore, the only difference is in the {tech (remote := "reference")}[loop invariant].
-Since our loop has an {ref "early-return" (remote := "reference")}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturn`.
+Since our loop has an {ref "early-return" (remote := "reference")}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturnNewDo`, which supports the {ref "do-elab" (remote := "reference")}[extensible `do`-notation elaborator].
 This function allows us to specify the invariant in three parts:
 
 * {lean}`onReturn ret seen` holds after the loop was left through an early return with value {lean}`ret`.
@@ -275,9 +275,9 @@ This starting point will not allow the proof to succeed—after all, if the inva
 ```leanOutput invariants?
 Try this:
   [apply] invariants
-  · ⇓⟨xs, letMuts⟩ =>
-    ⌜xs.prefix = [] ∧ letMuts = ⟨none, ∅⟩ ∨
-        xs.suffix = [] ∧ (True ↔ l.Nodup) ∧ ∀ (a : Bool), letMuts.fst = some a → (a = true ↔ l.Nodup)⌝
+  ·
+    Invariant.withEarlyReturnNewDo (onReturn := fun r letMuts => ⌜(r = true ↔ l.Nodup) ∧ l.Nodup⌝) (onContinue :=
+      fun xs letMuts => ⌜xs.prefix = [] ∧ letMuts = ∅ ∨ xs.suffix = [] ∧ l.Nodup⌝)
 ```
 :::
 

@@ -116,7 +116,7 @@ elab_rules : command
   | `(#count_constants%$tok $x) => do
     let pattern := x.getId
     let env ← getEnv
-    let mut count := 0
+    let mut count : Nat := 0
     for (y, _) in env.constants do
       if pattern.isSuffixOf y then
         count := count + 1

@@ -96,7 +96,7 @@ block_extension Block.json (value : LexedText) where
   extraCss := [json.css]
   toHtml := some <| fun _ _ _ info _ => open Verso.Output.Html in do
     let .ok (v : LexedText) := fromJson? info
-      | HtmlT.logError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
+      | reportError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
     pure {{<pre class="json">{{v.toHtml}}</pre>}}
 
 /--

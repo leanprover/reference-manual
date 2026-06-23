@@ -103,7 +103,7 @@ Libraries, executables, and other {tech}[targets] within a package can further a
 
 :::
 
-:::tomlFieldCategory "Testing and Linting" testDriver testDriverArgs lintDriver lintDriverArgs
+:::tomlFieldCategory "Testing and Linting" testDriver testDriverArgs lintDriver lintDriverArgs builtinLint
 
 The CLI commands {lake}`test` and {lake}`lint` use definitions configured by the {tech}[workspace]'s {tech}[root package] to perform testing and linting.
 The code that is run to perform tests and linting is referred to as the test or lint driver.
@@ -159,7 +159,9 @@ name = "example-package"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       bootstrap := false,
       extraDepTargets := #[],
       precompileModules := false,
@@ -198,6 +200,7 @@ name = "example-package"
   scope := "",
   remoteUrl := "",
   depConfigs := #[],
+  depIdxs := #[],
   depPkgs := #[],
   targetDecls := #[],
   targetDeclMap := {},
@@ -247,7 +250,9 @@ name = "Sorting"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       bootstrap := false,
       extraDepTargets := #[],
       precompileModules := false,
@@ -286,6 +291,7 @@ name = "Sorting"
   scope := "",
   remoteUrl := "",
   depConfigs := #[],
+  depIdxs := #[],
   depPkgs := #[],
   targetDecls :=
     #[{toConfigDecl :=
@@ -308,7 +314,9 @@ name = "Sorting"
                     backend := Lake.Backend.default,
                     platformIndependent := none,
                     dynlibs := #[],
-                    plugins := #[] },
+                    plugins := #[],
+                    requiresModuleSystem := false,
+                    allowNonModules := false },
                 srcDir := FilePath.mk ".",
                 roots := #[`Sorting],
                 globs := #[Lake.Glob.one `Sorting],
@@ -345,7 +353,9 @@ name = "Sorting"
                           backend := Lake.Backend.default,
                           platformIndependent := none,
                           dynlibs := #[],
-                          plugins := #[] },
+                          plugins := #[],
+                          requiresModuleSystem := false,
+                          allowNonModules := false },
                       srcDir := FilePath.mk ".",
                       roots := #[`Sorting],
                       globs := #[Lake.Glob.one `Sorting],
@@ -380,7 +390,7 @@ There are three kinds of sources:
  * Git repositories, which may be local paths or URLs
  * Local paths
 
-::::tomlTableDocs "require" "Requiring Packages" Lake.Dependency (skip := src?) (skip := opts) (skip := subdir) (skip := version?)
+::::tomlTableDocs "require" "Requiring Packages" Lake.Dependency (skip := src?) (skip := opts) (skip := subdir) (skip := version)
 
 The {tomlField Lake.Dependency}`path` and {tomlField Lake.Dependency}`git` fields specify an explicit source for a dependency.
 If neither are provided, then the dependency is fetched from [Reservoir](https://reservoir.lean-lang.org/), or an alternative registry if one has been configured.
@@ -413,7 +423,7 @@ If the type is `"git"`, then the following keys should be present:
 
 :::tomlField Lake.Dependency version "version as string" "versions as strings" String
 
-{includeDocstring Lake.Dependency.version?}
+{includeDocstring Lake.Dependency.version}
 
 :::
 
@@ -425,11 +435,20 @@ The package `example` can be required from Reservoir using this TOML configurati
 ```toml
 [[require]]
 name = "example"
-version = "2.12"
+version = "≥2.12.0"
 scope = "exampleDev"
 ```
 ```expected
-#[{name := `example, scope := "exampleDev", version? := some "2.12", src? := none, opts := {}}]
+#[{name := `example,
+    scope := "exampleDev",
+    version :=
+      Lake.InputVer.ver
+        { toString := "≥2.12.0",
+          clauses := #[#[{ ver := { toSemVerCore := { major := 2, minor := 12, patch := 0 }, specialDescr := "" },
+                           op := Lake.ComparatorOp.ge,
+                           includeSuffixes := false }]] },
+    src? := none,
+    opts := {}}]
 ```
 ::::
 :::::
@@ -442,18 +461,23 @@ The package `example` can be required from a Git repository using this TOML conf
 name = "example"
 git = "https://git.example.com/example.git"
 rev = "main"
-version = "2.12"
+version = "≥2.12.0"
 ```
 ```expected
 #[{name := `example,
     scope := "",
-    version? := some "2.12",
+    version :=
+      Lake.InputVer.ver
+        { toString := "≥2.12.0",
+          clauses := #[#[{ ver := { toSemVerCore := { major := 2, minor := 12, patch := 0 }, specialDescr := "" },
+                           op := Lake.ComparatorOp.ge,
+                           includeSuffixes := false }]] },
     src? := some (Lake.DependencySrc.git "https://git.example.com/example.git" (some "main") none),
     opts := {}}]
 ```
 ::::
 
-In particular, the package will be checked out from the `main` branch, and the version number specified in the package's {tech (key := "package configuration")}[configuration] should match `2.12`.
+In particular, the package will be checked out from the `main` branch, and the version number specified in the package's {tech (key := "package configuration")}[configuration] should be at least `2.12.0`.
 :::::
 
 :::::example "Requiring Packages from a Git tag"
@@ -468,7 +492,7 @@ rev = "v2.12"
 ```expected
 #[{name := `example,
     scope := "",
-    version? := none,
+    version := Lake.InputVer.git "v2.12",
     src? := some (Lake.DependencySrc.git "https://git.example.com/example.git" (some "v2.12") none),
     opts := {}}]
 ```
@@ -486,7 +510,7 @@ rev = "v2.12"
 scope = "exampleDev"
 ```
 ```expected
-#[{name := `example, scope := "exampleDev", version? := some "git#v2.12", src? := none, opts := {}}]
+#[{name := `example, scope := "exampleDev", version := Lake.InputVer.git "v2.12", src? := none, opts := {}}]
 ```
 ::::
 The version number specified in the package's {tech (key := "package configuration")}[configuration] is not used.
@@ -503,7 +527,7 @@ path = "../example"
 ```expected
 #[{name := `example,
     scope := "",
-    version? := none,
+    version := Lake.InputVer.none,
     src? := some (Lake.DependencySrc.path (FilePath.mk "../example")),
     opts := {}}]
 ```
@@ -522,7 +546,7 @@ source = {type = "git", url = "https://example.com/example.git"}
 ```expected
 #[{name := `example,
     scope := "",
-    version? := none,
+    version := Lake.InputVer.none,
     src? := some (Lake.DependencySrc.git "https://example.com/example.git" none none),
     opts := {}}]
 ```
@@ -564,7 +588,9 @@ name = "TacticTools"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       srcDir := FilePath.mk ".",
       roots := #[`TacticTools],
       globs := #[Lake.Glob.one `TacticTools],
@@ -607,7 +633,9 @@ precompileModules = true
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       srcDir := FilePath.mk "src",
       roots := #[`TacticTools],
       globs := #[Lake.Glob.one `TacticTools],
@@ -658,7 +686,9 @@ name = "trustworthytool"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       srcDir := FilePath.mk ".",
       root := `trustworthytool,
       exeName := "trustworthytool",
@@ -706,7 +736,9 @@ exeName = "tt"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       srcDir := FilePath.mk ".",
       root := `TrustworthyTool,
       exeName := "tt",

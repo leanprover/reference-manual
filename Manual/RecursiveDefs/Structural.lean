@@ -606,7 +606,7 @@ The auxiliary match function's definition is:
 #print half.match_1
 ```
 ```leanOutput halfmatch (whitespace := lax)
-@[implicit_reducible] def half.match_1.{u_1} :
+@[instance_reducible] def half.match_1.{u_1} :
     (motive : Nat → Sort u_1) → (x : Nat) →
     (Unit → motive Nat.zero) → (Unit → motive 1) →
     ((n : Nat) → motive n.succ.succ) →
@@ -686,7 +686,7 @@ don't know how to synthesize placeholder for argument `h_1`
 context:
 x n : Nat
 table : Nat.below n
-⊢ Unit → (fun k => Nat.below k → Nat) Nat.zero
+⊢ Unit → Nat.below Nat.zero → Nat
 ```
 
 ```leanOutput threeCases
@@ -694,7 +694,7 @@ don't know how to synthesize placeholder for argument `h_2`
 context:
 x n : Nat
 table : Nat.below n
-⊢ Unit → (fun k => Nat.below k → Nat) 1
+⊢ Unit → Nat.below 1 → Nat
 ```
 
 ```leanOutput threeCases
@@ -702,7 +702,7 @@ don't know how to synthesize placeholder for argument `h_3`
 context:
 x n : Nat
 table : Nat.below n
-⊢ (n : Nat) → (fun k => Nat.below k → Nat) n.succ.succ
+⊢ (n : Nat) → Nat.below n.succ.succ → Nat
 ```
 
 The first two cases in the pre-definition are constant functions, with no recursion to check:

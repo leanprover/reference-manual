@@ -519,7 +519,158 @@ Note also in the first branch the {anchorTerm insert}`set` calls {anchorTerm ins
 are having their “in-bounds” obligations automatically filled in by {tactic}`grind` via the {tactic}`get_elem_tactic` auto-parameter.
 :::
 
-In {anchorName eraseSwap}`eraseSwap`, everything goes through cleanly now, with no manual proofs:
+:::paragraph
+Next let's try `eraseSwap`:
+```anchor eraseSwap_init
+@[inline] def eraseSwap (m : IndexMap α β) (a : α) : IndexMap α β :=
+  match h : m.indices[a]? with
+  | some i =>
+    if w : i = m.size - 1 then
+      { indices := m.indices.erase a
+        keys := m.keys.pop
+        values := m.values.pop }
+    else
+      let lastKey := m.keys.back
+      let lastValue := m.values.back
+      { indices := (m.indices.erase a).insert lastKey i
+        keys := m.keys.pop.set i lastKey
+        values := m.values.pop.set i lastValue }
+  | none => m
+```
+```anchorError eraseSwap_init
+could not synthesize default value for field 'WF' of 'IndexMap' using tactics
+```
+```anchorError eraseSwap_init
+`grind` failed
+case grind.1.1.2.2.1.1.1
+α : Type u
+β : Type v
+inst : BEq α
+inst_1 : Hashable α
+m_1 : IndexMap α β
+a_1 : α
+b : β
+i_1 : Nat
+inst_2 : LawfulBEq α
+inst_3 : LawfulHashable α
+m : IndexMap α β
+a : α
+i : Nat
+h : m.indices[a]? = some i
+w : ¬i = m.size - 1
+lastKey : α := m.keys.back ⋯
+lastValue : β := m.values.back ⋯
+i_2 : Nat
+a_2 : α
+h_1 : ((m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2) =
+  ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
+h_2 : -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 ≤ 0
+left : (m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2
+right : ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
+h_4 : ¬i = i_2
+left_1 : ¬m.keys[i_2]? = some a
+right_1 : ¬m.indices[a]? = some i_2
+h_6 : (m.keys.back ⋯ == a_2) = true
+h_7 : i + 1 ≤ m.keys.pop.size
+left_2 : (m.indices.erase a).contains a_2 = true
+right_2 : a_2 ∈ m.indices.erase a
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] True propositions
+  [eqc] False propositions
+  [eqc] Equivalence classes
+  [cases] Case analyses
+  [ematch] E-matching patterns
+  [cutsat] Assignment satisfying linear constraints
+  [ring] Rings
+
+[grind] Diagnostics
+```
+
+This fails while attempting to prove the {anchorName IndexMap}`WF` field in the second branch.
+As usual, there is detailed information from {tactic}`grind` about its failure state, but almost too much to be helpful!
+Let's look at the model produced by `cutsat` and see if we can see what's going on:
+```anchorError eraseSwap_init (onlyTrace := "Assignment satisfying linear constraints") (expandTrace := cutsat)
+[cutsat] Assignment satisfying linear constraints
+  [assign] i_1 := 4
+  [assign] i := 0
+  [assign] i_2 := 1
+  [assign] m.keys.pop.size := 2
+  [assign] m.keys.size := 3
+  [assign] m.size := 3
+  [assign] (m.keys.pop.set i (m.keys.back ⋯) ⋯).size := 2
+  [assign] m.values.size := 3
+  [assign] m.indices[a] := 0
+  [assign] ((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2] := 0
+  [assign] (m.keys.set i (m.keys.back ⋯) ⋯).pop.size := 2
+  [assign] (m.keys.set i (m.keys.back ⋯) ⋯).size := 3
+  [assign] m.indices[a] := 0
+  [assign] m.indices[a_2] := 1
+  [assign] m.indices[m.keys[i_2]] := 1
+  [assign] m.indices[m.keys[i_2]] := 1
+```
+
+
+```comment
+FIXME (@kim-em / @leodemoura): there is some repeated output here.
+```
+
+This model consists of an {anchorName IndexMap}`IndexMap` of size {lean}`3`,
+with keys `a`, `a_2`, and the otherwise unnamed `m.keys.back ⋯`.
+
+:::
+
+
+:::paragraph
+Everything looks fine, *except* the line:
+```
+((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2] := 0
+```
+This shouldn't be possible! Since the three keys are distinct,
+we should have
+```
+((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2] =
+  (m.indices.erase a)[a_2] =
+  m.indices[a_2] =
+  1
+```
+Now that we've found something suspicious, we can look through the equivalence classes identified by `grind`.
+(In the future we'll be providing search tools for inspecting equivalence classes, but for now you need to read through manually.)
+We find amongst many others:
+```
+{a_2,
+  m.keys.back ⋯,
+  ..
+  m.keys[m.keys.size - 1],
+  ..
+  m.keys[i_2], ...}
+```
+This should imply, by the injectivity of {anchorName IndexMap}`keys`, that `i_2 = m.keys.size - 1`.
+Since this identity *wasn't* reflected by the `cutsat` model,
+we suspect that {tactic}`grind` is not managing to use the injectivity of {anchorName IndexMap}`keys`.
+
+:::
+
+
+Thinking about the way that we've provided the well-formedness condition, as
+`∀ (i : Nat) (a : α), keys[i]? = some a ↔ indices[a]? = some i`, this perhaps isn't surprising:
+it's expressed in terms of `keys[i]?` and `indices[a]?`.
+Let's add a variant version of the well-formedness condition using {name GetElem.getElem}`getElem` instead of {name GetElem?.getElem?}`getElem?`:
+```anchor WF'
+@[local grind .]
+private theorem WF' (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
+    m.keys[i] = a ↔ m.indices[a] = i := by
+  have := m.WF i a
+  grind
+```
+We can verify that with this available, {tactic}`grind` can now prove:
+```anchor WF'ex
+example {m : IndexMap α β} {a : α} {h : a ∈ m} :
+  m.keys[m.indices[a]'h] = a := by grind
+```
+
+Trying again with {anchorName eraseSwap}`eraseSwap`, everything goes through cleanly now, with no manual proofs:
 ```anchor eraseSwap
 @[inline] def eraseSwap (m : IndexMap α β) (a : α) : IndexMap α β :=
   match h : m.indices[a]? with
