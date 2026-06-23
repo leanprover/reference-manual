@@ -13,29 +13,174 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.30.0-rc2 (2026-04-16)" =>
+#doc (Manual) "Lean 4.30.0 (2026-05-26)" =>
 %%%
 tag := "release-v4.30.0"
 file := "v4.30.0"
 %%%
 
-:::warn
-These release notes describe a _release candidate_, not the final release.
-They may be incomplete and are subject to change.
-:::
-
-For this release, 302 changes landed.
-In addition to the 118 feature additions,
-and 69 fixs listed below,
+For this release, 306 changes landed.
+In addition to the 123 feature additions,
+and 73 fixes listed below,
 there were 17 refactoring changes,
 8 documentation improvements,
 19 performance improvements,
 12 improvements to the test suite,
-and 59 other changes.
+and 54 other changes.
+
+# Highlights
+
+Lean 4.30.0 brings a new interactive `sym =>` tactic, a significantly expanded `cbv` tactic, completion of the new LCNF compiler backend with user-controllable borrow annotations, and a major overhaul of Lake's caching infrastructure.
+
+_This highlights section was contributed by Juanjo Madrigal._
+
+## New `sym =>` Interactive Tactic
+
+[#12970](https://github.com/leanprover/lean4/pull/12970) adds `sym =>`, a new interactive tactic mode built on {tactic}`grind`. Unlike `grind =>`, which eagerly introduces hypotheses and applies proof by contradiction, `sym =>` gives users explicit control over each step. So the user may use all the infrastructure provided by `grind` but with a custom strategy:
+
+```lean  (name := sym)
+example (f : Nat → Nat) (a b : Nat)
+    (hinj : ∀ x y, f x = f y → x = y) (h : f a = f b) : a = b := by
+  sym => instantiate ; show_eqcs ; finish
+```
+```leanOutput sym
+[eqc] Equivalence classes
+  [eqc] {a, b}
+  [eqc] {f a, f b}
+```
+
+Available tactics include `intro`/`intros`, `apply`, `internalize`, `by_contra`, and `simp`. Solvers like `lia` and `ring` automatically introduce remaining binders and apply by-contradiction as needed.
+
+Related development can be found in PRs: [#12996](https://github.com/leanprover/lean4/pull/12996) / [#13018](https://github.com/leanprover/lean4/pull/13018) / [#13034](https://github.com/leanprover/lean4/pull/13034) / [#13039](https://github.com/leanprover/lean4/pull/13039) / [#13040](https://github.com/leanprover/lean4/pull/13040) / [#13041](https://github.com/leanprover/lean4/pull/13041) / [#13042](https://github.com/leanprover/lean4/pull/13042) / [#13046](https://github.com/leanprover/lean4/pull/13046) / [#13048](https://github.com/leanprover/lean4/pull/13048) / [#13080](https://github.com/leanprover/lean4/pull/13080).
+
+## `cbv` Tactic Expansion
+
+The {tactic}`cbv` tactic, introduced in v4.29.0, is no longer experimental and receives major new capabilities in this release.
+
+{tactic}`cbv` performs a process similar to call-by-value evaluation in order to simplify or close the goals.
+
+```lean
+def fact : Nat → Nat
+| 0 => 1
+| n+1 => (n+1) * fact n
+
+def pow2 : Nat → Nat
+| 0 => 1
+| n+1 => 2 * pow2 n
+
+-- `simp` requires providing functions
+example : fact 5 < pow2 7 := by simp [fact, pow2]
+-- `cbv` just executes directly
+example : fact 5 < pow2 7 := by cbv
+```
+
+v4.30.0 introduces the following improvements:
+
+- [#12597](https://github.com/leanprover/lean4/pull/12597): `cbv_simproc` system mirroring {tactic}`simp`'s `simproc` infrastructure.
+
+- [#12773](https://github.com/leanprover/lean4/pull/12773): `at` location syntax (`cbv at h`, `cbv at h |-`, and `cbv at *`).
+
+- [#12788](https://github.com/leanprover/lean4/pull/12788): `set_option cbv.maxSteps N` for user-configurable step limits.
+
+- [#12763](https://github.com/leanprover/lean4/pull/12763): short-circuit evaluation for `Or`/`And`: for expressions like `decide (m < n ∨ expensive)`
+
+- Other improvements: [#12851](https://github.com/leanprover/lean4/pull/12851) / [#12944](https://github.com/leanprover/lean4/pull/12944) / [#12875](https://github.com/leanprover/lean4/pull/12875) / [#12888](https://github.com/leanprover/lean4/pull/12888).
+
+## Compiler: User Borrow Annotations and New LCNF Backend
+
+### User Borrow Annotations
+
+[#12830](https://github.com/leanprover/lean4/pull/12830) enables support for user-provided borrow annotations. Users can now mark function arguments with `(x : @&Ty)` and have the borrow inference preserve these annotations, reducing reference counting pressure:
+
+```
+def process (ctx : @& Context) (data : Array Nat) : Result :=
+  ...  -- `ctx` will not be reference counted
+```
+
+The compiler prioritizes preserving tail calls over borrow annotations. Use `trace.Compiler.inferBorrow` to see a detailed reasoning of the compiler's inference decisions. [#12810](https://github.com/leanprover/lean4/pull/12810) adds this tracing infrastructure.
+
+[#12942](https://github.com/leanprover/lean4/pull/12942) marks the context argument of {lean}`ReaderT` as borrowed (`(a : @&ρ) → m α`), causing a widespread reduction in RC pressure across the entire metaprogramming stack.
+
+### New LCNF Backend Complete
+
+[#12781](https://github.com/leanprover/lean4/pull/12781) ports the C emission pass from IR to LCNF, marking the final step of the IR/LCNF conversion and enabling end-to-end code generation through the new compilation infrastructure.
+
+[#12665](https://github.com/leanprover/lean4/pull/12665) ports the expand reset/reuse pass to LCNF with improved exponential-code prevention, resulting in a *~15% decrease in binary size* and slight speedups across the board.
+
+### Other Compiler Improvements
+
+- [#12971](https://github.com/leanprover/lean4/pull/12971) increases Lean's default stack size to 1GB (pages are allocated dynamically, so this does not increase memory usage). The stack size can be customized via `LEAN_STACK_SIZE_KB`.
+- [#12539](https://github.com/leanprover/lean4/pull/12539) replaces three independent name demangling implementations (Lean, C++, Python) with a single source of truth in `Lean.Compiler.NameDemangling`, deleting ~1,400 lines of duplicated code.
+- [#12724](https://github.com/leanprover/lean4/pull/12724), [#12727](https://github.com/leanprover/lean4/pull/12727) extract ground array and boxed scalar literals into statically initialized data.
+
+## Lake Cache Overhaul
+
+This release brings a comprehensive overhaul of Lake's caching infrastructure:
+
+- [#12634](https://github.com/leanprover/lean4/pull/12634):  enables Lake to download artifacts from a remote cache service on demand as part of a `lake build`.
+
+- [#12927](https://github.com/leanprover/lean4/pull/12927): `lake cache get` changes to download artifacts by default. Artifacts can be downloaded on demand with the new `--mappings-only` option.
+
+- [#12974](https://github.com/leanprover/lean4/pull/12974): parallel artifact transfers using `curl --parallel` for both uploads and downloads.
+
+- [#13164](https://github.com/leanprover/lean4/pull/13164): download optimizations by fetching all artifact URLs from Reservoir in a single bulk POST request instead of per-artifact redirects.
+
+- [#12914](https://github.com/leanprover/lean4/pull/12914): `.ltar` archive packing/unpacking via `leantar`.
+
+- [#13144](https://github.com/leanprover/lean4/pull/13144): new `lake cache` subcommands for staged cache uploads: `stage`, `unstage`, and `put-staged`, functioning as parallels for the commands of the same name in Mathlib's `lake exe cache`.
+
+- [#12935](https://github.com/leanprover/lean4/pull/12935): new `fixedToolchain` option for packages only expected to function on a single toolchain (like Mathlib).
+
+## Other Language Improvements
+
+- [#13011](https://github.com/leanprover/lean4/pull/13011) adds `@[deprecated_arg]`, a new attribute for deprecating individual function parameters. When a caller uses the old parameter name, the elaborator emits a deprecation warning with a code action hint.
+- [#12756](https://github.com/leanprover/lean4/pull/12756) adds `deriving noncomputable instance Foo for Bar` syntax so that delta-derived instances can be marked noncomputable.
+- [#13117](https://github.com/leanprover/lean4/pull/13117) re-enables `#print axioms` under the module system by computing axiom dependencies at olean serialization time.
+- [#12866](https://github.com/leanprover/lean4/pull/12866) adds `optType` support to the `doPatDecl` parser, allowing `let ⟨width, height⟩ : Nat × Nat ← action` in do-notation.
+- [#12325](https://github.com/leanprover/lean4/pull/12325) adds a warning when a `def` of class type does not declare an appropriate reducibility (e.g., `@[reducible]` or `@[implicit_reducible]`).
+- [#12233](https://github.com/leanprover/lean4/pull/12233) replaces `instantiateMVars` with a two-pass implementation that reduces quadratic complexity from long chains of delayed-assigned metavariables to linear.
+
+## Library Highlights
+
+### HTTP Library
+
+[#12126](https://github.com/leanprover/lean4/pull/12126), [#12127](https://github.com/leanprover/lean4/pull/12127), [#12128](https://github.com/leanprover/lean4/pull/12128), and [#12144](https://github.com/leanprover/lean4/pull/12144) introduce core HTTP data types: `Request`, `Response`, `Status`, `Version`, `Method`, `Headers`, `URI`, and streaming `Body`. This is the foundation of a standard HTTP library in Lean.
+
+### Other Library Additions
+
+- String verification continues from v4.29.0 with proofs for `startsWith`, `skipPrefix?`, `dropPrefix?`, `endsWith`, `dropSuffix?`, `split`, `intercalate`, `isNat`, `toNat?`, `isInt`, `toInt?`, `drop`, `take`, and more.
+- [#12852](https://github.com/leanprover/lean4/pull/12852) adds a `PersistentHashMap` iterator and [#12844](https://github.com/leanprover/lean4/pull/12844) adds an `append` combinator for iterator concatenation.
+- [#12385](https://github.com/leanprover/lean4/pull/12385) adds `Array.mergeSort`, a stable O(n log n) worst-case sort measured to be about twice as fast as `List.mergeSort` for large random arrays.
+- [#12430](https://github.com/leanprover/lean4/pull/12430) provides `WellFounded.partialExtrinsicFix` for implementing and verifying partially terminating functions.
+- [#12702](https://github.com/leanprover/lean4/pull/12702) upstreams `List.splitOn` and `List.splitOnP` from Batteries/Mathlib.
+- [#12433](https://github.com/leanprover/lean4/pull/12433) adds an efficient parallel-prefix-sum bitblasting circuit for `BitVec.cpop`.
+
+## Experimental: Live Debugging with `idbg`
+
+[#12648](https://github.com/leanprover/lean4/pull/12648) adds the experimental `idbg e` syntax for live debugging between the language server and a running compiled Lean program. When placed in a `do` block, `idbg` captures local variables in scope and expression `e`, then connects the running program to the language server over TCP to evaluate `e` with actual runtime values. The expression can be edited while the program is running — each edit triggers re-evaluation with an updated result displayed as an info diagnostic. This is experimental and has known limitations (single `idbg` at a time, `LEAN_PATH` must be set, untested on Windows/macOS).
+
+## Breaking Changes
+
+- [#12897](https://github.com/leanprover/lean4/pull/12897): Proofs that relied on the prior “defeq abuse” of these instance or that depended on their specific structure may need adjustments. As `inferInstanceAs A` now needs to know the source and target types exactly before it can continue, it cannot be used anymore as a synonym for `(inferInstance : A)`, use the latter instead when source and target type are identical.
+- [#13005](https://github.com/leanprover/lean4/pull/13005): Metaprograms that call `compileDecl` directly may now need to call `markMeta` first where appropriate, possibly based on the value of `isMarkedMeta` of existing decls. `addAndCompile` should be split into `addDecl` and `compileDecl` for this in order to insert the call in between.
+- [#12749](https://github.com/leanprover/lean4/pull/12749) renames metaprogramming APIs: `isStructureLike` → `isNonRecStructure`, `matchConstStructLike` → `matchConstNonRecStructure`, `getStructureLikeCtor?` → `getNonRecStructureCtor?`, `getStructureLikeNumFields` → `getNonRecStructureNumFields`.
+- [#12771](https://github.com/leanprover/lean4/pull/12771) changes the signature of `String.Slice.Pos.cast` to require `s.copy = t.copy` instead of `s = t`. Uses of it can be easily adapted by replacing `proof` with `congrArg Slice.copy proof` where required.
+- [#12435](https://github.com/leanprover/lean4/pull/12435) changes the signature of `Option.getElem?_inj`.
+- [#12708](https://github.com/leanprover/lean4/pull/12708) changes the order of implicit parameters in `PostCond.noThrow`, `PostCond.mayThrow`, `PostCond.entails`, `PostCond.and`, `PostCond.imp` so that `α` consistently comes before `ps`.
+- [#12603](https://github.com/leanprover/lean4/pull/12603): Inductive types with a constructor that starts with typeless binders may need to be rewritten, e.g. changing `(x)` to `(x : _)` if there is a `variable` with that name or if it is meant to shadow one of the inductive type's parameters.
 
 # Language
 
 ````markdown
+
+- [#13315](https://github.com/leanprover/lean4/pull/13315)
+  fixes `processDefDeriving` to propagate the `meta` attribute to instances derived via delta deriving, so that `deriving BEq` inside a `public meta section` produces a meta instance. Previously the derived `instBEqFoo` was not marked meta, and the LCNF visibility checker rejected meta definitions that used `==` on the alias — this came up while bumping verso to v4.30.0-rc1.
+
+- [#13311](https://github.com/leanprover/lean4/pull/13311)
+  adds an optional `markMeta : Bool := false` parameter to `addAndCompile`, so that callers can propagate the `meta` marking without manually splitting into `addDecl` + `markMeta` + `compileDecl`.
+
+- [#13304](https://github.com/leanprover/lean4/pull/13304)
+  makes the delta-deriving handler create `theorem` declarations instead of `def` declarations when the instance type is a `Prop`. Previously, `deriving instance Nonempty for Foo` would always create a `def`, which is inconsistent with the behavior of a handwritten `instance` declaration.
 
 - [#13188](https://github.com/leanprover/lean4/pull/13188)
   extends the `missingDocs` linter to detect and warn about empty doc strings (e.g. `/---/` or `/-- -/`), in addition to missing doc strings. Previously, an empty doc comment would silence the linter even though it provides no documentation value. Now empty doc strings produce a distinct "empty doc string for ..." warning, while `@[inherit_doc]` still suppresses warnings as before.
@@ -642,6 +787,9 @@ and 59 other changes.
 
 ```markdown
 
+- [#13270](https://github.com/leanprover/lean4/pull/13270)
+  adds `Runtime.hold`, which ensures its argument remains alive until the callsite by holding a reference to it. This can be useful for unsafe code (such as an FFI) that relies on a Lean object not being freed until after some point in the program.
+
 - [#13392](https://github.com/leanprover/lean4/pull/13392)
   fixes a heap buffer overflow in `lean_io_prim_handle_read` that was triggered through an
   integer overflow in the size computation of an allocation. In addition it places several checked
@@ -837,6 +985,12 @@ and 59 other changes.
 
 ```markdown
 
+- [#13683](https://github.com/leanprover/lean4/pull/13683)
+  moves the compiled Lake configurations (e.g., `lakefile.olean`) from the package's `.lake/config` directory to the workspace's `.lake/config`. This removes a potential source contention between workspaces sharing a dependency.
+
+- [#13600](https://github.com/leanprover/lean4/pull/13600)
+  fixes a Lake issue where the IR for a `meta import`'s transitive imports was not included in the import artifacts Lake provided to Lean (e.g., via `--setup`). When using the Lake artifact cache, this could produce "missing data file" errors due to absent IR.
+
 - [#13164](https://github.com/leanprover/lean4/pull/13164)
   changes `lake cache get` to fetch artifact cloud storage URLs from Reservoir in a single bulk POST request rather than relying on per-artifact HTTP redirects. When downloading many artifacts, the redirect-based approach sends one request per artifact to the Reservoir web host (Netlify), which can be slow and risks hitting rate limits. The bulk endpoint returns all URLs at once, so curl only talks to the CDN after that.
 
@@ -899,6 +1053,9 @@ and 59 other changes.
 # Other
 
 ```markdown
+
+- [#13499](https://github.com/leanprover/lean4/pull/13499)
+  fixes the architecture detection for `leantar` on Linux aarch64, ensuring it is properly bundled with Lean.
 
 - [#12865](https://github.com/leanprover/lean4/pull/12865)
   fixes a crash in release_checklist.py when a repository uses the

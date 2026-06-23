@@ -377,7 +377,7 @@ languageEquivalent.coinduct {Q A Q' : Type}
 
 It can be used to prove that these two DFAs have equivalent languages:
 :::row (align := "top")
-```diagram (scale := "0.1") +inline
+```diagram (cssScale := "0.1") +inline
 open Illuminate in
 let cfg : StateDiagramConfig := {}
 cfg.start 0 |>.atop
@@ -388,7 +388,7 @@ cfg.start 0 |>.atop
 (cfg.edge 0 1 "b")
 ```
 
-```diagram (scale := "0.1") +inline
+```diagram (cssScale := "0.1") +inline
 open Illuminate in
 let cfg : StateDiagramConfig := {}
 cfg.start 0 |>.atop

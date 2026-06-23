@@ -9,6 +9,7 @@ import VersoManual
 
 -- TODO generalize upstream - this is based on the one in the blog genre.
 namespace Manual
+open Verso
 open Lean.Doc.Syntax
 
 abbrev LexedText.Highlighted := Array (Option String × String)
@@ -148,7 +149,7 @@ def c.descr : BlockDescr where
   toTeX := none
   toHtml := some <| fun _ _ _ info _ => do
     let .ok (v : LexedText) := fromJson? info
-      | HtmlT.logError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
+      | reportError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
     pure {{<pre class="c">{{v.toHtml}}</pre>}}
   extraCss := [c.css]
 
@@ -160,7 +161,7 @@ def c.idescr : InlineDescr where
   toTeX := none
   toHtml := some <| fun _ _ info _ => do
     let .ok (v : LexedText) := fromJson? info
-      | HtmlT.logError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
+      | reportError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
     pure {{<code class="c">{{v.toHtml}}</code>}}
   extraCss := [c.css]
 

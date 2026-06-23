@@ -48,4 +48,14 @@ where
     logo := some "/static/lean_logo.svg",
     sourceLink := some "https://github.com/leanprover/reference-manual",
     issueLink := some "https://github.com/leanprover/reference-manual/issues",
+    searchPriorities := {
+      domains := .ofList [
+        (`Verso.Genre.Manual.doc.tech,        65),
+        (`Verso.Genre.Manual.doc,             60),
+        (`Verso.Genre.Manual.doc.tactic,      60),
+        (`Verso.Genre.Manual.doc.tactic.conv, 60),
+        (`Verso.Genre.Manual.doc.option,      60),
+        (`Verso.Genre.Manual.example,         60),
+      ]
+    },
   }

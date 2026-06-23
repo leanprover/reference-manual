@@ -24,7 +24,7 @@ def Block.figure (captionString : String) (name : Option String) : Block where
   data := ToJson.toJson (captionString, name, (none : Option Tag))
 
 structure FigureConfig where
-  caption : FileMap × TSyntaxArray `inline
+  caption : TSyntaxArray `inline
   /-- Name for refs -/
   tag : Option String := none
 
@@ -37,15 +37,14 @@ def figure : DirectiveExpander
   | args, contents => do
     let cfg ← FigureConfig.parse.run args
 
-    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.caption.2)
-      (selectionRange := mkNullNode cfg.caption.2)
+    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.caption)
+      (selectionSyntax? := some <| mkNullNode cfg.caption)
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Figure")
 
-    let caption ← DocElabM.withFileMap cfg.caption.1 <|
-      cfg.caption.2.mapM elabInline
+    let caption ← cfg.caption.mapM elabInline
 
-    let captionString := inlinesToString (← getEnv) cfg.caption.2
+    let captionString := inlinesToString (← getEnv) cfg.caption
 
     let blocks ← contents.mapM elabBlock
     -- Figures are represented using the first block to hold the caption. Storing it in the JSON
@@ -56,7 +55,7 @@ def figure : DirectiveExpander
 def figure.descr : BlockDescr where
   traverse id data contents := do
     match FromJson.fromJson? data (α := String × Option String × Option Tag) with
-    | .error e => logError s!"Error deserializing figure tag: {e}"; pure none
+    | .error e => reportError s!"Error deserializing figure tag: {e}"; pure none
     | .ok (captionString, none, _) => pure none
     | .ok (captionString, some x, none) =>
       let path ← (·.path) <$> read
@@ -72,11 +71,11 @@ def figure.descr : BlockDescr where
     open Verso.Output.Html in
     some <| fun goI goB id _data blocks => do
       if h : blocks.size < 1 then
-        HtmlT.logError "Malformed figure"
+        reportError "Malformed figure"
         pure .empty
       else
         let .para caption := blocks[0]
-          | HtmlT.logError "Malformed figure - caption not paragraph"; pure .empty
+          | reportError "Malformed figure - caption not paragraph"; pure .empty
         let xref ← HtmlT.state
         let attrs := xref.htmlId id
         pure {{
