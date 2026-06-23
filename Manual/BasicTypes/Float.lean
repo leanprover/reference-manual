@@ -28,71 +28,170 @@ Computations that use floating-point numbers are very efficient; however, the na
 The IEEE 754 standard, which defines the floating-point format that is used on modern computers, allows hardware designers to make certain choices, and real systems differ in these small details.
 For example, there are many distinct bit representations of `NaN`, the indicator that a result is undefined, and some platforms differ with respect to _which_ `NaN` is returned from adding two `NaN`s.
 
-Lean exposes the underlying platform's floating-point values for use in programming, but they are not encoded in Lean's logic.
-They are represented by an opaque type.
-This means that the {tech}[kernel] is not capable of computing with or reasoning about floating-point values without additional {ref "axioms"}[axioms].
-A consequence of this is that equality of floating-point numbers is not decidable.
-Furthermore, comparisons between floating-point values are decidable, but the code that does so is opaque; in practice, the decision procedure can only be used in compiled code.
+To enable reasoning about floating-point numbers, Lean exposes a logical model of {name}`Float` that is used in proofs.
+In compiled code, this logical model is replaced by efficient native code.
+Differences between platforms are resolved by choosing specific representations (for example, all `NaN` values are replaced by a single canonical `NaN` when any operation requests a bit representation) and by modeling only the subset of floating-point operations that are implemented identically on all supported platforms.
+Other operations, such as trigonometric functions, are represented as opaque functions in Lean's logic.
 
-Lean provides two floating-point types: {name}`Float` represents 64-bit floating point values, while {name}`Float32` represents 32-bit floating point values.
+The logical model is extensively empirically tested against the floating-point operations on all supported platforms.
+As long as FFI code does not modify the floating-point environment, Lean's runtime floating-point primitives match the model's specification.
+
+
+# Logical Model
+
+Lean provides two floating-point types: {name}`Float` represents 64-bit floating-point values, while {name}`Float32` represents 32-bit floating-point values.
 The precision of {name}`Float` does not vary based on the platform that Lean is running on.
 
+{docstring Float}
 
-{docstring Float (label := "type") +hideStructureConstructor +hideFields}
+{docstring Float32}
 
-{docstring Float32 (label := "type") +hideStructureConstructor +hideFields}
+## Model Details
 
+The logical models of {lean}`Float` and {lean}`Float32` consist of unsigned integers with validity predicates.
+These are then interpreted into a {lean}`Float.Model.UnpackedFloat`, which is a higher-level model that is not specific to a bit width.
+The defined operations are implemented in terms of {name Float.Model.UnpackedFloat}`UnpackedFloat`.
+These operations are a _logical specification_ designed for reasoning.
+Although they can be executed, they will run significantly slower than native code.
 
-:::example "No Kernel Reasoning About Floating-Point Numbers"
+This model is not intended to serve as the basis for a more extensive floating-point library.
+It exists only to support the reasoning tools available in Lean and is not suitable for larger-scale development.
+To implement a more extensive floating-point library, instead implement a suitable model, prove the equivalence of the its operations to this model, and then transfer lemmas using the equivalence.
+
+{docstring Float.Model}
+
+{docstring Float32.Model}
+
+{docstring Float.Model.pack}
+
+{docstring Float32.Model.pack}
+
+{docstring Float.Model.unpack}
+
+{docstring Float32.Model.unpack}
+
+{docstring Float.Model.UnpackedFloat}
+
+## Model Operations
+
+The following operations are specified for floating-point values.
+Other operators are represented by opaque functions and do not reduce in the kernel.
+
+{docstring Float.Model.UnpackedFloat.add}
+
+{docstring Float.Model.UnpackedFloat.sub}
+
+{docstring Float.Model.UnpackedFloat.mul}
+
+{docstring Float.Model.UnpackedFloat.div}
+
+{docstring Float.Model.UnpackedFloat.sqrt}
+
+{docstring Float.Model.UnpackedFloat.neg}
+
+{docstring Float.Model.UnpackedFloat.abs}
+
+{docstring Float.Model.UnpackedFloat.isNaN}
+
+{docstring Float.Model.UnpackedFloat.isInf}
+
+{docstring Float.Model.UnpackedFloat.isFinite}
+
+{docstring Float.Model.UnpackedFloat.compare}
+
+{docstring Float.Model.UnpackedFloat.beq}
+
+{docstring Float.Model.UnpackedFloat.lt}
+
+{docstring Float.Model.UnpackedFloat.le}
+
+{docstring Float.Model.UnpackedFloat.ofNat}
+
+{docstring Float.Model.UnpackedFloat.ofInt}
+
+{docstring Float.Model.UnpackedFloat.ofScientific}
+
+{docstring Float.Model.UnpackedFloat.toInt8}
+
+{docstring Float.Model.UnpackedFloat.ofInt8}
+
+{docstring Float.Model.UnpackedFloat.toInt16}
+
+{docstring Float.Model.UnpackedFloat.ofInt16}
+
+{docstring Float.Model.UnpackedFloat.toInt32}
+
+{docstring Float.Model.UnpackedFloat.ofInt32}
+
+{docstring Float.Model.UnpackedFloat.toInt64}
+
+{docstring Float.Model.UnpackedFloat.ofInt64}
+
+{docstring Float.Model.UnpackedFloat.toISize}
+
+{docstring Float.Model.UnpackedFloat.ofISize}
+
+{docstring Float.Model.UnpackedFloat.toUInt8}
+
+{docstring Float.Model.UnpackedFloat.ofUInt8}
+
+{docstring Float.Model.UnpackedFloat.toUInt16}
+
+{docstring Float.Model.UnpackedFloat.ofUInt16}
+
+{docstring Float.Model.UnpackedFloat.toUInt32}
+
+{docstring Float.Model.UnpackedFloat.ofUInt32}
+
+{docstring Float.Model.UnpackedFloat.toUInt64}
+
+{docstring Float.Model.UnpackedFloat.ofUInt64}
+
+{docstring Float.Model.UnpackedFloat.toUSize}
+
+{docstring Float.Model.UnpackedFloat.ofUSize}
+
+:::example "Kernel Reasoning"
 The Lean kernel can compare expressions of type {lean}`Float` for syntactic equality, so {lean  (type := "Float")}`0.0` is definitionally equal to itself.
 ```lean
 example : (0.0 : Float) = (0.0 : Float) := by rfl
 ```
 
-Terms that require reduction to become syntactically equal cannot be checked by the kernel:
-```lean +error (name := zeroPlusZero)
+Additionally, terms that require reduction to become syntactically equal can be checked by the kernel when they use only operations that are modeled in Lean's logic:
+```lean
 example : (0.0 : Float) = (0.0 + 0.0 : Float) := by rfl
 ```
-```leanOutput zeroPlusZero
+The kernel cannot reduce terms that use operations that are not directly modeled, such as trigonometric functions:
+```lean (name := sin0) +error
+example : (0.0 : Float).sin = (0.0 : Float) := by rfl
+```
+```leanOutput sin0
 Tactic `rfl` failed: The left-hand side
+  Float.sin 0.0
+is not definitionally equal to the right-hand side
   0.0
-is not definitionally equal to the right-hand side
-  0.0 + 0.0
 
-⊢ 0.0 = 0.0 + 0.0
-```
-
-Similarly, the kernel cannot evaluate {lean}`Bool`-valued comparisons of floating-point numbers while checking definitional equality:
-```lean +error (name := zeroPlusZero') -keep
-theorem Float.zero_eq_zero_plus_zero :
-    ((0.0 : Float) == (0.0 + 0.0 : Float)) = true :=
-  by rfl
-```
-```leanOutput zeroPlusZero'
-Tactic `rfl` failed: The left-hand side
-  0.0 == 0.0 + 0.0
-is not definitionally equal to the right-hand side
-  true
-
-⊢ (0.0 == 0.0 + 0.0) = true
+⊢ Float.sin 0.0 = 0.0
 ```
 
 
 However, the {tactic}`native_decide` tactic can invoke the underlying platform's floating-point primitives that are used by Lean for run-time programs:
 ```lean
-theorem Float.zero_eq_zero_plus_zero :
-    ((0.0 : Float) == (0.0 + 0.0 : Float)) = true := by
+theorem Float.sin_zero_eq_zero :
+    ((0.0 : Float).sin == (0.0 : Float)) = true := by
   native_decide
 ```
 This tactic executes a decision procedure as compiled native code.
 This requires trusting the Lean compiler, interpreter and the low-level implementations of built-in operators in addition to the kernel.
-To make this dependency precisely clear, the tactic creates the axiom {name}`Float.zero_eq_zero_plus_zero._native.native_decide.ax_1`:
+To make this dependency precisely clear, the tactic creates the axiom {name}`Float.sin_zero_eq_zero._native.native_decide.ax_1`:
 ```lean (name := ofRed)
-#print axioms Float.zero_eq_zero_plus_zero
+#print axioms Float.sin_zero_eq_zero
 ```
 ```leanOutput ofRed
-'Float.zero_eq_zero_plus_zero' depends on axioms: [Classical.choice,
- Float.zero_eq_zero_plus_zero._native.native_decide.ax_1]
+'Float.sin_zero_eq_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ Float.sin_zero_eq_zero._native.native_decide.ax_1]
 ```
 :::
 
@@ -178,15 +277,6 @@ Floating-point numbers fall into one of three categories:
 {docstring Float32.isFinite}
 
 
-## Syntax
-
-These operations exist to support the {inst}`OfScientific Float` and {inst}`OfScientific Float32` instances and are normally invoked indirectly as a result of a literal value.
-
-{docstring Float.ofScientific}
-
-{docstring Float32.ofScientific}
-
-
 ## Conversions
 
 {docstring Float.toBits}
@@ -252,10 +342,6 @@ These operations exist to support the {inst}`OfScientific Float` and {inst}`OfSc
 {docstring Float.ofNat}
 
 {docstring Float32.ofNat}
-
-{docstring Float.ofBinaryScientific}
-
-{docstring Float32.ofBinaryScientific}
 
 {docstring Float.frExp}
 

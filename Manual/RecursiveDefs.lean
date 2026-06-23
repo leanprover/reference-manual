@@ -384,7 +384,7 @@ htmlSplit := .never
 While checking proofs and programs, Lean takes {deftech}_reducibility_, also known as _transparency_, into account.
 A definition's reducibility controls the contexts in which it is unfolded during elaboration and proof execution.
 
-There are four levels of reducibility:
+There are five levels of reducibility:
 
 : {deftech}[Irreducible]
 
@@ -398,9 +398,15 @@ There are four levels of reducibility:
 
 : {deftech}[Implicit reducible]
 
-  Implicit-reducible definitions are unfolded during type class {tech (key := "synthesis")}[instance synthesis] and while checking {tech}[definitional equality] of implicit arguments to functions.
+  Implicit-reducible definitions are unfolded while checking {tech}[definitional equality] of implicit arguments to functions.
   This includes ordinary {tech}[implicit] arguments, {tech}[instance implicit] arguments, and {tech}[strict implicit] arguments.
-  All type class instances should be instance-reducible or reducible, as should definitions that appear in the types of implicit arguments and are intended to reduce.
+  Definitions that appear in the types of implicit arguments and are intended to reduce should be implicit-reducible.
+
+: {deftech}[Instance reducible]
+
+  Instance-reducible definitions are unfolded during type class {tech (key := "synthesis")}[instance synthesis].
+  All type class instances should be instance-reducible or reducible.
+  Instances that are created by the {keywordOf Lean.Parser.Command.instance}`instance` command are automatically marked instance-reducible.
 
 : {deftech}[Reducible]
 
@@ -489,10 +495,13 @@ of type `Sequence Nat`
 :::
 
 :::syntax attr (title := "Reducibility Annotations")
-A definition's reducibility can be set using one of the four reducibility attributes:
+A definition's reducibility can be set using one of the five reducibility attributes:
 
 ```grammar
 reducible
+```
+```grammar
+instance_reducible
 ```
 ```grammar
 implicit_reducible
@@ -553,7 +562,7 @@ The functions {lean}`plus`, {lean}`sum`, and {lean}`tally` are synonyms for {lea
 ```lean
 abbrev plus := Nat.add
 
-@[implicit_reducible]
+@[instance_reducible]
 def sum := Nat.add
 
 def tally := Nat.add
@@ -575,9 +584,9 @@ The instance is found for the reducible definition {name}`plus`:
 ```lean
 #check notZero (plus 2 2)
 ```
-It is also found for the implicit-reducible definition {name}`sum`.
+It is also found for the instance-reducible definition {name}`sum`.
 This is because the type {lean}`Nonzero (sum 2 2)` is the type of an {tech}[instance implicit] parameter to {name}`notZero`.
-In particular, {name}`sum` is reduced to {name}`Nat.add` which is itself implicit-reducible, so the type is reduced to {lean}`Nonzero 4`:
+In particular, {name}`sum` is reduced to {name}`Nat.add` which is itself instance-reducible, so the type is reduced to {lean}`Nonzero 4`:
 ```lean
 #check notZero (sum 2 2)
 ```
