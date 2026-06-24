@@ -866,6 +866,9 @@ Generally speaking, {tactic}`have` should be used when proving an intermediate l
 :::tactic Lean.Parser.Tactic.tacticHave'
 :::
 
+:::tactic "replace"
+:::
+
 :::tactic Lean.Parser.Tactic.tacticLet__ (show := "let")
 :::
 
