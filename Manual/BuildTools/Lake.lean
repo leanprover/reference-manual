@@ -485,6 +485,7 @@ module.importInfo
 module.imports
 module.input
 module.ir
+module.ir.sig
 module.lean
 module.leanArts
 module.ltar
@@ -556,7 +557,12 @@ The facets available for modules are:
 
 : `ir`
 
-  The `.ir` file produced by `lean` (with the {ref "module-structure"}[experimental module system] enabled).
+  The `.ir` file produced for modules that use the {ref "module-structure"}[module system].
+
+
+: `ir.sig`
+
+  The `.ir.sig` file produced for modules that use the {ref "module-structure"}[module system].
 
 : `c`
 
