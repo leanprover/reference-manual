@@ -370,7 +370,7 @@ Not every inductive type is represented as indicated here—some inductive types
 axiom α : Prop
 ```
 
- * The representation of the fixed-width integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`Int8`, …, {lean}`Int64`, and {lean}`USize` depends on the whether the code is compiled for a 32- or 64-bit architecture.
+ * The representation of the fixed-width integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`Int8`, …, {lean}`Int64`, and {lean}`USize` depends on whether the code is compiled for a 32- or 64-bit architecture.
   Their representation is described {ref "fixed-int-runtime"}[in a dedicated section].
 
  * {lean}`Char` is represented by `uint32_t`. Because {lean}`Char` values never require more than 21 bits, they are always unboxed.
