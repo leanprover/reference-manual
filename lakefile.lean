@@ -29,6 +29,7 @@ elab "lakePluginArgs%" : term => do
   let plugin := (sysroot / "lib" / "lean" / s!"libLake_shared.{Lake.sharedLibExt}").toString
   return toExpr (#["--plugin", plugin] : Array String)
 
+
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
   moreLeancArgs := #["-O0"]
@@ -44,7 +45,6 @@ package "verso-manual" where
     ⟨`weak.linter.typography.quotes, true⟩,
     ⟨`weak.linter.typ, .ofNat 72⟩
   ]
-
 
 -- Extended examples used in the grind chapter
 @[default_target]
