@@ -142,7 +142,7 @@ Lean assigns {lean}`Solo` to {lean}`Type`:
 ```leanOutput OneTy
 Solo : Type
 ```
-The constructor is named {lean}`Solo.solo`, because constructor names are the type constructor's namespace.
+The constructor is named {lean}`Solo.solo`, because constructor names are in the type constructor's namespace.
 Because {lean}`Solo` expects no arguments, the signature inferred for {lean}`Solo.solo` is:
 ```lean (name := oneTy)
 #check Solo.solo

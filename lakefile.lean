@@ -29,6 +29,22 @@ elab "lakePluginArgs%" : term => do
   let plugin := (sysroot / "lib" / "lean" / s!"libLake_shared.{Lake.sharedLibExt}").toString
   return toExpr (#["--plugin", plugin] : Array String)
 
+open Lean System in
+/--
+Resolves to the `lean` arguments that load Lake's shared library as a plugin (computed when this
+configuration is elaborated).
+
+Lake's builtin attributes (such as `@[test_driver]` and `@[lint_driver]`) are registered during
+`builtin_initialize`, so they are only available once Lake's native code is loaded into the
+elaborating process. This is required to reference those attributes with the `attr` role in the
+manual's prose. Lake loads this plugin automatically on macOS when a target has native dependencies,
+but not on other platforms, so the manual requests it explicitly.
+-/
+elab "lakePluginArgs%" : term => do
+  let sysroot ← findSysroot
+  let plugin := (sysroot / "lib" / "lean" / s!"libLake_shared.{Lake.sharedLibExt}").toString
+  return toExpr (#["--plugin", plugin] : Array String)
+
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
