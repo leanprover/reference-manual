@@ -41,7 +41,19 @@ tag := "tactic-ref-classical"
 tag := "tactic-ref-assumptions"
 %%%
 
+The {tactic}`assumption` tactic proves the goal if there is a hypothesis in the context whose type matches the goal's target.
+
 :::tactic Lean.Parser.Tactic.assumption
+:::
+
+:::example "Closing a Goal from Context"
+Here the hypothesis `h₃` has exactly the type needed by the goal, so {tactic}`assumption` finds it automatically:
+```lean
+example (a b c d e : Nat)
+    (h₁ : a < b) (h₂ : b < c) (h₃ : c < d)
+    (h₄ : d < e) : c < d := by
+  assumption
+```
 :::
 
 :::tactic "apply_assumption"
@@ -52,17 +64,101 @@ tag := "tactic-ref-assumptions"
 tag := "tactic-ref-quantifiers"
 %%%
 
+The {tactic}`exists` tactic is used to prove an existential goal by providing a witness.
+
 :::tactic "exists"
 :::
+
+:::example "Providing a Witness"
+To prove that there exists a natural number whose double is 4, it suffices to provide the witness `2`:
+```lean
+example : ∃ n : Nat, n + n = 4 := by
+  exists 2
+```
+:::
+
+The {tactic}`intro` tactic makes progress on goals whose target type is an implication, universal quantifier, or function type.
+It introduces the hypothesis into the local context as a new assumption (for propositions) or a new local variable (for data) and changes the goal to the function's body.
 
 :::tactic "intro"
 :::
 
+:::example "Introducing an Implication"
+The goal `P → R` is an implication. {tactic}`intro` moves its premise into the context as `hp`:
+```lean
+example (P Q R : Prop) (hpq : P → Q) (hqr : Q → R) :
+    P → R := by
+  intro hp
+  exact hqr (hpq hp)
+```
+:::
+
+:::example "Introducing a Universal Quantifier"
+To prove a universally quantified statement, {tactic}`intro` introduces the quantified variable:
+```lean
+example : ∀ (n : Nat), n + 0 = n := by
+  intro n
+  rfl
+```
+:::
+
+:::example "Multiple Introductions"
+Multiple names can be provided to introduce several assumptions at once.
+Calling {tactic}`intro` once with multiple names is equivalent to calling it multiple times:
+```lean
+example (P Q R : Prop) (h : P → Q → R) :
+    P → Q → R := by
+  intro hP hQ
+  exact h hP hQ
+```
+:::
+
+:::example "Anonymous Introduction"
+When called with no arguments, {tactic}`intro` introduces a assumption with an inaccessible name.
+See {ref "tactic-language-hygiene"}[the section on names and hygiene] for more details.
+```lean
+example : ∀ (n : Nat), n = n := by
+  intro
+  rfl
+```
+:::
 
 :::tactic "intros"
 :::
 
+The {tactic}`rintro` tactic combines {tactic}`intro` with pattern matching, allowing hypotheses to be destructured as they are introduced.
+
 :::tactic "rintro"
+:::
+
+:::example "Introducing and Destructuring"
+The anonymous constructor pattern `⟨hp, hq⟩` destructs the conjunction as it is introduced:
+```lean
+example : P ∧ Q → Q ∧ P := by
+  rintro ⟨hp, hq⟩
+  exact ⟨hq, hp⟩
+```
+:::
+
+:::example "Introducing a Disjunction"
+For a disjunction, {tactic}`rintro` creates one subgoal per case:
+```lean
+example : P ∨ Q → Q ∨ P := by
+  rintro (hp | hq)
+  · right; exact hp
+  · left; exact hq
+```
+:::
+
+:::example "Substituting on Introduction"
+When matching on an equality where one side is a single variable also matched by {tactic}`rintro`, one
+can use `rfl` as a pattern name. This causes the equality to be immediately used as a substition applied to the goal.
+Here, instead of introducing a hypothesis `h : 7 * b = a`, {tactic}`rintro` directly replaces `a` with `7 * b`:
+```lean
+example : ∀ (a b : Nat), 7 * b = a → a + 1 = 7 * b + 1 := by
+  rintro a b rfl
+  rfl
+```
 :::
 
 
@@ -71,7 +167,43 @@ tag := "tactic-ref-quantifiers"
 tag := "tactic-ref-relations"
 %%%
 
+The {tactic}`rfl` tactic succeeds on instances of reflexive relations.
+A common case is when the goal is an equality of two terms are {tech (key := "definitional equality")}[definitionally equal].
+Other reflexive relations can also be tagged with attributes and used with {tactic}`rfl`, for which see below.
+
 :::tactic "rfl"
+:::
+
+:::example "Reflexivity"
+When both sides of an equation are the same, {tactic}`rfl` proves the goal immediately:
+```lean
+example (n : Nat) : n = n := by
+  rfl
+```
+:::
+
+:::example "Definitional Equality"
+Even though `2 + 3` and `5` are syntactically different, they are definitionally equal, so {tactic}`rfl` succeeds:
+```lean
+example : 2 + 3 = 5 := by
+  rfl
+```
+:::
+
+:::example "Reflexive Relations"
+The {tactic}`rfl` tactic works with any relation that has a lemma tagged with the {attr}`refl` attribute, not just equality.
+For instance, it can prove goals involving {lean}`Iff`:
+```lean
+example (P : Prop) : P ↔ P := by
+  rfl
+
+def Univ (_ _ : α) := True
+
+@[refl]
+theorem Univ.refl (x : α) : Univ x x := True.intro
+
+example : Univ 2 2 := by rfl
+```
 :::
 
 :::tactic "rfl'"
@@ -90,8 +222,37 @@ refl
 ```
 :::
 
+The {tactic}`symm` tactic swaps the two sides of a symmetric relation in the goal, such as turning `a = b` into `b = a`.
+It can also be applied to a hypothesis with `symm at h`.
+
 :::tactic "symm"
 :::
+
+:::example "Swapping Sides of an Equality"
+After {tactic}`symm`, the goal becomes `a = b`, which matches the hypothesis `h`:
+```lean
+example (a b : Nat) (h : a = b) : b = a := by
+  symm
+  exact h
+```
+:::
+
+:::example "Custom Symmetric Relations"
+Other relations can be proven symmetric, and annotated so that {tactic}`symm` can be applied to them.
+```lean
+def Univ (_ _ : α) := True
+
+@[symm]
+theorem Univ.symm (x : α) : Univ x y → Univ y x := by
+  intro; exact True.intro
+
+example : Univ 2 3 → Univ 3 2 := by
+  intro
+  symm
+  assumption
+```
+:::
+
 
 :::tactic "symm_saturate"
 :::
@@ -105,17 +266,53 @@ symm
 ```
 :::
 
+The {tactic}`calc` tactic opens a calculation block for chaining a sequence of relation steps (equalities, inequalities, etc.), where each step is justified by a tactic.
+
 :::tactic "calc"
 :::
 
-{docstring Trans}
+:::example "A Chain of Equalities"
+Each step in a {tactic}`calc` block can be justified by a term, or a tactic after `by`:
+```lean
+example (a b c : Nat) (hab : a = b) (hbc : b = c) :
+    a + 1 = c + 1 + 0 := by
+  calc
+    a + 1 = b + 1 := by rw [hab]
+    _ = c + 1 := by rw [hbc]
+    _ = c + 1 + 0 := by rw [Nat.add_zero]
+```
+:::
+
+:::example "Mixing Relations"
+A {tactic}`calc` block can chain different relations, such as equalities and inequalities, as long as {name}`Trans` instances are available:
+```lean
+example (a b : Nat) (h : a = b) (h2 : b + 5 ≤ 3 * a^2) :
+    a ≤ 3 * a^2 := by
+  calc
+    a = b := h
+    _ ≤ b + 5 := by apply Nat.le_add_right
+    _ ≤ 3 * a^2 := h2
+```
+:::
 
 ## Equality
 %%%
 tag := "tactic-ref-equality"
 %%%
 
+The {tactic}`subst` tactic eliminates a variable that is known to be equal to some expression.
+Given a hypothesis `h : x = e` or `h : e = x` where `x` is a local variable, it replaces all occurrences of `x` with `e` throughout the goal and context, and removes both `x` and `h`.
+
 :::tactic "subst"
+:::
+
+:::example "Substituting a Known Equality"
+After `subst h`, the variable `n` is replaced by `3` everywhere, and the goal becomes `3 + 1 = 4`:
+```lean
+example (n : Nat) (h : n = 3) : n + 1 = 4 := by
+  subst h
+  rfl
+```
 :::
 
 :::tactic "subst_eqs"
@@ -124,7 +321,43 @@ tag := "tactic-ref-equality"
 :::tactic "subst_vars"
 :::
 
+The {tactic}`congr` tactic reduces an equality goal to equalities between the arguments of the outermost function application on each side.
+
 :::tactic "congr"
+:::
+
+:::example "Basic Congruence"
+The goal `n + 1 = m + 1` is reduced to `n = m`, which {tactic}`congr` proves using the hypothesis `h`:
+```lean
+example (n m : Nat) (h : n = m) : n + 1 = m + 1 := by
+  congr
+```
+:::
+
+:::example "Controlling Depth"
+A numeric argument controls how many layers {tactic}`congr` descends.
+Here `congr 2` peels off two layers of arithmetic operations, leaving `a * c = b * c` as a subgoal that still needs to be solved:
+```lean
+example (a b c : Nat) (h : b * c = a * c) :
+    (a * c) * 2 + 3 = (b * c) * 2 + 3 := by
+  congr 2
+  symm
+  exact h
+```
+Using uncontrolled {tactic}`congr` would have left us with the goal `a = b`.
+We cannot prove this, because even though `b * c = a * c`, it might be because `c` is zero.
+```lean +error (name := bareCongr)
+example (a b c : Nat) (h : b * c = a * c) :
+    (a * c) * 2 + 3 = (b * c) * 2 + 3 := by
+  congr
+```
+```leanOutput bareCongr
+unsolved goals
+case e_a.e_a.e_a
+a b c : Nat
+h : b * c = a * c
+⊢ a = b
+```
 :::
 
 :::tactic "eq_refl"
@@ -150,13 +383,93 @@ tag := "tactic-ref-associativity-commutativity"
 tag := "tactic-ref-lemmas"
 %%%
 
+The {tactic}`exact` tactic proves the current goal by providing a term whose type matches the goal's target type.
+It works up to {tech}[definitional equality], so the term's type does not need to be syntactically identical to the goal.
+
 :::tactic "exact"
 :::
+
+:::example "Closing a Goal with a Hypothesis"
+When a hypothesis already has the exact type of the goal, {tactic}`exact` can prove it directly:
+```lean
+example (P : Prop) (h : P) : P := by
+  exact h
+```
+:::
+
+:::example "Applying a Lemma"
+The argument to {tactic}`exact` can be any expression, including function applications:
+```lean
+example (P Q : Prop) (hp : P) (hpq : P → Q) : Q := by
+  exact hpq hp
+```
+:::
+
+The {tactic}`apply` tactic works backwards from the goal.
+Given an expression whose type is a function type ending in the goal's target, it replaces the goal with one subgoal for each remaining argument.
+Where {tactic}`exact` requires the term to have exactly the goal's type, {tactic}`apply` allows the term to require additional premises that become new goals.
 
 :::tactic "apply"
 :::
 
+:::example "Reducing a Goal with an Implication"
+Applying `hpq` reduces the goal from `Q` to `P`, which can then be proved with {tactic}`exact`:
+```lean
+example (P Q : Prop) (hpq : P → Q) (hp : P) : Q := by
+  apply hpq
+  exact hp
+```
+:::
+
+:::example "Multiple Subgoals"
+When the applied term has multiple premises, {tactic}`apply` creates a subgoal for each:
+```lean
+example (P Q R : Prop) (h : P → Q → R)
+    (hp : P) (hq : Q) : R := by
+  apply h
+  · exact hp
+  · exact hq
+```
+:::
+
+:::example "Applying Lemmas"
+The argument to {tactic}`apply` is not limited to local hypotheses.
+Any term whose conclusion matches the goal can be used, including lemmas:
+```lean
+example (a b c : Nat) (hab : a < b) (hbc : b < c) :
+    a < c := by
+  apply Nat.lt_trans
+  · apply hab
+  · apply hbc
+```
+:::
+
+:::example "Extracting One Direction of If-and-Only-If"
+Note that {tactic}`apply` does not work directly with `↔` (if-and-only-if) hypotheses.
+To use a hypothesis `h : P ↔ Q` backwards on the goal, use {tactic}`rw` instead, or extract one direction with `h.mp` or `h.mpr`.
+```lean
+example (P Q R S : Prop) (iff1 : P ↔ Q) (iff2 : R ↔ Q) (hp : P) :
+    R := by
+  apply iff2.mpr
+  apply iff1.mp
+  exact hp
+```
+:::
+
+The {tactic}`refine` tactic is like {tactic}`exact`, but allows holes written as `?_` that become new goals.
+This is useful when part of a term is known but some arguments still need to be proved.
+It is also often useful for decomposing goals with anonymous constructor syntax.
+
 :::tactic "refine"
+:::
+
+:::example "Exact with Holes"
+The anonymous constructor provides the witness `2`, while `?_` leaves the proof obligation `2 + 2 = 4` as a new goal:
+```lean
+example : ∃ n : Nat, n + n = 4 := by
+  refine ⟨2, ?_⟩
+  rfl
+```
 :::
 
 :::tactic "refine'"
@@ -177,10 +490,40 @@ tag := "tactic-ref-lemmas"
 tag := "tactic-ref-false"
 %%%
 
+The {tactic}`exfalso` tactic changes the goal to `False`. It is named after the Latin phrase _ex falso quodlibet_, that is, “from falsehood, anything follows”.
+This is useful when the hypotheses are contradictory: once the goal is {name}`False`, it can be proved by deriving a contradiction.
+Because it discards the original goal entirely, {tactic}`exfalso` should only be used when the hypotheses are genuinely contradictory.
+If they are not, the resulting `False` goal will be unsolvable.
+
 :::tactic "exfalso"
 :::
 
+:::example "Reasoning from a Contradiction"
+The hypothesis `h : n < n` is contradictory because no number is strictly less than itself.
+After {tactic}`exfalso` changes the goal to `False`, we can prove it using the irreflexivity lemma:
+```lean
+example (n : Nat) (h : n < n) : n * n = n + 1 := by
+  exfalso
+  exact Nat.lt_irrefl n h
+```
+:::
+
+The {tactic}`contradiction` tactic automatically proves a goal when the hypotheses are trivially contradictory, without requiring the user to identify the specific contradiction.
+
 :::tactic "contradiction"
+:::
+
+:::example "Closing a Goal by Contradiction"
+{tactic}`contradiction` searches the hypotheses automatically for immediate logical contradictions.
+```lean
+example (hp : P) (hnp : ¬P) : Q := by
+  contradiction
+```
+It also recognizes incompatibilities between constructors of the same type.
+```lean
+example (h : Nat.zero = Nat.succ Nat.zero) : P := by
+  contradiction
+```
 :::
 
 :::tactic "false_or_by_contra"
@@ -192,22 +535,134 @@ tag := "tactic-ref-false"
 tag := "tactic-ref-goals"
 %%%
 
+The {tactic}`suffices` tactic replaces the goal with another statement that is at least as strong.
+That is, the new goal suffices to show the old one.
+
 :::tactic "suffices"
 :::
 
+:::example "Suffices with a Term Proof"
+Using {tactic}`suffices` with `from` shows how the sufficient condition `h : a = b` implies the original goal, and the second goal requires proving `a = b`:
+```lean
+example (a b : Nat) (h : a = b) : a + 1 = b + 1 := by
+  suffices h : a = b from congrArg (· + 1) h
+  exact h
+```
+:::
+
+:::example "Suffices with a Tactic Proof"
+We first show that it suffices to know that the list of the length is 3 in order to conclude that
+the list has nonzero length. Then we prove that the list does in fact have lengtht three.
+```lean
+example (xs : List Nat) (h : xs = [1, 2, 3]) :
+    xs.length > 0 := by
+  suffices hsuff : xs.length = 3 by
+    rw [hsuff]
+    decide
+  simp [h]
+```
+:::
+
+The {tactic}`change` tactic replaces the goal (or a hypothesis) with a {tech (key := "definitional equality")}[definitionally equal] alternative.
+This can make the goal easier to read or bring it into a form that other tactics expect.
+
 :::tactic "change"
+:::
+
+:::example "Unfolding a Definition"
+Because `¬P` is defined as `P → False`, {tactic}`change` can make this explicit:
+```lean
+example (hp : P) : ¬¬P := by
+  change ¬P → False
+  intro hnp
+  exact hnp hp
+```
+:::
+
+:::example "Changing to Definitionally Equal Goal"
+Here we change a numeric literals to a definitionally equivalent form to facilitate the proof.
+```lean
+example : x + 2 = (x + 1) + 1  := by
+  change x + (1 + 1) = (x + 1) + 1
+  rw [Nat.add_assoc]
+```
 :::
 
 :::tactic "generalize"
 :::
 
+The {tactic}`specialize` tactic instantiates a universally quantified or function-typed hypothesis with specific arguments, replacing it in the context with the result.
+Because {tactic}`specialize` modifies the hypothesis in place, the original general statement is lost after specialization.
+If the original hypothesis is needed again, use {tactic}`have` to create a copy first, for example `have h' := h` before specializing `h` or `h'`.
+
 :::tactic "specialize"
 :::
+
+:::example "Partially Specializing a Hypothesis"
+After `specialize h 1`, the hypothesis becomes `h : ∀ b, 1 + b = b + 1`, which can then be applied to `2`:
+```lean
+example (h : ∀ a b : Nat, a + b = b + a) :
+    1 + 2 = 2 + 1 := by
+  specialize h 1
+  exact h 2
+```
+:::
+
+The {tactic}`obtain` tactic is used when a hypothesis or proof term has internal structure that should be broken apart.
+Where {tactic}`have` introduces a single new fact into the context, {tactic}`obtain` destructs a term into its pieces using pattern matching. For example, extracting the witness from an existential or the two sides of a conjunction.
+The `obtain` tactic uses the same language of patterns as {tactic}`rcases`.
 
 :::tactic "obtain"
 :::
 
+:::example "Unpacking an Existential"
+The pattern `⟨n, hn⟩` extracts the witness `n` and the proof `hn : n + n = 10` from the existential hypothesis:
+```lean
+example (h : ∃ n : Nat, n + n = 10) : ∃ m : Nat, m = 5 := by
+  obtain ⟨n, hn⟩ := h
+  exact ⟨n, by grind⟩
+```
+:::
+
+:::example "Unpacking a Conjunction"
+The same pattern works for conjunctions:
+```lean
+example (h : P ∧ Q) : Q ∧ P := by
+  obtain ⟨hp, hq⟩ := h
+  exact ⟨hq, hp⟩
+```
+:::
+
+The {tactic}`show` tactic selects a goal whose target unifies with the
+given type and makes it the current goal. That is, the proposed goal
+is matched against available goals, up to {tech (key := "definitional
+equality")}[definitionally equal]. When there is only one goal, it can
+be used like {tactic}`change` to restate the goal in a
+{tech (key := "definitional equality")}[definitionally equal] form.
+
 :::tactic "show"
+:::
+
+:::example "Selecting a Goal"
+When there are multiple goals, {tactic}`show` brings a specific one to the front.
+Here, after {tactic}`constructor` the goals are `⊢ P` then `⊢ Q`, but `show Q` reorders them:
+```lean
+example (hp : P) (hq : Q) : P ∧ Q := by
+  constructor
+  show Q
+  exact hq
+  exact hp
+```
+Here, we specify only a portion of the goal we're interested in, and
+we select the first one that unifies:
+```lean
+example (n : Nat) (P : Nat → Prop) (h1 : P (100 + n)) (h2 : P (2 + n)) :
+    P (100 + n) ∧ P ((1 + 1) + n) := by
+  constructor
+  show P (2 + _)
+  exact h2
+  exact h1
+```
 :::
 
 :::tactic Lean.Parser.Tactic.showTerm
@@ -260,7 +715,20 @@ They are described in more detail by {citet castPaper}[].
 tag := "tactic-ref-ext"
 %%%
 
+The {tactic}`ext` tactic applies extensionality lemmas registered with the {attr}`ext` attribute.
+Extensionality properties say that two objects are equal if they are equal under all appropriate observations.
+For example, two functions are equal if they return the same value on every input and two pairs are equal if their components are equal.
+
 :::tactic "ext"
+:::
+
+:::example "Function Extensionality"
+After `ext n`, the goal changes from an equality of functions to an equality of their values at an arbitrary `n`:
+```lean
+example : (fun n : Nat => n + 0) = (fun n => n) := by
+  ext n
+  rfl
+```
 :::
 
 :::tactic Lean.Elab.Tactic.Ext.tacticExt1___
@@ -269,7 +737,21 @@ tag := "tactic-ref-ext"
 :::tactic Lean.Elab.Tactic.Ext.applyExtTheorem
 :::
 
+The {tactic}`funext` tactic is a variant of {tactic}`ext` that specifically applies function extensionality.
+See the section on {ref "quotient-funext"}[function extensionality for quotients] for more information.
+
 :::tactic "funext"
+:::
+
+:::example "Proving Functions Equal with `funext`"
+After `funext x`, the goal reduces to showing `f x = g x` for an arbitrary `x`:
+```lean
+example (f g : Nat → Nat)
+    (hf : ∀ x, f x = 2 * x) (hg : ∀ x, g x = x + x) : f = g := by
+  funext x
+  simp only [hf, hg]
+  exact Nat.two_mul x
+```
 :::
 
 # SMT-Inspired Automation
@@ -293,8 +775,52 @@ tag := "tactic-ref-ext"
 tag := "tactic-ref-rw"
 %%%
 
+The {tactic}`rw` uses proofs of equality to rewrite goals and/or hypotheses, replacing occurrences of one of the equated terms with the other.
+Given a proof of an equality `h : x = y` or an if-and-only-if `h : P ↔ Q`, it replaces occurrences of the left-hand side with the right-hand side in the goal.
+Use `rw [← h]` to rewrite in the reverse direction, and `rw [h] at hyp` to rewrite in a hypothesis `hyp` rather than the goal.
+After rewriting, {tactic}`rw` automatically tries to prove the goal with {tactic}`rfl`.
+
 :::tactic "rw"
 :::
+
+:::example "Rewriting Forward and Backward"
+Given `h : x = y`, writing `rw [h]` replaces `x` with `y`, while `rw [← h]` replaces `y` with `x`:
+```lean
+example (x y : Nat) (h : x = y) (hy : y < 10) :
+    x < 10 := by
+  rw [h]
+  exact hy
+```
+```lean
+example (x y : Nat) (h : x = y) (hx : x < 10) :
+    y < 10 := by
+  rw [← h]
+  exact hx
+```
+:::
+
+:::example "Rewriting in a Hypothesis"
+The `at` clause directs the rewrite to a hypothesis instead of the goal:
+```lean
+example (x y : Nat) (h : x = y) (h2 : x + 1 = 3) :
+    y + 1 = 3 := by
+  rw [h] at h2
+  exact h2
+```
+:::
+
+:::example "Multiple rewrites"
+Multiple rewrites can be combined into one line, and some may be reversed:
+```lean
+example (x y z w : Nat) (h : x = y + 1) (h2 : z * 3 = y)
+    (h3 : z = w + 15) : x = ((w + 15) * 3) + 1 := by
+  rw [h, ← h2, h3]
+```
+:::
+
+Note that {tactic}`rw` does not rewrite under binders such as `∀`, `∃`, or `∑`.
+For example, if `h : a = b`, then `rw [h]` will not rewrite occurrences of `a` inside `∀ x, f a x = g x`.
+The {tactic}`conv` be used in combination with {tactic}`rw` to give more control over where rewrites occur.
 
 :::tactic "rewrite"
 :::
@@ -336,9 +862,57 @@ tag := "tactic-ref-inductive"
 tag := "tactic-ref-inductive-intro"
 %%%
 
+The {tactic}`constructor` tactic tries to solve the goal by application of a constructor.
+When the goal's target type has a single constructor, it replaces the goal with one subgoal for each of the constructor's arguments.
+This is commonly used to split a goal of the form `P ∧ Q` into separate goals for `P` and `Q`, or to split `P ↔ Q` into the two implications.
+In this situation, it is essentially syntactic sugar for `refine ⟨?_, ?_, …⟩` with as many holes as the constructor has arguments.
+In general, {tactic}`constructor` picks the first constructor whose type unifies with the goal.
+
 :::tactic "constructor"
 :::
 
+:::example "Splitting a Conjunction"
+The {tactic}`constructor` tactic splits the goal `P ∧ Q` into two subgoals, one for each conjunct:
+```lean
+example (hp : P) (hq : Q) : P ∧ Q := by
+  constructor
+  · exact hp
+  · exact hq
+```
+:::
+
+:::example "Splitting an If-and-only-If"
+Because `P ↔ Q` is defined as `(P → Q) ∧ (Q → P)`, {tactic}`constructor` splits it into the two directions:
+```lean
+example : (P ∧ Q) ↔ (Q ∧ P) := by
+  constructor
+  · intro ⟨hp, hq⟩; exact ⟨hq, hp⟩
+  · intro ⟨hq, hp⟩; exact ⟨hp, hq⟩
+```
+:::
+
+:::example "Picking the First Matching Constructor"
+If an inductive type has multiple constructors, the {tactic}`constructor` tactic will pick
+the first one that unifies with the goal, even when another constructor might be desirable.
+Here we end up with the unprovable goal {lean}`False` because {tactic}`constructor` chose
+{lean}`Or.inl`:
+```lean
+example : False ∨ True := by
+  constructor
+  sorry
+```
+Indices on the type can affect unification, and therefore which constructor is selected:
+```lean
+inductive SumTwo : Nat → Nat → Prop where
+  | zero : SumTwo 0 2
+  | one : SumTwo 1 1
+  | two : SumTwo 2 0
+
+example : SumTwo 1 1 := by
+  -- it picked SumTwo.one because zero's type didn't unify with the goal
+  constructor
+```
+:::
 
 :::tactic "injection"
 :::
@@ -346,10 +920,22 @@ tag := "tactic-ref-inductive-intro"
 :::tactic "injections"
 :::
 
+The {tactic}`left` and {tactic}`right` tactics select which side of a two-constructor type to prove.
+Typically this is used for disjunction.
+
 :::tactic "left"
 :::
 
 :::tactic "right"
+:::
+
+:::example "Proving a Disjunction"
+Using {tactic}`left` selects the first disjunct, reducing the goal from `P ∨ Q` to `P`:
+```lean
+example (hp : P) : P ∨ Q := by
+  left
+  exact hp
+```
 :::
 
 ## Elimination
@@ -455,16 +1041,95 @@ cases_eliminator
 ```
 :::
 
+The {tactic}`cases` tactic performs case analysis on a term in the
+local context. It decomposes the term according to the registered
+{attr}`cases_eliminator` of its type. In the common case this means
+splitting cases according to the constructors of its inductive type,
+creating one subgoal for each constructor.
+For a hypothesis `h : P ∧ Q`, this yields its two components; for `h : P ∨ Q`, it creates two separate goals;
+for a natural number `n`, it splits into the `zero` and `succ` cases.
+
 :::tactic "cases"
 :::
 
+:::example "Destructuring a Conjunction"
+```lean
+example (h : P ∧ Q) : Q ∧ P := by
+  cases h with
+  | intro left right => exact ⟨right, left⟩
+```
+:::
+
+:::example "Disjunction"
+For a disjunction, {tactic}`cases` creates one subgoal per case:
+```lean
+example (h : P ∨ Q) : Q ∨ P := by
+  cases h with
+  | inl hp => right; exact hp
+  | inr hq => left; exact hq
+```
+:::
+
+:::example "Case Analysis on Natural Numbers"
+The {tactic}`cases` tactic can also split data, such as a natural number into the `zero` and `succ` cases:
+```lean
+example (n : Nat) : n = 0 ∨ n ≥ 1 := by
+  cases n with
+  | zero => left; rfl
+  | succ m => right; grind
+```
+:::
+
+The {tactic}`rcases` tactic can be thought of as a recursive version
+of {tactic}`cases` that destructs a hypothesis using pattern matching
+notation. It uses its own language of patterns, which is described in its docstring.
+For example, `⟨x, y⟩` is used for constructor patterns and `(x | y)` for
+disjunctive patterns, and these can be nested.
+
 :::tactic "rcases"
+:::
+
+:::example "Nested Destructuring"
+The pattern `⟨hp, hq, hr⟩` destructs the nested conjunction `P ∧ Q ∧ R` in one step:
+```lean
+example (h : P ∧ Q ∧ R) : R ∧ Q ∧ P := by
+  rcases h with ⟨hp, hq, hr⟩
+  exact ⟨hr, hq, hp⟩
+```
 :::
 
 :::tactic "fun_cases"
 :::
 
+The {tactic}`induction` tactic performs mathematical induction.
+Like {tactic}`cases`, it splits into cases, but it additionally provides an inductive hypothesis in each recursive case.
+This makes {tactic}`induction` a useful tool for proving properties of recursive data, especially natural numbers.
+Also like {tactic}`cases`, it can be configured to take a {tech (key := "Custom eliminators")}[custom eliminator],
+using {attr}`induction_eliminator`.
+
 :::tactic "induction"
+:::
+
+:::example "Induction on Natural Numbers"
+Here we use induction to establish that zero is the identity for addition on the left.
+The base case `zero` is proved by {tactic}`rfl`, and the successor case uses the inductive hypothesis `ih : 0 + n = n`:
+```lean
+example (n : Nat) : 0 + n = n := by
+  induction n with
+  | zero => rfl
+  | succ n ih => rw [Nat.add_succ, ih]
+```
+:::
+
+:::example "Induction on Lists"
+The {tactic}`induction` tactic works on any inductive type, not just natural numbers:
+```lean
+example (xs : List α) : xs.reverse.length = xs.length := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih =>
+    simp [List.reverse_cons, ih]
+```
 :::
 
 :::tactic "fun_induction"
@@ -531,10 +1196,60 @@ tag := "tactic-ref-cases"
 %%%
 
 
+The {tactic}`split` tactic splits the goal on a match expression or if-then-else, creating one subgoal per branch.
+
 :::tactic "split"
 :::
 
+:::example "Splitting a Match Expression"
+The {tactic}`split` tactic creates one subgoal per branch, allowing each to be proved using the relevant hypotheses:
+```lean
+example (p : Bool) (x y : Nat) (hx : x > 0) (hy : y > 0) :
+    (match p with | true => x | false => y) > 0 := by
+  split
+  · exact hx
+  · exact hy
+```
+
+When splitting a case match, hypotheses are available that show that
+previous arms of the case did not match. In the second case of the
+following proof, split inserts the hypothesis `n ≠ 7` to indicate that
+the first case in classify was not taken. In the third case, it
+inserts both `n ≠ 7` and `n ≠ 12`, indicating that neither the first
+nor the second case matched.
+```lean
+def classify (n : Nat) : Option String :=
+  match n with
+  | 7 => some "seven"
+  | 12 => some "twelve"
+  | _ => none
+
+example (n : Nat) :
+    classify n = some "seven" ∨ classify n = some "twelve" ∨
+      (n ≠ 7 ∧ n ≠ 12) := by
+  unfold classify
+  split
+  next => exact Or.inl rfl
+  next hne7 => exact Or.inr (Or.inl rfl)
+  next hne7 hne12 => exact Or.inr (Or.inr ⟨hne7, hne12⟩)
+```
+:::
+
+The {tactic}`by_cases` tactic splits the proof into two cases based on whether a proposition is true or not.
+The hypothesis can optionally be named with `h : P` syntax.
+See {ref "tactic-language-hygiene"}[the section on names and hygiene] for more details about how names are managed.
+
 :::tactic "by_cases"
+:::
+
+:::example "Case Split on a Proposition"
+After `by_cases h : n = 0`, the proof splits into a branch where `h : n = 0` and a branch where `h : n ≠ 0`:
+```lean
+example (n : Nat) : n = 0 ∨ n ≠ 0 := by
+  by_cases h : n = 0
+  · left; exact h
+  · right; exact h
+```
 :::
 
 # Decision Procedures
@@ -543,8 +1258,25 @@ tag := "tactic-ref-decision"
 %%%
 
 
+The {tactic}`decide` tactic proves goals whose truth is decidable in the sense that it
+can be determined by computation, such as concrete arithmetic facts or membership in finite structures.
+
 :::tactic Lean.Parser.Tactic.decide (show := "decide")
 :::
+
+:::example "Deciding Concrete Propositions"
+Here we see how {tactic}`decide` can prove simple goals.
+```lean
+example : 2 + 2 = 4 := by decide
+```
+```lean
+example : ¬(3 = 5) := by decide
+```
+:::
+
+Because {tactic}`decide` runs the decision procedure using the kernel's term reduction, it can be extremely slow or time out on large problems.
+For example, checking `Nat.Prime 104729` with {tactic}`decide` would take impractically long.
+For arithmetic goals involving large numbers, {tactic}`grind`, or `norm_num` are more performant.
 
 :::tactic Lean.Parser.Tactic.nativeDecide (show := "native_decide")
 :::
@@ -621,7 +1353,7 @@ set_option cbv.warning false
 
 :::example "Reducing Well-Founded Recursive Functions"
 The function {lean}`countdown` is defined using well-founded recursion, so it is not definitionally equal to its unfolding.
-Ordinary {tactic}`rfl` cannot close the goal:
+Ordinary {tactic}`rfl` cannot prove the goal:
 ```lean
 def countdown (n : Nat) : List Nat :=
   match n with
@@ -640,7 +1372,7 @@ is not definitionally equal to the right-hand side
 
 ⊢ countdown 3 = [3, 2, 1, 0]
 ```
-The {tactic}`cbv` tactic can reduce {lean}`countdown 3` via propositional rewriting and then close the equation goal via {tactic}`rfl`:
+The {tactic}`cbv` tactic can reduce {lean}`countdown 3` via propositional rewriting and then prove the equation goal via {tactic}`rfl`:
 ```lean
 example : countdown 3 = [3, 2, 1, 0] := by
   cbv
@@ -746,7 +1478,7 @@ unsolved goals
 :::
 
 :::example "`decide_cbv`"
-The {tactic}`decide_cbv` tactic closes goals that are decidable propositions by reducing the {name}`Decidable` instance via {tech}[call-by-value evaluation]:
+The {tactic}`decide_cbv` tactic proves goals that are decidable propositions by reducing the {name}`Decidable` instance via {tech}[call-by-value evaluation]:
 ```lean
 example : 2 + 3 = 5 ∧ 10 < 20 := by
   decide_cbv
@@ -873,7 +1605,7 @@ cbv_opaque
 :::
 
 ::::example "Opaque Definitions with `@[cbv_opaque]`"
-Marking {lean}`countdown` as {attr}`cbv_opaque` prevents {tactic}`cbv` from unfolding it, so the goal that was previously closed by {tactic}`cbv` now remains unsolved:
+Marking {lean}`countdown` as {attr}`cbv_opaque` prevents {tactic}`cbv` from unfolding it, so the goal that was previously proved by {tactic}`cbv` now remains unsolved:
 ```lean
 def countdown (n : Nat) : List Nat :=
   match n with
@@ -1164,7 +1896,19 @@ tag := "tactic-ref-debug"
 tag := "tactic-ref-other"
 %%%
 
+The {tactic}`trivial` tactic tries a short list of simple tactics, including {tactic}`rfl`, {tactic}`assumption`, and {lean}`True.intro`, to prove the goal. It is defined by macro expansion, and can be extended with additional `macro_rules` declarations.
+
 :::tactic "trivial"
+:::
+
+:::example "Closing Easy Goals"
+The {tactic}`trivial` tactic can prove goals that are trivial from the point of view of propositional logic.
+```lean
+example : True := by trivial
+```
+```lean
+example (h : P) : P := by trivial
+```
 :::
 
 :::tactic "solve"
