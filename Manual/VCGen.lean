@@ -446,6 +446,7 @@ set_option mvcgen.warning false
 
 This reimplementation of {name}`Id` has a {name}`WP` instance, but no {name}`WPMonad` instance:
 ```lean
+@[implicit_reducible]
 def Identity (α : Type u) : Type u := α
 
 variable {α : Type u}
@@ -462,7 +463,7 @@ instance : WP Identity .pure where
 theorem Identity.of_wp_run_eq {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop) :
     (⊢ₛ wp⟦prog⟧ (⇓ a => ⟨P a⟩)) → P x := by
-  simp_all [WP.wp, Identity.run, ← h]
+  simp_all? [WP.wp, Identity.run, ← h]
 ```
 
 ```lean -show

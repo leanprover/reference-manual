@@ -396,13 +396,20 @@ There are five levels of reducibility:
   Semireducible definitions are not unfolded by potentially expensive automation such as type class instance synthesis or {tactic}`simp`, but they are unfolded while checking definitional equality and while resolving {tech}[generalized field notation].
   The {keywordOf Lean.Parser.Command.declaration}`def` command generally creates semireducible definitions unless a different reducibility level is specified with an attribute; however, definitions that use {tech}[well-founded recursion] are irreducible by default.
 
-: {deftech}[Implicit reducible]
+: {deftech}[Implicit-reducible]
 
-  Implicit-reducible definitions are unfolded while checking {tech}[definitional equality] of implicit arguments to functions.
-  This includes ordinary {tech}[implicit] arguments, {tech}[instance implicit] arguments, and {tech}[strict implicit] arguments.
-  Definitions that appear in the types of implicit arguments and are intended to reduce should be implicit-reducible.
+  Implicit-reducible definitions are unfolded while checking {tech}[definitional equality] of terms that are not visible to the user.
+  There are two situations where this is relevant.
 
-: {deftech}[Instance reducible]
+  First, implicit-reducible definitions are unfolded while checking {tech}[definitional equality] of implicit arguments to functions.
+  This includes ordinary {tech}[implicit] arguments, {tech}[instance-implicit] arguments, and {tech}[strict implicit] arguments.
+  Definitions that appear in implicit arguments and are intended to reduce should be implicit-reducible.
+
+  Second, when a metavariable is assigned, Lean checks that the actual and expected type of the assigned term are definitionally equal.
+  Implicit-reducible arguments are also unfolded during this check. Definitions that appear in types should usually be implicit-reducible
+  so that said metavariable assignments succeed.
+
+: {deftech}[Instance-reducible]
 
   Instance-reducible definitions are unfolded during type class {tech (key := "synthesis")}[instance synthesis].
   All type class instances should be instance-reducible or reducible.
@@ -414,22 +421,40 @@ There are five levels of reducibility:
   Type class instance synthesis, definitional equality checks, and the rest of the language treat the definition as being essentially an abbreviation.
   This is the setting applied by the {keywordOf Lean.Parser.Command.declaration}`abbrev` command.
 
-:::example "Reducibility and Instance Synthesis"
-These three aliases for {lean}`String` are respectively reducible, semireducible, and irreducible.
+Type aliases, such as `def Str := String` should not be semireducible. In most cases, they should be made implicit-reducible.
+
+(TODO: unify terminology! Reducibility/Transparency? Level/Mode?/s)
+
+Definitional equality checks can unfold definitions up to a certain transparency level.
+* A check at *reducible transparency* can only unfold reducible definitions.
+* A check at *instance transparency* can unfold reducible and instance-reducible definitions.
+* A check at *implicit transparency* can additionally unfold implicit-reducible definitions.
+* A check at *semireducible transparency*, also called *default transparency*, can additionally anfold semireducible definitions.
+
+There are also transparency modes “none” and “all”, allow or deny unfolding all declarations, irrespective of their reducibility.
+
+:::example "Reducibility and Direct Assignments"
+These four aliases for {lean}`String` are respectively reducible, implicit-reducible, and irreducible.
 ```lean
 abbrev Phrase := String
 
+@[implicit_reducible]
 def Clause := String
+
+-- just for demonstration; semireducible type aliases are discouraged
+def Text := String
 
 @[irreducible]
 def Utterance := String
 ```
 
-The reducible and semireducible aliases are unfolded during the elaborator's definitional equality check, causing them to be considered equivalent to {lean}`String`:
+The reducible, implicit-reducible and semireducible aliases are unfolded during the elaborator's definitional equality check, causing them to be considered equivalent to {lean}`String`:
 ```lean
 def hello : Phrase := "Hello"
 
 def goodMorning : Clause := "Good morning"
+
+def gDay : Text := "G'day"
 ```
 The irreducible alias, on the other hand, is rejected as the type for a string, because the elaborator's definitional equality test does not unfold it:
 ```lean +error (name := irred)
@@ -444,14 +469,49 @@ but is expected to have type
   Utterance
 ```
 
+Proofs by `rfl` behave similarly.
+
+```lean +error (name := rflProofs)
+example : Text = String := rfl
+example : Utterance = String := rfl
+```
+```leanOutput rflProofs
+Type mismatch
+  rfl
+has type
+  ?m.3 = ?m.3
+but is expected to have type
+  Utterance = String
+```
+:::
+
+:::example "Reducibility and Instance Synthesis"
+
+(TODO: instance-reducible example?)
+
+Recall from the previous example the four aliases for {lean}`String`:
+```lean
+abbrev Phrase := String
+
+@[implicit_reducible]
+def Clause := String
+
+-- just for demonstration; semireducible type aliases are discouraged
+def Text := String
+
+@[irreducible]
+def Utterance := String
+```
+
 Because {lean}`Phrase` is reducible, the {inst}`ToString String` instance can be used as a {inst}`ToString Phrase` instance:
 ```lean
 #synth ToString Phrase
 ```
 
-However, {lean}`Clause` is semireducible, so the {inst}`ToString String` instance cannot be used:
+However, {lean}`Clause` and `Text` are implicit- and semireducible, so the {inst}`ToString String` instance cannot be used:
 ```lean +error (name := toStringClause)
 #synth ToString Clause
+#synth ToString Text
 ```
 ```leanOutput toStringClause
 failed to synthesize
@@ -459,17 +519,24 @@ failed to synthesize
 
 Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
+```leanOutput toStringClause
+failed to synthesize
+  ToString Text
+
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
 
 The instance can be explicitly enabled by creating a {lean}`ToString Clause` instance that reduces to the {lean}`ToString String` instance.
-This example works because semireducible definitions are unfolded while checking definitional equality:
+This example works because `inferInstanceAs` unfolds semireducible definitions while comparing the types:
 ```lean
 instance : ToString Clause := inferInstanceAs (ToString String)
+instance : ToString Text := inferInstanceAs (ToString String)
 ```
 :::
 
 
 :::example "Reducibility and Generalized Field Notation"
-{tech}[Generalized field notation] unfolds reducible and semireducible declarations while searching for matching names.
+{tech}[Generalized field notation] unfolds all declarations that are at least semireducible while searching for matching names.
 Given the semireducible alias {name}`Sequence` for {name}`List`:
 ```lean
 def Sequence := List
@@ -517,103 +584,195 @@ These attributes can only be applied globally in the same file as the definition
 
 ## Reducibility and Tactics
 
-The tactics {tactic}`with_reducible`, {tactic}`with_reducible_and_instances`, and {tactic}`with_unfolding_all` control which definitions are unfolded by most tactics.
+(TODO: Make the following line less prominent!)
+The tactics {tactic}`with_reducible`, {tactic}`with_reducible_and_instances`, {tactic}`with_implicit` and {tactic}`with_unfolding_all` control which definitions are unfolded by most tactics.
 
 :::example "Reducibility and Tactics"
-The functions {lean}`plus`, {lean}`sum`, and {lean}`tally` are all synonyms for {lean}`Nat.add` that are respectively reducible, semireducible, and irreducible:
+The functions are all synonyms for {lean}`Nat.add` that vary by their reducibility:
 ```lean
-abbrev plus := Nat.add
+abbrev reducibleAdd := Nat.add
 
-def sum := Nat.add
+@[instance_reducible]
+def instanceReducibleAdd := Nat.add
+
+@[implicit_reducible]
+def implicitReducibleAdd := Nat.add
+
+def semireducibleAdd := Nat.add
 
 @[irreducible]
-def tally := Nat.add
+def irreducibleAdd := Nat.add
 ```
 
 The reducible synonym is unfolded by {tactic}`simp`:
 ```lean
-theorem plus_eq_add : plus x y = x + y := by simp
+example : reducibleAdd x y = x + y := by simp
 ```
 
-The semireducible synonym is not, however, unfolded by {tactic}`simp`:
+The other synonyms are not, however, unfolded by {tactic}`simp`:
 ```lean -keep +error (name := simpSemi)
-theorem sum_eq_add : sum x y = x + y := by simp
+example : instanceReducibleAdd x y = x + y := by simp
+example : implicitReducibleAdd x y = x + y := by simp
+example : semireducibleAdd x y = x + y := by simp
+example : irreducibleAdd x y = x + y := by simp
 ```
-Nonetheless, the definitional equality check induced by {tactic}`rfl` unfolds the {lean}`sum`:
+Nonetheless, the definitional equality check induced by {tactic}`rfl` unfolds all declarations that are at least semireducible:
 ```lean
-theorem sum_eq_add : sum x y = x + y := by rfl
+example : semireducibleAdd x y = x + y := by rfl
 ```
-The irreducible {lean}`tally`, however, is not reduced by definitional equality.
+The irreducible {lean}`irreducibleAdd`, however, is not reduced by definitional equality.
 ```lean  -keep +error (name := reflIr)
-theorem tally_eq_add : tally x y = x + y := by rfl
+example : tally x y = x + y := by rfl
 ```
 The {tactic}`simp` tactic can unfold any definition, even irreducible ones, when they are explicitly provided:
 ```lean  -keep (name := simpName)
-theorem tally_eq_add : tally x y = x + y := by simp [tally]
+example : irreducibleAdd x y = x + y := by simp [irreducibleAdd]
 ```
 Similarly, part of a proof can be instructed to ignore irreducibility by placing it in a {tactic}`with_unfolding_all` block:
 ```lean
-theorem tally_eq_add : tally x y = x + y := by with_unfolding_all rfl
+example : irreducibleAdd x y = x + y := by with_unfolding_all rfl
+```
+One can find out whether two terms are definitionally equal at implicit transparency using `with_implicit`:
+```lean
+example : implicitReducibleAdd x y = x + y := by with_implicit rfl
 ```
 :::
 
-:::example "Reducibility and Implicit Arguments"
-The functions {lean}`plus`, {lean}`sum`, and {lean}`tally` are synonyms for {lean}`Nat.add` that are respectively reducible, implicit-reducible, and irreducible:
+:::example "Reducibility and Instance Synthesis"
+The functions are all synonyms for {lean}`Nat.add` that vary by their reducibility:
 ```lean
-abbrev plus := Nat.add
+abbrev reducibleAdd := Nat.add
 
 @[instance_reducible]
-def sum := Nat.add
+def instanceReducibleAdd := Nat.add
 
-def tally := Nat.add
+@[implicit_reducible]
+def implicitReducibleAdd := Nat.add
+
+def semireducibleAdd := Nat.add
+
+@[irreducible]
+def irreducibleAdd := Nat.add
 ```
 
-An instances of {name}`Nonzero` contains a proof that the given number is not equal to zero.
-The function {name}`notZero` extracts this proof from a synthesized instance:
+An instance of {name}`Nonzero` contains a proof that the given number is not equal to zero:
 ```lean
 class Nonzero (n : Nat) where
   non_zero : n ≠ 0
 
 instance Nonzero.instSucc : Nonzero (n + 1) where
   non_zero := by grind
-
-def notZero (n : Nat) [Nonzero n] : n ≠ 0 := Nonzero.non_zero
 ```
 
-The instance is found for the reducible definition {name}`plus`:
+The instance is found for the reducible definition {name}`reducibleAdd`:
 ```lean
-#check notZero (plus 2 2)
+#synth  Nonzero (reducibleAdd 2 2)
 ```
-It is also found for the instance-reducible definition {name}`sum`.
-This is because the type {lean}`Nonzero (sum 2 2)` is the type of an {tech}[instance implicit] parameter to {name}`notZero`.
-In particular, {name}`sum` is reduced to {name}`Nat.add` which is itself instance-reducible, so the type is reduced to {lean}`Nonzero 4`:
+It is also found for the instance-reducible definition {name}`instanceReducibleAdd`.
 ```lean
-#check notZero (sum 2 2)
+#synth Nonzero (instanceReducibleAdd 2 2)
 ```
+This works as follows.
+First, the discrimination pattern of the instance is matched syntactically against `Nonzero (reducibleAdd 2 2)`:
+```lean (name := discrTreeKey)
+#discr_tree_key Nonzero.instSucc
+```
+```leanOutput discrTreeKey
+Nonzero _
+```
+Then the instance's type `Nonzero (?n + 1)` is unified with `Nonzero (instanceReducibleAdd 2 2)` at instance transparency.
+Here, `?n` is a {tech}[metavariable] representing the `n` parameter of `Nonzero.instSucc`.
+Because `instanceReducibleAdd` is instance-reducible, `Nonzero (instanceReducibleAdd 2 2)` can be unfolded to
+`Nonzero 4` and the unification succeeds with the assignment `?n := 3`.
+(TODO: Also refer to the `Nat` special handling in `isDefEqOffset`?)
 
-Instance synthesis fails for {name}`tally` because it is not reduced:
+Instance synthesis fails for {name}`implicitReducibleAdd` because it is not reducible at instance transparency:
 ```lean +error (name := notZeroTally)
-#check notZero (tally 2 2)
+#synth Nonzero (implicitReducibleAdd 2 2)
 ```
 ```leanOutput notZeroTally
-failed to synthesize instance of type class
-  Nonzero (tally 2 2)
+failed to synthesize
+  Nonzero (implicitReducibleAdd 2 2)
 
-Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
+:::
 
-In other contexts, such as calls to {tactic}`simp`, {name}`plus` is unfolded:
+:::example "Semireducible Type Aliases Are Problematic"
+Consider this {tactic}`simp`-based proof.
 ```lean
-theorem plus_eq_add : plus x y = x + y := by simp
+example (nums : Array Nat) : (nums.push 0).size = nums.size + 1 := by
+  set_option trace.Meta.Tactic.simp true in
+  set_option trace.Meta.isDefEq true in
+  set_option trace.Meta.isDefEq.printTransparency true in
+  simp [Array.size_push]
+```
+We now introduce a type alias for `Array Nat`, semireducible by default.
+```lean
+def Numbers := Array Nat
+```
+The above proof fails if the statement is about `Numbers` instead of `Array Nat`.
+```lean -keep +error (name := bla)
+example (nums : Numbers) : (nums.push 0).size = nums.size + 1 := by
+  simp [Array.size_push]
+```
+```leanOutput bla
+`simp` made no progress
+
+Note: The target expression is not type-correct under the `implicit` transparency level, which may have triggered the failure. This is usually caused by unfolding of semireducible definitions in prior tactic steps. Use `set_option linter.tacticCheckInstances true` to investigate the source of the issue.
+Full error:
+  Application type mismatch: The argument
+    nums
+  has type
+    Numbers
+  but is expected to have type
+    Array Nat
+  in the application
+    Array.push nums
+```
+The note already gives a hint what might have gone wrong: {name}`Numbers` is not definitionally equal to {lean}`Array Nat` at implicit transparency.
+
+Enabling traces helps to see what happens:
+```lean -keep +error
+example (nums : Numbers) : (nums.push 0).size = nums.size + 1 := by
+  set_option trace.Meta.Tactic.simp true in
+  set_option trace.Meta.isDefEq true in
+  set_option trace.Meta.isDefEq.printTransparency true in
+  simp [Array.size_push]
+```
+```
+[Meta.isDefEq] ❌️ [reducible] (Array.push ?xs ?v).size =?= (Array.push nums 0).size ▼
+  [] ✅️ [reducible] ?α =?= Nat ▶
+  [] ❌️ [reducible] Array.push ?xs ?v =?= Array.push nums 0 ▼
+    [] ❌️ [reducible] ?xs =?= nums ▼
+      [] ?xs [assignable] =?= nums [nonassignable]
+      [transparency] raising transparency reducible → implicit
+      [] ❌️ [implicit] Array Nat =?= Numbers ▼
+        [onFailure] ❌️ Array Nat =?= Numbers
+  [...]
+[Meta.Tactic.simp.unify] Array.size_push:1000, failed to unify
+      (Array.push ?xs ?v).size
+    with
+      (Array.push nums 0).size
+```
+`simp` tries to unify the left-hand side {lean}`((?xs : Array Nat).push ?v).size` of {name}`Array.size_push`,
+with metavariables in place of the lemma's parameters, with the subterm `(nums.push 0).size` of the goal at *reducible transparency*.
+It must assign `?xs := nums` to succeed. This assignment is only allowed if their types {lean}`Array Nat` and {name}`Numbers`,
+so `simp` now tries to unify these types. The transparency level is bumped to at least `implicit` for all type comparisons for
+metavariable assignments, so for this check, transparency increases from `reducible` to `implicit`.
+Because {name}`Numbers` is semireducible, the assignment fails, and `simp` cannot apply the lemma.
+
+The proof succeeds if {name}`Numbers` is implicit-reducible:
+```lean -keep
+attribute [implicit_reducible] Numbers
+
+example (nums : Numbers) : (nums.push 0).size = nums.size + 1 := by
+  simp [Array.size_push]
 ```
 
-The implicit reducible synonym is not, however, unfolded by {tactic}`simp`:
-```lean -keep +error (name := simpInst)
-theorem sum_eq_add : sum x y = x + y := by simp
-```
-```leanOutput simpInst
-`simp` made no progress
-```
+This is why most type aliases should be implicit-reducible or reducible instead of semireducible.
+There are only few situations in which type aliases get a different reducibility, and even fewer
+where they are left semireducible.
 
 :::
 
@@ -622,7 +781,8 @@ theorem sum_eq_add : sum x y = x + y := by simp
 
 The reducibility of a definition can be globally modified in the module in which it is defined by applying the appropriate attribute with the {keywordOf Lean.Parser.Command.attribute}`attribute` command.
 In other modules, the reducibility of imported definitions can be modified by applying the attribute with the {keyword}`local` modifier.
-The {keywordOf Lean.Parser.commandSeal__}`seal` and  {keywordOf Lean.Parser.commandUnseal__}`unseal` commands are a shorthand for this process.
+The {keywordOf Lean.Parser.commandSeal__}`seal` and  {keywordOf Lean.Parser.commandUnseal__}`unseal` commands are a shorthand for making
+definitions locally irreducible and reverting to semireducibility, respectively.
 
 :::syntax command (title := "Local Irreducibility")
 
