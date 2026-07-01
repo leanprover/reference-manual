@@ -407,7 +407,7 @@ There are five levels of reducibility:
   Second, when assigning a value to a metavariable, Lean compares the type of the metavariable with the type of the value.
   Implicit-reducible declarations are also unfolded during this comparison.
 
-  The name “implicit” reflects tha that implicit arguments and the types of subterms are not explicitly visible in pretty-printed terms.
+  The name “implicit” reflects that implicit arguments and the types of subterms are not explicitly visible in pretty-printed terms.
 
 : {deftech}[Instance-reducible]
 
@@ -427,6 +427,27 @@ Definitional equality checks can unfold definitions up to a certain transparency
 * A check at *instance transparency* can unfold reducible and instance-reducible definitions.
 * A check at *implicit transparency* can additionally unfold implicit-reducible definitions.
 * A check at *semireducible transparency*, also called *default transparency*, can additionally unfold semireducible definitions.
+
+:::syntax attr (title := "Reducibility Annotations")
+A definition's reducibility can be set using one of the five reducibility attributes:
+
+```grammar
+reducible
+```
+```grammar
+instance_reducible
+```
+```grammar
+implicit_reducible
+```
+```grammar
+semireducible
+```
+```grammar
+irreducible
+```
+These attributes can only be applied globally in the same file as the definition being modified, but they may be {keywordOf attrInst (parser := Lean.Parser.Term.attrKind)}`local`ly applied anywhere.
+:::
 
 :::example "Reducibility and Direct Assignments"
 These four aliases for {lean}`String` are respectively reducible, implicit-reducible, semireducible, and irreducible.
@@ -526,7 +547,7 @@ instance : ToString Clause := inferInstanceAs (ToString String)
 instance : ToString Text := inferInstanceAs (ToString String)
 ```
 
-As another example, these functions are all synonyms for {lean}`Nat.add` that vary by their reducibility:
+As another example, the following functions are all synonyms for {lean}`Nat.add` that vary by their reducibility:
 ```lean
 abbrev reducibleAdd := Nat.add
 
@@ -646,7 +667,7 @@ example (nums : Numbers) : (nums.push 0).size = nums.size + 1 := by
       (Array.push nums 0).size
 ```
 `simp` tries to unify the left-hand side {lean}`((?xs : Array Nat).push ?v).size` of {name}`Array.size_push`,
-with metavariables in place of the lemma's parameters, with the subterm `(nums.push 0).size` of the goal at *reducible transparency*.
+with metavariables in place of the lemma's parameters, with the subterm `(nums.push 0).size` of the goal at reducible transparency.
 It must assign `?xs := nums` to succeed. This assignment is only allowed if their types, {lean}`Array Nat` and {name}`Numbers`, are definitionally equal,
 so `simp` now tries to unify these types. The transparency level is bumped to at least `implicit` for metavariable-assignment type comparisons,
 metavariable assignments, so for this check, transparency increases from `reducible` to `implicit`.
@@ -683,7 +704,7 @@ xs : Vector Nat n
 ⊢ (xs.append xs).push 0 = (xs.append xs).push 0
 ```
 
-The problem is the two sides of the equation aren't as syntactically equal as they look.
+The problem is that the two sides of the equation aren't as syntactically equal as they look.
 The signature of {name}`Vector.push` is:
 ```lean (name := vectorPushSig)
 #check Vector.push
@@ -748,27 +769,6 @@ Invalid field `reverse`: The environment does not contain `Sequence.reverse`, so
   xs
 of type `Sequence Nat`
 ```
-:::
-
-:::syntax attr (title := "Reducibility Annotations")
-A definition's reducibility can be set using one of the five reducibility attributes:
-
-```grammar
-reducible
-```
-```grammar
-instance_reducible
-```
-```grammar
-implicit_reducible
-```
-```grammar
-semireducible
-```
-```grammar
-irreducible
-```
-These attributes can only be applied globally in the same file as the definition being modified, but they may be {keywordOf attrInst (parser := Lean.Parser.Term.attrKind)}`local`ly applied anywhere.
 :::
 
 ## Reducibility and Tactics
