@@ -584,7 +584,7 @@ The facets available for modules are:
 
 : `c.o.noexport`
 
- The compiled object file, produced from the C file, with Lean symbols exported.
+ The compiled object file, produced from the C file, without Lean symbols exported.
 
 : `bc.o`
 
@@ -604,11 +604,11 @@ The facets available for modules are:
 
 : `linkInfoExport`
 
-  A structure containing the linker arguments, static objects, and dynamic libraries needed to link a module and its dependencies. Objects have Lean symbols exported.
+  A structured representation of the linker arguments, static objects, and dynamic libraries needed to link a module and its dependencies. Objects have Lean symbols exported.
 
 : `linkInfoNoExport`
 
-  A structure containing the linker arguments, static objects, and dynamic libraries needed to link a module and its dependencies. Objects do not Lean symbols exported.
+  A structured representation of the linker arguments, static objects, and dynamic libraries needed to link a module and its dependencies. Objects do not Lean symbols exported.
 
 :::
 
