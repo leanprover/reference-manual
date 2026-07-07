@@ -488,6 +488,8 @@ module.ir
 module.ir.sig
 module.lean
 module.leanArts
+module.linkInfoExport
+module.linkInfoNoExport
 module.ltar
 module.o
 module.o.export
@@ -599,6 +601,14 @@ The facets available for modules are:
 : `ltar`
 
   A compressed archive (produced via `leantar`) of the module's build artifacts. {TODO}[Document `leantar` in the manual as well]
+
+: `linkInfoExport`
+
+  The arguments that need to be passed to the C compiler if the intent is for the resulting object file to export all of Lean's symbols.
+
+: `linkInfoNoExport`
+
+  The arguments that need to be passed to the C compiler if the intent is for the resulting object file to export all of Lean's symbols.
 
 :::
 
