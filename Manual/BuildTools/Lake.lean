@@ -604,7 +604,7 @@ The facets available for modules are:
 
 : `linkInfoExport`
 
-  The arguments that need to be passed to the C compiler if the intent is for the resulting object file to export all of Lean's symbols.
+  A structure containing the linker arguments, static objects, and dynamic libraries needed to link a module and its dependencies. Objects have Lean symbols exported.
 
 : `linkInfoNoExport`
 
