@@ -444,25 +444,24 @@ set_option mvcgen.warning false
 
 ```
 
-This reimplementation of {name}`Id` has a {name}`WP` instance, but no {name}`WPMonad` instance:
+The single-field structure {name}`Identity` acts like the identity monad {name}`Id`. It has a {name}`WP` instance, but no {name}`WPMonad` instance:
 ```lean
-def Identity (α : Type u) : Type u := α
+structure Identity (α : Type u) where
+  run : α
 
 variable {α : Type u}
 
-def Identity.run (act : Identity α) : α := act
-
 instance : Monad Identity where
-  pure x := x
-  bind x f := f x
+  pure x := ⟨x⟩
+  bind x f := f x.run
 
 instance : WP Identity .pure where
-  wp x := PredTrans.pure x
+  wp x := PredTrans.pure x.run
 
 theorem Identity.of_wp_run_eq {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop) :
     (⊢ₛ wp⟦prog⟧ (⇓ a => ⟨P a⟩)) → P x := by
-  simp_all [WP.wp, Identity.run, ← h]
+  simp_all [WP.wp, ← h]
 ```
 
 ```lean -show
