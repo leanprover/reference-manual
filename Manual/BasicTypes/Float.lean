@@ -25,10 +25,12 @@ tag := "Float"
 
 Floating-point numbers are a an approximation of the real numbers that are efficiently implemented in computer hardware.
 Computations that use floating-point numbers are very efficient; however, the nature of the way that they approximate the real numbers is complex, with many corner cases.
-The IEEE 754 standard, which defines the floating-point format that is used on modern computers, allows hardware designers to make certain choices, and real systems differ in these small details.
+The IEEE 754 standard, which defines the floating-point format that is used on modern computers, allows hardware designers and programming language implementations to make certain choices, and real systems differ in these small details.
+Any given combination of hardware, operating system, C compiler, library versions, and even compilation flags can result in different behavior.
 For example, there are many distinct bit representations of `NaN`, the indicator that a result is undefined, and some platforms differ with respect to _which_ `NaN` is returned from adding two `NaN`s.
 
 To enable reasoning about floating-point numbers, Lean exposes a logical model of {name}`Float` that is used in proofs.
+In particular, {name}`Float` and {name}`Float32` are implemented as wrappers around the logical model.
 In compiled code, this logical model is replaced by efficient native code.
 Differences between platforms are resolved by choosing specific representations (for example, all `NaN` values are replaced by a single canonical `NaN` when any operation requests a bit representation) and by modeling only the subset of floating-point operations that are implemented identically on all supported platforms.
 Other operations, such as trigonometric functions, are represented as opaque functions in Lean's logic.
@@ -36,27 +38,28 @@ Other operations, such as trigonometric functions, are represented as opaque fun
 The logical model is extensively empirically tested against the floating-point operations on all supported platforms.
 As long as FFI code does not modify the floating-point environment, Lean's runtime floating-point primitives match the model's specification.
 
+{docstring Float}
+
+{docstring Float32}
 
 # Logical Model
 
 Lean provides two floating-point types: {name}`Float` represents 64-bit floating-point values, while {name}`Float32` represents 32-bit floating-point values.
 The precision of {name}`Float` does not vary based on the platform that Lean is running on.
 
-{docstring Float}
-
-{docstring Float32}
-
 ## Model Details
 
 The logical models of {lean}`Float` and {lean}`Float32` consist of unsigned integers with validity predicates.
-These are then interpreted into a {lean}`Float.Model.UnpackedFloat`, which is a higher-level model that is not specific to a bit width.
-The defined operations are implemented in terms of {name Float.Model.UnpackedFloat}`UnpackedFloat`.
-These operations are a _logical specification_ designed for reasoning.
+Each defined operation first interprets the integer into a {lean}`Float.Model.UnpackedFloat`, which is a higher-level model that is not specific to a bit width.
+Then, the defined operation is implemented in terms of {name Float.Model.UnpackedFloat}`UnpackedFloat`, and the result is re-packed.
+These definitions constitute a _logical specification_ designed for reasoning.
 Although they can be executed, they will run significantly slower than native code.
+Not all operations are defined; some are instead opaque functions whose behavior cannot be reasoned about in Lean's logic.
 
 This model is not intended to serve as the basis for a more extensive floating-point library.
 It exists only to support the reasoning tools available in Lean and is not suitable for larger-scale development.
-To implement a more extensive floating-point library, instead implement a suitable model, prove the equivalence of the its operations to this model, and then transfer lemmas using the equivalence.
+Do not use this model as the basis of a more extensive floating-point library.
+Instead, implement a suitable model, prove the equivalence of the its operations to this model, and then transfer lemmas using the equivalence.
 
 {docstring Float.Model}
 
