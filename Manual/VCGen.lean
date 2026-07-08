@@ -446,13 +446,14 @@ set_option mvcgen.warning false
 
 The single-field structure {name}`Identity` acts like the identity monad {name}`Id`. It has a {name}`WP` instance, but no {name}`WPMonad` instance:
 ```lean
-structure Identity (α : Type u) where
-  run : α
+def Identity (α : Type u) : Type u := α
 
 variable {α : Type u}
 
+def Identity.run (act : Identity α) : α := act
+
 instance : Monad Identity where
-  pure x := ⟨x⟩
+  pure x := x
   bind x f := f x.run
 
 instance : WP Identity .pure where
