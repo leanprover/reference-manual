@@ -441,7 +441,7 @@ import Std.Tactic.Do
 open Std.Do
 
 set_option mvcgen.warning false
-set_option backward.isDefEq.respectTransparency false
+
 ```
 
 The single-field structure {name}`Identity` acts like the identity monad {name}`Id`. It has a {name}`WP` instance, but no {name}`WPMonad` instance:
