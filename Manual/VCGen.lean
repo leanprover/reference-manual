@@ -444,7 +444,7 @@ set_option mvcgen.warning false
 
 ```
 
-The single-field structure {name}`Identity` acts like the identity monad {name}`Id`. It has a {name}`WP` instance, but no {name}`WPMonad` instance:
+This reimplementation of {name}`Id` has a {name}`WP` instance, but no {name}`WPMonad` instance:
 ```lean
 def Identity (α : Type u) : Type u := α
 
