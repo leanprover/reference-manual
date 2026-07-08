@@ -441,28 +441,27 @@ import Std.Tactic.Do
 open Std.Do
 
 set_option mvcgen.warning false
-
+set_option backward.isDefEq.respectTransparency false
 ```
 
-This reimplementation of {name}`Id` has a {name}`WP` instance, but no {name}`WPMonad` instance:
+The single-field structure {name}`Identity` acts like the identity monad {name}`Id`. It has a {name}`WP` instance, but no {name}`WPMonad` instance:
 ```lean
-def Identity (α : Type u) : Type u := α
+structure Identity (α : Type u) where
+  value : α
 
 variable {α : Type u}
 
-def Identity.run (act : Identity α) : α := act
-
 instance : Monad Identity where
-  pure x := x
-  bind x f := f x
+  pure x := ⟨x⟩
+  bind x f := f x.value
 
 instance : WP Identity .pure where
-  wp x := PredTrans.pure x
+  wp x := PredTrans.pure x.value
 
 theorem Identity.of_wp_run_eq {x : α} {prog : Identity α}
-    (h : Identity.run prog = x) (P : α → Prop) :
+    (h : Identity.value prog = x) (P : α → Prop) :
     (⊢ₛ wp⟦prog⟧ (⇓ a => ⟨P a⟩)) → P x := by
-  simp_all [WP.wp, Identity.run, ← h]
+  simp_all [WP.wp, ← h]
 ```
 
 ```lean -show
@@ -487,8 +486,8 @@ It is correct if it is equal to {name}`List.reverse`.
 However, {tactic}`mvcgen` does not make the goal easier to prove:
 ```lean +error -keep (name := noInst)
 theorem rev_correct :
-    (rev xs).run = xs.reverse := by
-  generalize h : (rev xs).run = x
+    (rev xs).value = xs.reverse := by
+  generalize h : (rev xs).value = x
   apply Identity.of_wp_run_eq h
   mvcgen [rev]
 ```
@@ -497,7 +496,7 @@ unsolved goals
 case vc1
 α✝ : Type u_1
 xs x : List α✝
-h : (rev xs).run = x
+h : (rev xs).value = x
 out✝ : List α✝ := []
 ⊢ (wp⟦do
       let __s ← forIn xs out✝ fun x __s => pure (ForInStep.yield (x :: __s))
@@ -514,8 +513,8 @@ instance : WPMonad Identity .pure where
 With this instance, and a suitable invariant, {tactic}`mvcgen` and {tactic}`grind` can prove the theorem.
 ```lean
 theorem rev_correct :
-    (rev xs).run = xs.reverse := by
-  generalize h : (rev xs).run = x
+    (rev xs).value = xs.reverse := by
+  generalize h : (rev xs).value = x
   apply Identity.of_wp_run_eq h
   simp only [rev]
   mvcgen invariants
