@@ -17,11 +17,11 @@ tag := "files"
 htmlSplit := .never
 %%%
 
-The smallest unit of compilation in Lean is a single {deftech}[source file].
+The smallest unit of compilation in Lean is a single {tech}[source file].
 Source files may import other source files based on their file names.
 In other words, the names and folder structures of files are significant in Lean code.
 
-Each source file has an {deftech}_import name_ that is derived from a combination of its filename and the way in which Lean was invoked: Lean has set of a _root directories_ in which it expects to find code, and the source file's import name is the names of the directories from the root to the filename, with dots (`.`) interspersed and `.lean` removed.
+Each source file has an {deftech}_import name_ that is derived from a combination of its filename and the way in which Lean was invoked: Lean has a set of _root directories_ in which it expects to find code, and the source file's import name is the names of the directories from the root to the filename, with dots (`.`) interspersed and `.lean` removed.
 For example, if Lean is invoked with `Projects/MyLib/src` as its root, the file `Projects/MyLib/src/Literature/Novel/SciFi.lean` could be imported as `Literature.Novel.SciFi`.
 
 ::: TODO
@@ -205,10 +205,6 @@ A source file consists of a {deftech}_file header_ followed by a sequence of {de
 
 If a source file's header begins with {keywordOf Lean.Parser.Module.header}`module`, then it is referred to as a {tech}_module_.
 Modules provide greater control over what information is exposed to clients.
-Modules are an experimental feature in Lean.
-To use modules, the {option}`experimental.module` must be set to {lean}`true` in the project's Lake configuration file.
-
-{optionDocs experimental.module}
 
 ## Headers
 %%%
@@ -265,6 +261,7 @@ $[public]? $[meta]? import $[all]? $mod:ident
 
 :::paragraph
 All imports to a module must themselves be modules.
+Without modifiers, the imported module's public scope is added to the current module's private scope. The imported module is not made available to modules that import the current module.
 The modifiers have the following meanings:
 
 : {keyword}`public`
@@ -309,7 +306,7 @@ This discipline brings a number of benefits:
 : Much-improved average build times
 
   Changes to files that affect only non-exported information (e.g. proofs, comments, and docstrings) will not trigger rebuilds outside of these files.
-  Even when dependent files have to be rebuilt, those files that cannot be affected (as determiend by their {keywordOf Lean.Parser.Module.import}`import` annotations) can be skipped.
+  Even when dependent files have to be rebuilt, those files that cannot be affected (as determined by their {keywordOf Lean.Parser.Module.import}`import` annotations) can be skipped.
 
 : Control over API evolution
 
@@ -492,7 +489,7 @@ Private declaration `drop2` accessed publicly; this is allowed only because the 
 
 Disable `backward.privateInPublic.warn` to silence this warning.
 ```
-When the module is imported, references to {name}`f` use {name}`drop2` as a default argument value; however, it's name is inaccessible in the module {module}`L`:
+When the module is imported, references to {name}`f` use {name}`drop2` as a default argument value; however, its name is inaccessible in the module {module}`L`:
 ```leanModule (moduleName :=  L) (name := withPrivateInTerm)
 module
 import L.Defs
@@ -642,7 +639,7 @@ tag := "meta-phase"
 
 Definitions in Lean result in both a representation in the type theory that is designed for formal reasoning and a compiled representation that is designed for execution.
 This compiled representation is used to generate machine code, but it can also be executed directly using an interpreter.
-The code runs during {tech}[elaboration], such as {ref "tactics"}[tactics] or {ref "macros"}[macros], is the compiled form of definitions.
+The code that runs during {tech -normalize}[elaboration], such as {ref "tactics"}[tactics] or {ref "macros"}[macros], is the compiled form of definitions.
 If this compiled representation changes, then any code created by it may no longer be up to date, and it must be re-run.
 Because the compiler performs non-trivial optimizations, changes to any definition in the transitive dependency chain of a function could in principle invalidate its compiled representation.
 This means that metaprograms exported by modules induce a much stronger coupling than ordinary definitions.
@@ -691,7 +688,7 @@ open Lean
 
 variable [Monad m] [MonadRef m] [MonadQuotation m]
 
-meta def revArrays : Syntax → m Term
+meta partial def revArrays : Syntax → m Term
   | `(#[$xs,*]) => `(#[$((xs : Array Term).reverse),*])
   | other => do
     match other with
@@ -716,7 +713,7 @@ There is no meta-meta phase.
 In addition to making the imported module's public contents available at the meta phase, {keywordOf Parser.Module.import}`meta import` indicates that the current module should be rebuilt if the compiled representation of the imported module changes, ensuring that modified metaprograms are re-run.
 If a definition should be usable in both phases, then it must be defined in a separate module and imported at both phases.
 
-::::example "Cross-Phase Code Re-Use"
+::::example "Cross-Phase Code Reuse"
 :::leanModules +error
 In this module, the function {name}`toPalindrome` is defined in the meta phase, which allows it to be used in a macro but not in an ordinary definition:
 ```leanModule (moduleName := Phases) (name := bothPhases)
@@ -728,7 +725,7 @@ variable [Monad m] [MonadRef m] [MonadQuotation m]
 
 meta def toPalindrome (xs : Array α) : Array α := xs ++ xs.reverse
 
-meta def palArrays : Syntax → m Term
+meta partial def palArrays : Syntax → m Term
   | `(#[$xs,*]) => `(#[$(toPalindrome (xs : Array Term)),*])
   | other => do
     match other with
@@ -764,7 +761,7 @@ open Lean
 
 variable [Monad m] [MonadRef m] [MonadQuotation m]
 
-meta def palArrays : Syntax → m Term
+meta partial def palArrays : Syntax → m Term
   | `(#[$xs,*]) => `(#[$(toPalindrome (xs : Array Term)),*])
   | other => do
     match other with
@@ -790,9 +787,6 @@ If the declaration is already declared {keywordOf Parser.Command.declModifiers}`
 Unlike definitions, most metaprograms are public by default.
 Thus, most {keywordOf Lean.Parser.Module.import}`meta import` are also {keywordOf Parser.Module.import}`public` in practice.
 The exception is when a definition is imported solely for use in local metaprograms, such as those declared with {keywordOf Parser.Command.syntax}`local syntax`, {keywordOf Parser.Command.macro}`local macro`, or {keywordOf Parser.Command.elab}`local elab`.
-
-For convenience, {keywordOf Lean.Parser.Command.declModifiers}`meta` also implies {keywordOf Lean.Parser.Command.declModifiers}`partial`.
-This can be overridden by giving an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by` metric (such as one suggested by {keywordOf Lean.Parser.Command.declaration}`termination_by?`), which may be necessary when the type of the definition is not known to be {name}`Nonempty`.
 
 As a guideline, it is usually preferable to keep the amount of {keywordOf Lean.Parser.Command.declModifiers}`meta` annotations as small as possible.
 This avoids locking otherwise-reusable declarations into the {tech}[meta phase] and it helps the build system avoid more rebuilds.
@@ -834,10 +828,6 @@ The following list contains common errors one might encounter when using the mod
   This may also appear as a kernel error when a tactic directly emits proof terms that reference specific declarations without going through the elaborator, such as for proof by reflection.
   In this case, there is no readily available trace for debugging; consider using {attrs}`@[expose]`‍` `{keywordOf Parser.Command.section}`section`s generously on the closure of relevant modules.
 
-: “failed to compile 'partial' definition” on a {keywordOf Lean.Parser.Command.declModifiers}`meta` definition
-
-  This can happen when a definition with a type that is not known to be {name}`Nonempty` is marked {keywordOf Lean.Parser.Command.declModifiers}`meta` or moved into a {keywordOf Parser.Command.section}`meta section`, which both imply {keywordOf Lean.Parser.Command.declModifiers}`partial` without a termination metric.
-  Use {keywordOf Parser.Command.declaration}`termination_by?` to make the previously implicitly inferred termination metric explicit, or provide a {name}`Nonempty` instance.
 :::
 
 ## Recipe for Porting Existing Files
@@ -863,7 +853,7 @@ tag := "code-distribution"
 %%%
 
 
-Lean modules are organized into {deftech}_packages_, which are units of code distribution.
+Lean modules are organized into {tech}_packages_, which are units of code distribution.
 A {tech}[package] may contain multiple libraries or executables.
 
 Code in a package that is intended for use by other Lean packages is organized into {deftech (key:="library")}[libraries].

@@ -8,6 +8,8 @@ import VersoManual
 import Manual.Meta
 import Manual.Papers
 
+import Manual.ValidatingProofs
+
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
@@ -16,6 +18,60 @@ set_option guard_msgs.diff true
 
 open Lean (Syntax SourceInfo)
 
+open Illuminate in
+def pipelineDiagram : Diagram SVG :=
+  let resultStyle : TextStyle := { fontSize := 20, bold := true }
+  let result :=
+    Diagram.hsep (align := .bottom) 8
+      [.text "✔" { resultStyle with color := Color.green }, .text "/" resultStyle, .text "✖" resultStyle]
+      |>.pad 8
+      |>.namedWithAnchors `result
+  let codeLabel :=
+    Diagram.text "Code.lean"
+      (style := { fontFamily := "monospace", fontSize := 12 })
+      |>.pad 12
+  let code :=
+    Diagram.paper
+      (name := `source)
+      (label := some codeLabel)
+      (width := some 80)
+      (height := some 100)
+      (fill := Color.white)
+  Diagram.grid (hSpacing := 70) (vSpacing := 50) #[
+    #[some code,                            none],
+    #[some (box `stx "Syntax\nTree"),        none],
+    #[some (box `core "Core Type\nTheory"), some (box `kernel "Core Type\nTheory\n(no recursion)")],
+    #[some (box `exe "Executable"),         some result]
+  ]
+  -- Arrows with stealth arrowheads and upright labels
+    |>.connect `source.south `stx.north
+      (label := lbl "Parsing") (arrowhead := ah)
+    |>.connect `stx.south `core.north
+      (label := lbl "Elaboration") (arrowhead := ah)
+    |>.connect `core.south `exe.north
+      (label := lbl "Compilation") (arrowhead := ah)
+    |>.connect `core.east `kernel.west
+      (label := lbl "Recursion\nElimination") (arrowhead := ah)
+  -- Self-loop on Syntax Tree for macro expansion (left side)
+    |>.connect
+      { point := `stx.west, shift := ⟨0, -10⟩, angle := some (pi + pi / 7), pull := 3.5 }
+      { point := `stx.west, shift := ⟨0, 10⟩, angle := some (0 - pi / 7), pull := 3.5 }
+      (label := lbl "Macro\nExpansion") (arrowhead := ah)
+  -- Kernel check arrow
+    |>.connect `kernel.south `result.north
+      (label := lbl "Kernel\nCheck") (arrowhead := ah)
+where
+  ah : Arrowhead := { type := .stealth }
+  lbl (s : String) : Option (Label SVG) :=
+    some { label := .text s { fontSize := 10 }, upright := true }
+  box (name : Lean.Name) (label : String) (fontFamily := "sans-serif") : Diagram SVG :=
+    Diagram.text label { fontSize := 12, fontFamily }
+      |>.pad 12
+      |>.filledFrame
+        (fill := Color.white)
+        (stroke := { color := Color.black, width := 1 })
+        (cornerRadius := 6)
+      |>.namedWithAnchors name
 
 
 #doc (Manual) "Elaboration and Compilation" =>
@@ -37,7 +93,7 @@ Roughly speaking, Lean's processing of a source file can be divided into the fol
 
 : Elaboration
 
-  {deftech (key := "elaborator")}[Elaboration] is the process of transforming Lean's user-facing syntax into its core type theory.
+  {deftech (key := "Lean elaborator") -normalize}[Elaboration] is the process of transforming Lean's user-facing syntax into its core type theory.
   This core theory is much simpler, enabling the trusted kernel to be very small.
   Elaboration additionally produces metadata, such as proof states or the types of expressions, used for Lean's interactive features, storing them in a side table.
 
@@ -51,7 +107,9 @@ Roughly speaking, Lean's processing of a source file can be divided into the fol
 
 
 :::figure "The Lean Pipeline" (tag := "pipeline-overview")
-![The Lean Pipeline](/static/figures/pipeline-overview.svg)
+```diagram
+pipelineDiagram
+```
 :::
 
 
@@ -103,7 +161,7 @@ tag := "macro-and-elab"
 %%%
 
 Having parsed a command, the next step is to elaborate it.
-The precise meaning of {deftech}_elaboration_ depends on what is being elaborated: elaborating a command effects a change in the state of Lean, while elaborating a term results in a term in Lean's core type theory.
+The precise meaning of {deftech -normalize}_elaboration_ depends on what is being elaborated: elaborating a command effects a change in the state of Lean, while elaborating a term results in a term in Lean's core type theory.
 Elaboration of both commands and terms may be recursive, both because of command combinators such as {keywordOf Lean.Parser.Command.in}`in` and because terms may contain other terms.
 
 Command and term elaboration have different capabilities.
@@ -212,7 +270,7 @@ Instead, it provides low-level {tech}[recursors] that can be used to implement b
 Thus, the elaborator must translate definitions that use pattern matching and recursion into definitions that use recursors.{margin}[More details on the elaboration of recursive definitions is available in the {ref "recursive-definitions"}[dedicated section] on the topic.]
 This translation is additionally a proof that the function terminates for all potential arguments, because all functions that can be translated to recursors also terminate.
 
-The translation to recursors happens in two phases: during term elaboration, uses of pattern matching are replaced by appeals to {deftech}_auxiliary matching functions_ that implement the particular case distinction that occurs in the code.
+The translation to recursors happens in two phases: during term elaboration, uses of pattern matching are replaced by appeals to {deftech}_auxiliary matching functions_ (also referred to as {deftech}_matcher functions_) that implement the particular case distinction that occurs in the code.
 These auxiliary functions are themselves defined using recursors, though they do not make use of the recursors' ability to actually implement recursive behavior.{margin}[They use variants of the `casesOn` construction that is described in the {ref "recursor-elaboration-helpers"}[section on recursors and elaboration], specialized to reduce code size.]
 The term elaborator thus returns core-language terms in which pattern matching has been replaced with the use of special functions that implement case distinction, but these terms may still contain recursive occurrences of the function being defined.
 A definition that still includes recursion, but has otherwise been elaborated to the core language, is called a {deftech}[pre-definition].
@@ -233,8 +291,8 @@ info: @[reducible] def third_of_five._sparseCasesOn_1.{u_1, u} : {α : Type u} �
     (t : List α) →
       ((head : α) → (tail : List α) → motive (head :: tail)) → (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t :=
 fun {α} {motive} t cons =>
-  List.rec (motive := fun t => (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t) (fun x => x ⋯)
-    (fun head tail tail_ih x => cons head tail) t
+  List.rec (motive := fun t => (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t) (fun «else» => «else» ⋯)
+    (fun head tail tail_ih «else» => cons head tail) t
 -/
 #check_msgs in
 #print third_of_five._sparseCasesOn_1
@@ -248,7 +306,7 @@ info: third_of_five.eq_def.{u_1} {α : Type u_1} (x✝ : List α) :
 #check third_of_five.eq_def
 
 /--
-info: def third_of_five.match_1.{u_1, u_2} : {α : Type u_1} →
+info: @[instance_reducible] def third_of_five.match_1.{u_1, u_2} : {α : Type u_1} →
   (motive : List α → Sort u_2) →
     (x : List α) →
       ((head head_1 x head_2 head_3 : α) → motive [head, head_1, x, head_2, head_3]) →
@@ -291,7 +349,7 @@ The compiler stores an intermediate representation in an environment extension.
 
 For straightforwardly structurally recursive functions, the translation will use the type's recursor.
 These functions tend to be relatively efficient when run in the kernel, their defining equations hold definitionally, and they are easy to understand.
-Functions that use other patterns of recursion that cannot be captured by the type's recursor are translated using {deftech}[well-founded recursion], which is structural recursion on a proof that some {deftech}_measure_ decreases at each recursive call, or using {ref "partial-fixpoint"}[partial fixpoints], which logically capture at least part of a function's specification by appealing to domain-theoretic constructions.
+Functions that use other patterns of recursion that cannot be captured by the type's recursor are translated using {tech}[well-founded recursion], which is structural recursion on a proof that some {tech}[measure] decreases at each recursive call, or using {ref "partial-fixpoint"}[partial fixpoints], which logically capture at least part of a function's specification by appealing to domain-theoretic constructions.
 Lean can automatically derive many of these termination proofs, but some require manual proofs.
 Well-founded recursion is more flexible, but the resulting functions are often slower to execute in the kernel due to the proof terms that show that a measure decreases, and their defining equations may hold only propositionally.
 To provide a uniform interface to functions defined via structural and well-founded recursion and to check its own correctness, the elaborator proves {deftech}[equational lemmas] that relate the function to its original definition.

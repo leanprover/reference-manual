@@ -219,6 +219,12 @@ The declarations in this section should be imported using `import Std.TreeMap`.
 
 # Iteration
 
+{docstring Std.TreeMap.iter}
+
+{docstring Std.TreeMap.keysIter}
+
+{docstring Std.TreeMap.valuesIter}
+
 {docstring Std.TreeMap.map}
 
 {docstring Std.TreeMap.all}

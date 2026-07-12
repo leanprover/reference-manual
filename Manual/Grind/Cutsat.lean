@@ -101,6 +101,7 @@ h_2 : 2 ∣ 2 * a + b
 [grind] Goal diagnostics
   [facts] Asserted facts
   [eqc] True propositions
+  [ematch] E-matching patterns
   [linarith] Linarith assignment for `Int`
 ```
 ::::
@@ -175,6 +176,7 @@ h : x * x + 1 ≤ 0
 [grind] Goal diagnostics
   [facts] Asserted facts
   [eqc] True propositions
+  [ematch] E-matching patterns
   [cutsat] Assignment satisfying linear constraints
 ```
 
@@ -193,6 +195,7 @@ h : x * x + 1 ≤ 0
 [grind] Goal diagnostics
   [facts] Asserted facts
   [eqc] True propositions
+  [ematch] E-matching patterns
   [cutsat] Assignment satisfying linear constraints
 ```
 

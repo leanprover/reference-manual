@@ -323,7 +323,7 @@ Prod.mk.injEq.{u, v} {α : Type u} {β : Type v} (fst : α) (snd : β) :
 :::::
 
 In addition to rewrite rules, {tactic}`simp` has a number of built-in reduction rules, {ref "simp-config"}[controlled by the `config` parameter].
-Even when the simp set is empty, {tactic}`simp` can replace `let`-bound variables with their values, reduce {keywordOf Lean.Parser.Term.match}`match` expressions whose scrutinees are constructor applications, reduce structure projections applied to constructors, or apply lambdas to their arguments.
+Even when the simp set is empty, {tactic}`simp` can replace `let`-bound variables with their values, reduce {keywordOf Lean.Parser.Term.match}`match` expressions whose {tech (key := "match discriminant")}[discriminants] are constructor applications, reduce structure projections applied to constructors, or apply lambdas to their arguments.
 
 # Simp sets
 %%%
@@ -331,7 +331,7 @@ tag := "simp-sets"
 %%%
 
 A collection of rules used by the simplifier is called a {deftech}_simp set_.
-A simp set is specified in terms of modifications from a _default simp set_.
+A simp set is specified in terms of modifications from a {deftech}_default simp set_.
 These modifications can include adding rules, removing rules, or adding a set of rules.
 The `only` modifier to the {tactic}`simp` tactic causes it to start with an empty simp set, rather than the default one.
 Rules are added to the default simp set using the {attr}`simp` attribute.

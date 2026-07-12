@@ -30,7 +30,7 @@ The following commands in Lean are definition-like: {TODO}[Render commands as th
  * {keyword}`theorem`
  * {keyword}`opaque`
 
-All of these commands cause Lean to {tech (key := "elaborator")}[elaborate] a term based on a {tech}[signature].
+All of these commands cause Lean to {tech (key := "elaborator") -normalize}[elaborate] a term based on a {tech}[signature].
 With the exception of {keywordOf Lean.Parser.Command.example}`example`, which discards the result, the resulting expression in Lean's core language is saved for future use in the environment.
 The {keywordOf Lean.Parser.Command.declaration}`instance` command is described in the {ref "instance-declarations"}[section on instance declarations].
 
@@ -528,7 +528,7 @@ In {tech}[modules], the bodies of definitions defined with {keyword}`def` are no
 :::
 
 :::syntax Lean.Parser.Command.declaration (alias := Lean.Parser.Command.abbrev) (title := "Abbreviations")
-Abbreviations are identical to definitions with {keyword}`def`, except they are {tech}[reducible].
+{deftech}[Abbreviations] are identical to definitions with {keyword}`def`, except they are {tech}[reducible].
 
 ```grammar
 $_:declModifiers
@@ -547,7 +547,7 @@ abbrev $_ $_ where
   $_*
 ```
 
-In {tech}[modules], the bodies of definitions defined with {keyword}`def` are exposed by default.
+In {tech}[modules], the bodies of definitions defined with {keyword}`abbrev` are exposed by default.
 :::
 
 
@@ -585,7 +585,7 @@ However, because their use cases are quite different, they differ in many detail
   Section variables only become parameters to the theorem if they (or their dependents) are mentioned in the header.
   This prevents changes to a proof from unintentionally changing the theorem statement.
 * Theorems are {tech}[irreducible] by default.
-  Because all proofs of the same proposition are {tech (key := "definitional equality")}[definitionally equal], there few reasons to unfold a theorem.
+  Because all proofs of the same proposition are {tech (key := "definitional equality")}[definitionally equal], there are few reasons to unfold a theorem.
 :::
 
 Theorems may be recursive, subject to the same conditions as {ref "recursive-definitions"}[recursive function definitions].

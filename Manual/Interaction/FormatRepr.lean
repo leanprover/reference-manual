@@ -561,7 +561,7 @@ In some cases, however, it's necessary to write an instance by hand:
   Because programs can't inspect proofs, they cannot be rendered directly.
   This is a common reason why a type would have an interface other than its constructors.
 
-* Types with special syntax, such as {name}`List`, should use this syntax in their {name}`Repr` isntances.
+* Types with special syntax, such as {name}`List`, should use this syntax in their {name}`Repr` instances.
 
 * The derived {name}`Repr` instance for structures uses {tech}[structure instance] notation.
   A hand-written instance can use the constructor's name explicitly or use {tech}[anonymous constructor syntax].

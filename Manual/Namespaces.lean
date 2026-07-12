@@ -50,7 +50,7 @@ They also allow parameters shared by many declarations to be declared centrally 
 tag := "scopes"
 %%%
 
-Many commands have an effect for the current {deftech}[_section scope_] (sometimes just called "scope" when clear).
+Many commands have an effect for the current {deftech}[_section scope_] (sometimes just called “scope” when clear).
 Every Lean module has a section scope.
 Nested scopes are created via the {keywordOf Lean.Parser.Command.namespace}`namespace` and {keywordOf Lean.Parser.Command.section}`section` commands, as well as the {keywordOf Lean.Parser.Command.in}`in` command combinator.
 
@@ -189,8 +189,7 @@ All section scopes introduced by the {keywordOf Lean.Parser.Command.namespace}`n
 
 :::syntax command (title := "Namespace Declarations")
 The `namespace` command modifies the current namespace by appending the provided identifier.
-
-creates a section scope that lasts either until an {keywordOf Lean.Parser.Command.end}`end` command or the end of the file.
+It creates a section scope that lasts either until an {keywordOf Lean.Parser.Command.end}`end` command or the end of the file.
 ```grammar
 namespace $id:ident
 ```
@@ -203,7 +202,7 @@ Without an identifier, {keywordOf Lean.Parser.Command.end}`end` closes the most 
 end
 ```
 
-With an identifier, it closes the most recently opened section section or namespace.
+With an identifier, it closes the most recently opened section or namespace.
 If it is a section, the identifier must be a suffix of the concatenated names of the sections opened since the most recent {keywordOf Lean.Parser.Command.namespace}`namespace` command.
 If it is a namespace, then the identifier must be a suffix of the current namespace's extensions since the most recent {keywordOf Lean.Parser.Command.section}`section` that is still open; afterwards, the current namespace will have had this suffix removed.
 ```grammar
@@ -292,6 +291,10 @@ All section variables are added in the order in which they are declared, before 
 Section variables are added only when they occur in the _statement_ of a theorem.
 Otherwise, modifying the proof of a theorem could change its statement if the proof term made use of a section variable.
 
+Section variables are not added as definition parameters until after the definition's body has been elaborated.
+This means that they cannot vary in recursive definitions, and their values are fixed.
+Explicit parameters may shadow section variables and can be used for definitions in which the value must vary.
+
 Variables are declared using the {keywordOf Lean.Parser.Command.variable}`variable` command.
 
 
@@ -334,6 +337,40 @@ def addAll :=
   xs.foldr (init := 0) (· + ·)
 ```
 :::
+::::
+
+::::example "Section Variables and Recursion"
+Section variables are fixed in recursive functions.
+The variable {lean}`length` represents a number that should decrease:
+```lean
+variable (length : Nat)
+```
+However, it cannot be used directly to define recursive functions, because the body of the function does not treat the section variable as a parameter:
+```lean +error -keep (name := varNoRec)
+def copies (x : α) : List α :=
+  match length with
+  | 0 => []
+  | length' + 1 => x :: copies length' x
+```
+The error arises because {name}`copies` expects only one explicit argument but has received two:
+```leanOutput varNoRec
+Function expected at
+  copies length'
+but this term has type
+  List Nat
+
+Note: Expected a function because this term is being applied to the argument
+  x
+```
+
+Even though {lean}`length` is already a section variable, it can be shadowed in order to define the function:
+```lean
+def copies (length : Nat) (x : α) : List α :=
+  match length with
+  | 0 => []
+  | length' + 1 => x :: copies length' x
+```
+
 ::::
 
 To add a section variable to a theorem even if it is not explicitly mentioned in the statement, mark the variable with the {keywordOf Lean.Parser.Command.include}`include` command.
@@ -382,7 +419,7 @@ consider restructuring your `variable` declarations so that the variables are no
 Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
 ```
 
-This can be avoided by using {keywordOf Lean.Parser.Command.omit}`omit`to remove {lean}`pFifteen`:
+This can be avoided by using {keywordOf Lean.Parser.Command.omit}`omit` to remove {lean}`pFifteen`:
 ```lean -keep
 include pZero pStep pFifteen
 

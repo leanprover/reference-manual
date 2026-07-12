@@ -1,11 +1,19 @@
 /-
-Copyright (c) 2025 Lean FRO LLC. All rights reserved.
+Copyright (c) 2026 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joachim Breitner
 -/
 
 import VersoManual
 
+import Manual.Releases.«v4_32_0»
+import Manual.Releases.«v4_31_0»
+import Manual.Releases.«v4_30_0»
+import Manual.Releases.«v4_29_1»
+import Manual.Releases.«v4_29_0»
+import Manual.Releases.«v4_28_1»
+import Manual.Releases.«v4_28_0»
+import Manual.Releases.«v4_27_0»
 import Manual.Releases.«v4_26_0»
 import Manual.Releases.«v4_25_1»
 import Manual.Releases.«v4_25_0»
@@ -48,11 +56,28 @@ open Verso.Genre
 tag := "release-notes"
 file := "releases"
 number := false
+searchPriority := 10
 %%%
 
 This section provides release notes about recent versions of Lean. When updating to a new version, please
 read the corresponding release notes. They may contain advice that will help you understand
 the differences with the previous version and upgrade your projects.
+
+{include 0 Manual.Releases.«v4_32_0»}
+
+{include 0 Manual.Releases.«v4_31_0»}
+
+{include 0 Manual.Releases.«v4_30_0»}
+
+{include 0 Manual.Releases.«v4_29_1»}
+
+{include 0 Manual.Releases.«v4_29_0»}
+
+{include 0 Manual.Releases.«v4_28_1»}
+
+{include 0 Manual.Releases.«v4_28_0»}
+
+{include 0 Manual.Releases.«v4_27_0»}
 
 {include 0 Manual.Releases.«v4_26_0»}
 

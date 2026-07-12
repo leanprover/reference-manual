@@ -83,7 +83,7 @@ Congruence closure is a fundamentally different operation from simplification:
 
 * {tactic}`simp` _rewrites_ a goal, replacing occurrences of {lean}`t₁` with {lean}`t₂` as soon as it sees {typed}`h : t₁ = t₂`.
   The rewrite is directional and destructive.
-* {tactic}`grind` _accumulates_ equalities bidirectionally.  No term is rewritten; instead, both representatives live in the same class.  All other engines ({TODO}[techterm] E‑matching, theory solvers, {tech (key := "constraint propagation")}[propagation]) can query these classes and add new facts, then the closure updates incrementally.
+* {tactic}`grind` _accumulates_ equalities bidirectionally.  No term is rewritten; instead, both representatives live in the same class.  All other engines ({tech}[E‑matching], theory solvers, {tech (key := "constraint propagation")}[propagation]) can query these classes and add new facts, then the closure updates incrementally.
 
 This makes congruence closure especially robust in the presence of symmetrical reasoning, mutual recursion, and large nestings of constructors where rewriting would duplicate work.
 :::

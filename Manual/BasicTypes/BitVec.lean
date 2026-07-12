@@ -12,6 +12,7 @@ open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
+set_option linter.typography.dashes false -- There's a reference to a Figure 5-2 below that should not be an en dash
 
 set_option maxRecDepth 768
 

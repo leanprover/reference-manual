@@ -65,7 +65,7 @@ end Forest
 
 # Namespaces and Section Scopes
 
-Every {tech}[section scope] has a {deftech}_current namespace_, which is determined by the {keywordOf Lean.Parser.Command.namespace}`namespace` command.{margin}[The {keywordOf Lean.Parser.Command.namespace}`namespace` command is described in the {ref "scope-commands"}[section on commands that introduce section scopes].]
+Every {tech}[section scope] has a {tech}[current namespace], which is determined by the {keywordOf Lean.Parser.Command.namespace}`namespace` command.{margin}[The {keywordOf Lean.Parser.Command.namespace}`namespace` command is described in the {ref "scope-commands"}[section on commands that introduce section scopes].]
 Names that are declared within the section scope are added to the current namespace.
 If the declared name has more than one component, then its namespace is nested within the current namespace; the body of the declaration's current namespace is the nested namespace.
 Section scopes also include a set of {deftech}_opened namespaces_, which are namespaces whose contents are in scope without additional qualification.

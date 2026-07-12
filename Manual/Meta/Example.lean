@@ -6,7 +6,6 @@ Author: David Thrane Christiansen
 
 import VersoManual
 import Manual.Meta.Figure
-import Manual.Meta.Imports
 import Manual.Meta.LzCompress
 import Lean.Elab.InfoTree.Types
 
@@ -29,7 +28,7 @@ def Block.example (descriptionString : String) (name : Option String) (opened : 
 abbrev ExampleBlockJson := String × Option String × Bool × Option Tag × Option String
 
 structure ExampleConfig where
-  description : FileMap × TSyntaxArray `inline
+  description : TSyntaxArray `inline
   /-- Name for refs -/
   tag : Option String := none
   keep : Bool := false
@@ -75,7 +74,7 @@ structure LeanBlockContent where
 def getLeanBlockContents? : TSyntax `block → DocElabM (LeanBlockContent)
   | `(block|```$nameStx:ident $args*|$contents:str```) => do
     let name ← realizeGlobalConstNoOverload nameStx
-    if name == ``Manual.imports then
+    if name == ``Verso.Genre.Manual.imports then
       return { content := some contents.getString, shouldElab := false }
     if name != ``Verso.Genre.Manual.InlineLean.lean then
       return { content := none, shouldElab := false }
@@ -108,17 +107,13 @@ def renderExampleContent (exampleBlocks : List String) : String :=
 /-- A domain for named examples -/
 def examples : Domain := {}
 
-@[directive_expander «example»]
-def «example» : DirectiveExpander
-  | args, contents => do
-    let cfg ← parseThe ExampleConfig args
-
-    let description ←
-      DocElabM.withFileMap cfg.description.1 <|
-      cfg.description.2.mapM elabInline
-    let descriptionString := inlinesToString (← getEnv) cfg.description.2
-    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description.2)
-      (selectionRange := mkNullNode cfg.description.2)
+@[directive]
+def «example» : DirectiveExpanderOf ExampleConfig
+  | cfg, contents => do
+    let description ← cfg.description.mapM elabInline
+    let descriptionString := inlinesToString (← getEnv) cfg.description
+    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description)
+      (selectionSyntax? := some <| mkNullNode cfg.description)
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Example")
 
@@ -136,16 +131,17 @@ def «example» : DirectiveExpander
       if cfg.keep then exampleCode
       else withoutModifyingEnv <| exampleCode
     let liveLinkContent := if acc = [] then none else some (renderExampleContent acc)
+
     -- Examples are represented using the first block to hold the description. Storing it in the JSON
     -- entails repeated (de)serialization.
-    pure #[← ``(Block.other (Block.example $(quote descriptionString) $(quote cfg.tag) (opened := $(quote cfg.opened)) $(quote liveLinkContent))
-                #[Block.para #[$description,*], $blocks,*])]
+    ``(Block.other (Block.example $(quote descriptionString) $(quote cfg.tag) (opened := $(quote cfg.opened)) $(quote liveLinkContent))
+         #[Block.para #[$description,*], $blocks,*])
 
 @[block_extension «example»]
 def example.descr : BlockDescr where
   traverse id data contents := do
     match FromJson.fromJson? data (α := ExampleBlockJson) with
-    | .error e => logError s!"Error deserializing example tag: {e}"; pure none
+    | .error e => reportError s!"Error deserializing example tag: {e}"; pure none
     | .ok (descrString, none, _, _, _) => do
       modify (·.saveDomainObject ``examples descrString id)
       pure none
@@ -168,14 +164,14 @@ def example.descr : BlockDescr where
     open Verso.Output.Html in
     some <| fun goI goB id data blocks => do
       if h : blocks.size < 1 then
-        HtmlT.logError "Malformed example"
+        reportError "Malformed example"
         pure .empty
       else
         let .para description := blocks[0]
-          | HtmlT.logError "Malformed example - description not paragraph"; pure .empty
+          | reportError "Malformed example - description not paragraph"; pure .empty
         let (descrString, opened, liveText) ←
           match FromJson.fromJson? data (α := ExampleBlockJson) with
-          | .error e => HtmlT.logError s!"Error deserializing example data {data}: {e}"; pure ("", false, none)
+          | .error e => reportError s!"Error deserializing example data {data}: {e}"; pure ("", false, none)
           | .ok (descrString, _, opened, _, liveText) => pure (descrString, opened, liveText)
         let xref ← HtmlT.state
         let ctxt ← HtmlT.context

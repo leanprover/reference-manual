@@ -76,7 +76,7 @@ def s2 : NonEmptyString where
   val := "equal"
   property :=
     fun h =>
-      List.cons_ne_nil _ _ (String.data_eq_of_eq h)
+      List.cons_ne_nil _ _ (String.ext_iff.mp h)
 
 theorem s1_eq_s2 : s1 = s2 := by rfl
 ```
@@ -98,7 +98,7 @@ def s2 : NonEmptyString where
   val := "equal"
   property :=
     fun h =>
-      List.cons_ne_nil _ _ (String.data_eq_of_eq h)
+      List.cons_ne_nil _ _ (String.ext_iff.mp h)
 
 theorem s1_eq_s2 : s1 = s2 := by
   ext

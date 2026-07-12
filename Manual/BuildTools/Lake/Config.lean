@@ -63,7 +63,7 @@ TOML files denote _tables_, which map keys to values.
 Values may consist of strings, numbers, arrays of values, or further tables.
 Because TOML allows considerable flexibility in file structure, this reference documents the values that are expected rather than the specific syntax used to produce them.
 
-The contents of `lakefile.toml` should denote a TOML table that describes a Lean package.
+The contents of {configFile}`lakefile.toml` should denote a TOML table that describes a Lean package.
 This configuration consists of both scalar fields that describe the entire package, as well as the following fields that contain arrays of further tables:
  * `require`
  * `lean_lib`
@@ -103,10 +103,10 @@ Libraries, executables, and other {tech}[targets] within a package can further a
 
 :::
 
-:::tomlFieldCategory "Testing and Linting" testDriver testDriverArgs lintDriver lintDriverArgs
+:::tomlFieldCategory "Testing and Linting" testDriver testDriverArgs lintDriver lintDriverArgs builtinLint
 
 The CLI commands {lake}`test` and {lake}`lint` use definitions configured by the {tech}[workspace]'s {tech}[root package] to perform testing and linting.
-The code that is run to perform tests and lits are referred to as the test or lint driver.
+The code that is run to perform tests and linting is referred to as the test or lint driver.
 In Lean configuration files, these can be specified by applying the `@[test_driver]` or `@[lint_driver]` attributes to a {tech}[Lake script] or an executable or library target.
 In both Lean and TOML configuration files, they can also be configured by setting these options.
 A target or script `TGT` from a dependency `PKG` can be specified as a test or lint driver using the string `"PKG/TGT"`
@@ -136,7 +136,9 @@ This package contains no {tech}[targets], so there is no code to be built.
 name = "example-package"
 ```
 ```expected
-{name := `«example-package»,
+{wsIdx := 0,
+  baseName := `«example-package»,
+  keyName := `«example-package»,
   origName := `«example-package»,
   dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
@@ -157,9 +159,10 @@ name = "example-package"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       bootstrap := false,
-      manifestFile := none,
       extraDepTargets := #[],
       precompileModules := false,
       moreGlobalServerArgs := #[],
@@ -186,15 +189,19 @@ name = "example-package"
       readmeFile := FilePath.mk "README.md",
       reservoir := true,
       enableArtifactCache? := none,
-      restoreAllArtifacts := false,
+      restoreAllArtifacts? := none,
       libPrefixOnWindows := false,
-      allowImportAll := false},
+      allowImportAll := false,
+      builtinLint? := none,
+      fixedToolchain := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
   scope := "",
   remoteUrl := "",
   depConfigs := #[],
+  depIdxs := #[],
+  depPkgs := #[],
   targetDecls := #[],
   targetDeclMap := {},
   defaultTargets := #[],
@@ -203,9 +210,7 @@ name = "example-package"
   postUpdateHooks := #[],
   buildArchive := ELIDED,
   testDriver := "",
-  lintDriver := "",
-  inputsRef? := none,
-  outputsRef? := none}
+  lintDriver := ""}
 ```
 ::::
 :::::
@@ -222,7 +227,9 @@ defaultTargets = ["Sorting"]
 name = "Sorting"
 ```
 ```expected
-{name := `«example-package»,
+{wsIdx := 0,
+  baseName := `«example-package»,
+  keyName := `«example-package»,
   origName := `«example-package»,
   dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
@@ -243,9 +250,10 @@ name = "Sorting"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       bootstrap := false,
-      manifestFile := none,
       extraDepTargets := #[],
       precompileModules := false,
       moreGlobalServerArgs := #[],
@@ -272,15 +280,19 @@ name = "Sorting"
       readmeFile := FilePath.mk "README.md",
       reservoir := true,
       enableArtifactCache? := none,
-      restoreAllArtifacts := false,
+      restoreAllArtifacts? := none,
       libPrefixOnWindows := false,
-      allowImportAll := false},
+      allowImportAll := false,
+      builtinLint? := none,
+      fixedToolchain := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
   scope := "",
   remoteUrl := "",
   depConfigs := #[],
+  depIdxs := #[],
+  depPkgs := #[],
   targetDecls :=
     #[{toConfigDecl :=
           {pkg := `«example-package»,
@@ -302,7 +314,9 @@ name = "Sorting"
                     backend := Lake.Backend.default,
                     platformIndependent := none,
                     dynlibs := #[],
-                    plugins := #[] },
+                    plugins := #[],
+                    requiresModuleSystem := false,
+                    allowNonModules := false },
                 srcDir := FilePath.mk ".",
                 roots := #[`Sorting],
                 globs := #[Lake.Glob.one `Sorting],
@@ -339,7 +353,9 @@ name = "Sorting"
                           backend := Lake.Backend.default,
                           platformIndependent := none,
                           dynlibs := #[],
-                          plugins := #[] },
+                          plugins := #[],
+                          requiresModuleSystem := false,
+                          allowNonModules := false },
                       srcDir := FilePath.mk ".",
                       roots := #[`Sorting],
                       globs := #[Lake.Glob.one `Sorting],
@@ -361,9 +377,7 @@ name = "Sorting"
   postUpdateHooks := #[],
   buildArchive := ELIDED,
   testDriver := "",
-  lintDriver := "",
-  inputsRef? := none,
-  outputsRef? := none}
+  lintDriver := ""}
 ```
 ::::
 :::::
@@ -376,7 +390,7 @@ There are three kinds of sources:
  * Git repositories, which may be local paths or URLs
  * Local paths
 
-::::tomlTableDocs "require" "Requiring Packages" Lake.Dependency (skip := src?) (skip := opts) (skip := subdir) (skip := version?)
+::::tomlTableDocs "require" "Requiring Packages" Lake.Dependency (skip := src?) (skip := opts) (skip := subdir) (skip := version)
 
 The {tomlField Lake.Dependency}`path` and {tomlField Lake.Dependency}`git` fields specify an explicit source for a dependency.
 If neither are provided, then the dependency is fetched from [Reservoir](https://reservoir.lean-lang.org/), or an alternative registry if one has been configured.
@@ -409,7 +423,7 @@ If the type is `"git"`, then the following keys should be present:
 
 :::tomlField Lake.Dependency version "version as string" "versions as strings" String
 
-{includeDocstring Lake.Dependency.version?}
+{includeDocstring Lake.Dependency.version}
 
 :::
 
@@ -421,11 +435,20 @@ The package `example` can be required from Reservoir using this TOML configurati
 ```toml
 [[require]]
 name = "example"
-version = "2.12"
+version = "≥2.12.0"
 scope = "exampleDev"
 ```
 ```expected
-#[{name := `example, scope := "exampleDev", version? := some "2.12", src? := none, opts := {}}]
+#[{name := `example,
+    scope := "exampleDev",
+    version :=
+      Lake.InputVer.ver
+        { toString := "≥2.12.0",
+          clauses := #[#[{ ver := { toSemVerCore := { major := 2, minor := 12, patch := 0 }, specialDescr := "" },
+                           op := Lake.ComparatorOp.ge,
+                           includeSuffixes := false }]] },
+    src? := none,
+    opts := {}}]
 ```
 ::::
 :::::
@@ -438,18 +461,23 @@ The package `example` can be required from a Git repository using this TOML conf
 name = "example"
 git = "https://git.example.com/example.git"
 rev = "main"
-version = "2.12"
+version = "≥2.12.0"
 ```
 ```expected
 #[{name := `example,
     scope := "",
-    version? := some "2.12",
+    version :=
+      Lake.InputVer.ver
+        { toString := "≥2.12.0",
+          clauses := #[#[{ ver := { toSemVerCore := { major := 2, minor := 12, patch := 0 }, specialDescr := "" },
+                           op := Lake.ComparatorOp.ge,
+                           includeSuffixes := false }]] },
     src? := some (Lake.DependencySrc.git "https://git.example.com/example.git" (some "main") none),
     opts := {}}]
 ```
 ::::
 
-In particular, the package will be checked out from the `main` branch, and the version number specified in the package's {tech (key := "package configuration")}[configuration] should match `2.12`.
+In particular, the package will be checked out from the `main` branch, and the version number specified in the package's {tech (key := "package configuration")}[configuration] should be at least `2.12.0`.
 :::::
 
 :::::example "Requiring Packages from a Git tag"
@@ -464,7 +492,7 @@ rev = "v2.12"
 ```expected
 #[{name := `example,
     scope := "",
-    version? := none,
+    version := Lake.InputVer.git "v2.12",
     src? := some (Lake.DependencySrc.git "https://git.example.com/example.git" (some "v2.12") none),
     opts := {}}]
 ```
@@ -482,7 +510,7 @@ rev = "v2.12"
 scope = "exampleDev"
 ```
 ```expected
-#[{name := `example, scope := "exampleDev", version? := some "git#v2.12", src? := none, opts := {}}]
+#[{name := `example, scope := "exampleDev", version := Lake.InputVer.git "v2.12", src? := none, opts := {}}]
 ```
 ::::
 The version number specified in the package's {tech (key := "package configuration")}[configuration] is not used.
@@ -499,7 +527,7 @@ path = "../example"
 ```expected
 #[{name := `example,
     scope := "",
-    version? := none,
+    version := Lake.InputVer.none,
     src? := some (Lake.DependencySrc.path (FilePath.mk "../example")),
     opts := {}}]
 ```
@@ -518,7 +546,7 @@ source = {type = "git", url = "https://example.com/example.git"}
 ```expected
 #[{name := `example,
     scope := "",
-    version? := none,
+    version := Lake.InputVer.none,
     src? := some (Lake.DependencySrc.git "https://example.com/example.git" none none),
     opts := {}}]
 ```
@@ -560,7 +588,9 @@ name = "TacticTools"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       srcDir := FilePath.mk ".",
       roots := #[`TacticTools],
       globs := #[Lake.Glob.one `TacticTools],
@@ -603,7 +633,9 @@ precompileModules = true
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       srcDir := FilePath.mk "src",
       roots := #[`TacticTools],
       globs := #[Lake.Glob.one `TacticTools],
@@ -654,7 +686,9 @@ name = "trustworthytool"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       srcDir := FilePath.mk ".",
       root := `trustworthytool,
       exeName := "trustworthytool",
@@ -702,7 +736,9 @@ exeName = "tt"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       srcDir := FilePath.mk ".",
       root := `TrustworthyTool,
       exeName := "tt",
@@ -728,6 +764,7 @@ tag := "lake-config-lean"
 
 The Lean format for Lake {tech}[package configuration] files provides a domain-specific language for the declarative features that are supported in the TOML format.
 Additionally, it provides the ability to write Lean code to implement any necessary build logic that is not expressible declaratively.
+The Lean configuration file is named {configFile}`lakefile.lean`.
 
 Because the Lean format is a Lean source file, it can be edited using all the features of the Lean language server.
 Additionally, Lean's metaprogramming framework allows elaboration-time side effects to be used to implement features such as configuration steps that are conditional on the current platform.
@@ -833,7 +870,7 @@ from git $t $[@ $t]? $[/ $t]?
 
 {tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
 :::TODO
-Fix `default_target` above - it's not working on CI, but it is working locally, with the `attr` role.
+Fix `default_target` above—it's not working on CI, but it is working locally, with the `attr` role.
 :::
 
 :::syntax attr (title := "Specifying Default Targets") (label := "attribute") (namespace := Lake.DSL)
@@ -1039,7 +1076,7 @@ The glob pattern `N.*` matches `N` or any submodule for which `N` is a prefix.
 $_:name".*"
 ```
 
-The glob pattern `N.*` matches any submodule for which `N` is a strict prefix, but not `N` itself.
+The glob pattern `N.+` matches any submodule for which `N` is a strict prefix, but not `N` itself.
 
 ```grammar
 $_:name".+"

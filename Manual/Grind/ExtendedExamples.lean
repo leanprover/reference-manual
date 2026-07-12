@@ -12,7 +12,6 @@ import Manual.Meta
 
 import Manual.Grind.ExtendedExamples.Integration
 import Manual.Grind.ExtendedExamples.IfElseNorm
-import Manual.Grind.ExtendedExamples.IndexMap
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -27,8 +26,10 @@ open Lean.Grind
 tag := "grind-bigger-examples"
 %%%
 
+:::TODO
+Properly link to tutorial section
+:::
+
 {include 1 Manual.Grind.ExtendedExamples.Integration}
 
 {include 1 Manual.Grind.ExtendedExamples.IfElseNorm}
-
-{include 1 Manual.Grind.ExtendedExamples.IndexMap}

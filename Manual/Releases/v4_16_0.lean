@@ -60,7 +60,7 @@ numeral16 : "0" [xX] ("_"* hex_char+)+
 float     : numeral10 "." numeral10? [eE[+-]numeral10]
 ```
 
-### Additional new featues
+### Additional new features
 
 * [#6300](https://github.com/leanprover/lean4/pull/6300) adds the `debug.proofAsSorry` option. When enabled, the proofs
 of theorems are ignored and replaced with `sorry`.
@@ -462,7 +462,7 @@ This subtly changes the notion of ordering on `List α`.
 
   Mathlib was already overriding the order instances for `List α`, so this change should not be noticed by anyone already using Mathlib.
 
-  We simultaneously add the boolean valued `List.lex` function, parameterised by a `BEq` typeclass and an arbitrary `lt` function. This will support the flexibility previously provided for `List.lt`, via a `==` function which is weaker than strict equality.
+  We simultaneously add the boolean valued `List.lex` function, parameterised by a `BEq` type class and an arbitrary `lt` function. This will support the flexibility previously provided for `List.lt`, via a `==` function which is weaker than strict equality.
 
 * [#6390](https://github.com/leanprover/lean4/pull/6390) redefines `Range.forIn'` and `Range.forM`, in preparation for
 writing lemmas about them.
@@ -548,7 +548,7 @@ none) using the necessary flags.
 * [#6289](https://github.com/leanprover/lean4/pull/6289) adapts Lake modules to use `prelude` and includes them in the
 `check-prelude` CI.
 
-* [#6291](https://github.com/leanprover/lean4/pull/6291) ensures the the log error position is properly preserved when
+* [#6291](https://github.com/leanprover/lean4/pull/6291) ensures the log error position is properly preserved when
 prepending stray log entries to the job log. It also adds comparison
 support for `Log.Pos`.
 
@@ -573,7 +573,7 @@ previously only set for executables).
 
 ## Other
 
-* [#6285](https://github.com/leanprover/lean4/pull/6285) upstreams the `ToLevel` typeclass from mathlib and uses it to
+* [#6285](https://github.com/leanprover/lean4/pull/6285) upstreams the `ToLevel` type class from mathlib and uses it to
 fix the existing `ToExpr` instances so that they are truly universe
 polymorphic (previously it generated malformed expressions when the
 universe level was nonzero). We improve on the mathlib definition of

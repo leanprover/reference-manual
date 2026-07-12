@@ -25,10 +25,10 @@ Tier 1 platforms are those for which Lean is built and tested by our CI infrastr
 Binary releases of Lean are available for these platforms via {ref "elan"}[`elan`].
 The Tier 1 platforms are:
 
-* x86-64 Linux with glibc 2.26+
-* aarch64 Linux with glibc 2.27+
-* aarch64 (Apple Silicon) macOS 10.15+
-* x86-64 Windows 11 (any version), Windows 10 (version 1903 or higher), Windows Server 2022, Windows Server 2025
+* `x86-64` Linux with glibc 2.26+
+* `aarch64` Linux with glibc 2.27+
+* `aarch64` (Apple Silicon) macOS 10.15+
+* `x86-64` Windows 11 (any version), Windows 10 (version 1903 or higher), Windows Server 2022, Windows Server 2025
 :::
 
 # Tier 2
@@ -41,6 +41,6 @@ Issue reports and fixes are welcome.
 
 :::paragraph
 The Tier 2 platforms are:
-* x86-64 macOS 10.15+
+* `x86-64` macOS 10.15+
 * Emscripten WebAssembly
 :::

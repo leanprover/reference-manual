@@ -28,7 +28,7 @@ tag := "terms"
 
 
 {deftech}_Terms_ are the principal means of writing mathematics and programs in Lean.
-The {tech}[elaborator] translates them to Lean's minimal core language, which is then checked by the kernel and compiled for execution.
+The {deftech (key := "Lean elaborator")}[elaborator] translates them to Lean's minimal core language, which is then checked by the kernel and compiled for execution.
 The syntax of terms is {ref "syntax-ext"}[arbitrarily extensible]; this chapter documents the term syntax that Lean provides out-of-the-box.
 
 # Identifiers
@@ -232,7 +232,7 @@ open D
 ## Leading `.`
 
 When an identifier begins with a dot (`.`), the type that the elaborator expects for the expression is used to resolve it, rather than the current namespace and set of open namespaces.
-{tech}[Generalized field notation] is related: leading dot notation uses the expected type of the identifier to resolve it to a name, while field notation uses the inferred type of the term immediately prior to the dot.
+{tech}[Generalized field notation] is related: this {deftech}_leading dot notation_ uses the expected type of the identifier to resolve it to a name, while field notation uses the inferred type of the term immediately prior to the dot.
 
 Identifiers with a leading `.` are to be looked up in the {deftech}_expected type's namespace_.
 If the type expected for a term is a constant applied to zero or more arguments, then its namespace is the constant's name.
@@ -410,7 +410,7 @@ Implicit parameters come in three varieties:
 
   : Instance implicit parameters
 
-    Arguments for {deftech}_instance implicit_ parameters are found via {ref "instance-synth"}[type class synthesis].
+    Arguments for {tech}_instance implicit_ parameters are found via {ref "instance-synth"}[type class synthesis].
     Instance implicit parameters are written in square brackets (`[` and `]`).
     Unlike the other kinds of implicit parameter, instance implicit parameters that are written without a `:` specify the parameter's type rather than providing a name.
     Furthermore, only a single name is allowed.
@@ -1247,7 +1247,6 @@ They consist of the following:
   {ref "raw-string-literals"}[Raw string literals] are allowed as patterns, but {ref "string-interpolation"}[interpolated strings] are not.
   {ref "nat-syntax"}[Natural number literals] in patterns are interpreted by synthesizing the corresponding {name}`OfNat` instance and reducing the resulting term to {tech}[normal form], which must be a pattern.
   Similarly, {tech}[scientific literals] are interpreted via the corresponding {name}`OfScientific` instance.
-  While {lean}`Float` has such an instance, {lean}`Float`s cannot be used as patterns because the instance relies on an opaque function that can't be reduced to a valid pattern.
 
 : Structure Instances
 
@@ -1339,10 +1338,38 @@ deriving Inhabited
 instance : OfNat Blah n where
   ofNat := ⟨n + 1⟩
 
+def isFiveOh : Float → Bool
+  | 5.0 => true
+  | _ => false
+
+/-- info: true -/
+#guard_msgs in
+#eval isFiveOh 5.0
+
+/-- info: false -/
+#guard_msgs in
+#eval isFiveOh 0.5
+
+def isZeroFloat : Float → Bool
+  | 0.0 => true
+  | _ => false
+
+/-- info: true -/
+#guard_msgs in
+#eval isZeroFloat 0.0
+
+/-- info: -0.000000 -/
+#guard_msgs in
+#eval (0.0 / -1.0)
+
+/-- info: false -/
+#guard_msgs in
+#eval isZeroFloat (0.0 / -1.0)
+
 /--
 error: Missing cases:
-(Blah.mk (Nat.succ (Nat.succ _)))
 (Blah.mk Nat.zero)
+(Blah.mk (Nat.succ (Nat.succ _)))
 -/
 #check_msgs in
 def abc (n : Blah) : Bool :=
@@ -1370,17 +1397,6 @@ def defg (n : Blah) : Bool :=
   | 0 => true
 
 /--
-error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (Float.ofScientific 25 true 1)
-but is expected to have type
-  motive x✝
--/
-#check_msgs in
-def twoPointFive? : Float → Option Float
-  | 2.5 => some 2.5
-  | _ => none
-
-/--
 info: @Neg.neg.{0} Float instNegFloat
   (@OfScientific.ofScientific.{0} Float instOfScientificFloat (nat_lit 320) Bool.true (nat_lit 1)) : Float
 -/
@@ -1394,25 +1410,16 @@ structure OnlyThreeOrFive where
   ok : val = 3 ∨ val = 5 := by rfl
 
 
--- Default args are synthesized in patterns too!
+-- Default args are not synthesized in patterns
 /--
-error: Tactic `rfl` failed: The left-hand side
-  n = 3
-is not definitionally equal to the right-hand side
-  n = 5
-
-x✝ : OnlyThreeOrFive
-n : Nat
-⊢ n = 3 ∨ n = 5
+error: Fields missing: `val2`, `ok`
 -/
 #check_msgs in
 def ggg : OnlyThreeOrFive → Nat
   | {val := n} => n
 
 /--
-error: Missing cases:
-(OnlyThreeOrFive.mk _ true (Or.inr Eq.refl))
-(OnlyThreeOrFive.mk _ true (Or.inl Eq.refl))
+error: Fields missing: `val2`
 -/
 #check_msgs in
 def hhh : OnlyThreeOrFive → Nat

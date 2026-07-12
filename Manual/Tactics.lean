@@ -84,7 +84,7 @@ Named goals are indicated with `case` at the top (called a {deftech}_case label_
 Tactics assign goal names, typically on the basis of constructor names, parameter names, structure field names, or the nature of the reasoning step implemented by the tactic.
 
 ::::example "Named goals"
-```CSS
+```customCSS
 #lawful-option-cases .goal-name { background-color: var(--lean-compl-yellow); }
 ```
 
@@ -141,7 +141,7 @@ a✝ : n✝ + k = k + n✝
 
 After {tacticStep}`induction k`, the two new cases' names have `zero` as a prefix, because they were created in a goal named `zero`:
 
-```CSS
+```customCSS
 #hierarchical-case-names .goal:not(:last-child) .goal-name { background-color: var(--lean-compl-yellow); }
 ```
 
@@ -169,7 +169,7 @@ Assumptions are either arbitrary elements of some type or statements that are pr
 
 ::::example "Assumption Names and Conclusion"
 
-```CSS
+```customCSS
 #ex-assumption-names .hypothesis .name { background-color: var(--lean-compl-yellow); }
 ```
 
@@ -210,7 +210,7 @@ In particular, inaccessible assumptions are presented with daggers (`†`) after
 
 
 ::::example "Accessible Assumption Names"
-```CSS
+```customCSS
 #option-cases-accessible .hypothesis .name { background-color: var(--lean-compl-yellow); }
 ```
 
@@ -232,7 +232,7 @@ rotate_right
 
 
 ::::example "Inaccessible Assumption Names"
-```CSS
+```customCSS
 #option-cases-inaccessible .hypotheses .hypothesis:nth-child(even) .name { background-color: var(--lean-compl-yellow); }
 ```
 
@@ -521,7 +521,7 @@ tag := "tactic-language-success-failure"
 %%%
 
 When run in a proof state, every tactic either succeeds or fails.
-Tactic failure is akin to exceptions: failures typically "bubble up" until handled.
+Tactic failure is akin to exceptions: failures typically “bubble up” until handled.
 Unlike exceptions, there is no operator to distinguish between reasons for failure; {tactic}`first` simply takes the first branch that succeeds.
 
 ::: tactic "fail"
@@ -548,11 +548,8 @@ While terms are expected to be executed once the values of their variables are k
 Thus, when {keyword}`if` and {keyword}`match` are used in tactics, their meaning is reasoning by cases rather than selection of a concrete branch.
 All of their branches are executed, and the condition or pattern match is used to refine the main goal with more information in each branch, rather than to select a single branch.
 
-:::tactic Lean.Parser.Tactic.tacIfThenElse (show := "if ... then ... else ...")
+:::tactic "if"
 
-:::
-
-:::tactic Lean.Parser.Tactic.tacDepIfThenElse (show := "if h : ... then ... else ...")
 :::
 
 :::example "Reasoning by cases with `if`"
@@ -570,13 +567,13 @@ example (n : Nat) : if n = 0 then n < 1 else n > 0 := by
 
 :::tactic Lean.Parser.Tactic.match (show := "match")
 
-When pattern matching, instances of the scrutinee in the goal are replaced with the patterns that match them in each branch.
+When pattern matching, instances of the {tech (key := "match discriminant")}[discriminant] in the goal are replaced with the patterns that match them in each branch.
 Each branch must then prove the refined goal.
 Compared to the `cases` tactic, using `match` can allow a greater degree of flexibility in the cases analysis being performed, but the requirement that each branch solve its goal completely makes it more difficult to incorporate into larger automation scripts.
 :::
 
 :::example "Reasoning by cases with `match`"
-In each branch of the {keywordOf Lean.Parser.Tactic.match}`match`, the scrutinee `n` has been replaced by either `0` or `k + 1`.
+In each branch of the {keywordOf Lean.Parser.Tactic.match}`match`, the discriminant `n` has been replaced by either `0` or `k + 1`.
 ```lean
 example (n : Nat) : if n = 0 then n < 1 else n > 0 := by
   match n with

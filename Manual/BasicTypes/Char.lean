@@ -180,5 +180,3 @@ tag := "char-api-classes"
 ## Unicode
 
 {docstring Char.utf8Size}
-
-{docstring Char.utf16Size}

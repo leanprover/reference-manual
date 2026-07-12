@@ -334,7 +334,7 @@ h✝ : ¬n ≤ 1
 
 ```
 
-Termination proof obligations in body of a {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loop are also enriched, in this case with a {name}`Std.Range` membership hypothesis:
+Termination proof obligations in body of a {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loop are also enriched, in this case with a {name}`Std.Legacy.Range` membership hypothesis:
 
 ```lean +error -keep (name := nestGoal3)
 def f (xs : Array Nat) : Nat := Id.run do
@@ -511,7 +511,6 @@ failed to prove termination, possible solutions:
   - Use `have`-expressions to prove the remaining goals
   - Use `termination_by` to specify a different well-founded relation
   - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
-case h
 m n : Nat
 ⊢ m / 2 + 1 < m + 1
 ```
@@ -663,7 +662,6 @@ failed to prove termination, possible solutions:
   - Use `have`-expressions to prove the remaining goals
   - Use `termination_by` to specify a different well-founded relation
   - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
-case h
 m n : Nat
 ⊢ m / 2 + 1 < m + 1
 ```
@@ -851,7 +849,7 @@ The definition of {name}`WellFounded` builds on the notion of _accessible elemen
 The definition of division by iterated subtraction can be written explicitly using well-founded recursion.
 ```lean
 noncomputable def div (n k : Nat) : Nat :=
-  (inferInstanceAs (WellFoundedRelation Nat)).wf.fix
+  (inferInstance : WellFoundedRelation Nat).wf.fix
     (fun n r =>
       if h : k = 0 then 0
       else if h : k > n then 0
@@ -866,7 +864,7 @@ Like {tech}[recursors], it is part of Lean's logic.
 The definition of division should satisfy the following equations:
  * {lean}`∀{n k : Nat}, (k = 0) → div n k = 0`
  * {lean}`∀{n k : Nat}, (k > n) → div n k = 0`
- * {lean}`∀{n k : Nat}, (k ≠ 0) → (¬ k > n) → div n k = div (n - k) k`
+ * {lean}`∀{n k : Nat}, (k ≠ 0) → (¬ k > n) → div n k = 1 + div (n - k) k`
 
 This reduction behavior does not hold {tech (key := "definitional equality")}[definitionally]:
 ```lean +error (name := nonDef) -keep

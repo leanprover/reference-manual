@@ -127,6 +127,8 @@ tag := "TreeSet"
 
 # Iteration
 
+{docstring Std.TreeSet.iter}
+
 {docstring Std.TreeSet.all}
 
 {docstring Std.TreeSet.any}

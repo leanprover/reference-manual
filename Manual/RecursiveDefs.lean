@@ -11,6 +11,7 @@ import Manual.Meta
 import Manual.RecursiveDefs.Structural
 import Manual.RecursiveDefs.WF
 import Manual.RecursiveDefs.PartialFixpoint
+import Manual.RecursiveDefs.CoinductivePredicates
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -25,7 +26,7 @@ tag := "recursive-definitions"
 %%%
 
 Allowing arbitrary recursive function definitions would make Lean's logic inconsistent.
-General recursion makes it possible to write circular proofs: "{tech}[proposition] $`P` is true because proposition $`P` is true".
+General recursion makes it possible to write circular proofs: “{tech}[proposition] $`P` is true because proposition $`P` is true”.
 Outside of proofs, an infinite loop could be assigned the type {name}`Empty`, which can be used with {keywordOf Lean.Parser.Term.nomatch}`nomatch` or {name Empty.rec}`Empty.rec` to prove any theorem.
 
 Banning recursive function definitions outright would render Lean far less useful: {tech}[inductive types] are key to defining both predicates and data, and they have a recursive structure.
@@ -33,7 +34,7 @@ Furthermore, most useful recursive functions do not threaten soundness, and infi
 Instead of banning recursive functions, Lean requires that each recursive function is defined safely.
 While elaborating recursive definitions, the Lean elaborator also produces a justification that the function being defined is safe.{margin}[The section on {ref "elaboration-results"}[the elaborator's output] in the overview of elaboration contextualizes the elaboration of recursive definitions in the overall context of the elaborator.]
 
-There are five main kinds of recursive functions that can be defined:
+There are six main kinds of recursive functions that can be defined:
 
 : Structurally recursive functions
 
@@ -61,6 +62,12 @@ There are five main kinds of recursive functions that can be defined:
   In particular, any function whose return type is in certain monads (e.g. {name}`Option`) can be defined using this strategy.
   Lean generates additional partial correctness theorems for these monadic functions.
   As with well-founded recursion, applications of functions defined as partial fixpoints are not definitionally equal to their return values, but Lean generates theorems that propositionally equate the function to its unfolding and to the reduction behavior specified in its definition.
+
+: Coinductive and inductive predicates as fixpoints
+
+  Recursive {lean}`Prop`-valued functions can be defined as greatest or least fixpoints of monotone operators on complete lattices.
+  Coinductive predicates, defined using {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` or the {keywordOf Lean.Parser.Command.declaration}`coinductive` command, describe potentially infinite behavior such as infinite sequences or bisimulation.
+  Inductive predicates, defined using {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint`, provide an alternative to standard inductive types that is compatible with mixed inductive-coinductive mutual blocks.
 
 : Partial functions with nonempty codomains
 
@@ -91,9 +98,9 @@ As described in the {ref "elaboration-results"}[overview of the elaborator's out
     Aside from using recursion, this provisional definition is fully elaborated.
     The compiler generates code from these provisional definitions.
 
- 2. A termination analysis attempts to use the four techniques to justify the function to Lean's kernel.
+ 2. A termination analysis attempts to use the five techniques to justify the function to Lean's kernel.
     If the definition is marked {keywordOf Lean.Parser.Command.declaration}`unsafe` or {keywordOf Lean.Parser.Command.declaration}`partial`, then that technique is used.
-    If an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by` clause is present, then the indicated technique is the only one attempted.
+    If an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by`, {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint`, {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint`, or {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint` clause is present, then the indicated technique is the only one attempted.
     If there is no such clause, then the elaborator performs a search, testing each parameter to the function as a candidate for structural recursion, and attempting to find a measure with a well-founded relation that decreases at each recursive call.
 
 This section describes the rules that govern recursive functions.
@@ -176,6 +183,8 @@ After the first step of elaboration, in which definitions are still recursive, a
 {include 0 Manual.RecursiveDefs.WF}
 
 {include 0 Manual.RecursiveDefs.PartialFixpoint}
+
+{include 0 Manual.RecursiveDefs.CoinductivePredicates}
 
 # Partial and Unsafe Definitions
 %%%
@@ -375,23 +384,35 @@ htmlSplit := .never
 While checking proofs and programs, Lean takes {deftech}_reducibility_, also known as _transparency_, into account.
 A definition's reducibility controls the contexts in which it is unfolded during elaboration and proof execution.
 
-There are three levels of reducibility:
+There are five levels of reducibility:
 
-: {deftech}[Reducible]
+: {deftech}[Irreducible]
 
-  Reducible definitions are unfolded essentially everywhere, on demand.
-  Type class instance synthesis, definitional equality checks, and the rest of the language treat the definition as being essentially an abbreviation.
-  This is the setting applied by the {keywordOf Lean.Parser.Command.declaration}`abbrev` command.
+  Irreducible definitions are not unfolded at all during elaboration.
+  Definitions can be made irreducible by applying the {attr}`irreducible` attribute.
 
 : {deftech}[Semireducible]
 
   Semireducible definitions are not unfolded by potentially expensive automation such as type class instance synthesis or {tactic}`simp`, but they are unfolded while checking definitional equality and while resolving {tech}[generalized field notation].
   The {keywordOf Lean.Parser.Command.declaration}`def` command generally creates semireducible definitions unless a different reducibility level is specified with an attribute; however, definitions that use {tech}[well-founded recursion] are irreducible by default.
 
-: {deftech}[Irreducible]
+: {deftech}[Implicit reducible]
 
-  Irreducible definitions are not unfolded at all during elaboration.
-  Definitions can be made irreducible by applying the {attr}`irreducible` attribute.
+  Implicit-reducible definitions are unfolded while checking {tech}[definitional equality] of implicit arguments to functions.
+  This includes ordinary {tech}[implicit] arguments, {tech}[instance implicit] arguments, and {tech}[strict implicit] arguments.
+  Definitions that appear in the types of implicit arguments and are intended to reduce should be implicit-reducible.
+
+: {deftech}[Instance reducible]
+
+  Instance-reducible definitions are unfolded during type class {tech (key := "synthesis")}[instance synthesis].
+  All type class instances should be instance-reducible or reducible.
+  Instances that are created by the {keywordOf Lean.Parser.Command.instance}`instance` command are automatically marked instance-reducible.
+
+: {deftech}[Reducible]
+
+  Reducible definitions are unfolded essentially everywhere, on demand.
+  Type class instance synthesis, definitional equality checks, and the rest of the language treat the definition as being essentially an abbreviation.
+  This is the setting applied by the {keywordOf Lean.Parser.Command.declaration}`abbrev` command.
 
 :::example "Reducibility and Instance Synthesis"
 These three aliases for {lean}`String` are respectively reducible, semireducible, and irreducible.
@@ -474,10 +495,16 @@ of type `Sequence Nat`
 :::
 
 :::syntax attr (title := "Reducibility Annotations")
-A definition's reducibility can be set using one of the three reducibility attributes:
+A definition's reducibility can be set using one of the five reducibility attributes:
 
 ```grammar
 reducible
+```
+```grammar
+instance_reducible
+```
+```grammar
+implicit_reducible
 ```
 ```grammar
 semireducible
@@ -491,8 +518,6 @@ These attributes can only be applied globally in the same file as the definition
 ## Reducibility and Tactics
 
 The tactics {tactic}`with_reducible`, {tactic}`with_reducible_and_instances`, and {tactic}`with_unfolding_all` control which definitions are unfolded by most tactics.
-
-
 
 :::example "Reducibility and Tactics"
 The functions {lean}`plus`, {lean}`sum`, and {lean}`tally` are all synonyms for {lean}`Nat.add` that are respectively reducible, semireducible, and irreducible:
@@ -531,6 +556,67 @@ Similarly, part of a proof can be instructed to ignore irreducibility by placing
 theorem tally_eq_add : tally x y = x + y := by with_unfolding_all rfl
 ```
 :::
+
+:::example "Reducibility and Implicit Arguments"
+The functions {lean}`plus`, {lean}`sum`, and {lean}`tally` are synonyms for {lean}`Nat.add` that are respectively reducible, implicit-reducible, and irreducible:
+```lean
+abbrev plus := Nat.add
+
+@[instance_reducible]
+def sum := Nat.add
+
+def tally := Nat.add
+```
+
+An instances of {name}`Nonzero` contains a proof that the given number is not equal to zero.
+The function {name}`notZero` extracts this proof from a synthesized instance:
+```lean
+class Nonzero (n : Nat) where
+  non_zero : n ≠ 0
+
+instance Nonzero.instSucc : Nonzero (n + 1) where
+  non_zero := by grind
+
+def notZero (n : Nat) [Nonzero n] : n ≠ 0 := Nonzero.non_zero
+```
+
+The instance is found for the reducible definition {name}`plus`:
+```lean
+#check notZero (plus 2 2)
+```
+It is also found for the instance-reducible definition {name}`sum`.
+This is because the type {lean}`Nonzero (sum 2 2)` is the type of an {tech}[instance implicit] parameter to {name}`notZero`.
+In particular, {name}`sum` is reduced to {name}`Nat.add` which is itself instance-reducible, so the type is reduced to {lean}`Nonzero 4`:
+```lean
+#check notZero (sum 2 2)
+```
+
+Instance synthesis fails for {name}`tally` because it is not reduced:
+```lean +error (name := notZeroTally)
+#check notZero (tally 2 2)
+```
+```leanOutput notZeroTally
+failed to synthesize instance of type class
+  Nonzero (tally 2 2)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+```
+
+In other contexts, such as calls to {tactic}`simp`, {name}`plus` is unfolded:
+```lean
+theorem plus_eq_add : plus x y = x + y := by simp
+```
+
+The implicit reducible synonym is not, however, unfolded by {tactic}`simp`:
+```lean -keep +error (name := simpInst)
+theorem sum_eq_add : sum x y = x + y := by simp
+```
+```leanOutput simpInst
+`simp` made no progress
+```
+
+:::
+
 
 ## Modifying Reducibility
 

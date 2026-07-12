@@ -108,7 +108,9 @@ tag := "string-api-slice"
 
 ## Positions
 
-{docstring String.Slice.findNextPos}
+{docstring String.Slice.posGE}
+
+{docstring String.Slice.posGT}
 
 ## Searching
 

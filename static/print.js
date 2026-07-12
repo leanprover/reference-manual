@@ -2,7 +2,7 @@
 //
 // From https://stackoverflow.com/questions/19646684/force-open-the-details-summary-tag-for-print-in-chrome
 
-window.matchMedia("print").addEventListener("change", evt => {
+window.matchMedia("print").addEventListener("change", (evt) => {
     if (evt.matches) {
         elms = document.body.querySelectorAll("details:not([open])");
         for (e of elms) {
@@ -16,4 +16,4 @@ window.matchMedia("print").addEventListener("change", evt => {
             delete e.dataset.wasclosed;
         }
     }
-})
+});
