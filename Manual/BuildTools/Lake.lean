@@ -529,7 +529,7 @@ The facets available for modules are:
 
 : `depTrace`
 
-  A data structure representing a module's build dependencies (e.g., imports, source, plugins).
+  A Lake build trace data structure (i.e., composite hash and modification time) of a module's build dependencies (e.g., imports, source, plugins).
 
 : `olean`
 
