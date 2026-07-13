@@ -15,16 +15,11 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.32.0-rc1 (2026-06-17)" =>
+#doc (Manual) "Lean 4.32.0 (2026-07-13)" =>
 %%%
 tag := "release-v4.32.0"
 file := "v4.32.0"
 %%%
-
-:::warn
-These release notes describe a _release candidate_, not the final release.
-They may be incomplete and are subject to change.
-:::
 
 For this release, 102 changes landed.
 In addition to the 35 feature additions,
@@ -494,6 +489,9 @@ In addition to the `do` elaborator and linter changes described above:
   fixes `mkSimpleThunkType` to use `_` instead of `Name.anonymous` as its binder name. A local declaration whose user name is `Name.anonymous` matches every identifier in `resolveLocalName`, shadowing all global constants and making the pretty printer render every constant in the local context as inaccessible (e.g., `True✝`). The `match` compiler uses `mkSimpleThunkType` to create the minor premises of parameterless alternatives, and tactics that introduce these binders using their binder name verbatim (e.g., `grind`) ended up with a corrupted local context. Found while investigating #13773.
 
 - [#13965](https://github.com/leanprover/lean4/pull/13965)
-  adds **experimental** CLI flags that cache `lean`'s post-import elaboration state across invocations: `--incr-save FILE` writes a full snapshot at end of run, `--incr-load FILE` reuses one at startup, and `--incr-header-save FILE` writes a header-only snapshot (post-import `Environment`, no command bodies). A loaded snapshot will be reused as far as unchanged syntax (i.e. import header plus subsequent commands, if saved) allows for.
+  adds **experimental** CLI flags that cache `lean`'s elaboration state used for in-process incrementality across invocations:
+  * `--incr-save FILE` writes a full snapshot including the states after import and after each command at the end of the run
+  * `--incr-load FILE` reuses such a snapshot at startup, up to the first point of syntactic difference just like incrementality in the language server
+    *  `--incr-header-save FILE` writes a cheaper and smaller import-only snapshot
 
 ```
