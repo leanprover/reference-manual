@@ -7,13 +7,15 @@ Author: Joscha Mennicken
 import VersoManual
 import Manual.Meta
 import Manual.Meta.Markdown
+import Std.Tactic.Do
 
 open Manual
+open Std.Do
 open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.32.0 (2026-06-21)" =>
+#doc (Manual) "Lean 4.32.0 (2026-07-13)" =>
 %%%
 tag := "release-v4.32.0"
 file := "v4.32.0"
