@@ -474,6 +474,8 @@ module.c
 module.c.o
 module.c.o.export
 module.c.o.noexport
+module.depHash
+module.depTrace
 module.deps
 module.dynlib
 module.exportInfo
@@ -498,6 +500,7 @@ module.olean
 module.olean.private
 module.olean.server
 module.precompileImports
+module.presetup
 module.setup
 module.transImports
 -/
@@ -519,6 +522,14 @@ The facets available for modules are:
 : `deps`
 
   The module's dependencies (e.g., imports or shared libraries).
+
+: `depHash`
+
+  A hash of a module's build dependencies (e.g., imports, source, plugins).
+
+: `depTrace`
+
+  A data structure representing a module's build dependencies (e.g., imports, source, plugins).
 
 : `olean`
 
