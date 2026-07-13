@@ -1,4 +1,4 @@
-<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
+<!-- Generated from commit 5d2a1e3c97acc754de5b9751efd6d13ba6666530 at 2026-07-13T19:33:45Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -331,10 +331,15 @@ pre.json {
   color: #555;
 }
 
-.namedocs h1 {
-  font-size: inherit;
-  font-weight: bold
+.namedocs .docstring-section {
   margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs .docstring-section-label {
+  font-size: inherit;
+  font-weight: bold;
+  margin-top: 0;
   margin-bottom: 1rem;
 }
 
@@ -2349,7 +2354,46 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.onload = async () => {
 
     // Don't show hovers inside of closed tactic states
     function blockedByTactic(elem) {
@@ -2423,207 +2467,166 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let docsJson = "-verso-docs.json";
-    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
 
-      function hideParentTooltips(element) {
-        let parent = element.parentElement;
-        while (parent) {
-          const tippyInstance = parent._tippy;
-          if (tippyInstance) {
-            tippyInstance.hide();
-          }
-          parent = parent.parentElement;
+    function hideParentTooltips(element) {
+      let parent = element.parentElement;
+      while (parent) {
+        const tippyInstance = parent._tippy;
+        if (tippyInstance) {
+          tippyInstance.hide();
         }
+        parent = parent.parentElement;
       }
+    }
 
 
 
-      const defaultTippyProps = {
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        /* theme: "lean", */
-        maxWidth: "none",
-        appendTo: () => document.body,
-        interactive: true,
-        delay: [100, null],
-        /* ignoreAttributes: true, */
-        followCursor: 'initial',
-        onShow(inst) {
-          if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
-            if (toggle && toggle.checked) {
-              return false;
-            }
-            hideParentTooltips(inst.reference);
-            if (blockedByTippy(inst.reference)) { return false; }
-
-          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
-            if (blockedByTactic(inst.reference)) { return false };
-            if (blockedByTippy(inst.reference)) { return false; }
-          } else { // Nothing to show here!
+    const defaultTippyProps = {
+      /* DEBUG -- remove the space: * /
+      onHide(any) { return false; },
+      trigger: "click",
+      // */
+      /* theme: "lean", */
+      maxWidth: "none",
+      appendTo: () => document.body,
+      interactive: true,
+      delay: [100, null],
+      /* ignoreAttributes: true, */
+      followCursor: 'initial',
+      onShow(inst) {
+        if (inst.reference.className == 'tactic') {
+          const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
+          if (toggle && toggle.checked) {
             return false;
           }
-        },
-        onShown(inst) { visibleTippyCount++; },
-        onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
-        content (tgt) {
-          const content = document.createElement("span");
-          if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-            state.style.display = "block";
-            content.appendChild(state);
-            content.style.display = "block";
-            content.className = "hl lean popup";
-          } else {
-            content.className = "hl lean";
-            content.style.display = "block";
-            content.style.maxHeight = "300px";
-            content.style.overflowY = "auto";
-            content.style.overflowX = "hidden";
-            const hoverId = tgt.dataset.versoHover;
-            const hoverInfo = tgt.querySelector(".hover-info");
-            if (hoverId) { // Docstrings from the table
-              // TODO stop doing an implicit conversion from string to number here
-              let data = versoDocData[hoverId];
-              if (data) {
-                const info = document.createElement("span");
-                info.className = "hover-info";
-                info.style.display = "block";
-                info.innerHTML = data;
-                content.appendChild(info);
-                /* Render docstrings - TODO server-side */
-                if ('undefined' !== typeof marked) {
-                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                        const str = d.innerText;
-                        const html = marked.parse(str);
-                        const rendered = document.createElement("div");
-                        rendered.classList.add("docstring");
-                        rendered.innerHTML = html;
-                        d.parentNode.replaceChild(rendered, d);
-                    }
-                }
-              } else {
-                content.innerHTML = "Failed to load doc ID: " + hoverId;
-              }
-            } else if (hoverInfo) { // The inline info, still used for compiler messages
-              content.appendChild(hoverInfo.cloneNode(true));
-            }
-            const extraLinks = tgt.parentElement.dataset['versoLinks'];
-            if (extraLinks) {
-              try {
-                const extras = JSON.parse(extraLinks);
-                const links = document.createElement('ul');
-                links.className = 'extra-doc-links';
-                extras.forEach((l) => {
-                  const li = document.createElement('li');
-                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
-                  links.appendChild(li);
-                });
-                content.appendChild(links);
-              } catch (error) {
-                console.error(error);
-              }
-            }
-          }
-          return content;
+          hideParentTooltips(inst.reference);
+          if (blockedByTippy(inst.reference)) { return false; }
+
+        } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (blockedByTactic(inst.reference)) { return false };
+          if (blockedByTippy(inst.reference)) { return false; }
+        } else { // Nothing to show here!
+          return false;
         }
-      };
-
-
-      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'lean');
-      });
-      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'warning message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'info message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'error message');
-      });
-      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'tactic');
-      });
-      // Skip tokens inside closed tactics — they interfere with tactic tippys
-      const closedTactics = new Set();
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle && !toggle.checked) closedTactics.add(tactic);
-      });
-      function isInsideClosedTactic(el) {
-        const tactic = el.closest('.tactic');
-        return tactic && tactic !== el && closedTactics.has(tactic);
-      }
-
-      const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-      tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-      // Create/destroy token tippys when tactic checkbox toggles
-      const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle) toggle.addEventListener('change', () => {
-          if (toggle.checked) {
-            closedTactics.delete(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (!tok._tippy && tok.matches(tacticTippySelector)) {
-                tippy(tok, defaultTippyProps);
+      },
+      onShown(inst) { visibleTippyCount++; },
+      onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
+      content (tgt) {
+        const content = document.createElement("span");
+        if (tgt.className == 'tactic') {
+          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+        } else {
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
               }
-            });
-          } else {
-            closedTactics.add(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (tok._tippy) tok._tippy.destroy();
-            });
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
           }
-        });
+          const extraLinks = tgt.parentElement.dataset['versoLinks'];
+          if (extraLinks) {
+            try {
+              const extras = JSON.parse(extraLinks);
+              const links = document.createElement('ul');
+              links.className = 'extra-doc-links';
+              extras.forEach((l) => {
+                const li = document.createElement('li');
+                li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                links.appendChild(li);
+              });
+              content.appendChild(links);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+        return content;
+      }
+    };
+
+
+    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'lean');
+    });
+    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'warning message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'info message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'error message');
+    });
+    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'tactic');
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    const closedTactics = new Set();
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    function isInsideClosedTactic(el) {
+      const tactic = el.closest('.tactic');
+      return tactic && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
+    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle) toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          closedTactics.delete(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (!tok._tippy && tok.matches(tacticTippySelector)) {
+              tippy(tok, defaultTippyProps);
+            }
+          });
+        } else {
+          closedTactics.add(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (tok._tippy) tok._tippy.destroy();
+          });
+        }
       });
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
     <script>
       
 window.addEventListener("load", () => {
@@ -2715,7 +2718,7 @@ window.addEventListener("load", () => {
               22. Iterators<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=iterators" title="Permalink">🔗</a></span></h1>
             <p>
               An <span id="--tech-term-iterator" class="def-technical-term"><em>iterator</em></span> provides sequential access to each element of some source of data.
-Typical iterators allow the elements in a collection, such as a list, array, or <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Maps-and-Sets/#Std___TreeMap" title="Documentation for Std.TreeMap"><span class="const token" data-binding="const-Std.TreeMap" data-verso-hover="2995">TreeMap</span></a></code> to be accessed one by one, but they can also provide access to data by carrying out some <a class="technical-term" href="Functors___-Monads-and--do--Notation/#--tech-term-Monad">monadic</a> effect, such as reading files.
+Typical iterators allow the elements in a collection, such as a list, array, or <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Maps-and-Sets/#Std___TreeMap" title="Documentation for Std.TreeMap"><span class="const token" data-binding="const-Std.TreeMap" data-verso-hover="2984">TreeMap</span></a></code> to be accessed one by one, but they can also provide access to data by carrying out some <a class="technical-term" href="Functors___-Monads-and--do--Notation/#--tech-term-Monad">monadic</a> effect, such as reading files.
 Iterators provide a common interface to all of these operations.
 Code that is written to the iterator API can be agnostic as to the source of the data.</p>
             <p>
@@ -2726,13 +2729,13 @@ As usual, <a class="technical-term" href="Run-Time-Code/Reference-Counting/#--te
               To use iterators, import <code>Std.Data.Iterators</code>.</p>
             <details class="example"><summary class="description">Mixing Collections</summary><div class="example-content">
                 <p>
-                  Combining a list and an array using <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___zip" title="Documentation for List.zip"><span class="const token" data-binding="const-List.zip" data-verso-hover="6241">List.zip</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___zip" title="Documentation for Array.zip"><span class="const token" data-binding="const-Array.zip" data-verso-hover="6414">Array.zip</span></a></code> would ordinarily require converting one of them into the other collection.
+                  Combining a list and an array using <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___zip" title="Documentation for List.zip"><span class="const token" data-binding="const-List.zip" data-verso-hover="6235">List.zip</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___zip" title="Documentation for Array.zip"><span class="const token" data-binding="const-Array.zip" data-verso-hover="6408">Array.zip</span></a></code> would ordinarily require converting one of them into the other collection.
 Using iterators, they can be processed without conversion:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-1890">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-colors" data-verso-hover="1046" id="colors-_LPAR_in-Mixing-Collections_RPAR_">colors</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1901">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="319">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-1916">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term#[_,]»-1919">#[</span><span class="literal string token" data-binding="" data-verso-hover="8483">"purple"</span><span class="punctuation separator token" data-binding="kw-occ-«term#[_,]»-1919">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8484">"gray"</span><span class="punctuation separator token" data-binding="kw-occ-«term#[_,]»-1919">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1049">"blue"</span><span class="punctuation bracket token" data-binding="kw-occ-«term#[_,]»-1919">]</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-1947">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-codes" data-verso-hover="8485" id="codes-_LPAR_in-Mixing-Collections_RPAR_">codes</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1957">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="47">List</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-1971">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1974">[</span><span class="literal string token" data-binding="" data-verso-hover="8486">"aa27d1"</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1974">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8487">"a0a0a0"</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1974">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8488">"0000c5"</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1974">]</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-1890">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-colors" data-verso-hover="1031" id="colors-_LPAR_in-Mixing-Collections_RPAR_">colors</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1901">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="319">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-1916">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term#[_,]»-1919">#[</span><span class="literal string token" data-binding="" data-verso-hover="8477">"purple"</span><span class="punctuation separator token" data-binding="kw-occ-«term#[_,]»-1919">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8478">"gray"</span><span class="punctuation separator token" data-binding="kw-occ-«term#[_,]»-1919">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1034">"blue"</span><span class="punctuation bracket token" data-binding="kw-occ-«term#[_,]»-1919">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-1947">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-codes" data-verso-hover="8479" id="codes-_LPAR_in-Mixing-Collections_RPAR_">codes</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1957">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="47">List</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-1971">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1974">[</span><span class="literal string token" data-binding="" data-verso-hover="8480">"aa27d1"</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1974">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8481">"a0a0a0"</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1974">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8482">"0000c5"</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1974">]</span><span class="inter-text">
 
-</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1045">#[</span></a><span class="inter-text"></span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="8483">"purple"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8486">"aa27d1"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="8484">"gray"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8487">"a0a0a0"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="1049">"blue"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8488">"0000c5"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1045">]</span></a></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-2006" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><a href="Iterators/#colors-_LPAR_in-Mixing-Collections_RPAR_" title="Definition of example"><span class="const token" data-binding="const-colors" data-verso-hover="1046">colors</span></a><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___iter" title="Documentation for Array.iter"><span class="const token" data-binding="const-Array.iter" data-verso-hover="8489">iter</span></a><span class="built-in delim token" data-binding="">.</span><a href="Iterators/Iterator-Combinators/#Std___Iter___zip" title="Documentation for Std.Iter.zip"><span class="const token" data-binding="const-Std.Iter.zip" data-verso-hover="8490">zip</span></a><span class="inter-text"> </span><a href="Iterators/#codes-_LPAR_in-Mixing-Collections_RPAR_" title="Definition of example"><span class="const token" data-binding="const-codes" data-verso-hover="8485">codes</span></a><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Linked-Lists/#List___iter" title="Documentation for List.iter"><span class="const token" data-binding="const-List.iter" data-verso-hover="8491">iter</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.pipeProj-2012">|&gt;.</span><a href="Iterators/Consuming-Iterators/#Std___Iter___toArray" title="Documentation for Std.Iter.toArray"><span class="const token" data-binding="const-Std.Iter.toArray" data-verso-hover="8492">toArray</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1045">#[</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="8483">"purple"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8486">"aa27d1"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="8484">"gray"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8487">"a0a0a0"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="1049">"blue"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8488">"0000c5"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1045">]</span></a></span></span></pre><div class="live-link">
+</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1030">#[</span></a><span class="inter-text"></span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="8477">"purple"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8480">"aa27d1"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="8478">"gray"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8481">"a0a0a0"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="1034">"blue"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8482">"0000c5"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1030">]</span></a></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-2006" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><a href="Iterators/#colors-_LPAR_in-Mixing-Collections_RPAR_" title="Definition of example"><span class="const token" data-binding="const-colors" data-verso-hover="1031">colors</span></a><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___iter" title="Documentation for Array.iter"><span class="const token" data-binding="const-Array.iter" data-verso-hover="8483">iter</span></a><span class="built-in delim token" data-binding="">.</span><a href="Iterators/Iterator-Combinators/#Std___Iter___zip" title="Documentation for Std.Iter.zip"><span class="const token" data-binding="const-Std.Iter.zip" data-verso-hover="8484">zip</span></a><span class="inter-text"> </span><a href="Iterators/#codes-_LPAR_in-Mixing-Collections_RPAR_" title="Definition of example"><span class="const token" data-binding="const-codes" data-verso-hover="8479">codes</span></a><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Linked-Lists/#List___iter" title="Documentation for List.iter"><span class="const token" data-binding="const-List.iter" data-verso-hover="8485">iter</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.pipeProj-2012">|&gt;.</span><a href="Iterators/Consuming-Iterators/#Std___Iter___toArray" title="Documentation for Std.Iter.toArray"><span class="const token" data-binding="const-Std.Iter.toArray" data-verso-hover="8486">toArray</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1030">#[</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="8477">"purple"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8480">"aa27d1"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="8478">"gray"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8481">"a0a0a0"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="117">,</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="literal string token" data-binding="" data-verso-hover="1034">"blue"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8482">"0000c5"</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1030">]</span></a></span></span></pre><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;JYWwDg9gTgLgBAZRgEwHQBECGNOoJIwCmU20AzgFAURiEB2iKVyhAZnAMYQA25cAXHACCUEgE9GUYHQDmAgLxwAxAG0ARGACuUMN0JqANHDUzxh4wCNum/QF0KLdlxZkBcADLAy8JFNkK4dUxMACYAdmQARnM1TAAGePiYuJS4jgBWNXsKJUIAN0xuTh5yVGAiKFQAL2AwYpcyirgAHwA+VBgIEXEgA&quot;)">Live ↪</a></div>
                 </div>
               </details><details class="example"><summary class="description">Avoiding Intermediate Structures</summary><div class="example-content">
@@ -2754,29 +2757,29 @@ The program separates three intermediate stages:</p>
                         The strings are combined with newlines.</p>
                       </li>
                     </ol>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2578">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-colors" data-verso-hover="1046" id="colors-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_">colors</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2589">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="319">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2604">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term#[_,]»-2607">#[</span><span class="literal string token" data-binding="" data-verso-hover="8483">"purple"</span><span class="punctuation separator token" data-binding="kw-occ-«term#[_,]»-2607">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8484">"gray"</span><span class="punctuation separator token" data-binding="kw-occ-«term#[_,]»-2607">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1049">"blue"</span><span class="punctuation bracket token" data-binding="kw-occ-«term#[_,]»-2607">]</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2578">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-colors" data-verso-hover="1031" id="colors-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_">colors</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2589">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="319">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2604">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term#[_,]»-2607">#[</span><span class="literal string token" data-binding="" data-verso-hover="8477">"purple"</span><span class="punctuation separator token" data-binding="kw-occ-«term#[_,]»-2607">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8478">"gray"</span><span class="punctuation separator token" data-binding="kw-occ-«term#[_,]»-2607">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1034">"blue"</span><span class="punctuation bracket token" data-binding="kw-occ-«term#[_,]»-2607">]</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2636">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-codes" data-verso-hover="8485" id="codes-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_">codes</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2646">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="47">List</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2660">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2663">[</span><span class="literal string token" data-binding="" data-verso-hover="8486">"aa27d1"</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-2663">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8487">"a0a0a0"</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-2663">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8488">"0000c5"</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2663">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2636">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-codes" data-verso-hover="8479" id="codes-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_">codes</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2646">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="47">List</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2660">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2663">[</span><span class="literal string token" data-binding="" data-verso-hover="8480">"aa27d1"</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-2663">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8481">"a0a0a0"</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-2663">,</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="8482">"0000c5"</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2663">]</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2695">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-go" data-verso-hover="8493" id="go-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_">go</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2702">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="4">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2712">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-2715">do</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-2720">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.296" data-verso-hover="8494">colorCodes</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-2724">:=</span><span class="inter-text"> </span><a href="Iterators/#colors-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_" title="Definition of example"><span class="const token" data-binding="const-colors" data-verso-hover="1046">colors</span></a><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___iter" title="Documentation for Array.iter"><span class="const token" data-binding="const-Array.iter" data-verso-hover="8489">iter</span></a><span class="built-in delim token" data-binding="">.</span><a href="Iterators/Iterator-Combinators/#Std___Iter___zip" title="Documentation for Std.Iter.zip"><span class="const token" data-binding="const-Std.Iter.zip" data-verso-hover="8490">zip</span></a><span class="inter-text"> </span><a href="Iterators/#codes-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_" title="Definition of example"><span class="const token" data-binding="const-codes" data-verso-hover="8485">codes</span></a><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Linked-Lists/#List___iter" title="Documentation for List.iter"><span class="const token" data-binding="const-List.iter" data-verso-hover="8491">iter</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-2767">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.357" data-verso-hover="8495">colorCodes</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-2771">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.296" data-verso-hover="8494">colorCodes</span><span class="built-in delim token" data-binding="">.</span><a href="Iterators/Iterator-Combinators/#Std___Iter___map" title="Documentation for Std.Iter.map"><span class="const token" data-binding="const-Std.Iter.map" data-verso-hover="8496">map</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2800">fun</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2804">(</span><span class="var token" data-binding="var-_uniq.843" data-verso-hover="168">name</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-2804">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.844" data-verso-hover="168">code</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-2804">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-2804">=&gt;</span><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-termS!_-2824">s!</span><span class="literal string interpolation token" data-binding="">"{</span><span class="var token" data-binding="var-_uniq.843" data-verso-hover="168">name</span><span class="literal string interpolation token" data-binding="">} ↦ #{</span><span class="var token" data-binding="var-_uniq.844" data-verso-hover="168">code</span><span class="literal string interpolation token" data-binding="">}"</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-2849">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.667" data-verso-hover="168">colorCodes</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-2853">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.357" data-verso-hover="8495">colorCodes</span><span class="built-in delim token" data-binding="">.</span><a href="Iterators/Consuming-Iterators/#Std___Iter___fold" title="Documentation for Std.Iter.fold"><span class="const token" data-binding="const-Std.Iter.fold" data-verso-hover="8497">fold</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2883">(</span><span class="unknown token" data-binding="">init</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2883">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="224">""</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2883">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2896">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.560" data-verso-hover="168">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.563" data-verso-hover="168">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-2900">=&gt;</span><span class="inter-text">
-    </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2911" data-verso-hover="164">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.560" data-verso-hover="168">x</span><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Strings/#String___isEmpty" title="Documentation for String.isEmpty"><span class="const token" data-binding="const-String.isEmpty" data-verso-hover="5395">isEmpty</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2911" data-verso-hover="164">then</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.563" data-verso-hover="168">y</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2911" data-verso-hover="164">else</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.560" data-verso-hover="168">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_++_»-2936">++</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="172">"\n"</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_++_»-2936">++</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.563" data-verso-hover="168">y</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="7">IO.println</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.667" data-verso-hover="168">colorCodes</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2695">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-go" data-verso-hover="8487" id="go-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_">go</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2702">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="4">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2712">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-2715">do</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-2720">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.272" data-verso-hover="8488">colorCodes</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-2724">:=</span><span class="inter-text"> </span><a href="Iterators/#colors-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_" title="Definition of example"><span class="const token" data-binding="const-colors" data-verso-hover="1031">colors</span></a><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___iter" title="Documentation for Array.iter"><span class="const token" data-binding="const-Array.iter" data-verso-hover="8483">iter</span></a><span class="built-in delim token" data-binding="">.</span><a href="Iterators/Iterator-Combinators/#Std___Iter___zip" title="Documentation for Std.Iter.zip"><span class="const token" data-binding="const-Std.Iter.zip" data-verso-hover="8484">zip</span></a><span class="inter-text"> </span><a href="Iterators/#codes-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_" title="Definition of example"><span class="const token" data-binding="const-codes" data-verso-hover="8479">codes</span></a><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Linked-Lists/#List___iter" title="Documentation for List.iter"><span class="const token" data-binding="const-List.iter" data-verso-hover="8485">iter</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-2767">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.334" data-verso-hover="8489">colorCodes</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-2771">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.272" data-verso-hover="8488">colorCodes</span><span class="built-in delim token" data-binding="">.</span><a href="Iterators/Iterator-Combinators/#Std___Iter___map" title="Documentation for Std.Iter.map"><span class="const token" data-binding="const-Std.Iter.map" data-verso-hover="8490">map</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2800">fun</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2804">(</span><span class="var token" data-binding="var-_uniq.851" data-verso-hover="168">name</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-2804">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.852" data-verso-hover="168">code</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-2804">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-2804">=&gt;</span><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-termS!_-2824">s!</span><span class="literal string interpolation token" data-binding="">"{</span><span class="var token" data-binding="var-_uniq.851" data-verso-hover="168">name</span><span class="literal string interpolation token" data-binding="">} ↦ #{</span><span class="var token" data-binding="var-_uniq.852" data-verso-hover="168">code</span><span class="literal string interpolation token" data-binding="">}"</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-2849">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.645" data-verso-hover="168">colorCodes</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-2853">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.334" data-verso-hover="8489">colorCodes</span><span class="built-in delim token" data-binding="">.</span><a href="Iterators/Consuming-Iterators/#Std___Iter___fold" title="Documentation for Std.Iter.fold"><span class="const token" data-binding="const-Std.Iter.fold" data-verso-hover="8491">fold</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2883">(</span><span class="unknown token" data-binding="">init</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2883">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="224">""</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2883">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2896">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.538" data-verso-hover="168">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.541" data-verso-hover="168">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-2900">=&gt;</span><span class="inter-text">
+    </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2911" data-verso-hover="164">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.538" data-verso-hover="168">x</span><span class="built-in delim token" data-binding="">.</span><a href="Basic-Types/Strings/#String___isEmpty" title="Documentation for String.isEmpty"><span class="const token" data-binding="const-String.isEmpty" data-verso-hover="5390">isEmpty</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2911" data-verso-hover="164">then</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.541" data-verso-hover="168">y</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2911" data-verso-hover="164">else</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.538" data-verso-hover="168">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_++_»-2936">++</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="172">"\n"</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_++_»-2936">++</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.541" data-verso-hover="168">y</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="7">IO.println</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.645" data-verso-hover="168">colorCodes</span><span class="inter-text">
 
 </span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">purple ↦ #aa27d1
 gray ↦ #a0a0a0
 blue ↦ #0000c5
-</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-2976" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><a href="Iterators/#go-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_" title="Definition of example"><span class="const token" data-binding="const-go" data-verso-hover="8493">go</span></a><span class="inter-text">
+</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-2976" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><a href="Iterators/#go-_LPAR_in-Avoiding-Intermediate-Structures_RPAR_" title="Definition of example"><span class="const token" data-binding="const-go" data-verso-hover="8487">go</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">purple ↦ #aa27d1
 gray ↦ #a0a0a0
 blue ↦ #0000c5
 </span></span></pre></div>
                 <p>
                   The intermediate stages of the computation do not allocate new data structures.
-Instead, all the steps of the transformation are fused into a single loop, with <code class="hl lean inline" data-lean-context="examples"><a href="Iterators/Consuming-Iterators/#Std___Iter___fold" title="Documentation for Std.Iter.fold"><span class="const token" data-binding="const-Std.Iter.fold" data-verso-hover="8497">Iter.fold</span></a></code> carrying out one step at a time.
+Instead, all the steps of the transformation are fused into a single loop, with <code class="hl lean inline" data-lean-context="examples"><a href="Iterators/Consuming-Iterators/#Std___Iter___fold" title="Documentation for Std.Iter.fold"><span class="const token" data-binding="const-Std.Iter.fold" data-verso-hover="8491">Iter.fold</span></a></code> carrying out one step at a time.
 In each step, a single color and color code are combined into a pair, rewritten to a string, and added to the result string.</p>
                 <div class="live-link">
                   <a href="javascript:openLiveLink(&quot;JYWwDg9gTgLgBAZRgEwHQBECGNOoJIwCmU20AzgFAURiEB2iKQA&quot;)">Live ↪</a></div>
@@ -2788,13 +2791,13 @@ They determine which data is to be returned by an iterator, and how this data is
 <span id="--tech-term-Consumers" class="def-technical-term"><em>Consumers</em></span> use the data in an iterator for some purpose.
 Consumers request the iterator's data, and the iterator computes only enough data to satisfy a consumer's requests.
 <span id="--tech-term-Combinators" class="def-technical-term"><em>Combinators</em></span> are both consumers and producers: they create new iterators from existing iterators.
-Examples include <code class="hl lean inline" data-lean-context="examples"><a href="Iterators/Iterator-Combinators/#Std___Iter___map" title="Documentation for Std.Iter.map"><span class="const token" data-binding="const-Std.Iter.map" data-verso-hover="8496">Iter.map</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Iterators/Iterator-Combinators/#Std___Iter___filter" title="Documentation for Std.Iter.filter"><span class="const token" data-binding="const-Std.Iter.filter" data-verso-hover="8498">Iter.filter</span></a></code>.
+Examples include <code class="hl lean inline" data-lean-context="examples"><a href="Iterators/Iterator-Combinators/#Std___Iter___map" title="Documentation for Std.Iter.map"><span class="const token" data-binding="const-Std.Iter.map" data-verso-hover="8490">Iter.map</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Iterators/Iterator-Combinators/#Std___Iter___filter" title="Documentation for Std.Iter.filter"><span class="const token" data-binding="const-Std.Iter.filter" data-verso-hover="8492">Iter.filter</span></a></code>.
 The resulting iterators produce data by consuming their underlying iterators, and do not actually iterate over the underlying collection until they themselves are consumed.</p>
             <p>
               Each built-in collection for which it makes sense to do so can be iterated over.
 In other words, the collection libraries include iterator <a class="technical-term" href="Iterators/#--tech-term-Producers">producers</a>.
-By convention, a collection type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Coll" data-verso-hover="8499">Coll</span></code> provides a function <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Coll.iter" data-verso-hover="8500">Coll.iter</span></code> that returns an iterator over the elements of a collection.
-Examples include <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___iter" title="Documentation for List.iter"><span class="const token" data-binding="const-List.iter" data-verso-hover="8491">List.iter</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___iter" title="Documentation for Array.iter"><span class="const token" data-binding="const-Array.iter" data-verso-hover="8489">Array.iter</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Maps-and-Sets/#Std___TreeMap___iter" title="Documentation for Std.TreeMap.iter"><span class="const token" data-binding="const-Std.TreeMap.iter" data-verso-hover="8501">TreeMap.iter</span></a></code>.
+By convention, a collection type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Coll" data-verso-hover="8493">Coll</span></code> provides a function <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Coll.iter" data-verso-hover="8494">Coll.iter</span></code> that returns an iterator over the elements of a collection.
+Examples include <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___iter" title="Documentation for List.iter"><span class="const token" data-binding="const-List.iter" data-verso-hover="8485">List.iter</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___iter" title="Documentation for Array.iter"><span class="const token" data-binding="const-Array.iter" data-verso-hover="8483">Array.iter</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Maps-and-Sets/#Std___TreeMap___iter" title="Documentation for Std.TreeMap.iter"><span class="const token" data-binding="const-Std.TreeMap.iter" data-verso-hover="8495">TreeMap.iter</span></a></code>.
 Additionally, other built-in types such as ranges support iteration using the same convention.</p>
             <ol class="section-toc">
               <li>

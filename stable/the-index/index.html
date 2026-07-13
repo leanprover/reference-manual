@@ -1,4 +1,4 @@
-<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
+<!-- Generated from commit 5d2a1e3c97acc754de5b9751efd6d13ba6666530 at 2026-07-13T19:33:45Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -331,10 +331,15 @@ pre.json {
   color: #555;
 }
 
-.namedocs h1 {
-  font-size: inherit;
-  font-weight: bold
+.namedocs .docstring-section {
   margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs .docstring-section-label {
+  font-size: inherit;
+  font-weight: bold;
+  margin-top: 0;
   margin-bottom: 1rem;
 }
 
@@ -2349,7 +2354,46 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.onload = async () => {
 
     // Don't show hovers inside of closed tactic states
     function blockedByTactic(elem) {
@@ -2423,207 +2467,166 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let docsJson = "-verso-docs.json";
-    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
 
-      function hideParentTooltips(element) {
-        let parent = element.parentElement;
-        while (parent) {
-          const tippyInstance = parent._tippy;
-          if (tippyInstance) {
-            tippyInstance.hide();
-          }
-          parent = parent.parentElement;
+    function hideParentTooltips(element) {
+      let parent = element.parentElement;
+      while (parent) {
+        const tippyInstance = parent._tippy;
+        if (tippyInstance) {
+          tippyInstance.hide();
         }
+        parent = parent.parentElement;
       }
+    }
 
 
 
-      const defaultTippyProps = {
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        /* theme: "lean", */
-        maxWidth: "none",
-        appendTo: () => document.body,
-        interactive: true,
-        delay: [100, null],
-        /* ignoreAttributes: true, */
-        followCursor: 'initial',
-        onShow(inst) {
-          if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
-            if (toggle && toggle.checked) {
-              return false;
-            }
-            hideParentTooltips(inst.reference);
-            if (blockedByTippy(inst.reference)) { return false; }
-
-          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
-            if (blockedByTactic(inst.reference)) { return false };
-            if (blockedByTippy(inst.reference)) { return false; }
-          } else { // Nothing to show here!
+    const defaultTippyProps = {
+      /* DEBUG -- remove the space: * /
+      onHide(any) { return false; },
+      trigger: "click",
+      // */
+      /* theme: "lean", */
+      maxWidth: "none",
+      appendTo: () => document.body,
+      interactive: true,
+      delay: [100, null],
+      /* ignoreAttributes: true, */
+      followCursor: 'initial',
+      onShow(inst) {
+        if (inst.reference.className == 'tactic') {
+          const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
+          if (toggle && toggle.checked) {
             return false;
           }
-        },
-        onShown(inst) { visibleTippyCount++; },
-        onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
-        content (tgt) {
-          const content = document.createElement("span");
-          if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-            state.style.display = "block";
-            content.appendChild(state);
-            content.style.display = "block";
-            content.className = "hl lean popup";
-          } else {
-            content.className = "hl lean";
-            content.style.display = "block";
-            content.style.maxHeight = "300px";
-            content.style.overflowY = "auto";
-            content.style.overflowX = "hidden";
-            const hoverId = tgt.dataset.versoHover;
-            const hoverInfo = tgt.querySelector(".hover-info");
-            if (hoverId) { // Docstrings from the table
-              // TODO stop doing an implicit conversion from string to number here
-              let data = versoDocData[hoverId];
-              if (data) {
-                const info = document.createElement("span");
-                info.className = "hover-info";
-                info.style.display = "block";
-                info.innerHTML = data;
-                content.appendChild(info);
-                /* Render docstrings - TODO server-side */
-                if ('undefined' !== typeof marked) {
-                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                        const str = d.innerText;
-                        const html = marked.parse(str);
-                        const rendered = document.createElement("div");
-                        rendered.classList.add("docstring");
-                        rendered.innerHTML = html;
-                        d.parentNode.replaceChild(rendered, d);
-                    }
-                }
-              } else {
-                content.innerHTML = "Failed to load doc ID: " + hoverId;
-              }
-            } else if (hoverInfo) { // The inline info, still used for compiler messages
-              content.appendChild(hoverInfo.cloneNode(true));
-            }
-            const extraLinks = tgt.parentElement.dataset['versoLinks'];
-            if (extraLinks) {
-              try {
-                const extras = JSON.parse(extraLinks);
-                const links = document.createElement('ul');
-                links.className = 'extra-doc-links';
-                extras.forEach((l) => {
-                  const li = document.createElement('li');
-                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
-                  links.appendChild(li);
-                });
-                content.appendChild(links);
-              } catch (error) {
-                console.error(error);
-              }
-            }
-          }
-          return content;
+          hideParentTooltips(inst.reference);
+          if (blockedByTippy(inst.reference)) { return false; }
+
+        } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (blockedByTactic(inst.reference)) { return false };
+          if (blockedByTippy(inst.reference)) { return false; }
+        } else { // Nothing to show here!
+          return false;
         }
-      };
-
-
-      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'lean');
-      });
-      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'warning message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'info message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'error message');
-      });
-      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'tactic');
-      });
-      // Skip tokens inside closed tactics — they interfere with tactic tippys
-      const closedTactics = new Set();
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle && !toggle.checked) closedTactics.add(tactic);
-      });
-      function isInsideClosedTactic(el) {
-        const tactic = el.closest('.tactic');
-        return tactic && tactic !== el && closedTactics.has(tactic);
-      }
-
-      const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-      tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-      // Create/destroy token tippys when tactic checkbox toggles
-      const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle) toggle.addEventListener('change', () => {
-          if (toggle.checked) {
-            closedTactics.delete(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (!tok._tippy && tok.matches(tacticTippySelector)) {
-                tippy(tok, defaultTippyProps);
+      },
+      onShown(inst) { visibleTippyCount++; },
+      onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
+      content (tgt) {
+        const content = document.createElement("span");
+        if (tgt.className == 'tactic') {
+          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+        } else {
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
               }
-            });
-          } else {
-            closedTactics.add(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (tok._tippy) tok._tippy.destroy();
-            });
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
           }
-        });
+          const extraLinks = tgt.parentElement.dataset['versoLinks'];
+          if (extraLinks) {
+            try {
+              const extras = JSON.parse(extraLinks);
+              const links = document.createElement('ul');
+              links.className = 'extra-doc-links';
+              extras.forEach((l) => {
+                const li = document.createElement('li');
+                li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                links.appendChild(li);
+              });
+              content.appendChild(links);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+        return content;
+      }
+    };
+
+
+    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'lean');
+    });
+    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'warning message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'info message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'error message');
+    });
+    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'tactic');
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    const closedTactics = new Set();
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    function isInsideClosedTactic(el) {
+      const tactic = el.closest('.tactic');
+      return tactic && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
+    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle) toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          closedTactics.delete(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (!tok._tippy && tok.matches(tacticTippySelector)) {
+              tippy(tok, defaultTippyProps);
+            }
+          });
+        } else {
+          closedTactics.add(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (tok._tippy) tok._tippy.destroy();
+          });
+        }
       });
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
     <script>
       
 window.addEventListener("load", () => {
@@ -3608,7 +3611,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-allowImportAll-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>allow&shy;Import&shy;All</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3626"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3629"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -4194,7 +4197,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-Backend-Lake___Backend"><code>Backend</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3657"><code>Lake.<wbr>Backend</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3660"><code>Lake.<wbr>Backend</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -4468,7 +4471,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-BuildType-Lake___BuildType"><code>Build&shy;Type</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3644"><code>Lake.<wbr>Build&shy;Type</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3647"><code>Lake.<wbr>Build&shy;Type</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -4661,6 +4664,12 @@ window.addEventListener("load", () => {
                     <a href="Source-Files-and-Modules/#backward___proofsInPublic"><span id="---entry-backward___proofsInPublic"><code>backward.<wbr>proofs&shy;In&shy;Public</code></span></a></li>
                   <li>
                     <a href="Type-Classes/Instance-Synthesis/#backward___synthInstance___canonInstances"><span id="---entry-backward___synthInstance___canonInstances"><code>backward.<wbr>synthInstance.<wbr>canon&shy;Instances</code></span></a></li>
+                  <li>
+                    <span id="---entry-baseId-Lean___Elab___Do___MutVar___baseId-_LPAR_structure-field_RPAR_"><code>base&shy;Id</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MutVar___mk"><span id="---entry-___key___---___k___-3608"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>MutVar.<wbr>base&shy;Id</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
                   <li>
                     <span id="---entry-bdiv-Int___bdiv"><code>bdiv</code></span><ol>
                       <li>
@@ -4936,9 +4945,9 @@ window.addEventListener("load", () => {
                       </ol>
                     </li>
                   <li>
-                    <span id="---entry-breakBase___-Lean___Elab___Do___ControlLifter___breakBase___-_LPAR_structure-field_RPAR_"><code>break&shy;Base?</code></span><ol>
+                    <span id="---entry-breakBase___-Lean___Elab___Do___EffectForwarder___breakBase___-_LPAR_structure-field_RPAR_"><code>break&shy;Base?</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3612"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>break&shy;Base?</code> (structure field)</span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___mk"><span id="---entry-___key___---___k___-3616"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>break&shy;Base?</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -5301,12 +5310,6 @@ window.addEventListener("load", () => {
                     <span id="---entry-ControlInfoHandler-Lean___Elab___Do___ControlInfoHandler"><code>Control&shy;Info&shy;Handler</code></span><ol>
                       <li>
                         <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfoHandler"><span id="---entry-___key___---___k___-3586"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Info&shy;Handler</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <span id="---entry-ControlLifter-Lean___Elab___Do___ControlLifter"><code>Control&shy;Lifter</code></span><ol>
-                      <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3610"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Lifter</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -6032,9 +6035,9 @@ window.addEventListener("load", () => {
                       </ol>
                     </li>
                   <li>
-                    <span id="---entry-continueBase___-Lean___Elab___Do___ControlLifter___continueBase___-_LPAR_structure-field_RPAR_"><code>continue&shy;Base?</code></span><ol>
+                    <span id="---entry-continueBase___-Lean___Elab___Do___EffectForwarder___continueBase___-_LPAR_structure-field_RPAR_"><code>continue&shy;Base?</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3613"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>continue&shy;Base?</code> (structure field)</span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___mk"><span id="---entry-___key___---___k___-3617"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>continue&shy;Base?</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -6648,13 +6651,13 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-declareMutVar-Lean___Elab___Do___declareMutVar"><code>declare&shy;Mut&shy;Var</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___declareMutVar"><span id="---entry-___key___---___k___-3606"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>declare&shy;Mut&shy;Var</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___declareMutVar"><span id="---entry-___key___---___k___-3610"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>declare&shy;Mut&shy;Var</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-declareMutVars-Lean___Elab___Do___declareMutVars"><code>declare&shy;Mut&shy;Vars</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___declareMutVars"><span id="---entry-___key___---___k___-3607"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>declare&shy;Mut&shy;Vars</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___declareMutVars"><span id="---entry-___key___---___k___-3611"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>declare&shy;Mut&shy;Vars</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -6710,7 +6713,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-defaultFacets-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>default&shy;Facets</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3627"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3630"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -7209,6 +7212,12 @@ window.addEventListener("load", () => {
                     <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#EStateM___throw"><span id="---entry-EStateM___throw"><code>EStateM.<wbr>throw</code></span></a></li>
                   <li>
                     <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#EStateM___tryCatch"><span id="---entry-EStateM___tryCatch"><code>EStateM.<wbr>try&shy;Catch</code></span></a></li>
+                  <li>
+                    <span id="---entry-EffectForwarder-Lean___Elab___Do___EffectForwarder"><code>Effect&shy;Forwarder</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___mk"><span id="---entry-___key___---___k___-3614"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Effect&shy;Forwarder</code></span></a></li>
+                      </ol>
+                    </li>
                   <li>
                     <a href="Basic-Types/The-Empty-Type/#Empty"><span id="---entry-Empty"><code>Empty</code></span></a></li>
                   <li>
@@ -8012,7 +8021,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-exeName-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>exe&shy;Name</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3640"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3643"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -8100,7 +8109,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-extraDepTargets-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>extra&shy;Dep&shy;Targets</code></span><ol>
                       <li>
-                        <span id="---entry-___key___---___k___-3628"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
+                        <span id="---entry-___key___---___k___-3631"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
                       </ol>
                     </li>
                   <li>
@@ -9040,7 +9049,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-findExternLib___-Lake___findExternLib___"><code>find&shy;Extern&shy;Lib?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findExternLib___"><span id="---entry-___key___---___k___-3700"><code>Lake.<wbr>find&shy;Extern&shy;Lib?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findExternLib___"><span id="---entry-___key___---___k___-3703"><code>Lake.<wbr>find&shy;Extern&shy;Lib?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -9100,13 +9109,13 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-findLeanExe___-Lake___findLeanExe___"><code>find&shy;Lean&shy;Exe?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findLeanExe___"><span id="---entry-___key___---___k___-3698"><code>Lake.<wbr>find&shy;Lean&shy;Exe?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findLeanExe___"><span id="---entry-___key___---___k___-3701"><code>Lake.<wbr>find&shy;Lean&shy;Exe?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-findLeanLib___-Lake___findLeanLib___"><code>find&shy;Lean&shy;Lib?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findLeanLib___"><span id="---entry-___key___---___k___-3699"><code>Lake.<wbr>find&shy;Lean&shy;Lib?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findLeanLib___"><span id="---entry-___key___---___k___-3702"><code>Lake.<wbr>find&shy;Lean&shy;Lib?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -9136,19 +9145,19 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-findModule___-Lake___findModule___"><code>find&shy;Module?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findModule___"><span id="---entry-___key___---___k___-3697"><code>Lake.<wbr>find&shy;Module?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findModule___"><span id="---entry-___key___---___k___-3700"><code>Lake.<wbr>find&shy;Module?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-findPackageByKey___-Lake___findPackageByKey___"><code>find&shy;Package&shy;By&shy;Key?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findPackageByKey___"><span id="---entry-___key___---___k___-3696"><code>Lake.<wbr>find&shy;Package&shy;By&shy;Key?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findPackageByKey___"><span id="---entry-___key___---___k___-3699"><code>Lake.<wbr>find&shy;Package&shy;By&shy;Key?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-findPackageByName___-Lake___findPackageByName___"><code>find&shy;Package&shy;By&shy;Name?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findPackageByName___"><span id="---entry-___key___---___k___-3695"><code>Lake.<wbr>find&shy;Package&shy;By&shy;Name?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___findPackageByName___"><span id="---entry-___key___---___k___-3698"><code>Lake.<wbr>find&shy;Package&shy;By&shy;Name?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -10124,7 +10133,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-Glob-Lake___Glob"><code>Glob</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3649"><code>Lake.<wbr>Glob</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3652"><code>Lake.<wbr>Glob</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -10480,25 +10489,25 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getAugmentedEnv-Lake___getAugmentedEnv"><code>get&shy;Augmented&shy;Env</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedEnv"><span id="---entry-___key___---___k___-3707"><code>Lake.<wbr>get&shy;Augmented&shy;Env</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedEnv"><span id="---entry-___key___---___k___-3710"><code>Lake.<wbr>get&shy;Augmented&shy;Env</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getAugmentedLeanPath-Lake___getAugmentedLeanPath"><code>get&shy;Augmented&shy;Lean&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedLeanPath"><span id="---entry-___key___---___k___-3704"><code>Lake.<wbr>get&shy;Augmented&shy;Lean&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedLeanPath"><span id="---entry-___key___---___k___-3707"><code>Lake.<wbr>get&shy;Augmented&shy;Lean&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getAugmentedLeanSrcPath-Lake___getAugmentedLeanSrcPath"><code>get&shy;Augmented&shy;Lean&shy;Src&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedLeanSrcPath"><span id="---entry-___key___---___k___-3705"><code>Lake.<wbr>get&shy;Augmented&shy;Lean&shy;Src&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedLeanSrcPath"><span id="---entry-___key___---___k___-3708"><code>Lake.<wbr>get&shy;Augmented&shy;Lean&shy;Src&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getAugmentedSharedLibPath-Lake___getAugmentedSharedLibPath"><code>get&shy;Augmented&shy;Shared&shy;Lib&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedSharedLibPath"><span id="---entry-___key___---___k___-3706"><code>Lake.<wbr>get&shy;Augmented&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getAugmentedSharedLibPath"><span id="---entry-___key___---___k___-3709"><code>Lake.<wbr>get&shy;Augmented&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -10624,25 +10633,25 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getElan___-Lake___getElan___"><code>get&shy;Elan?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElan___"><span id="---entry-___key___---___k___-3673"><code>Lake.<wbr>get&shy;Elan?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElan___"><span id="---entry-___key___---___k___-3676"><code>Lake.<wbr>get&shy;Elan?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getElanHome___-Lake___getElanHome___"><code>get&shy;Elan&shy;Home?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanHome___"><span id="---entry-___key___---___k___-3672"><code>Lake.<wbr>get&shy;Elan&shy;Home?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanHome___"><span id="---entry-___key___---___k___-3675"><code>Lake.<wbr>get&shy;Elan&shy;Home?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getElanInstall___-Lake___getElanInstall___"><code>get&shy;Elan&shy;Install?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanInstall___"><span id="---entry-___key___---___k___-3671"><code>Lake.<wbr>get&shy;Elan&shy;Install?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanInstall___"><span id="---entry-___key___---___k___-3674"><code>Lake.<wbr>get&shy;Elan&shy;Install?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getElanToolchain-Lake___getElanToolchain"><code>get&shy;Elan&shy;Toolchain</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanToolchain"><span id="---entry-___key___---___k___-3667"><code>Lake.<wbr>get&shy;Elan&shy;Toolchain</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getElanToolchain"><span id="---entry-___key___---___k___-3670"><code>Lake.<wbr>get&shy;Elan&shy;Toolchain</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -10786,19 +10795,19 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getEnvLeanPath-Lake___getEnvLeanPath"><code>get&shy;Env&shy;Lean&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvLeanPath"><span id="---entry-___key___---___k___-3668"><code>Lake.<wbr>get&shy;Env&shy;Lean&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvLeanPath"><span id="---entry-___key___---___k___-3671"><code>Lake.<wbr>get&shy;Env&shy;Lean&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getEnvLeanSrcPath-Lake___getEnvLeanSrcPath"><code>get&shy;Env&shy;Lean&shy;Src&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvLeanSrcPath"><span id="---entry-___key___---___k___-3669"><code>Lake.<wbr>get&shy;Env&shy;Lean&shy;Src&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvLeanSrcPath"><span id="---entry-___key___---___k___-3672"><code>Lake.<wbr>get&shy;Env&shy;Lean&shy;Src&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getEnvSharedLibPath-Lake___getEnvSharedLibPath"><code>get&shy;Env&shy;Shared&shy;Lib&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvSharedLibPath"><span id="---entry-___key___---___k___-3670"><code>Lake.<wbr>get&shy;Env&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getEnvSharedLibPath"><span id="---entry-___key___---___k___-3673"><code>Lake.<wbr>get&shy;Env&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11164,37 +11173,37 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getLake-Lake___getLake"><code>get&shy;Lake</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLake"><span id="---entry-___key___---___k___-3690"><code>Lake.<wbr>get&shy;Lake</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLake"><span id="---entry-___key___---___k___-3693"><code>Lake.<wbr>get&shy;Lake</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLakeEnv-Lake___getLakeEnv"><code>get&shy;Lake&shy;Env</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeEnv"><span id="---entry-___key___---___k___-3663"><code>Lake.<wbr>get&shy;Lake&shy;Env</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeEnv"><span id="---entry-___key___---___k___-3666"><code>Lake.<wbr>get&shy;Lake&shy;Env</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLakeHome-Lake___getLakeHome"><code>get&shy;Lake&shy;Home</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeHome"><span id="---entry-___key___---___k___-3687"><code>Lake.<wbr>get&shy;Lake&shy;Home</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeHome"><span id="---entry-___key___---___k___-3690"><code>Lake.<wbr>get&shy;Lake&shy;Home</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLakeInstall-Lake___getLakeInstall"><code>get&shy;Lake&shy;Install</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeInstall"><span id="---entry-___key___---___k___-3686"><code>Lake.<wbr>get&shy;Lake&shy;Install</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeInstall"><span id="---entry-___key___---___k___-3689"><code>Lake.<wbr>get&shy;Lake&shy;Install</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLakeLibDir-Lake___getLakeLibDir"><code>get&shy;Lake&shy;Lib&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeLibDir"><span id="---entry-___key___---___k___-3689"><code>Lake.<wbr>get&shy;Lake&shy;Lib&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeLibDir"><span id="---entry-___key___---___k___-3692"><code>Lake.<wbr>get&shy;Lake&shy;Lib&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLakeSrcDir-Lake___getLakeSrcDir"><code>get&shy;Lake&shy;Src&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeSrcDir"><span id="---entry-___key___---___k___-3688"><code>Lake.<wbr>get&shy;Lake&shy;Src&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLakeSrcDir"><span id="---entry-___key___---___k___-3691"><code>Lake.<wbr>get&shy;Lake&shy;Src&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11224,85 +11233,85 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getLean-Lake___getLean"><code>get&shy;Lean</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLean"><span id="---entry-___key___---___k___-3680"><code>Lake.<wbr>get&shy;Lean</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLean"><span id="---entry-___key___---___k___-3683"><code>Lake.<wbr>get&shy;Lean</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanAr-Lake___getLeanAr"><code>get&shy;Lean&shy;Ar</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanAr"><span id="---entry-___key___---___k___-3683"><code>Lake.<wbr>get&shy;Lean&shy;Ar</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanAr"><span id="---entry-___key___---___k___-3686"><code>Lake.<wbr>get&shy;Lean&shy;Ar</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanCc-Lake___getLeanCc"><code>get&shy;Lean&shy;Cc</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanCc"><span id="---entry-___key___---___k___-3684"><code>Lake.<wbr>get&shy;Lean&shy;Cc</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanCc"><span id="---entry-___key___---___k___-3687"><code>Lake.<wbr>get&shy;Lean&shy;Cc</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanCc___-Lake___getLeanCc___"><code>get&shy;Lean&shy;Cc?</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanCc___"><span id="---entry-___key___---___k___-3685"><code>Lake.<wbr>get&shy;Lean&shy;Cc?</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanCc___"><span id="---entry-___key___---___k___-3688"><code>Lake.<wbr>get&shy;Lean&shy;Cc?</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanIncludeDir-Lake___getLeanIncludeDir"><code>get&shy;Lean&shy;Include&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanIncludeDir"><span id="---entry-___key___---___k___-3678"><code>Lake.<wbr>get&shy;Lean&shy;Include&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanIncludeDir"><span id="---entry-___key___---___k___-3681"><code>Lake.<wbr>get&shy;Lean&shy;Include&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanInstall-Lake___getLeanInstall"><code>get&shy;Lean&shy;Install</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanInstall"><span id="---entry-___key___---___k___-3674"><code>Lake.<wbr>get&shy;Lean&shy;Install</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanInstall"><span id="---entry-___key___---___k___-3677"><code>Lake.<wbr>get&shy;Lean&shy;Install</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanLibDir-Lake___getLeanLibDir"><code>get&shy;Lean&shy;Lib&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanLibDir"><span id="---entry-___key___---___k___-3677"><code>Lake.<wbr>get&shy;Lean&shy;Lib&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanLibDir"><span id="---entry-___key___---___k___-3680"><code>Lake.<wbr>get&shy;Lean&shy;Lib&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanPath-Lake___getLeanPath"><code>get&shy;Lean&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanPath"><span id="---entry-___key___---___k___-3701"><code>Lake.<wbr>get&shy;Lean&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanPath"><span id="---entry-___key___---___k___-3704"><code>Lake.<wbr>get&shy;Lean&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanSharedLib-Lake___getLeanSharedLib"><code>get&shy;Lean&shy;Shared&shy;Lib</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSharedLib"><span id="---entry-___key___---___k___-3682"><code>Lake.<wbr>get&shy;Lean&shy;Shared&shy;Lib</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSharedLib"><span id="---entry-___key___---___k___-3685"><code>Lake.<wbr>get&shy;Lean&shy;Shared&shy;Lib</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanSrcDir-Lake___getLeanSrcDir"><code>get&shy;Lean&shy;Src&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSrcDir"><span id="---entry-___key___---___k___-3676"><code>Lake.<wbr>get&shy;Lean&shy;Src&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSrcDir"><span id="---entry-___key___---___k___-3679"><code>Lake.<wbr>get&shy;Lean&shy;Src&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanSrcPath-Lake___getLeanSrcPath"><code>get&shy;Lean&shy;Src&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSrcPath"><span id="---entry-___key___---___k___-3702"><code>Lake.<wbr>get&shy;Lean&shy;Src&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSrcPath"><span id="---entry-___key___---___k___-3705"><code>Lake.<wbr>get&shy;Lean&shy;Src&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanSysroot-Lake___getLeanSysroot"><code>get&shy;Lean&shy;Sysroot</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSysroot"><span id="---entry-___key___---___k___-3675"><code>Lake.<wbr>get&shy;Lean&shy;Sysroot</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSysroot"><span id="---entry-___key___---___k___-3678"><code>Lake.<wbr>get&shy;Lean&shy;Sysroot</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanSystemLibDir-Lake___getLeanSystemLibDir"><code>get&shy;Lean&shy;System&shy;Lib&shy;Dir</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSystemLibDir"><span id="---entry-___key___---___k___-3679"><code>Lake.<wbr>get&shy;Lean&shy;System&shy;Lib&shy;Dir</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanSystemLibDir"><span id="---entry-___key___---___k___-3682"><code>Lake.<wbr>get&shy;Lean&shy;System&shy;Lib&shy;Dir</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-getLeanc-Lake___getLeanc"><code>get&shy;Leanc</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanc"><span id="---entry-___key___---___k___-3681"><code>Lake.<wbr>get&shy;Leanc</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getLeanc"><span id="---entry-___key___---___k___-3684"><code>Lake.<wbr>get&shy;Leanc</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11394,7 +11403,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getNoCache-Lake___getNoCache"><code>get&shy;No&shy;Cache</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getNoCache"><span id="---entry-___key___---___k___-3664"><code>Lake.<wbr>get&shy;No&shy;Cache</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getNoCache"><span id="---entry-___key___---___k___-3667"><code>Lake.<wbr>get&shy;No&shy;Cache</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11412,7 +11421,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getPkgUrlMap-Lake___getPkgUrlMap"><code>get&shy;Pkg&shy;Url&shy;Map</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getPkgUrlMap"><span id="---entry-___key___---___k___-3666"><code>Lake.<wbr>get&shy;Pkg&shy;Url&shy;Map</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getPkgUrlMap"><span id="---entry-___key___---___k___-3669"><code>Lake.<wbr>get&shy;Pkg&shy;Url&shy;Map</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11442,7 +11451,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getRootPackage-Lake___getRootPackage"><code>get&shy;Root&shy;Package</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getRootPackage"><span id="---entry-___key___---___k___-3694"><code>Lake.<wbr>get&shy;Root&shy;Package</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getRootPackage"><span id="---entry-___key___---___k___-3697"><code>Lake.<wbr>get&shy;Root&shy;Package</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11454,7 +11463,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getSharedLibPath-Lake___getSharedLibPath"><code>get&shy;Shared&shy;Lib&shy;Path</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getSharedLibPath"><span id="---entry-___key___---___k___-3703"><code>Lake.<wbr>get&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getSharedLibPath"><span id="---entry-___key___---___k___-3706"><code>Lake.<wbr>get&shy;Shared&shy;Lib&shy;Path</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11540,7 +11549,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getTryCache-Lake___getTryCache"><code>get&shy;Try&shy;Cache</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getTryCache"><span id="---entry-___key___---___k___-3665"><code>Lake.<wbr>get&shy;Try&shy;Cache</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___getTryCache"><span id="---entry-___key___---___k___-3668"><code>Lake.<wbr>get&shy;Try&shy;Cache</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11564,7 +11573,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-getWorkspace-Lake___MonadWorkspace___getWorkspace-_LPAR_class-method_RPAR_"><code>get&shy;Workspace</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3693"><code>Lake.<wbr>MonadWorkspace.<wbr>get&shy;Workspace</code> (class method)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3696"><code>Lake.<wbr>MonadWorkspace.<wbr>get&shy;Workspace</code> (class method)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -11574,7 +11583,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-globs-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>globs</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3629"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3632"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -13188,6 +13197,12 @@ window.addEventListener("load", () => {
                       </ol>
                     </li>
                   <li>
+                    <span id="---entry-ident-Lean___Elab___Do___MutVar___ident-_LPAR_structure-field_RPAR_"><code>ident</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MutVar___mk"><span id="---entry-___key___---___k___-3609"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>MutVar.<wbr>ident</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
                     <span id="---entry-identKind-Lean___identKind"><code>ident&shy;Kind</code></span><ol>
                       <li>
                         <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___identKind"><span id="---entry-___key___---___k___-3435"><code>Lean.<wbr>ident&shy;Kind</code></span></a></li>
@@ -14776,19 +14791,19 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-Lake___Backend___c-Constructor-of-Lake___Backend"><code>Lake.<wbr>Backend.<wbr>c</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3658">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3661">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___Backend___default-Constructor-of-Lake___Backend"><code>Lake.<wbr>Backend.<wbr>default</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3659">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3662">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___Backend___llvm-Constructor-of-Lake___Backend"><code>Lake.<wbr>Backend.<wbr>llvm</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3660">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Backend___c"><span id="---entry-___key___---___k___-3663">Constructor of <code>Lake.<wbr>Backend</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14796,25 +14811,25 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-Lake___BuildType___debug-Constructor-of-Lake___BuildType"><code>Lake.<wbr>BuildType.<wbr>debug</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3645">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3648">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___BuildType___minSizeRel-Constructor-of-Lake___BuildType"><code>Lake.<wbr>BuildType.<wbr>min&shy;Size&shy;Rel</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3646">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3649">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___BuildType___relWithDebInfo-Constructor-of-Lake___BuildType"><code>Lake.<wbr>BuildType.<wbr>rel&shy;With&shy;Deb&shy;Info</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3647">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3650">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___BuildType___release-Constructor-of-Lake___BuildType"><code>Lake.<wbr>BuildType.<wbr>release</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3648">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___BuildType___debug"><span id="---entry-___key___---___k___-3651">Constructor of <code>Lake.<wbr>Build&shy;Type</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14822,19 +14837,19 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-Lake___Glob___andSubmodules-Constructor-of-Lake___Glob"><code>Lake.<wbr>Glob.<wbr>and&shy;Submodules</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3650">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3653">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___Glob___one-Constructor-of-Lake___Glob"><code>Lake.<wbr>Glob.<wbr>one</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3651">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3654">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Lake___Glob___submodules-Constructor-of-Lake___Glob"><code>Lake.<wbr>Glob.<wbr>submodules</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3652">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___Glob___one"><span id="---entry-___key___---___k___-3655">Constructor of <code>Lake.<wbr>Glob</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14842,7 +14857,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-Lake___LeanExeConfig___mk-Constructor-of-Lake___LeanExeConfig"><code>Lake.<wbr>Lean&shy;ExeConfig.<wbr>mk</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3638">Constructor of <code>Lake.<wbr>Lean&shy;Exe&shy;Config</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3641">Constructor of <code>Lake.<wbr>Lean&shy;Exe&shy;Config</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14850,7 +14865,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-Lake___LeanLibConfig___mk-Constructor-of-Lake___LeanLibConfig"><code>Lake.<wbr>Lean&shy;LibConfig.<wbr>mk</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3624">Constructor of <code>Lake.<wbr>Lean&shy;Lib&shy;Config</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3627">Constructor of <code>Lake.<wbr>Lean&shy;Lib&shy;Config</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -14860,7 +14875,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-Lake___MonadWorkspace___mk-Instance-constructor-of-Lake___MonadWorkspace"><code>Lake.<wbr>MonadWorkspace.<wbr>mk</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3691">Instance constructor of <code>Lake.<wbr>Monad&shy;Workspace</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3694">Instance constructor of <code>Lake.<wbr>Monad&shy;Workspace</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -15074,20 +15089,6 @@ window.addEventListener("load", () => {
                   <li>
                     <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlInfoHandler"><span id="---entry-Lean___Elab___Do___ControlInfoHandler"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Info&shy;Handler</code></span></a></li>
                   <li>
-                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-Lean___Elab___Do___ControlLifter"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Lifter</code></span></a></li>
-                  <li>
-                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___lift"><span id="---entry-Lean___Elab___Do___ControlLifter___lift"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>lift</code></span></a></li>
-                  <li>
-                    <span id="---entry-Lean___Elab___Do___ControlLifter___mk-Constructor-of-Lean___Elab___Do___ControlLifter"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>mk</code></span><ol>
-                      <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3611">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Control&shy;Lifter</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___ofCont"><span id="---entry-Lean___Elab___Do___ControlLifter___ofCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>of&shy;Cont</code></span></a></li>
-                  <li>
-                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___restoreCont"><span id="---entry-Lean___Elab___Do___ControlLifter___restoreCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>restore&shy;Cont</code></span></a></li>
-                  <li>
                     <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElab"><span id="---entry-Lean___Elab___Do___DoElab"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elab</code></span></a></li>
                   <li>
                     <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoElemCont___mk"><span id="---entry-Lean___Elab___Do___DoElemCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;Elem&shy;Cont</code></span></a></li>
@@ -15136,6 +15137,20 @@ window.addEventListener("load", () => {
                   <li>
                     <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___DoOpsRef___toDoOps"><span id="---entry-Lean___Elab___Do___DoOpsRef___toDoOps"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Do&shy;OpsRef.<wbr>to&shy;Do&shy;Ops</code></span></a></li>
                   <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___mk"><span id="---entry-Lean___Elab___Do___EffectForwarder"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Effect&shy;Forwarder</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___lift"><span id="---entry-Lean___Elab___Do___EffectForwarder___lift"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>lift</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___EffectForwarder___mk-Constructor-of-Lean___Elab___Do___EffectForwarder"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>mk</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___mk"><span id="---entry-___key___---___k___-3615">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Effect&shy;Forwarder</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___ofCont"><span id="---entry-Lean___Elab___Do___EffectForwarder___ofCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>of&shy;Cont</code></span></a></li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___restoreCont"><span id="---entry-Lean___Elab___Do___EffectForwarder___restoreCont"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>restore&shy;Cont</code></span></a></li>
+                  <li>
                     <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofElem"><span id="---entry-Lean___Elab___Do___InferControlInfo___ofElem"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Elem</code></span></a></li>
                   <li>
                     <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___InferControlInfo___ofLetOrReassign"><span id="---entry-Lean___Elab___Do___InferControlInfo___ofLetOrReassign"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Infer&shy;ControlInfo.<wbr>of&shy;Let&shy;Or&shy;Reassign</code></span></a></li>
@@ -15151,6 +15166,14 @@ window.addEventListener("load", () => {
                     <span id="---entry-Lean___Elab___Do___MonadInfo___mk-Constructor-of-Lean___Elab___Do___MonadInfo"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>MonadInfo.<wbr>mk</code></span><ol>
                       <li>
                         <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MonadInfo___mk"><span id="---entry-___key___---___k___-3533">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Monad&shy;Info</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MutVar___mk"><span id="---entry-Lean___Elab___Do___MutVar"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Mut&shy;Var</code></span></a></li>
+                  <li>
+                    <span id="---entry-Lean___Elab___Do___MutVar___mk-Constructor-of-Lean___Elab___Do___MutVar"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>MutVar.<wbr>mk</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MutVar___mk"><span id="---entry-___key___---___k___-3606">Constructor of <code>Lean.<wbr>Elab.<wbr>Do.<wbr>Mut&shy;Var</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -15326,7 +15349,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-Lean___LeanOption___mk-Constructor-of-Lean___LeanOption"><code>Lean.<wbr>LeanOption.<wbr>mk</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3653">Constructor of <code>Lean.<wbr>Lean&shy;Option</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3656">Constructor of <code>Lean.<wbr>Lean&shy;Option</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -15710,19 +15733,19 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-LeanExeConfig-Lake___LeanExeConfig"><code>Lean&shy;Exe&shy;Config</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3639"><code>Lake.<wbr>Lean&shy;Exe&shy;Config</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3642"><code>Lake.<wbr>Lean&shy;Exe&shy;Config</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-LeanLibConfig-Lake___LeanLibConfig"><code>Lean&shy;Lib&shy;Config</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3625"><code>Lake.<wbr>Lean&shy;Lib&shy;Config</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3628"><code>Lake.<wbr>Lean&shy;Lib&shy;Config</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-LeanOption-Lean___LeanOption"><code>Lean&shy;Option</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3654"><code>Lean.<wbr>Lean&shy;Option</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3657"><code>Lean.<wbr>Lean&shy;Option</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -16598,13 +16621,13 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-libName-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>lib&shy;Name</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3630"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3633"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-libPrefixOnWindows-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>lib&shy;Prefix&shy;On&shy;Windows</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3631"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3634"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -16620,9 +16643,9 @@ window.addEventListener("load", () => {
                       </ol>
                     </li>
                   <li>
-                    <span id="---entry-lift-Lean___Elab___Do___ControlLifter___lift"><code>lift</code></span><ol>
+                    <span id="---entry-lift-Lean___Elab___Do___EffectForwarder___lift"><code>lift</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___lift"><span id="---entry-___key___---___k___-3620"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>lift</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___lift"><span id="---entry-___key___---___k___-3623"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>lift</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -16718,9 +16741,15 @@ window.addEventListener("load", () => {
                   <li>
                     <a href="Tactic-Proofs/Tactic-Reference/#lift_lets"><span id="---entry-lift_lets"><code>lift_lets</code></span></a></li>
                   <li>
-                    <span id="---entry-liftedDoBlockResultType-Lean___Elab___Do___ControlLifter___liftedDoBlockResultType-_LPAR_structure-field_RPAR_"><code>lifted&shy;Do&shy;Block&shy;Result&shy;Type</code></span><ol>
+                    <span id="---entry-liftedDoBlockResultType-Lean___Elab___Do___EffectForwarder___liftedDoBlockResultType-_LPAR_structure-field_RPAR_"><code>lifted&shy;Do&shy;Block&shy;Result&shy;Type</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3614"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>lifted&shy;Do&shy;Block&shy;Result&shy;Type</code> (structure field)</span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___mk"><span id="---entry-___key___---___k___-3618"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>lifted&shy;Do&shy;Block&shy;Result&shy;Type</code> (structure field)</span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-liftedStack-Lean___Elab___Do___EffectForwarder___liftedStack-_LPAR_structure-field_RPAR_"><code>lifted&shy;Stack</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___mk"><span id="---entry-___key___---___k___-3619"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>lifted&shy;Stack</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -17236,7 +17265,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-MonadLakeEnv-Lake___MonadLakeEnv"><code>Monad&shy;Lake&shy;Env</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadLakeEnv"><span id="---entry-___key___---___k___-3662"><code>Lake.<wbr>Monad&shy;Lake&shy;Env</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadLakeEnv"><span id="---entry-___key___---___k___-3665"><code>Lake.<wbr>Monad&shy;Lake&shy;Env</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -17316,7 +17345,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-MonadWorkspace-Lake___MonadWorkspace"><code>Monad&shy;Workspace</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3692"><code>Lake.<wbr>Monad&shy;Workspace</code></span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___MonadWorkspace___mk"><span id="---entry-___key___---___k___-3695"><code>Lake.<wbr>Monad&shy;Workspace</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -17331,6 +17360,12 @@ window.addEventListener("load", () => {
                     <span id="---entry-Mul___mk-Instance-constructor-of-Mul"><code>Mul.<wbr>mk</code></span><ol>
                       <li>
                         <a href="Type-Classes/Basic-Classes/#Mul___mk"><span id="---entry-___key___---___k___-232">Instance constructor of <code>Mul</code></span></a></li>
+                      </ol>
+                    </li>
+                  <li>
+                    <span id="---entry-MutVar-Lean___Elab___Do___MutVar"><code>Mut&shy;Var</code></span><ol>
+                      <li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___MutVar___mk"><span id="---entry-___key___---___k___-3607"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>Mut&shy;Var</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -19190,7 +19225,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-name-Lean___LeanOption___name-_LPAR_structure-field_RPAR_"><code>name</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3655"><code>Lean.<wbr>LeanOption.<wbr>name</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3658"><code>Lean.<wbr>LeanOption.<wbr>name</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -19232,7 +19267,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-nativeFacets-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>native&shy;Facets</code></span><ol>
                       <li>
-                        <span id="---entry-___key___---___k___-3632"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
+                        <span id="---entry-___key___---___k___-3635"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
                       </ol>
                     </li>
                   <li>
@@ -19258,7 +19293,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-needs-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>needs</code></span><ol>
                       <li>
-                        <span id="---entry-___key___---___k___-3633"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
+                        <span id="---entry-___key___---___k___-3636"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
                       </ol>
                     </li>
                   <li>
@@ -20058,9 +20093,9 @@ window.addEventListener("load", () => {
                       </ol>
                     </li>
                   <li>
-                    <span id="---entry-ofCont-Lean___Elab___Do___ControlLifter___ofCont"><code>of&shy;Cont</code></span><ol>
+                    <span id="---entry-ofCont-Lean___Elab___Do___EffectForwarder___ofCont"><code>of&shy;Cont</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___ofCont"><span id="---entry-___key___---___k___-3619"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>of&shy;Cont</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___ofCont"><span id="---entry-___key___---___k___-3622"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>of&shy;Cont</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -20788,9 +20823,9 @@ window.addEventListener("load", () => {
                       </ol>
                     </li>
                   <li>
-                    <span id="---entry-origCont-Lean___Elab___Do___ControlLifter___origCont-_LPAR_structure-field_RPAR_"><code>orig&shy;Cont</code></span><ol>
+                    <span id="---entry-origCont-Lean___Elab___Do___EffectForwarder___origCont-_LPAR_structure-field_RPAR_"><code>orig&shy;Cont</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3615"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>orig&shy;Cont</code> (structure field)</span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___mk"><span id="---entry-___key___---___k___-3620"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>orig&shy;Cont</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -21400,7 +21435,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-precompileModules-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>precompile&shy;Modules</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3634"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3637"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -21685,18 +21720,6 @@ window.addEventListener("load", () => {
                     <span id="---entry-pure-Thunk___pure"><code>pure</code></span><ol>
                       <li>
                         <a href="Basic-Types/Lazy-Computations/#Thunk___pure"><span id="---entry-___key___---___k___-2964"><code>Thunk.<wbr>pure</code></span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <span id="---entry-pureBase-Lean___Elab___Do___ControlLifter___pureBase-_LPAR_structure-field_RPAR_"><code>pure&shy;Base</code></span><ol>
-                      <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3616"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>pure&shy;Base</code> (structure field)</span></a></li>
-                      </ol>
-                    </li>
-                  <li>
-                    <span id="---entry-pureDeadCode-Lean___Elab___Do___ControlLifter___pureDeadCode-_LPAR_structure-field_RPAR_"><code>pure&shy;Dead&shy;Code</code></span><ol>
-                      <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3617"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>pure&shy;Dead&shy;Code</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -22586,9 +22609,9 @@ window.addEventListener("load", () => {
                       </ol>
                     </li>
                   <li>
-                    <span id="---entry-restoreCont-Lean___Elab___Do___ControlLifter___restoreCont"><code>restore&shy;Cont</code></span><ol>
+                    <span id="---entry-restoreCont-Lean___Elab___Do___EffectForwarder___restoreCont"><code>restore&shy;Cont</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___restoreCont"><span id="---entry-___key___---___k___-3621"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>restore&shy;Cont</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___restoreCont"><span id="---entry-___key___---___k___-3624"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>restore&shy;Cont</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -22640,9 +22663,9 @@ window.addEventListener("load", () => {
                       </ol>
                     </li>
                   <li>
-                    <span id="---entry-returnBase___-Lean___Elab___Do___ControlLifter___returnBase___-_LPAR_structure-field_RPAR_"><code>return&shy;Base?</code></span><ol>
+                    <span id="---entry-returnBase___-Lean___Elab___Do___EffectForwarder___returnBase___-_LPAR_structure-field_RPAR_"><code>return&shy;Base?</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___ControlLifter___mk"><span id="---entry-___key___---___k___-3618"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>ControlLifter.<wbr>return&shy;Base?</code> (structure field)</span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___EffectForwarder___mk"><span id="---entry-___key___---___k___-3621"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>EffectForwarder.<wbr>return&shy;Base?</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -22800,13 +22823,13 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-root-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>root</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3641"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3644"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-roots-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>roots</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3635"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3638"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -23044,7 +23067,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-ScriptM-Lake___ScriptM"><code>Script&shy;M</code></span><ol>
                       <li>
-                        <span id="---entry-___key___---___k___-3661"><code>Lake.<wbr>Script&shy;M</code></span> <a href="Build-Tools-and-Distribution/Lake/#Lake___ScriptM">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___ScriptM-next">(1)</a></li>
+                        <span id="---entry-___key___---___k___-3664"><code>Lake.<wbr>Script&shy;M</code></span> <a href="Build-Tools-and-Distribution/Lake/#Lake___ScriptM">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___ScriptM-next">(1)</a></li>
                       </ol>
                     </li>
                   <li>
@@ -27176,7 +27199,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-srcDir-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>src&shy;Dir</code></span><ol>
                       <li>
-                        <span id="---entry-___key___---___k___-3636"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
+                        <span id="---entry-___key___---___k___-3639"><code>[anonymous]</code> (structure field)</span> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk">(0)</a> <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk">(1)</a></li>
                       </ol>
                     </li>
                   <li>
@@ -27668,7 +27691,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-supportInterpreter-_LSQ_anonymous_RSQ_-_LPAR_structure-field_RPAR_"><code>support&shy;Interpreter</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3642"><code>[anonymous]</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3645"><code>[anonymous]</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -28216,13 +28239,13 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-throwUnlessMutVarDeclared-Lean___Elab___Do___throwUnlessMutVarDeclared"><code>throw&shy;Unless&shy;Mut&shy;Var&shy;Declared</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___throwUnlessMutVarDeclared"><span id="---entry-___key___---___k___-3608"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>throw&shy;Unless&shy;Mut&shy;Var&shy;Declared</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___throwUnlessMutVarDeclared"><span id="---entry-___key___---___k___-3612"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>throw&shy;Unless&shy;Mut&shy;Var&shy;Declared</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-throwUnlessMutVarsDeclared-Lean___Elab___Do___throwUnlessMutVarsDeclared"><code>throw&shy;Unless&shy;Mut&shy;Vars&shy;Declared</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___throwUnlessMutVarsDeclared"><span id="---entry-___key___---___k___-3609"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>throw&shy;Unless&shy;Mut&shy;Vars&shy;Declared</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending--do--Notation/#Lean___Elab___Do___throwUnlessMutVarsDeclared"><span id="---entry-___key___---___k___-3613"><code>Lean.<wbr>Elab.<wbr>Do.<wbr>throw&shy;Unless&shy;Mut&shy;Vars&shy;Declared</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -29218,13 +29241,13 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-toLeanConfig-Lake___LeanExeConfig___toLeanConfig-_LPAR_structure-field_RPAR_"><code>to&shy;Lean&shy;Config</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3643"><code>Lake.<wbr>Lean&shy;ExeConfig.<wbr>to&shy;Lean&shy;Config</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanExeConfig___mk"><span id="---entry-___key___---___k___-3646"><code>Lake.<wbr>Lean&shy;ExeConfig.<wbr>to&shy;Lean&shy;Config</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-toLeanConfig-Lake___LeanLibConfig___toLeanConfig-_LPAR_structure-field_RPAR_"><code>to&shy;Lean&shy;Config</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3637"><code>Lake.<wbr>Lean&shy;LibConfig.<wbr>to&shy;Lean&shy;Config</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lake___LeanLibConfig___mk"><span id="---entry-___key___---___k___-3640"><code>Lake.<wbr>Lean&shy;LibConfig.<wbr>to&shy;Lean&shy;Config</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -30722,13 +30745,13 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-UnexpandM-Lean___PrettyPrinter___UnexpandM"><code>Unexpand&shy;M</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___UnexpandM"><span id="---entry-___key___---___k___-3623"><code>Lean.<wbr>PrettyPrinter.<wbr>Unexpand&shy;M</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___UnexpandM"><span id="---entry-___key___---___k___-3626"><code>Lean.<wbr>PrettyPrinter.<wbr>Unexpand&shy;M</code></span></a></li>
                       </ol>
                     </li>
                   <li>
                     <span id="---entry-Unexpander-Lean___PrettyPrinter___Unexpander"><code>Unexpander</code></span><ol>
                       <li>
-                        <a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander"><span id="---entry-___key___---___k___-3622"><code>Lean.<wbr>PrettyPrinter.<wbr>Unexpander</code></span></a></li>
+                        <a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander"><span id="---entry-___key___---___k___-3625"><code>Lean.<wbr>PrettyPrinter.<wbr>Unexpander</code></span></a></li>
                       </ol>
                     </li>
                   <li>
@@ -31150,7 +31173,7 @@ window.addEventListener("load", () => {
                   <li>
                     <span id="---entry-value-Lean___LeanOption___value-_LPAR_structure-field_RPAR_"><code>value</code></span><ol>
                       <li>
-                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3656"><code>Lean.<wbr>LeanOption.<wbr>value</code> (structure field)</span></a></li>
+                        <a href="Build-Tools-and-Distribution/Lake/#Lean___LeanOption___mk"><span id="---entry-___key___---___k___-3659"><code>Lean.<wbr>LeanOption.<wbr>value</code> (structure field)</span></a></li>
                       </ol>
                     </li>
                   <li>

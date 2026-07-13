@@ -1,4 +1,4 @@
-<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
+<!-- Generated from commit 5d2a1e3c97acc754de5b9751efd6d13ba6666530 at 2026-07-13T19:33:45Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -331,10 +331,15 @@ pre.json {
   color: #555;
 }
 
-.namedocs h1 {
-  font-size: inherit;
-  font-weight: bold
+.namedocs .docstring-section {
   margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs .docstring-section-label {
+  font-size: inherit;
+  font-weight: bold;
+  margin-top: 0;
   margin-bottom: 1rem;
 }
 
@@ -2349,7 +2354,46 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.onload = async () => {
 
     // Don't show hovers inside of closed tactic states
     function blockedByTactic(elem) {
@@ -2423,207 +2467,166 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let docsJson = "-verso-docs.json";
-    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
 
-      function hideParentTooltips(element) {
-        let parent = element.parentElement;
-        while (parent) {
-          const tippyInstance = parent._tippy;
-          if (tippyInstance) {
-            tippyInstance.hide();
-          }
-          parent = parent.parentElement;
+    function hideParentTooltips(element) {
+      let parent = element.parentElement;
+      while (parent) {
+        const tippyInstance = parent._tippy;
+        if (tippyInstance) {
+          tippyInstance.hide();
         }
+        parent = parent.parentElement;
       }
+    }
 
 
 
-      const defaultTippyProps = {
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        /* theme: "lean", */
-        maxWidth: "none",
-        appendTo: () => document.body,
-        interactive: true,
-        delay: [100, null],
-        /* ignoreAttributes: true, */
-        followCursor: 'initial',
-        onShow(inst) {
-          if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
-            if (toggle && toggle.checked) {
-              return false;
-            }
-            hideParentTooltips(inst.reference);
-            if (blockedByTippy(inst.reference)) { return false; }
-
-          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
-            if (blockedByTactic(inst.reference)) { return false };
-            if (blockedByTippy(inst.reference)) { return false; }
-          } else { // Nothing to show here!
+    const defaultTippyProps = {
+      /* DEBUG -- remove the space: * /
+      onHide(any) { return false; },
+      trigger: "click",
+      // */
+      /* theme: "lean", */
+      maxWidth: "none",
+      appendTo: () => document.body,
+      interactive: true,
+      delay: [100, null],
+      /* ignoreAttributes: true, */
+      followCursor: 'initial',
+      onShow(inst) {
+        if (inst.reference.className == 'tactic') {
+          const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
+          if (toggle && toggle.checked) {
             return false;
           }
-        },
-        onShown(inst) { visibleTippyCount++; },
-        onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
-        content (tgt) {
-          const content = document.createElement("span");
-          if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-            state.style.display = "block";
-            content.appendChild(state);
-            content.style.display = "block";
-            content.className = "hl lean popup";
-          } else {
-            content.className = "hl lean";
-            content.style.display = "block";
-            content.style.maxHeight = "300px";
-            content.style.overflowY = "auto";
-            content.style.overflowX = "hidden";
-            const hoverId = tgt.dataset.versoHover;
-            const hoverInfo = tgt.querySelector(".hover-info");
-            if (hoverId) { // Docstrings from the table
-              // TODO stop doing an implicit conversion from string to number here
-              let data = versoDocData[hoverId];
-              if (data) {
-                const info = document.createElement("span");
-                info.className = "hover-info";
-                info.style.display = "block";
-                info.innerHTML = data;
-                content.appendChild(info);
-                /* Render docstrings - TODO server-side */
-                if ('undefined' !== typeof marked) {
-                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                        const str = d.innerText;
-                        const html = marked.parse(str);
-                        const rendered = document.createElement("div");
-                        rendered.classList.add("docstring");
-                        rendered.innerHTML = html;
-                        d.parentNode.replaceChild(rendered, d);
-                    }
-                }
-              } else {
-                content.innerHTML = "Failed to load doc ID: " + hoverId;
-              }
-            } else if (hoverInfo) { // The inline info, still used for compiler messages
-              content.appendChild(hoverInfo.cloneNode(true));
-            }
-            const extraLinks = tgt.parentElement.dataset['versoLinks'];
-            if (extraLinks) {
-              try {
-                const extras = JSON.parse(extraLinks);
-                const links = document.createElement('ul');
-                links.className = 'extra-doc-links';
-                extras.forEach((l) => {
-                  const li = document.createElement('li');
-                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
-                  links.appendChild(li);
-                });
-                content.appendChild(links);
-              } catch (error) {
-                console.error(error);
-              }
-            }
-          }
-          return content;
+          hideParentTooltips(inst.reference);
+          if (blockedByTippy(inst.reference)) { return false; }
+
+        } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (blockedByTactic(inst.reference)) { return false };
+          if (blockedByTippy(inst.reference)) { return false; }
+        } else { // Nothing to show here!
+          return false;
         }
-      };
-
-
-      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'lean');
-      });
-      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'warning message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'info message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'error message');
-      });
-      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'tactic');
-      });
-      // Skip tokens inside closed tactics — they interfere with tactic tippys
-      const closedTactics = new Set();
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle && !toggle.checked) closedTactics.add(tactic);
-      });
-      function isInsideClosedTactic(el) {
-        const tactic = el.closest('.tactic');
-        return tactic && tactic !== el && closedTactics.has(tactic);
-      }
-
-      const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-      tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-      // Create/destroy token tippys when tactic checkbox toggles
-      const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle) toggle.addEventListener('change', () => {
-          if (toggle.checked) {
-            closedTactics.delete(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (!tok._tippy && tok.matches(tacticTippySelector)) {
-                tippy(tok, defaultTippyProps);
+      },
+      onShown(inst) { visibleTippyCount++; },
+      onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
+      content (tgt) {
+        const content = document.createElement("span");
+        if (tgt.className == 'tactic') {
+          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+        } else {
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
               }
-            });
-          } else {
-            closedTactics.add(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (tok._tippy) tok._tippy.destroy();
-            });
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
           }
-        });
+          const extraLinks = tgt.parentElement.dataset['versoLinks'];
+          if (extraLinks) {
+            try {
+              const extras = JSON.parse(extraLinks);
+              const links = document.createElement('ul');
+              links.className = 'extra-doc-links';
+              extras.forEach((l) => {
+                const li = document.createElement('li');
+                li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                links.appendChild(li);
+              });
+              content.appendChild(links);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+        return content;
+      }
+    };
+
+
+    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'lean');
+    });
+    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'warning message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'info message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'error message');
+    });
+    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'tactic');
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    const closedTactics = new Set();
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    function isInsideClosedTactic(el) {
+      const tactic = el.closest('.tactic');
+      return tactic && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
+    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle) toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          closedTactics.delete(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (!tok._tippy && tok.matches(tacticTippySelector)) {
+              tippy(tok, defaultTippyProps);
+            }
+          });
+        } else {
+          closedTactics.add(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (tok._tippy) tok._tippy.destroy();
+          });
+        }
       });
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
     <script>
       
 window.addEventListener("load", () => {
@@ -2694,7 +2697,7 @@ window.addEventListener("load", () => {
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-release-notes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-notes" checked="checked"></label><span class="unnumbered"></span><span class=""><a href="releases/#release-notes">Release Notes</a></span></div>
-              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.31.0/#release-v4___31___0">Lean 4.31.0 (2026-06-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.30.0/#release-v4___30___0">Lean 4.30.0 (2026-05-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.29.1/#release-v4___29___1">Lean 4.29.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.29.0/#release-v4___29___0">Lean 4.29.0 (2026-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.28.1/#release-v4___28___1">Lean 4.28.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.28.0/#release-v4___28___0">Lean 4.28.0 (2026-02-17)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.27.0/#release-v4___27___0">Lean 4.27.0 (2026-01-24)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.26.0/#release-v4___26___0">Lean 4.26.0 (2025-12-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.1/#release-v4___25___1">Lean 4.25.1 (2025-11-18)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
+              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.32.0/#release-v4___32___0">Lean 4.32.0 (2026-07-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.31.0/#release-v4___31___0">Lean 4.31.0 (2026-06-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.30.0/#release-v4___30___0">Lean 4.30.0 (2026-05-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.29.1/#release-v4___29___1">Lean 4.29.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.29.0/#release-v4___29___0">Lean 4.29.0 (2026-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.28.1/#release-v4___28___1">Lean 4.28.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.28.0/#release-v4___28___0">Lean 4.28.0 (2026-02-17)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.27.0/#release-v4___27___0">Lean 4.27.0 (2026-01-24)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.26.0/#release-v4___26___0">Lean 4.26.0 (2025-12-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.1/#release-v4___25___1">Lean 4.25.1 (2025-11-18)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-release-v4___27___0" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-v4___27___0" checked="checked"></label><span class="unnumbered"></span><span class="current"><a href="releases/v4.27.0/#release-v4___27___0">Lean 4.27.0 (2026-01-24)</a></span></div>
@@ -2726,7 +2729,7 @@ window.addEventListener("load", () => {
                 <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Highlights--Module-System-Stabilized">
                   Module System Stabilized<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Highlights--Module-System-Stabilized" title="Permalink">🔗</a></span></h3>
                 <p>
-                  <a href="https://github.com/leanprover/lean4/pull/11637">#11637</a> declares the module system as no longer experimental and makes the <code class="hl lean inline" data-lean-context="examples"><span class="option token" data-binding="option-experimental.module" data-verso-hover="9852">experimental.module</span></code> option a no-op.</p>
+                  <a href="https://github.com/leanprover/lean4/pull/11637">#11637</a> declares the module system as no longer experimental and makes the <code class="hl lean inline" data-lean-context="examples"><span class="option token" data-binding="option-experimental.module" data-verso-hover="9889">experimental.module</span></code> option a no-op.</p>
                 <p>
                   See the <a href="Source-Files-and-Modules/#module-scopes">Modules and Visibility</a> section in the reference manual for the documentation.</p>
                 </section>
@@ -2811,12 +2814,12 @@ first-order SMT behavior when <code>funCC</code> is disabled.</p>
                     <a href="https://github.com/leanprover/lean4/pull/11428">#11428</a> implements support for <strong>guards</strong> in <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.grind_pattern</code></code><code class="kw">grind_pattern</code></span>. The new
 feature provides additional control over theorem instantiation. For
 example, consider the following monotonicity theorem:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.opaque-3876">opaque</span><span class="inter-text"> </span><span class="const token" data-binding="const-f" data-verso-hover="3370" id="f">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3885">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-3887">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-3899">theorem</span><span class="inter-text"> </span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">declaration uses `</span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">sorry</span><span class="inter-text"></span></span><span class="text">`</span></code></span></span><span class="const token" data-binding="const-fMono" data-verso-hover="9853" id="fMono">fMono</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3913">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.94" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≤_»-3915">≤</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.100" data-verso-hover="11">y</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-3915">→</span><span class="inter-text"> </span><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="3370">f</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.94" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≤_»-3927">≤</span><span class="inter-text"> </span><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="3370">f</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.100" data-verso-hover="11">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3939">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-3942" data-verso-hover="79">sorry</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.opaque-3876">opaque</span><span class="inter-text"> </span><span class="const token" data-binding="const-f" data-verso-hover="3359" id="f">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3885">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-3887">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-3899">theorem</span><span class="inter-text"> </span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">declaration uses `</span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">sorry</span><span class="inter-text"></span></span><span class="text">`</span></code></span></span><span class="const token" data-binding="const-fMono" data-verso-hover="9890" id="fMono">fMono</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3913">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≤_»-3915">≤</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.99" data-verso-hover="11">y</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-3915">→</span><span class="inter-text"> </span><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="3359">f</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≤_»-3927">≤</span><span class="inter-text"> </span><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="3359">f</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.99" data-verso-hover="11">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3939">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-3942" data-verso-hover="79">sorry</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     With the new <code>guard</code> feature, we can instruct <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="3">grind</span></a></code> to instantiate the
 theorem <strong>only if</strong> <code>x ≤ y</code> is already known to be true in the current <code>grind</code> state:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.grindPattern-4129" data-verso-hover="2874">grind_pattern</span><span class="inter-text"> </span><a href="releases/v4.27.0/#fMono" title="Definition of example"><span class="const token" data-binding="const-fMono" data-verso-hover="9853">fMono</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.grindPattern-4129">=&gt;</span><span class="inter-text"> </span><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="3370">f</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1" data-verso-hover="11">x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Command.grindPattern-4129">,</span><span class="inter-text"> </span><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="3370">f</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">y</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.grindPatternCnstrs-4161">where</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.grindPattern-4129" data-verso-hover="2863">grind_pattern</span><span class="inter-text"> </span><a href="releases/v4.27.0/#fMono" title="Definition of example"><span class="const token" data-binding="const-fMono" data-verso-hover="9890">fMono</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.grindPattern-4129">=&gt;</span><span class="inter-text"> </span><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="3359">f</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1" data-verso-hover="11">x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Command.grindPattern-4129">,</span><span class="inter-text"> </span><a href="releases/v4.27.0/#f" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="3359">f</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">y</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.grindPatternCnstrs-4161">where</span><span class="inter-text">
   </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.GrindCnstr.guard-4169">guard</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≤_»-4175">≤</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">y</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Command.GrindCnstr.notDefEq-4185">=/=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">y</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
@@ -2832,19 +2835,19 @@ theorem <strong>only if</strong> <code>x ≤ y</code> is already known to be tru
 is similar to the one available in <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="" data-verso-hover="40">simp</span></a></code>, where a proof term is treated
 as a local universe-polymorphic lemma. This feature relies on <code>grind -revert</code> (see <a href="https://github.com/leanprover/lean4/pull/11248">#11248</a>).
 For example, users can now write:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4793">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-snd" data-verso-hover="9854" id="snd">snd</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4801">(</span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="5989">p</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4801">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="48">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_×_»-4806">×</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="352">β</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4801">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4816">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="352">β</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4821">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="5989">p</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-4824">.</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.snd"><span class="const token" data-binding="const-Prod.snd" data-verso-hover="867">2</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-4828">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-snd_eq" data-verso-hover="9855" id="snd_eq">snd_eq</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4843">(</span><span class="var token" data-binding="var-_uniq.141" data-verso-hover="50">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4843">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.133" data-verso-hover="48">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4843">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4852">(</span><span class="var token" data-binding="var-_uniq.143" data-verso-hover="349">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4852">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.139" data-verso-hover="352">β</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4852">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4861">:</span><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9854">snd</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4867">(</span><span class="var token" data-binding="var-_uniq.141" data-verso-hover="50">a</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-4867">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.143" data-verso-hover="349">b</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4867">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4863">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.143" data-verso-hover="349">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4878">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4793">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-snd" data-verso-hover="9891" id="snd">snd</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4801">(</span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="5984">p</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4801">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="48">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_×_»-4806">×</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="352">β</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4801">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4816">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="352">β</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4821">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="5984">p</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-4824">.</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.snd"><span class="const token" data-binding="const-Prod.snd" data-verso-hover="851">2</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-4828">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-snd_eq" data-verso-hover="9892" id="snd_eq">snd_eq</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4843">(</span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="50">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4843">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.117" data-verso-hover="48">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4843">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4852">(</span><span class="var token" data-binding="var-_uniq.127" data-verso-hover="349">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4852">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.123" data-verso-hover="352">β</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4852">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4861">:</span><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9891">snd</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4867">(</span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="50">a</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-4867">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.127" data-verso-hover="349">b</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4867">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4863">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.127" data-verso-hover="349">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4878">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
 
 </span><span class="doc-comment token" data-binding="">/--
 trace: [grind.ematch.instance] snd_eq (a + 1): snd (a + 1, Type) = Type
 [grind.ematch.instance] snd_eq (a + 1): snd (a + 1, true) = true
 -/</span><span class="inter-text">
 </span><a href="Interacting-with-Lean/#Lean___guardMsgsCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.guardMsgsCmd-4886" data-verso-hover="95">#guard_msgs</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.guardMsgsSpec-5042">(</span><span class="keyword token" data-binding="kw-occ-token.trace-5043">trace</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.guardMsgsSpec-5042">)</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___guardMsgsCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.guardMsgsCmd-4886" data-verso-hover="95">in</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-5053" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="The--grind--tactic/E___matching/#trace___grind___ematch___instance" title="Documentation for option trace.grind.ematch.instance"><span class="option token" data-binding="option-trace.grind.ematch.instance" data-verso-hover="2871">trace.grind.ematch.instance</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-5053" data-verso-hover="102">true</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-5053">in</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-5100">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5108">(</span><span class="var token" data-binding="var-_uniq.172" data-verso-hover="11">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5108">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5108">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5118">:</span><span class="inter-text">
-    </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5124">(</span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9854">snd</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5129">(</span><span class="var token" data-binding="var-_uniq.172" data-verso-hover="11">a</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-5130">+</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5129">,</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5129">)</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5124">,</span><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9854">snd</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5148">(</span><span class="var token" data-binding="var-_uniq.172" data-verso-hover="11">a</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-5149">+</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5148">,</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5148">)</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5124">,</span><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9854">snd</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5167">(</span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5167">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5167">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5124">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-5124">=</span><span class="inter-text">
-    </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5181">(</span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5181">,</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5181">,</span><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9854">snd</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5198">(</span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5198">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5198">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5181">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-5206">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-10996162395508192409-5209-5211-3047"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-5209" data-verso-hover="14">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10996162395508192409-5209-5211-3047"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.172" data-verso-hover="11">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"></span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="inter-text"></span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9854">snd</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="var token" data-binding="var-_uniq.172" data-verso-hover="11">a</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="21">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9854">snd</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="var token" data-binding="var-_uniq.172" data-verso-hover="11">a</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="21">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9854">snd</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9854">snd</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a></span></span></span></span></span><span class="inter-text">
-  </span><span class="tactic"><label for="tactic-state-7-5214-5236-3049"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.grind-5214" data-verso-hover="3">grind</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.grind-5214">[</span><a href="releases/v4.27.0/#snd_eq" title="Definition of example"><span class="const token" data-binding="const-snd_eq" data-verso-hover="9855">snd_eq</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5228">(</span><span class="var token" data-binding="var-_uniq.172" data-verso-hover="11">a</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-5229">+</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-5228">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.grind-5214">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5214-5236-3049"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-5053" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="The--grind--tactic/E___matching/#trace___grind___ematch___instance" title="Documentation for option trace.grind.ematch.instance"><span class="option token" data-binding="option-trace.grind.ematch.instance" data-verso-hover="2860">trace.grind.ematch.instance</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-5053" data-verso-hover="102">true</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-5053">in</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-5100">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5108">(</span><span class="var token" data-binding="var-_uniq.156" data-verso-hover="11">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5108">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-5108">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5118">:</span><span class="inter-text">
+    </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5124">(</span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9891">snd</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5129">(</span><span class="var token" data-binding="var-_uniq.156" data-verso-hover="11">a</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-5130">+</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5129">,</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5129">)</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5124">,</span><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9891">snd</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5148">(</span><span class="var token" data-binding="var-_uniq.156" data-verso-hover="11">a</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-5149">+</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5148">,</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5148">)</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5124">,</span><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9891">snd</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5167">(</span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5167">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5167">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5124">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-5124">=</span><span class="inter-text">
+    </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5181">(</span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5181">,</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5181">,</span><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9891">snd</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5198">(</span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-5198">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5198">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-5181">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-5206">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-15123312759657313861-5209-5211-3061"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-5209" data-verso-hover="14">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-15123312759657313861-5209-5211-3061"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.156" data-verso-hover="11">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"></span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="inter-text"></span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9891">snd</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="var token" data-binding="var-_uniq.156" data-verso-hover="11">a</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="21">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9891">snd</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="var token" data-binding="var-_uniq.156" data-verso-hover="11">a</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="21">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9891">snd</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><a href="releases/v4.27.0/#snd" title="Definition of example"><span class="const token" data-binding="const-snd" data-verso-hover="9891">snd</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">(</span></a><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="313">)</span></a></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-5214-5236-3063"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.grind-5214" data-verso-hover="3">grind</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.grind-5214">[</span><a href="releases/v4.27.0/#snd_eq" title="Definition of example"><span class="const token" data-binding="const-snd_eq" data-verso-hover="9892">snd_eq</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5228">(</span><span class="var token" data-binding="var-_uniq.156" data-verso-hover="11">a</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-5229">+</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-5228">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.grind-5214">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5214-5236-3063"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     Note that in the example above, <code>snd_eq</code> is instantiated only twice, but with different universe parameters.</p>
                   </section>
@@ -2908,18 +2911,18 @@ without the usual warning.</p>
                 <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Highlights--Library-Highlights">
                   Library Highlights<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Highlights--Library-Highlights" title="Permalink">🔗</a></span></h3>
                 <p>
-                  This release completes the revision of the <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a></code> API, including dependently typed <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___Pos___mk" title="Documentation for String.Pos"><span class="const token" data-binding="const-String.Pos" data-verso-hover="5331">String.Pos</span></a></code>,
-full API support for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___Slice___mk" title="Documentation for String.Slice"><span class="const token" data-binding="const-String.Slice" data-verso-hover="5434">String.Slice</span></a></code>, and iterators using the new <code>Iterator</code> API.
-There are also many additions to the <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Maps-and-Sets/#Std___TreeMap" title="Documentation for Std.TreeMap"><span class="const token" data-binding="const-Std.TreeMap" data-verso-hover="2995">TreeMap</span></a></code>/<code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Maps-and-Sets/#Std___HashMap" title="Documentation for Std.HashMap"><span class="const token" data-binding="const-Std.HashMap" data-verso-hover="497">HashMap</span></a></code> API, including intersection, difference, and equality.</p>
+                  This release completes the revision of the <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a></code> API, including dependently typed <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___Pos___mk" title="Documentation for String.Pos"><span class="const token" data-binding="const-String.Pos" data-verso-hover="5326">String.Pos</span></a></code>,
+full API support for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___Slice___mk" title="Documentation for String.Slice"><span class="const token" data-binding="const-String.Slice" data-verso-hover="5429">String.Slice</span></a></code>, and iterators using the new <code>Iterator</code> API.
+There are also many additions to the <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Maps-and-Sets/#Std___TreeMap" title="Documentation for Std.TreeMap"><span class="const token" data-binding="const-Std.TreeMap" data-verso-hover="2984">TreeMap</span></a></code>/<code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Maps-and-Sets/#Std___HashMap" title="Documentation for Std.HashMap"><span class="const token" data-binding="const-Std.HashMap" data-verso-hover="497">HashMap</span></a></code> API, including intersection, difference, and equality.</p>
                 <p>
                   These updates include some <strong>breaking changes</strong>, namely:</p>
                 <ul>
                   <li>
                     <p>
                       <a href="https://github.com/leanprover/lean4/pull/11180">#11180</a> redefines <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___take" title="Documentation for String.take"><span class="const token" data-binding="const-String.take" data-verso-hover="363">String.take</span></a></code> and variants to operate on
-  <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___Slice___mk" title="Documentation for String.Slice"><span class="const token" data-binding="const-String.Slice" data-verso-hover="5434">String.Slice</span></a></code>. While previously functions returning a substring of the
+  <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___Slice___mk" title="Documentation for String.Slice"><span class="const token" data-binding="const-String.Slice" data-verso-hover="5429">String.Slice</span></a></code>. While previously functions returning a substring of the
   input sometimes returned <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a></code> and sometimes returned
-  <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#Substring___Raw___mk" title="Documentation for Substring.Raw"><span class="const token" data-binding="const-Substring.Raw" data-verso-hover="5657">Substring.Raw</span></a></code>, they now uniformly return <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___Slice___mk" title="Documentation for String.Slice"><span class="const token" data-binding="const-String.Slice" data-verso-hover="5434">String.Slice</span></a></code>.</p>
+  <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#Substring___Raw___mk" title="Documentation for Substring.Raw"><span class="const token" data-binding="const-Substring.Raw" data-verso-hover="5652">Substring.Raw</span></a></code>, they now uniformly return <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___Slice___mk" title="Documentation for String.Slice"><span class="const token" data-binding="const-String.Slice" data-verso-hover="5429">String.Slice</span></a></code>.</p>
                     <p>
                       This is a breaking change, because many functions now have a different
   return type. So for example, if <code>s</code> is a string and <code>f</code> is a function

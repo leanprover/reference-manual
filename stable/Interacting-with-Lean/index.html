@@ -1,4 +1,4 @@
-<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
+<!-- Generated from commit 5d2a1e3c97acc754de5b9751efd6d13ba6666530 at 2026-07-13T19:33:45Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -331,10 +331,15 @@ pre.json {
   color: #555;
 }
 
-.namedocs h1 {
-  font-size: inherit;
-  font-weight: bold
+.namedocs .docstring-section {
   margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs .docstring-section-label {
+  font-size: inherit;
+  font-weight: bold;
+  margin-top: 0;
   margin-bottom: 1rem;
 }
 
@@ -2349,7 +2354,46 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.onload = async () => {
 
     // Don't show hovers inside of closed tactic states
     function blockedByTactic(elem) {
@@ -2423,207 +2467,166 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let docsJson = "-verso-docs.json";
-    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
 
-      function hideParentTooltips(element) {
-        let parent = element.parentElement;
-        while (parent) {
-          const tippyInstance = parent._tippy;
-          if (tippyInstance) {
-            tippyInstance.hide();
-          }
-          parent = parent.parentElement;
+    function hideParentTooltips(element) {
+      let parent = element.parentElement;
+      while (parent) {
+        const tippyInstance = parent._tippy;
+        if (tippyInstance) {
+          tippyInstance.hide();
         }
+        parent = parent.parentElement;
       }
+    }
 
 
 
-      const defaultTippyProps = {
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        /* theme: "lean", */
-        maxWidth: "none",
-        appendTo: () => document.body,
-        interactive: true,
-        delay: [100, null],
-        /* ignoreAttributes: true, */
-        followCursor: 'initial',
-        onShow(inst) {
-          if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
-            if (toggle && toggle.checked) {
-              return false;
-            }
-            hideParentTooltips(inst.reference);
-            if (blockedByTippy(inst.reference)) { return false; }
-
-          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
-            if (blockedByTactic(inst.reference)) { return false };
-            if (blockedByTippy(inst.reference)) { return false; }
-          } else { // Nothing to show here!
+    const defaultTippyProps = {
+      /* DEBUG -- remove the space: * /
+      onHide(any) { return false; },
+      trigger: "click",
+      // */
+      /* theme: "lean", */
+      maxWidth: "none",
+      appendTo: () => document.body,
+      interactive: true,
+      delay: [100, null],
+      /* ignoreAttributes: true, */
+      followCursor: 'initial',
+      onShow(inst) {
+        if (inst.reference.className == 'tactic') {
+          const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
+          if (toggle && toggle.checked) {
             return false;
           }
-        },
-        onShown(inst) { visibleTippyCount++; },
-        onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
-        content (tgt) {
-          const content = document.createElement("span");
-          if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-            state.style.display = "block";
-            content.appendChild(state);
-            content.style.display = "block";
-            content.className = "hl lean popup";
-          } else {
-            content.className = "hl lean";
-            content.style.display = "block";
-            content.style.maxHeight = "300px";
-            content.style.overflowY = "auto";
-            content.style.overflowX = "hidden";
-            const hoverId = tgt.dataset.versoHover;
-            const hoverInfo = tgt.querySelector(".hover-info");
-            if (hoverId) { // Docstrings from the table
-              // TODO stop doing an implicit conversion from string to number here
-              let data = versoDocData[hoverId];
-              if (data) {
-                const info = document.createElement("span");
-                info.className = "hover-info";
-                info.style.display = "block";
-                info.innerHTML = data;
-                content.appendChild(info);
-                /* Render docstrings - TODO server-side */
-                if ('undefined' !== typeof marked) {
-                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                        const str = d.innerText;
-                        const html = marked.parse(str);
-                        const rendered = document.createElement("div");
-                        rendered.classList.add("docstring");
-                        rendered.innerHTML = html;
-                        d.parentNode.replaceChild(rendered, d);
-                    }
-                }
-              } else {
-                content.innerHTML = "Failed to load doc ID: " + hoverId;
-              }
-            } else if (hoverInfo) { // The inline info, still used for compiler messages
-              content.appendChild(hoverInfo.cloneNode(true));
-            }
-            const extraLinks = tgt.parentElement.dataset['versoLinks'];
-            if (extraLinks) {
-              try {
-                const extras = JSON.parse(extraLinks);
-                const links = document.createElement('ul');
-                links.className = 'extra-doc-links';
-                extras.forEach((l) => {
-                  const li = document.createElement('li');
-                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
-                  links.appendChild(li);
-                });
-                content.appendChild(links);
-              } catch (error) {
-                console.error(error);
-              }
-            }
-          }
-          return content;
+          hideParentTooltips(inst.reference);
+          if (blockedByTippy(inst.reference)) { return false; }
+
+        } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (blockedByTactic(inst.reference)) { return false };
+          if (blockedByTippy(inst.reference)) { return false; }
+        } else { // Nothing to show here!
+          return false;
         }
-      };
-
-
-      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'lean');
-      });
-      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'warning message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'info message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'error message');
-      });
-      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'tactic');
-      });
-      // Skip tokens inside closed tactics — they interfere with tactic tippys
-      const closedTactics = new Set();
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle && !toggle.checked) closedTactics.add(tactic);
-      });
-      function isInsideClosedTactic(el) {
-        const tactic = el.closest('.tactic');
-        return tactic && tactic !== el && closedTactics.has(tactic);
-      }
-
-      const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-      tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-      // Create/destroy token tippys when tactic checkbox toggles
-      const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle) toggle.addEventListener('change', () => {
-          if (toggle.checked) {
-            closedTactics.delete(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (!tok._tippy && tok.matches(tacticTippySelector)) {
-                tippy(tok, defaultTippyProps);
+      },
+      onShown(inst) { visibleTippyCount++; },
+      onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
+      content (tgt) {
+        const content = document.createElement("span");
+        if (tgt.className == 'tactic') {
+          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+        } else {
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
               }
-            });
-          } else {
-            closedTactics.add(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (tok._tippy) tok._tippy.destroy();
-            });
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
           }
-        });
+          const extraLinks = tgt.parentElement.dataset['versoLinks'];
+          if (extraLinks) {
+            try {
+              const extras = JSON.parse(extraLinks);
+              const links = document.createElement('ul');
+              links.className = 'extra-doc-links';
+              extras.forEach((l) => {
+                const li = document.createElement('li');
+                li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                links.appendChild(li);
+              });
+              content.appendChild(links);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+        return content;
+      }
+    };
+
+
+    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'lean');
+    });
+    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'warning message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'info message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'error message');
+    });
+    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'tactic');
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    const closedTactics = new Set();
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    function isInsideClosedTactic(el) {
+      const tactic = el.closest('.tactic');
+      return tactic && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
+    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle) toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          closedTactics.delete(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (!tok._tippy && tok.matches(tacticTippySelector)) {
+              tippy(tok, defaultTippyProps);
+            }
+          });
+        } else {
+          closedTactics.add(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (tok._tippy) tok._tippy.destroy();
+          });
+        }
       });
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
     <script>
       
 window.addEventListener("load", () => {
@@ -3511,19 +3514,23 @@ Every <code class="hl lean inline" data-lean-context="docstring-examples"><a hre
                   <p>
                     The purpose of this class is for the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="">#eval</span></code> command,
 which looks for a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#MonadEval___mk" title="Documentation for MonadEval"><span class="const token" data-binding="const-MonadEval" data-verso-hover="75">MonadEval</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.416" data-verso-hover="104">m</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.433" data-verso-hover="107">CommandElabM</span></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#MonadEval___mk" title="Documentation for MonadEval"><span class="const token" data-binding="const-MonadEval" data-verso-hover="75">MonadEval</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.416" data-verso-hover="104">m</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="4">IO</span></a></code> instance.</p>
-                  <h1>
-                    Instance Constructor</h1>
-                  <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#MonadEval___mk" title="Documentation for MonadEval.mk"><span class="const token" data-binding="const-MonadEval.mk" data-verso-hover="108">MonadEval.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">w}</span></pre><div class="docs"></div>
-                    </section>
-                  <h1>
-                    Methods</h1>
-                  <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-MonadEval.monadEval" data-verso-hover="109">monadEval</span> : <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.941" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.936" data-verso-hover="104">m</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.941" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.937" data-verso-hover="106">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.941" data-verso-hover="60">α</span></pre><div class="docs">
-                      <p>
-                        Evaluates a value from monad <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.960" data-verso-hover="104">m</span></code> into monad <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.961" data-verso-hover="106">n</span></code>.</p>
-                      </div>
-                    </section>
+                  <div class="docstring-section" role="group" aria-labelledby="docstring-section-Instance-Constructor">
+                    <p class="docstring-section-label" id="docstring-section-Instance-Constructor">
+                      Instance Constructor</p>
+                    <section class="subdocs">
+                      <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#MonadEval___mk" title="Documentation for MonadEval.mk"><span class="const token" data-binding="const-MonadEval.mk" data-verso-hover="108">MonadEval.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">w}</span></pre><div class="docs"></div>
+                      </section>
+                    </div>
+                  <div class="docstring-section" role="group" aria-labelledby="docstring-section-Methods">
+                    <p class="docstring-section-label" id="docstring-section-Methods">
+                      Methods</p>
+                    <section class="subdocs">
+                      <pre class="name-and-type hl lean"><span class="const token" data-binding="const-MonadEval.monadEval" data-verso-hover="109">monadEval</span> : <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.941" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.936" data-verso-hover="104">m</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.941" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.937" data-verso-hover="106">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.941" data-verso-hover="60">α</span></pre><div class="docs">
+                        <p>
+                          Evaluates a value from monad <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.960" data-verso-hover="104">m</span></code> into monad <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.961" data-verso-hover="106">n</span></code>.</p>
+                        </div>
+                      </section>
+                    </div>
                   </div>
                 </div>
               <div class="namedocs" id="MonadEvalT___mk">
@@ -3533,19 +3540,23 @@ which looks for a <code class="hl lean inline" data-lean-context="docstring-exam
   </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type (max (max (u + 1) v) w)</span></div></pre><div class="text">
                   <p>
                     The transitive closure of <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#MonadEval___mk" title="Documentation for MonadEval"><span class="const token" data-binding="const-MonadEval" data-verso-hover="75">MonadEval</span></a></code>.</p>
-                  <h1>
-                    Instance Constructor</h1>
-                  <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#MonadEvalT___mk" title="Documentation for MonadEvalT.mk"><span class="const token" data-binding="const-MonadEvalT.mk" data-verso-hover="111">MonadEvalT.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">w}</span></pre><div class="docs"></div>
-                    </section>
-                  <h1>
-                    Methods</h1>
-                  <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-MonadEvalT.monadEval" data-verso-hover="109">monadEval</span> : <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.981" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.977" data-verso-hover="110">m</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.981" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.978" data-verso-hover="106">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.981" data-verso-hover="60">α</span></pre><div class="docs">
-                      <p>
-                        Evaluates a value from monad <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.997" data-verso-hover="110">m</span></code> into monad <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.998" data-verso-hover="106">n</span></code>.</p>
-                      </div>
-                    </section>
+                  <div class="docstring-section" role="group" aria-labelledby="docstring-section-Instance-Constructor-next">
+                    <p class="docstring-section-label" id="docstring-section-Instance-Constructor-next">
+                      Instance Constructor</p>
+                    <section class="subdocs">
+                      <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#MonadEvalT___mk" title="Documentation for MonadEvalT.mk"><span class="const token" data-binding="const-MonadEvalT.mk" data-verso-hover="111">MonadEvalT.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">w}</span></pre><div class="docs"></div>
+                      </section>
+                    </div>
+                  <div class="docstring-section" role="group" aria-labelledby="docstring-section-Methods-next">
+                    <p class="docstring-section-label" id="docstring-section-Methods-next">
+                      Methods</p>
+                    <section class="subdocs">
+                      <pre class="name-and-type hl lean"><span class="const token" data-binding="const-MonadEvalT.monadEval" data-verso-hover="109">monadEval</span> : <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.981" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.977" data-verso-hover="110">m</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.981" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.978" data-verso-hover="106">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.981" data-verso-hover="60">α</span></pre><div class="docs">
+                        <p>
+                          Evaluates a value from monad <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.997" data-verso-hover="110">m</span></code> into monad <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.998" data-verso-hover="106">n</span></code>.</p>
+                        </div>
+                      </section>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -3803,7 +3814,7 @@ Theorems that were proved using <a href="Tactic-Proofs/#tactics">tactics</a> may
                 <span class="label">syntax</span><span class="title">Printing Axioms</span><div class="text">
                   <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Command___printAxioms"><span class="nonterminal" data-kind="command">command</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal documented" data-kind="Lean.Parser.Command.printAxioms"><code class="hover-info"><code class="docstring">Prints the axioms used by a declaration, directly or indirectly.
-Please consult [the reference manual](https://lean-lang.org/doc/reference/4.31.0/find/?domain=Verso.Genre.Manual.section&name=validating-proofs) to understand the significance of the output. </code></code><span class="keyword">#print</span> <span class="keyword">axioms</span> <span class="nonterminal" data-kind="ident">ident</span></span></pre><p>
+Please consult [the reference manual](https://lean-lang.org/doc/reference/4.32.0/find/?domain=Verso.Genre.Manual.section&name=validating-proofs) to understand the significance of the output. </code></code><span class="keyword">#print</span> <span class="keyword">axioms</span> <span class="nonterminal" data-kind="ident">ident</span></span></pre><p>
                     Lists all axioms that the constant transitively relies on. See <a href="Axioms/#print-axioms">the documentation for axioms</a> for more information.</p>
                   </div>
                 </div>
@@ -3813,11 +3824,11 @@ Please consult [the reference manual](https://lean-lang.org/doc/reference/4.31.0
                   <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16239">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-swap" data-verso-hover="125" id="swap-_LPAR_in-Printing-Axioms_RPAR_">swap</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16248">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="126">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16248">:</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">32</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16248">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-16266">:</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">32</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_×_»-16268">×</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">32</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-16291">:=</span><span class="inter-text">
   </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-16296">(</span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="126">y</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-16296">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="126">x</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-16296">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16304">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-swap'" data-verso-hover="128" id="swap___-_LPAR_in-Printing-Axioms_RPAR_">swap'</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16314">(</span><span class="var token" data-binding="var-_uniq.95" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.100" data-verso-hover="126">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16314">:</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">32</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16314">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-16332">:</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">32</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_×_»-16334">×</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">32</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-16357">:=</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-16362" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.148" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-16366">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.95" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_^^^_»-16371">^^^</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.100" data-verso-hover="126">y</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-16381" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.164" data-verso-hover="126">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-16385">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.148" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_^^^_»-16390">^^^</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.100" data-verso-hover="126">y</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-16400" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.180" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-16404">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.148" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_^^^_»-16409">^^^</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.164" data-verso-hover="126">y</span><span class="inter-text">
-  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-16419">(</span><span class="var token" data-binding="var-_uniq.180" data-verso-hover="126">x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-16419">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.164" data-verso-hover="126">y</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-16419">)</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16304">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-swap'" data-verso-hover="128" id="swap___-_LPAR_in-Printing-Axioms_RPAR_">swap'</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16314">(</span><span class="var token" data-binding="var-_uniq.73" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.78" data-verso-hover="126">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16314">:</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">32</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16314">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-16332">:</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">32</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_×_»-16334">×</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">32</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-16357">:=</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-16362" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.126" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-16366">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.73" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_^^^_»-16371">^^^</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.78" data-verso-hover="126">y</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-16381" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.142" data-verso-hover="126">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-16385">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.126" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_^^^_»-16390">^^^</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.78" data-verso-hover="126">y</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-16400" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.158" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-16404">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.126" data-verso-hover="126">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_^^^_»-16409">^^^</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.142" data-verso-hover="126">y</span><span class="inter-text">
+  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-16419">(</span><span class="var token" data-binding="var-_uniq.158" data-verso-hover="126">x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-16419">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.142" data-verso-hover="126">y</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-16419">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     They can be proven equal using <a href="The-Type-System/Functions/#function-extensionality">function extensionality</a>, the <a href="The-Simplifier/#the-simplifier">simplifier</a>, and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code>:</p>
                   <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-16593">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-swap_eq_swap'" data-verso-hover="131" id="swap_eq_swap___-_LPAR_in-Printing-Axioms_RPAR_">swap_eq_swap'</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-16615">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#swap-_LPAR_in-Printing-Axioms_RPAR_" title="Definition of example"><span class="const token" data-binding="const-swap" data-verso-hover="125">swap</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-16617">=</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#swap___-_LPAR_in-Printing-Axioms_RPAR_" title="Definition of example"><span class="const token" data-binding="const-swap'" data-verso-hover="128">swap'</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-16630">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-2272592157737919417-16633-16635-8"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-16633" data-verso-hover="14">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2272592157737919417-16633-16635-8"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Interacting-with-Lean/#swap-_LPAR_in-Printing-Axioms_RPAR_" title="Definition of example"><span class="const token" data-binding="const-swap" data-verso-hover="125">swap</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#swap___-_LPAR_in-Printing-Axioms_RPAR_" title="Definition of example"><span class="const token" data-binding="const-swap'" data-verso-hover="128">swap'</span></a></span></span></span></span></span><span class="inter-text">
@@ -5181,9 +5192,9 @@ The top-level command elaborator only runs the linters if `#guard_msgs` is not p
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-23225">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Tree.val" data-verso-hover="162" id="Tree___val-_LPAR_in-Displaying-Differences_RPAR_">val</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-23231">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-23233">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree" data-verso-hover="160">Tree</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-23250">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Tree.branches" data-verso-hover="163" id="Tree___branches-_LPAR_in-Displaying-Differences_RPAR_">branches</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-23261">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="47">List</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-23268">(</span><a href="Interacting-with-Lean/#Tree-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree" data-verso-hover="160">Tree</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-23268">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-23263">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree" data-verso-hover="160">Tree</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-23291">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Tree.big" data-verso-hover="161" id="Tree___big-_LPAR_in-Displaying-Differences_RPAR_">Tree.big</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-23304">(</span><span class="var token" data-binding="var-_uniq.1316" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-23304">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-23304">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-23314">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree" data-verso-hover="160">Tree</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-23325">:=</span><span class="inter-text">
-  </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-23330" data-verso-hover="164">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1316" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_<_»-23333">&lt;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">5</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-23330" data-verso-hover="164">then</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree___branches-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.branches" data-verso-hover="163">.branches</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-23354">[</span><a href="Interacting-with-Lean/#Tree___val-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.val" data-verso-hover="162">.val</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1316" data-verso-hover="11">n</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-23354">,</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree___val-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.val" data-verso-hover="162">.val</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-23368">(</span><span class="var token" data-binding="var-_uniq.1316" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_-_»-23369">-</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-23368">)</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-23354">,</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree___val-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.val" data-verso-hover="162">.val</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1316" data-verso-hover="11">n</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-23354">,</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree___val-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.val" data-verso-hover="162">.val</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-23390">(</span><span class="var token" data-binding="var-_uniq.1316" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_-_»-23391">-</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-23390">)</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-23354">]</span><span class="inter-text">
-  </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-23330" data-verso-hover="164">else</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree___branches-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.branches" data-verso-hover="163">.branches</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-23416">[</span><a href="Interacting-with-Lean/#Tree___big-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.big" data-verso-hover="161">.big</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-23422">(</span><span class="var token" data-binding="var-_uniq.1316" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_/_»-23423">/</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-23422">)</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-23416">,</span><span class="inter-text">  </span><a href="Interacting-with-Lean/#Tree___big-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.big" data-verso-hover="161">.big</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-23437">(</span><span class="var token" data-binding="var-_uniq.1316" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_/_»-23438">/</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">3</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-23437">)</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-23416">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-23291">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Tree.big" data-verso-hover="161" id="Tree___big-_LPAR_in-Displaying-Differences_RPAR_">Tree.big</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-23304">(</span><span class="var token" data-binding="var-_uniq.1313" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-23304">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-23304">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-23314">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree" data-verso-hover="160">Tree</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-23325">:=</span><span class="inter-text">
+  </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-23330" data-verso-hover="164">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1313" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_<_»-23333">&lt;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">5</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-23330" data-verso-hover="164">then</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree___branches-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.branches" data-verso-hover="163">.branches</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-23354">[</span><a href="Interacting-with-Lean/#Tree___val-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.val" data-verso-hover="162">.val</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1313" data-verso-hover="11">n</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-23354">,</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree___val-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.val" data-verso-hover="162">.val</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-23368">(</span><span class="var token" data-binding="var-_uniq.1313" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_-_»-23369">-</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-23368">)</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-23354">,</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree___val-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.val" data-verso-hover="162">.val</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1313" data-verso-hover="11">n</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-23354">,</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree___val-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.val" data-verso-hover="162">.val</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-23390">(</span><span class="var token" data-binding="var-_uniq.1313" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_-_»-23391">-</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-23390">)</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-23354">]</span><span class="inter-text">
+  </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-23330" data-verso-hover="164">else</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Tree___branches-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.branches" data-verso-hover="163">.branches</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-23416">[</span><a href="Interacting-with-Lean/#Tree___big-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.big" data-verso-hover="161">.big</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-23422">(</span><span class="var token" data-binding="var-_uniq.1313" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_/_»-23423">/</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-23422">)</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-23416">,</span><span class="inter-text">  </span><a href="Interacting-with-Lean/#Tree___big-_LPAR_in-Displaying-Differences_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Tree.big" data-verso-hover="161">.big</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-23437">(</span><span class="var token" data-binding="var-_uniq.1313" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_/_»-23438">/</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">3</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-23437">)</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-23416">]</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     However, it can be difficult to spot where test failures come from when the output is large:</p>
                   <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-23576" data-verso-hover="102">set_option</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#guard_msgs___diff" title="Documentation for option guard_msgs.diff"><span class="option token" data-binding="option-guard_msgs.diff" data-verso-hover="159">guard_msgs.diff</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-23576" data-verso-hover="102">false</span><span class="inter-text">
@@ -5777,79 +5788,81 @@ selected.</p>
                       <p>
                         The pretty-printing algorithm is based on Wadler's paper
 <a href="https://homepages.inf.ed.ac.uk/wadler/papers/prettier/prettier.pdf"><em>A Prettier Printer</em></a>.</p>
-                      <h1>
-                        Constructors</h1>
-                      <div class="constructor">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.nil"><span class="const token" data-binding="const-Std.Format.nil" data-verso-hover="207">Std.Format.nil</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
-                          <p>
-                            The empty format.</p>
+                      <div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructors-next">
+                        <p class="docstring-section-label" id="docstring-section-Constructors-next">
+                          Constructors</p>
+                        <div class="constructor">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.nil"><span class="const token" data-binding="const-Std.Format.nil" data-verso-hover="207">Std.Format.nil</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
+                            <p>
+                              The empty format.</p>
+                            </div>
                           </div>
-                        </div>
-                      <div class="constructor">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.line"><span class="const token" data-binding="const-Std.Format.line" data-verso-hover="171">Std.Format.line</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
-                          <p>
-                            A position where a newline may be inserted if the current group does not fit within the allotted
+                        <div class="constructor">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.line"><span class="const token" data-binding="const-Std.Format.line" data-verso-hover="171">Std.Format.line</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
+                            <p>
+                              A position where a newline may be inserted if the current group does not fit within the allotted
 column width.</p>
+                            </div>
                           </div>
-                        </div>
-                      <div class="constructor">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.align"><span class="const token" data-binding="const-Std.Format.align" data-verso-hover="208">Std.Format.align</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.309" data-verso-hover="209">force</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
-                          <p>
-                            <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.align"><span class="const token" data-binding="const-Std.Format.align" data-verso-hover="176">align</span></a></code> tells the formatter to pad with spaces to the current indentation level, or else add a
+                        <div class="constructor">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.align"><span class="const token" data-binding="const-Std.Format.align" data-verso-hover="208">Std.Format.align</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.309" data-verso-hover="209">force</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
+                            <p>
+                              <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.align"><span class="const token" data-binding="const-Std.Format.align" data-verso-hover="176">align</span></a></code> tells the formatter to pad with spaces to the current indentation level, or else add a
 newline if we are already at or past the indent.</p>
-                          <p>
-                            If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.331" data-verso-hover="209">force</span></code> is true, then it will pad to the indent even if it is in a flattened group.</p>
-                          <p>
-                            Example:</p>
-                          <pre>open Std Format in
+                            <p>
+                              If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.331" data-verso-hover="209">force</span></code> is true, then it will pad to the indent even if it is in a flattened group.</p>
+                            <p>
+                              Example:</p>
+                            <pre>open Std Format in
 #eval IO.println (nest 2 &lt;| "." ++ align ++ "a" ++ line ++ "b")
 </pre><code class="hl lean block" data-lean-context="docstring-examples"><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.cdot-0">.</span><span class="inter-text"> </span><span class="unknown token" data-binding="">a</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">b</span></code></div>
-                        </div>
-                      <div class="constructor">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.text"><span class="const token" data-binding="const-Std.Format.text" data-verso-hover="166">Std.Format.text</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
-                          <p>
-                            A node containing a plain string.</p>
-                          <p>
-                            If the string contains newlines, the formatter emits them and then indents to the current level.</p>
                           </div>
-                        </div>
-                      <div class="constructor">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.nest"><span class="const token" data-binding="const-Std.Format.nest" data-verso-hover="210">Std.Format.nest</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.312" data-verso-hover="182">indent</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.313" data-verso-hover="211">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
-                          <p>
-                            <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.nest"><span class="const token" data-binding="const-Std.Format.nest" data-verso-hover="175">nest</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.383" data-verso-hover="182">indent</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.384" data-verso-hover="212">f</span></code> increases the current indentation level by <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.383" data-verso-hover="182">indent</span></code> while rendering <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.384" data-verso-hover="212">f</span></code>.</p>
-                          <p>
-                            Example:</p>
-                          <code class="hl lean block" data-lean-context="docstring-examples"><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-0" data-verso-hover="146">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">Std</span><span class="inter-text"> </span><span class="unknown token" data-binding="">Format</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-0">in</span></a><span class="inter-text">
+                        <div class="constructor">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.text"><span class="const token" data-binding="const-Std.Format.text" data-verso-hover="166">Std.Format.text</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
+                            <p>
+                              A node containing a plain string.</p>
+                            <p>
+                              If the string contains newlines, the formatter emits them and then indents to the current level.</p>
+                            </div>
+                          </div>
+                        <div class="constructor">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.nest"><span class="const token" data-binding="const-Std.Format.nest" data-verso-hover="210">Std.Format.nest</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.312" data-verso-hover="182">indent</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="122">Int</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.313" data-verso-hover="211">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
+                            <p>
+                              <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.nest"><span class="const token" data-binding="const-Std.Format.nest" data-verso-hover="175">nest</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.383" data-verso-hover="182">indent</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.384" data-verso-hover="212">f</span></code> increases the current indentation level by <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.383" data-verso-hover="182">indent</span></code> while rendering <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.384" data-verso-hover="212">f</span></code>.</p>
+                            <p>
+                              Example:</p>
+                            <code class="hl lean block" data-lean-context="docstring-examples"><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-0" data-verso-hover="146">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">Std</span><span class="inter-text"> </span><span class="unknown token" data-binding="">Format</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-0">in</span></a><span class="inter-text">
 </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-19">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-fmtList" data-verso-hover="213">fmtList</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-31">(</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="180">l</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-31">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="47">List</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Format</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-31">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-49">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Format</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-58">:=</span><span class="inter-text">
   </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-63" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.169" data-verso-hover="212">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-67">:=</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___joinSep" title="Documentation for Std.Format.joinSep"><span class="const token" data-binding="const-Std.Format.joinSep" data-verso-hover="185">joinSep</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="180">l</span><span class="inter-text">  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-83">(</span><span class="literal string token" data-binding="" data-verso-hover="214">", "</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_++_»-84">++</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.line"><span class="const token" data-binding="const-Std.Format.line" data-verso-hover="184">Format.line</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-83">)</span><span class="inter-text">
   </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.group"><span class="const token" data-binding="const-Std.Format.group" data-verso-hover="181">group</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-113">(</span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.nest"><span class="const token" data-binding="const-Std.Format.nest" data-verso-hover="175">nest</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="182">1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_<|_»-114">&lt;|</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="215">"["</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_++_»-124">++</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.169" data-verso-hover="212">f</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_++_»-124">++</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="216">"]"</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-113">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                            This will be written all on one line, but if the text is too large, the formatter will put in
+                              This will be written all on one line, but if the text is too large, the formatter will put in
 linebreaks after the commas and indent later lines by 1.</p>
+                            </div>
                           </div>
-                        </div>
-                      <div class="constructor">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.append"><span class="const token" data-binding="const-Std.Format.append" data-verso-hover="217">Std.Format.append</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
-                          <p>
-                            Concatenation of two <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Format</span></a></code>s.</p>
+                        <div class="constructor">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.append"><span class="const token" data-binding="const-Std.Format.append" data-verso-hover="217">Std.Format.append</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
+                            <p>
+                              Concatenation of two <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Format</span></a></code>s.</p>
+                            </div>
                           </div>
-                        </div>
-                      <div class="constructor">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.group"><span class="const token" data-binding="const-Std.Format.group" data-verso-hover="174">Std.Format.group</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+                        <div class="constructor">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.group"><span class="const token" data-binding="const-Std.Format.group" data-verso-hover="174">Std.Format.group</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
   </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text">
     </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.323" data-verso-hover="218">behavior</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
         </span><a href="Terms/Function-Application/#optParam" title="Documentation for optParam"><span class="const token" data-binding="const-optParam" data-verso-hover="219">optParam</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___FlattenBehavior___allOrNone" title="Documentation for Std.Format.FlattenBehavior"><span class="const token" data-binding="const-Std.Format.FlattenBehavior" data-verso-hover="220">Std.Format.FlattenBehavior</span></a><span class="inter-text">
           </span><a href="Interacting-with-Lean/#Std___Format___FlattenBehavior___allOrNone" title="Documentation for Std.Format.FlattenBehavior.allOrNone"><span class="const token" data-binding="const-Std.Format.FlattenBehavior.allOrNone" data-verso-hover="221">Std.Format.FlattenBehavior.allOrNone</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text">
       </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
-                          <p>
-                            Creates a new flattening group for the given inner <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Format</span></a></code>.</p>
+                            <p>
+                              Creates a new flattening group for the given inner <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Format</span></a></code>.</p>
+                            </div>
                           </div>
-                        </div>
-                      <div class="constructor">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.tag"><span class="const token" data-binding="const-Std.Format.tag" data-verso-hover="222">Std.Format.tag</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
-                          <p>
-                            Used for associating auxiliary information (e.g. <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Expr</span></code>s) with <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Format</span></a></code> objects.</p>
+                        <div class="constructor">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.tag"><span class="const token" data-binding="const-Std.Format.tag" data-verso-hover="222">Std.Format.tag</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
+                            <p>
+                              Used for associating auxiliary information (e.g. <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Expr</span></code>s) with <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Format</span></a></code> objects.</p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -5872,19 +5885,21 @@ space.</p>
                           <code class="hl lean block" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-0">[</span><span class="literal number token" data-binding="" data-verso-hover="11">1</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-0">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-0">,</span><span class="inter-text">
  </span><span class="literal number token" data-binding="" data-verso-hover="11">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-0">]</span></code></li>
                         </ul>
-                      <h1>
-                        Constructors</h1>
-                      <div class="constructor">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___FlattenBehavior___allOrNone" title="Documentation for Std.Format.FlattenBehavior.allOrNone"><span class="const token" data-binding="const-Std.Format.FlattenBehavior.allOrNone" data-verso-hover="221">Std.Format.FlattenBehavior.allOrNone</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+                      <div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructors-next-next">
+                        <p class="docstring-section-label" id="docstring-section-Constructors-next-next">
+                          Constructors</p>
+                        <div class="constructor">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___FlattenBehavior___allOrNone" title="Documentation for Std.Format.FlattenBehavior.allOrNone"><span class="const token" data-binding="const-Std.Format.FlattenBehavior.allOrNone" data-verso-hover="221">Std.Format.FlattenBehavior.allOrNone</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
   </span><a href="Interacting-with-Lean/#Std___Format___FlattenBehavior___allOrNone" title="Documentation for Std.Format.FlattenBehavior"><span class="const token" data-binding="const-Std.Format.FlattenBehavior" data-verso-hover="220">Std.Format.FlattenBehavior</span></a></pre><div class="docs">
-                          <p>
-                            Either all <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.line"><span class="const token" data-binding="const-Std.Format.line" data-verso-hover="184">Format.line</span></a></code>s in the group will be newlines, or all of them will be spaces.</p>
+                            <p>
+                              Either all <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.line"><span class="const token" data-binding="const-Std.Format.line" data-verso-hover="184">Format.line</span></a></code>s in the group will be newlines, or all of them will be spaces.</p>
+                            </div>
                           </div>
-                        </div>
-                      <div class="constructor">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___FlattenBehavior___allOrNone" title="Documentation for Std.Format.FlattenBehavior.fill"><span class="const token" data-binding="const-Std.Format.FlattenBehavior.fill" data-verso-hover="223">Std.Format.FlattenBehavior.fill</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___FlattenBehavior___allOrNone" title="Documentation for Std.Format.FlattenBehavior"><span class="const token" data-binding="const-Std.Format.FlattenBehavior" data-verso-hover="220">Std.Format.FlattenBehavior</span></a></pre><div class="docs">
-                          <p>
-                            As few <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.line"><span class="const token" data-binding="const-Std.Format.line" data-verso-hover="184">Format.line</span></a></code>s in the group as possible will be newlines.</p>
+                        <div class="constructor">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___FlattenBehavior___allOrNone" title="Documentation for Std.Format.FlattenBehavior.fill"><span class="const token" data-binding="const-Std.Format.FlattenBehavior.fill" data-verso-hover="223">Std.Format.FlattenBehavior.fill</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___FlattenBehavior___allOrNone" title="Documentation for Std.Format.FlattenBehavior"><span class="const token" data-binding="const-Std.Format.FlattenBehavior" data-verso-hover="220">Std.Format.FlattenBehavior</span></a></pre><div class="docs">
+                            <p>
+                              As few <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format.line"><span class="const token" data-binding="const-Std.Format.line" data-verso-hover="184">Format.line</span></a></code>s in the group as possible will be newlines.</p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -6142,43 +6157,47 @@ indentation)</p>
   </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2626" data-verso-hover="84">m</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span></div></pre><div class="text">
                       <p>
                         A monad that can be used to incrementally render <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Format</span></code> objects.</p>
-                      <h1>
-                        Instance Constructor</h1>
-                      <section class="subdocs">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___MonadPrettyFormat___mk" title="Documentation for Std.Format.MonadPrettyFormat.mk"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.mk" data-verso-hover="248">Std.Format.MonadPrettyFormat.mk</span></a></pre><div class="docs"></div>
-                        </section>
-                      <h1>
-                        Methods</h1>
-                      <section class="subdocs">
-                        <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.pushOutput" data-verso-hover="249">pushOutput</span> : <a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2608" data-verso-hover="84">m</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></pre><div class="docs">
-                          <p>
-                            Emits the string <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">s</span></code>.</p>
-                          </div>
-                        </section>
-                      <section class="subdocs">
-                        <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.pushNewline" data-verso-hover="250">pushNewline</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2608" data-verso-hover="84">m</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></pre><div class="docs">
-                          <p>
-                            Emits a newline followed by <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">indent</span></code> columns of indentation.</p>
-                          </div>
-                        </section>
-                      <section class="subdocs">
-                        <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.currColumn" data-verso-hover="251">currColumn</span> : <span class="var token" data-binding="var-_uniq.2608" data-verso-hover="84">m</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></pre><div class="docs">
-                          <p>
-                            Gets the current column at which the next string will be emitted.</p>
-                          </div>
-                        </section>
-                      <section class="subdocs">
-                        <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.startTag" data-verso-hover="252">startTag</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2608" data-verso-hover="84">m</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></pre><div class="docs">
-                          <p>
-                            Starts a region tagged with <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">tag</span></code>.</p>
-                          </div>
-                        </section>
-                      <section class="subdocs">
-                        <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.endTags" data-verso-hover="253">endTags</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2608" data-verso-hover="84">m</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></pre><div class="docs">
-                          <p>
-                            Exits the scope of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">count</span></code> opened tags.</p>
-                          </div>
-                        </section>
+                      <div class="docstring-section" role="group" aria-labelledby="docstring-section-Instance-Constructor-next-next">
+                        <p class="docstring-section-label" id="docstring-section-Instance-Constructor-next-next">
+                          Instance Constructor</p>
+                        <section class="subdocs">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___Format___MonadPrettyFormat___mk" title="Documentation for Std.Format.MonadPrettyFormat.mk"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.mk" data-verso-hover="248">Std.Format.MonadPrettyFormat.mk</span></a></pre><div class="docs"></div>
+                          </section>
+                        </div>
+                      <div class="docstring-section" role="group" aria-labelledby="docstring-section-Methods-next-next">
+                        <p class="docstring-section-label" id="docstring-section-Methods-next-next">
+                          Methods</p>
+                        <section class="subdocs">
+                          <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.pushOutput" data-verso-hover="249">pushOutput</span> : <a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2608" data-verso-hover="84">m</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></pre><div class="docs">
+                            <p>
+                              Emits the string <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">s</span></code>.</p>
+                            </div>
+                          </section>
+                        <section class="subdocs">
+                          <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.pushNewline" data-verso-hover="250">pushNewline</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2608" data-verso-hover="84">m</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></pre><div class="docs">
+                            <p>
+                              Emits a newline followed by <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">indent</span></code> columns of indentation.</p>
+                            </div>
+                          </section>
+                        <section class="subdocs">
+                          <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.currColumn" data-verso-hover="251">currColumn</span> : <span class="var token" data-binding="var-_uniq.2608" data-verso-hover="84">m</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></pre><div class="docs">
+                            <p>
+                              Gets the current column at which the next string will be emitted.</p>
+                            </div>
+                          </section>
+                        <section class="subdocs">
+                          <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.startTag" data-verso-hover="252">startTag</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2608" data-verso-hover="84">m</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></pre><div class="docs">
+                            <p>
+                              Starts a region tagged with <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">tag</span></code>.</p>
+                            </div>
+                          </section>
+                        <section class="subdocs">
+                          <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.Format.MonadPrettyFormat.endTags" data-verso-hover="253">endTags</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2608" data-verso-hover="84">m</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></pre><div class="docs">
+                            <p>
+                              Exits the scope of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">count</span></code> opened tags.</p>
+                            </div>
+                          </section>
+                        </div>
                       </div>
                     </div>
                   </section>
@@ -6195,20 +6214,24 @@ These instances are used in error messages and by some of the <a href="Interacti
 expectation that the resulting string is valid code.</p>
                       <p>
                         The <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Repr___mk" title="Documentation for Repr"><span class="const token" data-binding="const-Repr" data-verso-hover="72">Repr</span></a></code> class is similar, but the expectation is that instances produce valid Lean code.</p>
-                      <h1>
-                        Instance Constructor</h1>
-                      <section class="subdocs">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___ToFormat___mk" title="Documentation for Std.ToFormat.mk"><span class="const token" data-binding="const-Std.ToFormat.mk" data-verso-hover="254">Std.ToFormat.mk</span></a><span class="unknown token" data-binding="">.{u}</span></pre><div class="docs"></div>
-                        </section>
-                      <h1>
-                        Methods</h1>
-                      <section class="subdocs">
-                        <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.ToFormat.format" data-verso-hover="255">format</span> : <span class="var token" data-binding="var-_uniq.2716" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
-                          <p>
-                            Converts a value to a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Format</span></code> object, with no expectation that the resulting string is valid
+                      <div class="docstring-section" role="group" aria-labelledby="docstring-section-Instance-Constructor-next-next-next">
+                        <p class="docstring-section-label" id="docstring-section-Instance-Constructor-next-next-next">
+                          Instance Constructor</p>
+                        <section class="subdocs">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Std___ToFormat___mk" title="Documentation for Std.ToFormat.mk"><span class="const token" data-binding="const-Std.ToFormat.mk" data-verso-hover="254">Std.ToFormat.mk</span></a><span class="unknown token" data-binding="">.{u}</span></pre><div class="docs"></div>
+                          </section>
+                        </div>
+                      <div class="docstring-section" role="group" aria-labelledby="docstring-section-Methods-next-next-next">
+                        <p class="docstring-section-label" id="docstring-section-Methods-next-next-next">
+                          Methods</p>
+                        <section class="subdocs">
+                          <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Std.ToFormat.format" data-verso-hover="255">format</span> : <span class="var token" data-binding="var-_uniq.2716" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
+                            <p>
+                              Converts a value to a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Format</span></code> object, with no expectation that the resulting string is valid
 code.</p>
-                          </div>
-                        </section>
+                            </div>
+                          </section>
+                        </div>
                       </div>
                     </div>
                   </section>
@@ -6227,20 +6250,24 @@ Inserting the maximal number of parentheses would work, but it makes it more dif
                     <p>
                       When rendered this <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Format</span></code> should be as close as possible to something that can be parsed as the
 input value.</p>
-                    <h1>
-                      Instance Constructor</h1>
-                    <section class="subdocs">
-                      <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Repr___mk" title="Documentation for Repr.mk"><span class="const token" data-binding="const-Repr.mk" data-verso-hover="256">Repr.mk</span></a><span class="unknown token" data-binding="">.{u}</span></pre><div class="docs"></div>
-                      </section>
-                    <h1>
-                      Methods</h1>
-                    <section class="subdocs">
-                      <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Repr.reprPrec" data-verso-hover="257">reprPrec</span> : <span class="var token" data-binding="var-_uniq.2763" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
-                        <p>
-                          Turn a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2775" data-verso-hover="60">α</span></code> into a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Format</span></code> at a given precedence. The precedence value can be used
+                    <div class="docstring-section" role="group" aria-labelledby="docstring-section-Instance-Constructor-next-next-next-next">
+                      <p class="docstring-section-label" id="docstring-section-Instance-Constructor-next-next-next-next">
+                        Instance Constructor</p>
+                      <section class="subdocs">
+                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#Repr___mk" title="Documentation for Repr.mk"><span class="const token" data-binding="const-Repr.mk" data-verso-hover="256">Repr.mk</span></a><span class="unknown token" data-binding="">.{u}</span></pre><div class="docs"></div>
+                        </section>
+                      </div>
+                    <div class="docstring-section" role="group" aria-labelledby="docstring-section-Methods-next-next-next-next">
+                      <p class="docstring-section-label" id="docstring-section-Methods-next-next-next-next">
+                        Methods</p>
+                      <section class="subdocs">
+                        <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Repr.reprPrec" data-verso-hover="257">reprPrec</span> : <span class="var token" data-binding="var-_uniq.2763" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Std___Format___nil" title="Documentation for Std.Format"><span class="const token" data-binding="const-Std.Format" data-verso-hover="165">Std.Format</span></a></pre><div class="docs">
+                          <p>
+                            Turn a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2775" data-verso-hover="60">α</span></code> into a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Format</span></code> at a given precedence. The precedence value can be used
 to avoid parentheses if they are not necessary.</p>
-                        </div>
-                      </section>
+                          </div>
+                        </section>
+                      </div>
                     </div>
                   </div>
                 <div class="namedocs" id="repr-next">
@@ -6571,11 +6598,13 @@ Lean has <code class="hl lean inline" data-lean-context="examples"><a href="Inte
                       <p>
                         Auxiliary class for marking types that should be considered atomic by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Repr___mk" title="Documentation for Repr"><span class="const token" data-binding="const-Repr" data-verso-hover="72">Repr</span></a></code> methods.
 We use it at <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Interacting-with-Lean/#Repr___mk" title="Documentation for Repr"><span class="const token" data-binding="const-Repr" data-verso-hover="72">Repr</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-5">(</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="47">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3045" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-5">)</span></code> to decide whether <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">bracketFill</span></code> should be used or not.</p>
-                      <h1>
-                        Instance Constructor</h1>
-                      <section class="subdocs">
-                        <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#ReprAtom___mk" title="Documentation for ReprAtom.mk"><span class="const token" data-binding="const-ReprAtom.mk" data-verso-hover="291">ReprAtom.mk</span></a><span class="unknown token" data-binding="">.{u}</span></pre><div class="docs"></div>
-                        </section>
+                      <div class="docstring-section" role="group" aria-labelledby="docstring-section-Instance-Constructor-next-next-next-next-next">
+                        <p class="docstring-section-label" id="docstring-section-Instance-Constructor-next-next-next-next-next">
+                          Instance Constructor</p>
+                        <section class="subdocs">
+                          <pre class="name-and-type hl lean"><a href="Interacting-with-Lean/#ReprAtom___mk" title="Documentation for ReprAtom.mk"><span class="const token" data-binding="const-ReprAtom.mk" data-verso-hover="291">ReprAtom.mk</span></a><span class="unknown token" data-binding="">.{u}</span></pre><div class="docs"></div>
+                          </section>
+                        </div>
                       </div>
                     </div>
                   <details class="example"><summary class="description">Atomic Types and <code>Repr</code></summary><div class="example-content">

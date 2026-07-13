@@ -1,4 +1,4 @@
-<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
+<!-- Generated from commit 5d2a1e3c97acc754de5b9751efd6d13ba6666530 at 2026-07-13T19:33:45Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -331,10 +331,15 @@ pre.json {
   color: #555;
 }
 
-.namedocs h1 {
-  font-size: inherit;
-  font-weight: bold
+.namedocs .docstring-section {
   margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs .docstring-section-label {
+  font-size: inherit;
+  font-weight: bold;
+  margin-top: 0;
   margin-bottom: 1rem;
 }
 
@@ -2349,7 +2354,46 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.onload = async () => {
 
     // Don't show hovers inside of closed tactic states
     function blockedByTactic(elem) {
@@ -2423,207 +2467,166 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let docsJson = "-verso-docs.json";
-    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
 
-      function hideParentTooltips(element) {
-        let parent = element.parentElement;
-        while (parent) {
-          const tippyInstance = parent._tippy;
-          if (tippyInstance) {
-            tippyInstance.hide();
-          }
-          parent = parent.parentElement;
+    function hideParentTooltips(element) {
+      let parent = element.parentElement;
+      while (parent) {
+        const tippyInstance = parent._tippy;
+        if (tippyInstance) {
+          tippyInstance.hide();
         }
+        parent = parent.parentElement;
       }
+    }
 
 
 
-      const defaultTippyProps = {
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        /* theme: "lean", */
-        maxWidth: "none",
-        appendTo: () => document.body,
-        interactive: true,
-        delay: [100, null],
-        /* ignoreAttributes: true, */
-        followCursor: 'initial',
-        onShow(inst) {
-          if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
-            if (toggle && toggle.checked) {
-              return false;
-            }
-            hideParentTooltips(inst.reference);
-            if (blockedByTippy(inst.reference)) { return false; }
-
-          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
-            if (blockedByTactic(inst.reference)) { return false };
-            if (blockedByTippy(inst.reference)) { return false; }
-          } else { // Nothing to show here!
+    const defaultTippyProps = {
+      /* DEBUG -- remove the space: * /
+      onHide(any) { return false; },
+      trigger: "click",
+      // */
+      /* theme: "lean", */
+      maxWidth: "none",
+      appendTo: () => document.body,
+      interactive: true,
+      delay: [100, null],
+      /* ignoreAttributes: true, */
+      followCursor: 'initial',
+      onShow(inst) {
+        if (inst.reference.className == 'tactic') {
+          const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
+          if (toggle && toggle.checked) {
             return false;
           }
-        },
-        onShown(inst) { visibleTippyCount++; },
-        onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
-        content (tgt) {
-          const content = document.createElement("span");
-          if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-            state.style.display = "block";
-            content.appendChild(state);
-            content.style.display = "block";
-            content.className = "hl lean popup";
-          } else {
-            content.className = "hl lean";
-            content.style.display = "block";
-            content.style.maxHeight = "300px";
-            content.style.overflowY = "auto";
-            content.style.overflowX = "hidden";
-            const hoverId = tgt.dataset.versoHover;
-            const hoverInfo = tgt.querySelector(".hover-info");
-            if (hoverId) { // Docstrings from the table
-              // TODO stop doing an implicit conversion from string to number here
-              let data = versoDocData[hoverId];
-              if (data) {
-                const info = document.createElement("span");
-                info.className = "hover-info";
-                info.style.display = "block";
-                info.innerHTML = data;
-                content.appendChild(info);
-                /* Render docstrings - TODO server-side */
-                if ('undefined' !== typeof marked) {
-                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                        const str = d.innerText;
-                        const html = marked.parse(str);
-                        const rendered = document.createElement("div");
-                        rendered.classList.add("docstring");
-                        rendered.innerHTML = html;
-                        d.parentNode.replaceChild(rendered, d);
-                    }
-                }
-              } else {
-                content.innerHTML = "Failed to load doc ID: " + hoverId;
-              }
-            } else if (hoverInfo) { // The inline info, still used for compiler messages
-              content.appendChild(hoverInfo.cloneNode(true));
-            }
-            const extraLinks = tgt.parentElement.dataset['versoLinks'];
-            if (extraLinks) {
-              try {
-                const extras = JSON.parse(extraLinks);
-                const links = document.createElement('ul');
-                links.className = 'extra-doc-links';
-                extras.forEach((l) => {
-                  const li = document.createElement('li');
-                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
-                  links.appendChild(li);
-                });
-                content.appendChild(links);
-              } catch (error) {
-                console.error(error);
-              }
-            }
-          }
-          return content;
+          hideParentTooltips(inst.reference);
+          if (blockedByTippy(inst.reference)) { return false; }
+
+        } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (blockedByTactic(inst.reference)) { return false };
+          if (blockedByTippy(inst.reference)) { return false; }
+        } else { // Nothing to show here!
+          return false;
         }
-      };
-
-
-      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'lean');
-      });
-      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'warning message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'info message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'error message');
-      });
-      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'tactic');
-      });
-      // Skip tokens inside closed tactics — they interfere with tactic tippys
-      const closedTactics = new Set();
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle && !toggle.checked) closedTactics.add(tactic);
-      });
-      function isInsideClosedTactic(el) {
-        const tactic = el.closest('.tactic');
-        return tactic && tactic !== el && closedTactics.has(tactic);
-      }
-
-      const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-      tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-      // Create/destroy token tippys when tactic checkbox toggles
-      const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle) toggle.addEventListener('change', () => {
-          if (toggle.checked) {
-            closedTactics.delete(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (!tok._tippy && tok.matches(tacticTippySelector)) {
-                tippy(tok, defaultTippyProps);
+      },
+      onShown(inst) { visibleTippyCount++; },
+      onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
+      content (tgt) {
+        const content = document.createElement("span");
+        if (tgt.className == 'tactic') {
+          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+        } else {
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
               }
-            });
-          } else {
-            closedTactics.add(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (tok._tippy) tok._tippy.destroy();
-            });
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
           }
-        });
+          const extraLinks = tgt.parentElement.dataset['versoLinks'];
+          if (extraLinks) {
+            try {
+              const extras = JSON.parse(extraLinks);
+              const links = document.createElement('ul');
+              links.className = 'extra-doc-links';
+              extras.forEach((l) => {
+                const li = document.createElement('li');
+                li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                links.appendChild(li);
+              });
+              content.appendChild(links);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+        return content;
+      }
+    };
+
+
+    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'lean');
+    });
+    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'warning message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'info message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'error message');
+    });
+    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'tactic');
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    const closedTactics = new Set();
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    function isInsideClosedTactic(el) {
+      const tactic = el.closest('.tactic');
+      return tactic && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
+    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle) toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          closedTactics.delete(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (!tok._tippy && tok.matches(tacticTippySelector)) {
+              tippy(tok, defaultTippyProps);
+            }
+          });
+        } else {
+          closedTactics.add(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (tok._tippy) tok._tippy.destroy();
+          });
+        }
       });
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
     <script>
       
 window.addEventListener("load", () => {
@@ -2746,31 +2749,31 @@ window.addEventListener("load", () => {
             <h1>
               21.10. Random Numbers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Random-Numbers" title="Permalink">🔗</a></span></h1>
             <div class="namedocs" id="IO___setRandSeed">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=IO.setRandSeed" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#IO___setRandSeed" title="Documentation for IO.setRandSeed"><span class="const token" data-binding="const-IO.setRandSeed" data-verso-hover="8375">IO.setRandSeed</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1572" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#BaseIO" title="Documentation for BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1762">BaseIO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#IO___setRandSeed" title="Documentation for IO.setRandSeed"><span class="const token" data-binding="const-IO.setRandSeed" data-verso-hover="8375">IO.setRandSeed</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1572" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#BaseIO" title="Documentation for BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1762">BaseIO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=IO.setRandSeed" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#IO___setRandSeed" title="Documentation for IO.setRandSeed"><span class="const token" data-binding="const-IO.setRandSeed" data-verso-hover="8369">IO.setRandSeed</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1572" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#BaseIO" title="Documentation for BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1750">BaseIO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#IO___setRandSeed" title="Documentation for IO.setRandSeed"><span class="const token" data-binding="const-IO.setRandSeed" data-verso-hover="8369">IO.setRandSeed</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1572" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#BaseIO" title="Documentation for BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1750">BaseIO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></div></pre><div class="text">
                 <p>
-                  Seeds the random number generator state used by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Random-Numbers/#IO___rand" title="Documentation for IO.rand"><span class="const token" data-binding="const-IO.rand" data-verso-hover="8129">IO.rand</span></a></code>.</p>
+                  Seeds the random number generator state used by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Random-Numbers/#IO___rand" title="Documentation for IO.rand"><span class="const token" data-binding="const-IO.rand" data-verso-hover="8123">IO.rand</span></a></code>.</p>
                 </div>
               </div>
             <div class="namedocs" id="IO___rand">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=IO.rand" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#IO___rand" title="Documentation for IO.rand"><span class="const token" data-binding="const-IO.rand" data-verso-hover="8129">IO.rand</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1581" data-verso-hover="11">lo</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1582" data-verso-hover="11">hi</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#BaseIO" title="Documentation for BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1762">BaseIO</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#IO___rand" title="Documentation for IO.rand"><span class="const token" data-binding="const-IO.rand" data-verso-hover="8129">IO.rand</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1581" data-verso-hover="11">lo</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1582" data-verso-hover="11">hi</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#BaseIO" title="Documentation for BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1762">BaseIO</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=IO.rand" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#IO___rand" title="Documentation for IO.rand"><span class="const token" data-binding="const-IO.rand" data-verso-hover="8123">IO.rand</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1581" data-verso-hover="11">lo</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1582" data-verso-hover="11">hi</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#BaseIO" title="Documentation for BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1750">BaseIO</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#IO___rand" title="Documentation for IO.rand"><span class="const token" data-binding="const-IO.rand" data-verso-hover="8123">IO.rand</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1581" data-verso-hover="11">lo</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1582" data-verso-hover="11">hi</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#BaseIO" title="Documentation for BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1750">BaseIO</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></div></pre><div class="text">
                 <p>
                   Returns a pseudorandom number between <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1574" data-verso-hover="11">lo</span></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1575" data-verso-hover="11">hi</span></code>, using and updating a saved random generator
 state.</p>
                 <p>
-                  This state can be seeded using <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Random-Numbers/#IO___setRandSeed" title="Documentation for IO.setRandSeed"><span class="const token" data-binding="const-IO.setRandSeed" data-verso-hover="8375">IO.setRandSeed</span></a></code>.</p>
+                  This state can be seeded using <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Random-Numbers/#IO___setRandSeed" title="Documentation for IO.setRandSeed"><span class="const token" data-binding="const-IO.setRandSeed" data-verso-hover="8369">IO.setRandSeed</span></a></code>.</p>
                 </div>
               </div>
             <div class="namedocs" id="randBool">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=randBool" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#randBool" title="Documentation for randBool"><span class="const token" data-binding="const-randBool" data-verso-hover="8376">randBool.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8377">RandomGen</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1589" data-verso-hover="8378">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span></div><div class="narrow-only"><a href="IO/Random-Numbers/#randBool" title="Documentation for randBool"><span class="const token" data-binding="const-randBool" data-verso-hover="8376">randBool.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">[</span><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8377">RandomGen</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1589" data-verso-hover="8378">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=randBool" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#randBool" title="Documentation for randBool"><span class="const token" data-binding="const-randBool" data-verso-hover="8370">randBool.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8371">RandomGen</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1589" data-verso-hover="8372">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span></div><div class="narrow-only"><a href="IO/Random-Numbers/#randBool" title="Documentation for randBool"><span class="const token" data-binding="const-randBool" data-verso-hover="8370">randBool.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">[</span><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8371">RandomGen</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1589" data-verso-hover="8372">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1587" data-verso-hover="60">gen</span></div></pre><div class="text">
                 <p>
                   Generates a random Boolean.</p>
                 </div>
               </div>
             <div class="namedocs" id="randNat">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=randNat" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#randNat" title="Documentation for randNat"><span class="const token" data-binding="const-randNat" data-verso-hover="8379">randNat.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8377">RandomGen</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1598" data-verso-hover="8378">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1599" data-verso-hover="11">lo</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1600" data-verso-hover="11">hi</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
-  </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span></div><div class="narrow-only"><a href="IO/Random-Numbers/#randNat" title="Documentation for randNat"><span class="const token" data-binding="const-randNat" data-verso-hover="8379">randNat.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8377">RandomGen</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1598" data-verso-hover="8378">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1599" data-verso-hover="11">lo</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1600" data-verso-hover="11">hi</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=randNat" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#randNat" title="Documentation for randNat"><span class="const token" data-binding="const-randNat" data-verso-hover="8373">randNat.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8371">RandomGen</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1598" data-verso-hover="8372">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1599" data-verso-hover="11">lo</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1600" data-verso-hover="11">hi</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+  </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span></div><div class="narrow-only"><a href="IO/Random-Numbers/#randNat" title="Documentation for randNat"><span class="const token" data-binding="const-randNat" data-verso-hover="8373">randNat.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8371">RandomGen</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1598" data-verso-hover="8372">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1599" data-verso-hover="11">lo</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1600" data-verso-hover="11">hi</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1596" data-verso-hover="60">gen</span></div></pre><div class="text">
                 <p>
                   Generates a random natural number in the interval [lo, hi].</p>
                 </div>
@@ -2779,67 +2782,71 @@ state.</p>
               <h2 id="The-Lean-Language-Reference--IO--Random-Numbers--Random-Generators">
                 21.10.1. Random Generators<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Random-Numbers--Random-Generators" title="Permalink">🔗</a></span></h2>
               <div class="namedocs" id="RandomGen___mk">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=RandomGen" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8377">RandomGen.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1618" data-verso-hover="60">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span></div><div class="narrow-only"><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8377">RandomGen.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1618" data-verso-hover="60">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=RandomGen" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8371">RandomGen.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1618" data-verso-hover="60">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span></div><div class="narrow-only"><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen"><span class="const token" data-binding="const-RandomGen" data-verso-hover="8371">RandomGen.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1618" data-verso-hover="60">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type u</span></div></pre><div class="text">
                   <p>
                     Interface for random number generators.</p>
-                  <h1>
-                    Instance Constructor</h1>
-                  <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen.mk"><span class="const token" data-binding="const-RandomGen.mk" data-verso-hover="8380">RandomGen.mk</span></a><span class="unknown token" data-binding="">.{u}</span></pre><div class="docs"></div>
-                    </section>
-                  <h1>
-                    Methods</h1>
-                  <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-RandomGen.range" data-verso-hover="8381">range</span> : <span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></pre><div class="docs">
-                      <p>
-                        <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1621" data-verso-hover="8382">range</span></code> returns the range of values returned by
+                  <div class="docstring-section" role="group" aria-labelledby="docstring-section-Instance-Constructor-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+                    <p class="docstring-section-label" id="docstring-section-Instance-Constructor-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+                      Instance Constructor</p>
+                    <section class="subdocs">
+                      <pre class="name-and-type hl lean"><a href="IO/Random-Numbers/#RandomGen___mk" title="Documentation for RandomGen.mk"><span class="const token" data-binding="const-RandomGen.mk" data-verso-hover="8374">RandomGen.mk</span></a><span class="unknown token" data-binding="">.{u}</span></pre><div class="docs"></div>
+                      </section>
+                    </div>
+                  <div class="docstring-section" role="group" aria-labelledby="docstring-section-Methods-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+                    <p class="docstring-section-label" id="docstring-section-Methods-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+                      Methods</p>
+                    <section class="subdocs">
+                      <pre class="name-and-type hl lean"><span class="const token" data-binding="const-RandomGen.range" data-verso-hover="8375">range</span> : <span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></pre><div class="docs">
+                        <p>
+                          <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1621" data-verso-hover="8376">range</span></code> returns the range of values returned by
 the generator.</p>
-                      </div>
-                    </section>
-                  <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-RandomGen.next" data-verso-hover="8383">next</span> : <span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span></pre><div class="docs">
-                      <p>
-                        <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1628" data-verso-hover="8384">next</span></code> operation returns a natural number that is uniformly distributed
-the range returned by <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1627" data-verso-hover="8382">range</span></code> (including both end points),
+                        </div>
+                      </section>
+                    <section class="subdocs">
+                      <pre class="name-and-type hl lean"><span class="const token" data-binding="const-RandomGen.next" data-verso-hover="8377">next</span> : <span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span></pre><div class="docs">
+                        <p>
+                          <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1628" data-verso-hover="8378">next</span></code> operation returns a natural number that is uniformly distributed
+the range returned by <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1627" data-verso-hover="8376">range</span></code> (including both end points),
 and a new generator.</p>
-                      </div>
-                    </section>
-                  <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-RandomGen.split" data-verso-hover="8385">split</span> : <span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span></pre><div class="docs">
-                      <p>
-                        The 'split' operation allows one to obtain two distinct random number
+                        </div>
+                      </section>
+                    <section class="subdocs">
+                      <pre class="name-and-type hl lean"><span class="const token" data-binding="const-RandomGen.split" data-verso-hover="8379">split</span> : <span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1606" data-verso-hover="60">g</span></pre><div class="docs">
+                        <p>
+                          The 'split' operation allows one to obtain two distinct random number
 generators. This is very useful in functional programs (for example, when
 passing a random number generator down to recursive calls).</p>
-                      </div>
-                    </section>
+                        </div>
+                      </section>
+                    </div>
                   </div>
                 </div>
               <div class="namedocs" id="StdGen">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=StdGen" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span></div><div class="narrow-only"><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=StdGen" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span></div><div class="narrow-only"><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span></div></pre><div class="text">
                   <p>
                     "Standard" random number generator.</p>
                   </div>
                 </div>
               <div class="namedocs" id="stdRange">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=stdRange" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#stdRange" title="Documentation for stdRange"><span class="const token" data-binding="const-stdRange" data-verso-hover="8387">stdRange</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#stdRange" title="Documentation for stdRange"><span class="const token" data-binding="const-stdRange" data-verso-hover="8387">stdRange</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=stdRange" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#stdRange" title="Documentation for stdRange"><span class="const token" data-binding="const-stdRange" data-verso-hover="8381">stdRange</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#stdRange" title="Documentation for stdRange"><span class="const token" data-binding="const-stdRange" data-verso-hover="8381">stdRange</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a></div></pre><div class="text">
                   <p>
-                    The range of values returned by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a></code></p>
+                    The range of values returned by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a></code></p>
                   </div>
                 </div>
               <div class="namedocs" id="stdNext">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=stdNext" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#stdNext" title="Documentation for stdNext"><span class="const token" data-binding="const-stdNext" data-verso-hover="8388">stdNext</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#stdNext" title="Documentation for stdNext"><span class="const token" data-binding="const-stdNext" data-verso-hover="8388">stdNext</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=stdNext" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#stdNext" title="Documentation for stdNext"><span class="const token" data-binding="const-stdNext" data-verso-hover="8382">stdNext</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#stdNext" title="Documentation for stdNext"><span class="const token" data-binding="const-stdNext" data-verso-hover="8382">stdNext</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a></div></pre><div class="text">
                   <p>
-                    The next value from a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a></code>, paired with an updated generator state.</p>
+                    The next value from a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a></code>, paired with an updated generator state.</p>
                   </div>
                 </div>
               <div class="namedocs" id="stdSplit">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=stdSplit" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#stdSplit" title="Documentation for stdSplit"><span class="const token" data-binding="const-stdSplit" data-verso-hover="8389">stdSplit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#stdSplit" title="Documentation for stdSplit"><span class="const token" data-binding="const-stdSplit" data-verso-hover="8389">stdSplit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=stdSplit" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#stdSplit" title="Documentation for stdSplit"><span class="const token" data-binding="const-stdSplit" data-verso-hover="8383">stdSplit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#stdSplit" title="Documentation for stdSplit"><span class="const token" data-binding="const-stdSplit" data-verso-hover="8383">stdSplit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="354">×</span></a><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a></div></pre><div class="text">
                   <p>
-                    Splits a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a></code> into two separate states.</p>
+                    Splits a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a></code> into two separate states.</p>
                   </div>
                 </div>
               <div class="namedocs" id="mkStdGen">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=mkStdGen" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#mkStdGen" title="Documentation for mkStdGen"><span class="const token" data-binding="const-mkStdGen" data-verso-hover="8390">mkStdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1651" data-verso-hover="246">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#mkStdGen" title="Documentation for mkStdGen"><span class="const token" data-binding="const-mkStdGen" data-verso-hover="8390">mkStdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1651" data-verso-hover="246">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8386">StdGen</span></a></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=mkStdGen" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#mkStdGen" title="Documentation for mkStdGen"><span class="const token" data-binding="const-mkStdGen" data-verso-hover="8384">mkStdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1651" data-verso-hover="246">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#mkStdGen" title="Documentation for mkStdGen"><span class="const token" data-binding="const-mkStdGen" data-verso-hover="8384">mkStdGen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1651" data-verso-hover="246">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Random-Numbers/#StdGen" title="Documentation for StdGen"><span class="const token" data-binding="const-StdGen" data-verso-hover="8380">StdGen</span></a></div></pre><div class="text">
                   <p>
                     Returns a standard number generator.</p>
                   </div>
@@ -2849,12 +2856,12 @@ passing a random number generator down to recursive calls).</p>
               <h2 id="The-Lean-Language-Reference--IO--Random-Numbers--System-Randomness">
                 21.10.2. System Randomness<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Random-Numbers--System-Randomness" title="Permalink">🔗</a></span></h2>
               <div class="namedocs" id="IO___getRandomBytes">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=IO.getRandomBytes" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#IO___getRandomBytes" title="Documentation for IO.getRandomBytes"><span class="const token" data-binding="const-IO.getRandomBytes" data-verso-hover="8391">IO.getRandomBytes</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1694" data-verso-hover="4787">nBytes</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Fixed-Precision-Integers/#USize___ofBitVec" title="Documentation for USize"><span class="const token" data-binding="const-USize" data-verso-hover="660">USize</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="4">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/Byte-Arrays/#ByteArray___mk" title="Documentation for ByteArray"><span class="const token" data-binding="const-ByteArray" data-verso-hover="4699">ByteArray</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#IO___getRandomBytes" title="Documentation for IO.getRandomBytes"><span class="const token" data-binding="const-IO.getRandomBytes" data-verso-hover="8391">IO.getRandomBytes</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1694" data-verso-hover="4787">nBytes</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Fixed-Precision-Integers/#USize___ofBitVec" title="Documentation for USize"><span class="const token" data-binding="const-USize" data-verso-hover="660">USize</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
-  </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="4">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/Byte-Arrays/#ByteArray___mk" title="Documentation for ByteArray"><span class="const token" data-binding="const-ByteArray" data-verso-hover="4699">ByteArray</span></a></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=IO.getRandomBytes" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block"><div class="wide-only"><a href="IO/Random-Numbers/#IO___getRandomBytes" title="Documentation for IO.getRandomBytes"><span class="const token" data-binding="const-IO.getRandomBytes" data-verso-hover="8385">IO.getRandomBytes</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1694" data-verso-hover="4782">nBytes</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Fixed-Precision-Integers/#USize___ofBitVec" title="Documentation for USize"><span class="const token" data-binding="const-USize" data-verso-hover="660">USize</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="4">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/Byte-Arrays/#ByteArray___mk" title="Documentation for ByteArray"><span class="const token" data-binding="const-ByteArray" data-verso-hover="4694">ByteArray</span></a></div><div class="narrow-only"><a href="IO/Random-Numbers/#IO___getRandomBytes" title="Documentation for IO.getRandomBytes"><span class="const token" data-binding="const-IO.getRandomBytes" data-verso-hover="8385">IO.getRandomBytes</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1694" data-verso-hover="4782">nBytes</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Fixed-Precision-Integers/#USize___ofBitVec" title="Documentation for USize"><span class="const token" data-binding="const-USize" data-verso-hover="660">USize</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+  </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="4">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/Byte-Arrays/#ByteArray___mk" title="Documentation for ByteArray"><span class="const token" data-binding="const-ByteArray" data-verso-hover="4694">ByteArray</span></a></div></pre><div class="text">
                   <p>
                     Reads bytes from a system entropy source. It is not guaranteed to be cryptographically secure.</p>
                   <p>
-                    If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1656" data-verso-hover="4787">nBytes</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="literal number token" data-binding="" data-verso-hover="11">0</span></code>, returns immediately with an empty buffer.</p>
+                    If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1656" data-verso-hover="4782">nBytes</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="literal number token" data-binding="" data-verso-hover="11">0</span></code>, returns immediately with an empty buffer.</p>
                   </div>
                 </div>
               </section>

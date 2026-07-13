@@ -1,4 +1,4 @@
-<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
+<!-- Generated from commit 5d2a1e3c97acc754de5b9751efd6d13ba6666530 at 2026-07-13T19:33:45Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -331,10 +331,15 @@ pre.json {
   color: #555;
 }
 
-.namedocs h1 {
-  font-size: inherit;
-  font-weight: bold
+.namedocs .docstring-section {
   margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs .docstring-section-label {
+  font-size: inherit;
+  font-weight: bold;
+  margin-top: 0;
   margin-bottom: 1rem;
 }
 
@@ -2349,7 +2354,46 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.onload = async () => {
 
     // Don't show hovers inside of closed tactic states
     function blockedByTactic(elem) {
@@ -2423,207 +2467,166 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let docsJson = "-verso-docs.json";
-    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
 
-      function hideParentTooltips(element) {
-        let parent = element.parentElement;
-        while (parent) {
-          const tippyInstance = parent._tippy;
-          if (tippyInstance) {
-            tippyInstance.hide();
-          }
-          parent = parent.parentElement;
+    function hideParentTooltips(element) {
+      let parent = element.parentElement;
+      while (parent) {
+        const tippyInstance = parent._tippy;
+        if (tippyInstance) {
+          tippyInstance.hide();
         }
+        parent = parent.parentElement;
       }
+    }
 
 
 
-      const defaultTippyProps = {
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        /* theme: "lean", */
-        maxWidth: "none",
-        appendTo: () => document.body,
-        interactive: true,
-        delay: [100, null],
-        /* ignoreAttributes: true, */
-        followCursor: 'initial',
-        onShow(inst) {
-          if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
-            if (toggle && toggle.checked) {
-              return false;
-            }
-            hideParentTooltips(inst.reference);
-            if (blockedByTippy(inst.reference)) { return false; }
-
-          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
-            if (blockedByTactic(inst.reference)) { return false };
-            if (blockedByTippy(inst.reference)) { return false; }
-          } else { // Nothing to show here!
+    const defaultTippyProps = {
+      /* DEBUG -- remove the space: * /
+      onHide(any) { return false; },
+      trigger: "click",
+      // */
+      /* theme: "lean", */
+      maxWidth: "none",
+      appendTo: () => document.body,
+      interactive: true,
+      delay: [100, null],
+      /* ignoreAttributes: true, */
+      followCursor: 'initial',
+      onShow(inst) {
+        if (inst.reference.className == 'tactic') {
+          const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
+          if (toggle && toggle.checked) {
             return false;
           }
-        },
-        onShown(inst) { visibleTippyCount++; },
-        onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
-        content (tgt) {
-          const content = document.createElement("span");
-          if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-            state.style.display = "block";
-            content.appendChild(state);
-            content.style.display = "block";
-            content.className = "hl lean popup";
-          } else {
-            content.className = "hl lean";
-            content.style.display = "block";
-            content.style.maxHeight = "300px";
-            content.style.overflowY = "auto";
-            content.style.overflowX = "hidden";
-            const hoverId = tgt.dataset.versoHover;
-            const hoverInfo = tgt.querySelector(".hover-info");
-            if (hoverId) { // Docstrings from the table
-              // TODO stop doing an implicit conversion from string to number here
-              let data = versoDocData[hoverId];
-              if (data) {
-                const info = document.createElement("span");
-                info.className = "hover-info";
-                info.style.display = "block";
-                info.innerHTML = data;
-                content.appendChild(info);
-                /* Render docstrings - TODO server-side */
-                if ('undefined' !== typeof marked) {
-                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                        const str = d.innerText;
-                        const html = marked.parse(str);
-                        const rendered = document.createElement("div");
-                        rendered.classList.add("docstring");
-                        rendered.innerHTML = html;
-                        d.parentNode.replaceChild(rendered, d);
-                    }
-                }
-              } else {
-                content.innerHTML = "Failed to load doc ID: " + hoverId;
-              }
-            } else if (hoverInfo) { // The inline info, still used for compiler messages
-              content.appendChild(hoverInfo.cloneNode(true));
-            }
-            const extraLinks = tgt.parentElement.dataset['versoLinks'];
-            if (extraLinks) {
-              try {
-                const extras = JSON.parse(extraLinks);
-                const links = document.createElement('ul');
-                links.className = 'extra-doc-links';
-                extras.forEach((l) => {
-                  const li = document.createElement('li');
-                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
-                  links.appendChild(li);
-                });
-                content.appendChild(links);
-              } catch (error) {
-                console.error(error);
-              }
-            }
-          }
-          return content;
+          hideParentTooltips(inst.reference);
+          if (blockedByTippy(inst.reference)) { return false; }
+
+        } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (blockedByTactic(inst.reference)) { return false };
+          if (blockedByTippy(inst.reference)) { return false; }
+        } else { // Nothing to show here!
+          return false;
         }
-      };
-
-
-      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'lean');
-      });
-      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'warning message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'info message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'error message');
-      });
-      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'tactic');
-      });
-      // Skip tokens inside closed tactics — they interfere with tactic tippys
-      const closedTactics = new Set();
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle && !toggle.checked) closedTactics.add(tactic);
-      });
-      function isInsideClosedTactic(el) {
-        const tactic = el.closest('.tactic');
-        return tactic && tactic !== el && closedTactics.has(tactic);
-      }
-
-      const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-      tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-      // Create/destroy token tippys when tactic checkbox toggles
-      const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle) toggle.addEventListener('change', () => {
-          if (toggle.checked) {
-            closedTactics.delete(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (!tok._tippy && tok.matches(tacticTippySelector)) {
-                tippy(tok, defaultTippyProps);
+      },
+      onShown(inst) { visibleTippyCount++; },
+      onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
+      content (tgt) {
+        const content = document.createElement("span");
+        if (tgt.className == 'tactic') {
+          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+        } else {
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
               }
-            });
-          } else {
-            closedTactics.add(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (tok._tippy) tok._tippy.destroy();
-            });
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
           }
-        });
+          const extraLinks = tgt.parentElement.dataset['versoLinks'];
+          if (extraLinks) {
+            try {
+              const extras = JSON.parse(extraLinks);
+              const links = document.createElement('ul');
+              links.className = 'extra-doc-links';
+              extras.forEach((l) => {
+                const li = document.createElement('li');
+                li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                links.appendChild(li);
+              });
+              content.appendChild(links);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+        return content;
+      }
+    };
+
+
+    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'lean');
+    });
+    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'warning message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'info message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'error message');
+    });
+    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'tactic');
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    const closedTactics = new Set();
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    function isInsideClosedTactic(el) {
+      const tactic = el.closest('.tactic');
+      return tactic && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
+    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle) toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          closedTactics.delete(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (!tok._tippy && tok.matches(tacticTippySelector)) {
+              tippy(tok, defaultTippyProps);
+            }
+          });
+        } else {
+          closedTactics.add(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (tok._tippy) tok._tippy.destroy();
+          });
+        }
       });
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
     <script>
       
 window.addEventListener("load", () => {
@@ -2793,12 +2796,14 @@ field.</p>
                 <p>
                   It should be used in contexts that require a type to be universe polymorphic, thus disallowing
 <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></code>.</p>
-                <h1>
-                  Constructors</h1>
-                <div class="constructor">
-                  <pre class="name-and-type hl lean"><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit.unit"><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="114">PUnit.unit.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit"><span class="const token" data-binding="const-PUnit" data-verso-hover="307">PUnit</span></a></pre><div class="docs">
-                    <p>
-                      The only element of the universe-polymorphic unit type.</p>
+                <div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructors-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+                  <p class="docstring-section-label" id="docstring-section-Constructors-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+                    Constructors</p>
+                  <div class="constructor">
+                    <pre class="name-and-type hl lean"><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit.unit"><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="114">PUnit.unit.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit"><span class="const token" data-binding="const-PUnit" data-verso-hover="307">PUnit</span></a></pre><div class="docs">
+                      <p>
+                        The only element of the universe-polymorphic unit type.</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2813,49 +2818,49 @@ All elements of unit-like types are <a class="technical-term" href="The-Type-Sys
               <details class="example"><summary class="description">Definitional Equality of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></code></summary><div class="example-content">
                   <p>
                     Every term with type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></code> is definitionally equal to every other term with type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a></code>:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-3756">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3764">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="1815">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1815">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3764">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3764">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3779">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="1815">e1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-3781">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1815">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3789">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-3756">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3764">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="1803">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1803">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3764">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3764">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3779">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="1803">e1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-3781">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1803">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3789">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><div class="live-link">
                     <a href="javascript:openLiveLink(&quot;KYDwhgtgDgNsAEAKYBGewBM8Bc8CqAdgJYAuAlDumgLzpba0BOAZjEA&quot;)">Live ↪</a></div>
                   </div>
                 </details><details class="example"><summary class="description">Definitional Equality of Unit-Like Types</summary><div class="example-content">
                   <p>
-                    Both <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-CustomUnit" data-verso-hover="5870">CustomUnit</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="5871">AlsoUnit</span></a></code> are unit-like types, with a single constructor that takes no parameters.
+                    Both <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-CustomUnit" data-verso-hover="5865">CustomUnit</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="5866">AlsoUnit</span></a></code> are unit-like types, with a single constructor that takes no parameters.
 Every pair of terms with either type is definitionally equal.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4061" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-CustomUnit" data-verso-hover="5870" id="CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">CustomUnit</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4061" data-verso-hover="26">where</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-4090">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-CustomUnit.customUnit" data-verso-hover="5872" id="CustomUnit___customUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">customUnit</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4061" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-CustomUnit" data-verso-hover="5865" id="CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">CustomUnit</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4061" data-verso-hover="26">where</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-4090">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-CustomUnit.customUnit" data-verso-hover="5867" id="CustomUnit___customUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">customUnit</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4104">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4112">(</span><span class="var token" data-binding="var-_uniq.54" data-verso-hover="5873">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.56" data-verso-hover="5873">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4112">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-CustomUnit" data-verso-hover="5870">CustomUnit</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4112">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4133">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.54" data-verso-hover="5873">e1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4135">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.56" data-verso-hover="5873">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4143">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4104">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4112">(</span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="5868">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.55" data-verso-hover="5868">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4112">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-CustomUnit" data-verso-hover="5865">CustomUnit</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4112">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4133">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="5868">e1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4135">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.55" data-verso-hover="5868">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4143">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-4151">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="5871" id="AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">AlsoUnit</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-4151">where</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-4151">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="5866" id="AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">AlsoUnit</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-4151">where</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4177">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4185">(</span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="5874">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.122" data-verso-hover="5874">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4185">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="5871">AlsoUnit</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4185">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4204">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="5874">e1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4206">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.122" data-verso-hover="5874">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4214">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4177">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4185">(</span><span class="var token" data-binding="var-_uniq.119" data-verso-hover="5869">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.121" data-verso-hover="5869">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4185">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="5866">AlsoUnit</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4185">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4204">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.119" data-verso-hover="5869">e1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4206">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.121" data-verso-hover="5869">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4214">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                    Types with parameters, such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-WithParam" data-verso-hover="5875">WithParam</span></a></code>, are also unit-like if they have a single constructor that does not take parameters.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4369" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-WithParam" data-verso-hover="5875" id="WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">WithParam</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4389">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4389">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4389">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4369" data-verso-hover="26">where</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-4407">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-WithParam.mk" data-verso-hover="5876" id="WithParam___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text">
+                    Types with parameters, such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-WithParam" data-verso-hover="5870">WithParam</span></a></code>, are also unit-like if they have a single constructor that does not take parameters.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4369" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-WithParam" data-verso-hover="5870" id="WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">WithParam</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4389">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="11">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4389">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4389">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4369" data-verso-hover="26">where</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-4407">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-WithParam.mk" data-verso-hover="5871" id="WithParam___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4413">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4421">(</span><span class="var token" data-binding="var-_uniq.146" data-verso-hover="5877">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.151" data-verso-hover="5877">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4421">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-WithParam" data-verso-hover="5875">WithParam</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">3</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4421">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4441">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.146" data-verso-hover="5877">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4443">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.151" data-verso-hover="5877">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4449">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4413">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4421">(</span><span class="var token" data-binding="var-_uniq.152" data-verso-hover="5872">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.157" data-verso-hover="5872">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4421">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-WithParam" data-verso-hover="5870">WithParam</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">3</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4421">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4441">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.152" data-verso-hover="5872">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4443">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.157" data-verso-hover="5872">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4449">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     Constructors with non-proof parameters are not unit-like, even if the parameters are all unit-like types.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4575" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-NotUnitLike" data-verso-hover="5878" id="NotUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">NotUnitLike</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4575" data-verso-hover="26">where</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-4605">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-NotUnitLike.mk" data-verso-hover="5879" id="NotUnitLike___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4610">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1815">u</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4610">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4610">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4663">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4671">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5880">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="5880">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4671">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#NotUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NotUnitLike" data-verso-hover="5878">NotUnitLike</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4671">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4693">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5880">e1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4695">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="5880">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4703">:=</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Type mismatch</span><span class="text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4575" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-NotUnitLike" data-verso-hover="5873" id="NotUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">NotUnitLike</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4575" data-verso-hover="26">where</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-4605">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-NotUnitLike.mk" data-verso-hover="5874" id="NotUnitLike___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4610">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1803">u</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4610">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4610">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4663">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4671">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5875">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="5875">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4671">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#NotUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NotUnitLike" data-verso-hover="5873">NotUnitLike</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4671">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4693">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5875">e1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4695">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="5875">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4703">:=</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Type mismatch</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text"></span></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">has type</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">?m.3</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.3</span></span><span class="text"></span><span class="text">
 </span><span class="text">but is expected to have type</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5880">e1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="5880">e2</span></span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a></span><span class="inter-text">
+  </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5875">e1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="5875">e2</span></span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a></span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Type mismatch</span><span class="text">
   </span><span class="highlighted"><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">has type</span><span class="text">
   </span><span class="highlighted"><span class="unknown token" data-binding="">?m.3</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.3</span></span><span class="text"></span><span class="text">
 </span><span class="text">but is expected to have type</span><span class="text">
-  </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.9" data-verso-hover="5880">e1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="5880">e2</span></span><span class="text"></span><span class="text"></span><span class="text"></span></span></pre><p>
+  </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.9" data-verso-hover="5875">e1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="5875">e2</span></span><span class="text"></span><span class="text"></span><span class="text"></span></span></pre><p>
                     Constructors of unit-like types may take parameters that are proofs.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4906" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="5881" id="ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">ProofUnitLike</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4906" data-verso-hover="26">where</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-4938">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-ProofUnitLike.mk" data-verso-hover="5882" id="ProofUnitLike___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4943">:</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4945">=</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-4945">→</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="5881">ProofUnitLike</span></a><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4906" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="5876" id="ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">ProofUnitLike</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4906" data-verso-hover="26">where</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-4938">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-ProofUnitLike.mk" data-verso-hover="5877" id="ProofUnitLike___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4943">:</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4945">=</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">2</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-4945">→</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="5876">ProofUnitLike</span></a><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4970">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4978">(</span><span class="var token" data-binding="var-_uniq.139" data-verso-hover="5883">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.141" data-verso-hover="5883">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4978">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="5881">ProofUnitLike</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4978">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5002">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.139" data-verso-hover="5883">e1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-5004">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.141" data-verso-hover="5883">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-5012">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4970">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4978">(</span><span class="var token" data-binding="var-_uniq.141" data-verso-hover="5878">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.143" data-verso-hover="5878">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4978">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="5876">ProofUnitLike</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4978">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-5002">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.141" data-verso-hover="5878">e1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-5004">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.143" data-verso-hover="5878">e2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-5012">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><div class="live-link">
                     <a href="javascript:openLiveLink(&quot;JYOwJgrgxgLsBuBTABAYQgZxgewLYFURgZkB3AC0QCdEAoZZAH2SkxwKJltsQA8BDXAAcANigAUiAIzJEAJmQAuNGzyFiASiWyZAXlkLF+qgDMR3LFWgwINZAEERGbOpIVqdHgOFjkkmfLajs6uWsrSyPqBRsim5rSgkLAIKADqxOQACvxUgn4g2gBy/DBa7jT0TMi4ANbcfIKiErzIAJ7a6TBZOXkAzGHILfrtMXHcidYpyIXYMK4AMsA1KOV0DMy1fhDaoePgk0jImVTY2CYLSyuUFevVNdoK+gqASYRHJ2cXy/XeTX4R0W9TudOItlgMIlFDMYzEA&quot;)">Live ↪</a></div>
                   </div>

@@ -1,4 +1,4 @@
-<!-- Generated from commit 60ca5644fab86671d94a16814c101d1dce463766 at 2026-06-16T14:46:20Z -->
+<!-- Generated from commit 5d2a1e3c97acc754de5b9751efd6d13ba6666530 at 2026-07-13T19:33:45Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -331,10 +331,15 @@ pre.json {
   color: #555;
 }
 
-.namedocs h1 {
-  font-size: inherit;
-  font-weight: bold
+.namedocs .docstring-section {
   margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs .docstring-section-label {
+  font-size: inherit;
+  font-weight: bold;
+  margin-top: 0;
   margin-bottom: 1rem;
 }
 
@@ -2349,7 +2354,46 @@ window.addEventListener("load", () => {
 </script>
     <script>
       
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.onload = async () => {
 
     // Don't show hovers inside of closed tactic states
     function blockedByTactic(elem) {
@@ -2423,207 +2467,166 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let docsJson = "-verso-docs.json";
-    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
 
-      function hideParentTooltips(element) {
-        let parent = element.parentElement;
-        while (parent) {
-          const tippyInstance = parent._tippy;
-          if (tippyInstance) {
-            tippyInstance.hide();
-          }
-          parent = parent.parentElement;
+    function hideParentTooltips(element) {
+      let parent = element.parentElement;
+      while (parent) {
+        const tippyInstance = parent._tippy;
+        if (tippyInstance) {
+          tippyInstance.hide();
         }
+        parent = parent.parentElement;
       }
+    }
 
 
 
-      const defaultTippyProps = {
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        /* theme: "lean", */
-        maxWidth: "none",
-        appendTo: () => document.body,
-        interactive: true,
-        delay: [100, null],
-        /* ignoreAttributes: true, */
-        followCursor: 'initial',
-        onShow(inst) {
-          if (inst.reference.className == 'tactic') {
-            const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
-            if (toggle && toggle.checked) {
-              return false;
-            }
-            hideParentTooltips(inst.reference);
-            if (blockedByTippy(inst.reference)) { return false; }
-
-          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
-            if (blockedByTactic(inst.reference)) { return false };
-            if (blockedByTippy(inst.reference)) { return false; }
-          } else { // Nothing to show here!
+    const defaultTippyProps = {
+      /* DEBUG -- remove the space: * /
+      onHide(any) { return false; },
+      trigger: "click",
+      // */
+      /* theme: "lean", */
+      maxWidth: "none",
+      appendTo: () => document.body,
+      interactive: true,
+      delay: [100, null],
+      /* ignoreAttributes: true, */
+      followCursor: 'initial',
+      onShow(inst) {
+        if (inst.reference.className == 'tactic') {
+          const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
+          if (toggle && toggle.checked) {
             return false;
           }
-        },
-        onShown(inst) { visibleTippyCount++; },
-        onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
-        content (tgt) {
-          const content = document.createElement("span");
-          if (tgt.className == 'tactic') {
-            const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-            state.style.display = "block";
-            content.appendChild(state);
-            content.style.display = "block";
-            content.className = "hl lean popup";
-          } else {
-            content.className = "hl lean";
-            content.style.display = "block";
-            content.style.maxHeight = "300px";
-            content.style.overflowY = "auto";
-            content.style.overflowX = "hidden";
-            const hoverId = tgt.dataset.versoHover;
-            const hoverInfo = tgt.querySelector(".hover-info");
-            if (hoverId) { // Docstrings from the table
-              // TODO stop doing an implicit conversion from string to number here
-              let data = versoDocData[hoverId];
-              if (data) {
-                const info = document.createElement("span");
-                info.className = "hover-info";
-                info.style.display = "block";
-                info.innerHTML = data;
-                content.appendChild(info);
-                /* Render docstrings - TODO server-side */
-                if ('undefined' !== typeof marked) {
-                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                        const str = d.innerText;
-                        const html = marked.parse(str);
-                        const rendered = document.createElement("div");
-                        rendered.classList.add("docstring");
-                        rendered.innerHTML = html;
-                        d.parentNode.replaceChild(rendered, d);
-                    }
-                }
-              } else {
-                content.innerHTML = "Failed to load doc ID: " + hoverId;
-              }
-            } else if (hoverInfo) { // The inline info, still used for compiler messages
-              content.appendChild(hoverInfo.cloneNode(true));
-            }
-            const extraLinks = tgt.parentElement.dataset['versoLinks'];
-            if (extraLinks) {
-              try {
-                const extras = JSON.parse(extraLinks);
-                const links = document.createElement('ul');
-                links.className = 'extra-doc-links';
-                extras.forEach((l) => {
-                  const li = document.createElement('li');
-                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
-                  links.appendChild(li);
-                });
-                content.appendChild(links);
-              } catch (error) {
-                console.error(error);
-              }
-            }
-          }
-          return content;
+          hideParentTooltips(inst.reference);
+          if (blockedByTippy(inst.reference)) { return false; }
+
+        } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (blockedByTactic(inst.reference)) { return false };
+          if (blockedByTippy(inst.reference)) { return false; }
+        } else { // Nothing to show here!
+          return false;
         }
-      };
-
-
-      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'lean');
-      });
-      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'warning message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'info message');
-      });
-      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'error message');
-      });
-      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-        element.setAttribute('data-tippy-theme', 'tactic');
-      });
-      // Skip tokens inside closed tactics — they interfere with tactic tippys
-      const closedTactics = new Set();
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle && !toggle.checked) closedTactics.add(tactic);
-      });
-      function isInsideClosedTactic(el) {
-        const tactic = el.closest('.tactic');
-        return tactic && tactic !== el && closedTactics.has(tactic);
-      }
-
-      const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-      tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-      // Create/destroy token tippys when tactic checkbox toggles
-      const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-      document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-        const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-        if (toggle) toggle.addEventListener('change', () => {
-          if (toggle.checked) {
-            closedTactics.delete(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (!tok._tippy && tok.matches(tacticTippySelector)) {
-                tippy(tok, defaultTippyProps);
+      },
+      onShown(inst) { visibleTippyCount++; },
+      onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
+      content (tgt) {
+        const content = document.createElement("span");
+        if (tgt.className == 'tactic') {
+          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+        } else {
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
               }
-            });
-          } else {
-            closedTactics.add(tactic);
-            tactic.querySelectorAll('.token').forEach(tok => {
-              if (tok._tippy) tok._tippy.destroy();
-            });
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
           }
-        });
+          const extraLinks = tgt.parentElement.dataset['versoLinks'];
+          if (extraLinks) {
+            try {
+              const extras = JSON.parse(extraLinks);
+              const links = document.createElement('ul');
+              links.className = 'extra-doc-links';
+              extras.forEach((l) => {
+                const li = document.createElement('li');
+                li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                links.appendChild(li);
+              });
+              content.appendChild(links);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+        return content;
+      }
+    };
+
+
+    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'lean');
+    });
+    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'warning message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'info message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'error message');
+    });
+    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'tactic');
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    const closedTactics = new Set();
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    function isInsideClosedTactic(el) {
+      const tactic = el.closest('.tactic');
+      return tactic && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
+    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle) toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          closedTactics.delete(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (!tok._tippy && tok.matches(tacticTippySelector)) {
+              tippy(tok, defaultTippyProps);
+            }
+          });
+        } else {
+          closedTactics.add(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (tok._tippy) tok._tippy.destroy();
+          });
+        }
       });
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
     <script>
       
 window.addEventListener("load", () => {
@@ -2744,36 +2747,36 @@ Each situation in which coercions may be inserted has a corresponding prefix ope
 If <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.1171" data-verso-hover="60">α</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.1191" data-verso-hover="60">β</span></code> are not the same type, <code class="hl lean inline" data-lean-context="examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-11283">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-11284">(</span><span class="var token" data-binding="var-_uniq.1217" data-verso-hover="50">e</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-11284">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1203" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-11284">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-11283">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1207" data-verso-hover="60">β</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-11283">)</span></code> arranges for <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.1310" data-verso-hover="50">e</span></code> to have type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.1312" data-verso-hover="60">α</span></code> and then inserts a coercion from <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.1328" data-verso-hover="60">α</span></code> to <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.1348" data-verso-hover="60">β</span></code>.</p>
             <p>
               When a coercion is discovered, the instances used to find it are unfolded and removed from the resulting term.
-To the extent possible, calls to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2335">Coe.coe</span></a></code> and related functions do not occur in the final term.
+To the extent possible, calls to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2324">Coe.coe</span></a></code> and related functions do not occur in the final term.
 This process of unfolding makes terms more readable.
 Even more importantly, it means that coercions can control the evaluation of the coerced terms by wrapping them in functions.</p>
             <details class="example"><summary class="description">Controlling Evaluation with Coercions</summary><div class="example-content">
                 <p>
-                  The structure <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later" data-verso-hover="2336">Later</span></a></code> represents a term that can be evaluated in the future, by calling the contained function.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-12003">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Later" data-verso-hover="2336" id="Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_">Later</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12019">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12019">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="61">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12019">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-12003">where</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-Later.get" data-verso-hover="2337" id="Later___get-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_">get</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12045">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-12047">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text">
+                  The structure <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later" data-verso-hover="2325">Later</span></a></code> represents a term that can be evaluated in the future, by calling the contained function.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-12003">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Later" data-verso-hover="2325" id="Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_">Later</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12019">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12019">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="61">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12019">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-12003">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Later.get" data-verso-hover="2326" id="Later___get-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_">get</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12045">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="6">Unit</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-12047">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   A coercion from any value to a later value is performed by creating a function that wraps it.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-12166">instance</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12175">:</span><span class="inter-text"> </span><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail"><span class="const token" data-binding="const-CoeTail" data-verso-hover="2338">CoeTail</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="48">α</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12188">(</span><a href="Coercions/Coercion-Insertion/#Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later" data-verso-hover="2336">Later</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="48">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-12188">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-12199">where</span><span class="inter-text">
-  </span><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail.coe"><span class="const token" data-binding="const-CoeTail.coe" data-verso-hover="2339">coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.24" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-12213">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.structInst-12216">{</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Later___get-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later.get" data-verso-hover="2340">get</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-12222">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-12225">fun</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12229">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-12229">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-12229">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.24" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.structInst-12216">}</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-12166">instance</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12175">:</span><span class="inter-text"> </span><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail"><span class="const token" data-binding="const-CoeTail" data-verso-hover="2327">CoeTail</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="48">α</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12188">(</span><a href="Coercions/Coercion-Insertion/#Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later" data-verso-hover="2325">Later</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="48">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-12188">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-12199">where</span><span class="inter-text">
+  </span><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail.coe"><span class="const token" data-binding="const-CoeTail.coe" data-verso-hover="2328">coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.24" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-12213">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.structInst-12216">{</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Later___get-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later.get" data-verso-hover="2329">get</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-12222">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-12225">fun</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12229">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-12229">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-12229">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.24" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.structInst-12216">}</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                  However, if coercion insertion resulted in an application of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail.coe"><span class="const token" data-binding="const-CoeTail.coe" data-verso-hover="2341">CoeTail.coe</span></a></code>, then this coercion would not have the desired effect at runtime, because the coerced value would be evaluated and then saved in the function's closure.
+                  However, if coercion insertion resulted in an application of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail.coe"><span class="const token" data-binding="const-CoeTail.coe" data-verso-hover="2330">CoeTail.coe</span></a></code>, then this coercion would not have the desired effect at runtime, because the coerced value would be evaluated and then saved in the function's closure.
 Because coercion implementations are unfolded, this instance is nonetheless useful.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-12571">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-tomorrow" data-verso-hover="2342" id="tomorrow-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_">tomorrow</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12584">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later" data-verso-hover="2336">Later</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-12599">:=</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-12571">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-tomorrow" data-verso-hover="2331" id="tomorrow-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_">tomorrow</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12584">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later" data-verso-hover="2325">Later</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-12599">:=</span><span class="inter-text">
   </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12604">(</span><a href="Basic-Types/Natural-Numbers/#Nat___fold" title="Documentation for Nat.fold"><span class="const token" data-binding="const-Nat.fold" data-verso-hover="195">Nat.fold</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">10000</span><span class="inter-text">
     </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-12624">(</span><span class="unknown token" data-binding="">init</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-12624">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="224">""</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-12624">)</span><span class="inter-text">
-    </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12641">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-12642">fun</span><span class="inter-text"> </span><span class="wildcard token" data-binding="">_</span><span class="inter-text"> </span><span class="wildcard token" data-binding="">_</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-12646">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_++_»-12655">++</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2343">"tomorrow"</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-12641">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-12604">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-12604">)</span><span class="inter-text">
+    </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12641">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-12642">fun</span><span class="inter-text"> </span><span class="wildcard token" data-binding="">_</span><span class="inter-text"> </span><span class="wildcard token" data-binding="">_</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-12646">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_++_»-12655">++</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2332">"tomorrow"</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-12641">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-12604">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-12604">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   Printing the resulting definition shows that the computation is inside the function's body:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="text">def</span><span class="text"> </span><span class="text">tomorrow</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Coercions/Coercion-Insertion/#Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later" data-verso-hover="2336">Later</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a></span><span class="text"> :=</span><span class="text">
-</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-Later.mk" data-verso-hover="2344">{</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Later___get-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later.get" data-verso-hover="2345">get</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Later.mk" data-verso-hover="2344">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="1815">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___fold" title="Documentation for Nat.fold"><span class="const token" data-binding="const-Nat.fold" data-verso-hover="195">Nat.fold</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">10000</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.14" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.16" data-verso-hover="2346">x_1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.17" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.17" data-verso-hover="168">s</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAppend___mk" title="Documentation for HAppend.hAppend"><span class="const token" data-binding="const-HAppend.hAppend" data-verso-hover="995">++</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2343">"tomorrow"</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="224">""</span><span class="inter-text"> </span><span class="const token" data-binding="const-Later.mk" data-verso-hover="2344">}</span></span></code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.print-12805">#print</span></span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#tomorrow-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-tomorrow" data-verso-hover="2342">tomorrow</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="text">def</span><span class="text"> </span><span class="text">tomorrow</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><a href="Coercions/Coercion-Insertion/#Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later" data-verso-hover="2336">Later</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a></span><span class="text"> :=</span><span class="text">
-</span><span class="highlighted"><span class="const token" data-binding="const-Later.mk" data-verso-hover="2344">{</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Later___get-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later.get" data-verso-hover="2345">get</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Later.mk" data-verso-hover="2344">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="1815">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___fold" title="Documentation for Nat.fold"><span class="const token" data-binding="const-Nat.fold" data-verso-hover="195">Nat.fold</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">10000</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.14" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.16" data-verso-hover="2346">x_1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.17" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.17" data-verso-hover="168">s</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAppend___mk" title="Documentation for HAppend.hAppend"><span class="const token" data-binding="const-HAppend.hAppend" data-verso-hover="995">++</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2343">"tomorrow"</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="224">""</span><span class="inter-text"> </span><span class="const token" data-binding="const-Later.mk" data-verso-hover="2344">}</span></span></span></pre><div class="live-link">
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="text">def</span><span class="text"> </span><span class="text">tomorrow</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Coercions/Coercion-Insertion/#Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later" data-verso-hover="2325">Later</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a></span><span class="text"> :=</span><span class="text">
+</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-Later.mk" data-verso-hover="2333">{</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Later___get-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later.get" data-verso-hover="2334">get</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Later.mk" data-verso-hover="2333">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="1803">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___fold" title="Documentation for Nat.fold"><span class="const token" data-binding="const-Nat.fold" data-verso-hover="195">Nat.fold</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">10000</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.14" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.16" data-verso-hover="2335">x_1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.17" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.17" data-verso-hover="168">s</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAppend___mk" title="Documentation for HAppend.hAppend"><span class="const token" data-binding="const-HAppend.hAppend" data-verso-hover="980">++</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2332">"tomorrow"</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="224">""</span><span class="inter-text"> </span><span class="const token" data-binding="const-Later.mk" data-verso-hover="2333">}</span></span></code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.print-12805">#print</span></span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#tomorrow-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-tomorrow" data-verso-hover="2331">tomorrow</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="text">def</span><span class="text"> </span><span class="text">tomorrow</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><a href="Coercions/Coercion-Insertion/#Later-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later" data-verso-hover="2325">Later</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="18">String</span></a></span><span class="text"> :=</span><span class="text">
+</span><span class="highlighted"><span class="const token" data-binding="const-Later.mk" data-verso-hover="2333">{</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Later___get-_LPAR_in-Controlling-Evaluation-with-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Later.get" data-verso-hover="2334">get</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Later.mk" data-verso-hover="2333">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="1803">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___fold" title="Documentation for Nat.fold"><span class="const token" data-binding="const-Nat.fold" data-verso-hover="195">Nat.fold</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">10000</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.14" data-verso-hover="11">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.16" data-verso-hover="2335">x_1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.17" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.17" data-verso-hover="168">s</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAppend___mk" title="Documentation for HAppend.hAppend"><span class="const token" data-binding="const-HAppend.hAppend" data-verso-hover="980">++</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2332">"tomorrow"</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="224">""</span><span class="inter-text"> </span><span class="const token" data-binding="const-Later.mk" data-verso-hover="2333">}</span></span></span></pre><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;M4FwTgrgxiFgpgAgDIEMTzIgFIRuBEBciAKgJ4AOSEAlIgO4AWm8AUIogObwiGICqAOwCWPQEmEiXCxZCBoVAKhIiAYQD28YqiEAbCTjQYsuWo2ZtEUdYgAehALyIA3p273EAMwgCctOwD4bRABfKQATeHdEEFUAW1UwMFU6XgNMRABlcBkOe3NsADl0ADp3VW1QxABGAAZa6vN2bBkRNwAiVuoGnE9vAH1EfuBEf0QhgGoxxFbouISkjt5MsGzOlgBicmWBHhn4xLogA&quot;)">Live ↪</a></div>
                 </div>
               </details><details class="example"><summary class="description">Duplicate Evaluation in Coercions</summary><div class="example-content">
                 <p>
-                  Because the contents of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1853">Coe</span></a></code> instances are unfolded during coercion insertion, coercions that use their argument more than once should be careful to ensure that evaluation occurs just once.
+                  Because the contents of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1841">Coe</span></a></code> instances are unfolded during coercion insertion, coercions that use their argument more than once should be careful to ensure that evaluation occurs just once.
 This can be done by using a helper function that is not part of the instance, or by using <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.let : term</code><span class="sep"></span><code class="docstring">`let` is used to declare a local definition. Example:
 ```
 let x := 1
@@ -2797,52 +2800,52 @@ x + y
 The *anaphoric let* `let := v` defines a variable called `this`.
 </code></code><code class="kw">let</code></span> to evaluate the coerced term and then reuse its resulting value.</p>
                 <p>
-                  The structure <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2347">Twice</span></a></code> requires that both fields have the same value:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-13530">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Twice" data-verso-hover="2347" id="Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_">Twice</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13546">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13546">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="61">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13546">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-13530">where</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-Twice.first" data-verso-hover="2348" id="Twice___first-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_">first</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13574">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="60">α</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-Twice.second" data-verso-hover="2349" id="Twice___second-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_">second</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13588">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="60">α</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-Twice.first_eq_second" data-verso-hover="2350" id="Twice___first_eq_second-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_">first_eq_second</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13611">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="50">first</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-13613">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="50">second</span><span class="inter-text">
+                  The structure <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2336">Twice</span></a></code> requires that both fields have the same value:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-13530">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Twice" data-verso-hover="2336" id="Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_">Twice</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13546">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13546">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="54">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="61">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13546">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-13530">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Twice.first" data-verso-hover="2337" id="Twice___first-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_">first</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13574">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="60">α</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Twice.second" data-verso-hover="2338" id="Twice___second-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_">second</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13588">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="60">α</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Twice.first_eq_second" data-verso-hover="2339" id="Twice___first_eq_second-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_">first_eq_second</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13611">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="50">first</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-13613">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="50">second</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                  One way to define a coercion from <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.1385" data-verso-hover="60">α</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2347">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1387" data-verso-hover="60">α</span></code> is with a helper function <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-twice" data-verso-hover="2351">twice</span></a></code>.
-The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2321">coe</span></code> attribute marks it as a coercion so it can be shown correctly in proof goals and error messages.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><a href="Coercions/Coercing-Between-Types/#Lean___Attr___coe" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Attr.coe-13862" data-verso-hover="2318">coe</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.attributes-13860">]</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-13867">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-twice" data-verso-hover="2351" id="twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_">twice</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13877">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13877">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13877">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13886">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2347">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-13897">where</span><span class="inter-text">
-  </span><a href="Coercions/Coercion-Insertion/#Twice___first-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice.first" data-verso-hover="1354">first</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-13911">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="50">x</span><span class="inter-text">
-  </span><a href="Coercions/Coercion-Insertion/#Twice___second-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice.second" data-verso-hover="1354">second</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-13925">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="50">x</span><span class="inter-text">
-  </span><a href="Coercions/Coercion-Insertion/#Twice___first_eq_second-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice.first_eq_second" data-verso-hover="2352">first_eq_second</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-13948">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
+                  One way to define a coercion from <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.1385" data-verso-hover="60">α</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2336">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1387" data-verso-hover="60">α</span></code> is with a helper function <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-twice" data-verso-hover="2340">twice</span></a></code>.
+The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2310">coe</span></code> attribute marks it as a coercion so it can be shown correctly in proof goals and error messages.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><a href="Coercions/Coercing-Between-Types/#Lean___Attr___coe" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Attr.coe-13862" data-verso-hover="2307">coe</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.attributes-13860">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-13867">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-twice" data-verso-hover="2340" id="twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_">twice</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13877">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13877">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13877">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13886">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2336">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-13897">where</span><span class="inter-text">
+  </span><a href="Coercions/Coercion-Insertion/#Twice___first-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice.first" data-verso-hover="1342">first</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-13911">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="50">x</span><span class="inter-text">
+  </span><a href="Coercions/Coercion-Insertion/#Twice___second-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice.second" data-verso-hover="1342">second</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-13925">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="50">x</span><span class="inter-text">
+  </span><a href="Coercions/Coercion-Insertion/#Twice___first_eq_second-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice.first_eq_second" data-verso-hover="2341">first_eq_second</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-13948">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-13956">instance</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13965">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1853">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-13974">(</span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2347">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-13974">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-13985">:=</span><span class="inter-text"> </span><span class="const anon-ctor token" data-binding="const-Coe.mk" data-verso-hover="2333">⟨</span><a href="Coercions/Coercion-Insertion/#twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-twice" data-verso-hover="2351">twice</span></a><span class="const anon-ctor token" data-binding="const-Coe.mk" data-verso-hover="2333">⟩</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-13956">instance</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13965">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1841">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-13974">(</span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2336">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-13974">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-13985">:=</span><span class="inter-text"> </span><span class="const anon-ctor token" data-binding="const-Coe.mk" data-verso-hover="2322">⟨</span><a href="Coercions/Coercion-Insertion/#twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-twice" data-verso-hover="2340">twice</span></a><span class="const anon-ctor token" data-binding="const-Coe.mk" data-verso-hover="2322">⟩</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                  When the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1853">Coe</span></a></code> instance is unfolded, the call to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-twice" data-verso-hover="2351">twice</span></a></code> remains, which causes its argument to be evaluated before the body of the function is executed.
+                  When the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1841">Coe</span></a></code> instance is unfolded, the call to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-twice" data-verso-hover="2340">twice</span></a></code> remains, which causes its argument to be evaluated before the body of the function is executed.
 As a result, the <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.dbgTrace : term</code><span class="sep"></span><code class="docstring">`dbg_trace e; body` evaluates to `body` and prints `e` (which can be an
 interpolated string literal) to stderr. It should only be used for debugging.
 </code></code><code class="kw">dbg_trace</code></span> is included in the resulting term just once:</p>
                 <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">{ first := 5, second := 5, first_eq_second := _ }</span></code><code class="verso-message information"><span class="text"></span><span class="text">hello
-</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-14304" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14310">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14311">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14312" data-verso-hover="2353">dbg_trace</span><span class="inter-text"> </span><span class="literal string interpolation token" data-binding="">"hello"</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14312">;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">5</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14311">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14311">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14310">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2347">Twice</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14310">)</span><span class="inter-text">
+</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-14304" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14310">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14311">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14312" data-verso-hover="2342">dbg_trace</span><span class="inter-text"> </span><span class="literal string interpolation token" data-binding="">"hello"</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14312">;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">5</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14311">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14311">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14310">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2336">Twice</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14310">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   This is used to demonstrate the effect:</p>
                 <pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">hello
 </span></span></pre><p>
-                  Inlining the helper into the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1853">Coe</span></a></code> instance results in a term that duplicates the <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.dbgTrace : term</code><span class="sep"></span><code class="docstring">`dbg_trace e; body` evaluates to `body` and prints `e` (which can be an
+                  Inlining the helper into the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1841">Coe</span></a></code> instance results in a term that duplicates the <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.dbgTrace : term</code><span class="sep"></span><code class="docstring">`dbg_trace e; body` evaluates to `body` and prints `e` (which can be an
 interpolated string literal) to stderr. It should only be used for debugging.
 </code></code><code class="kw">dbg_trace</code></span>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-14590">instance</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-14599">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1853">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14608">(</span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2347">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-14608">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-14619">where</span><span class="inter-text">
-  </span><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2354">coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-14633">:=</span><span class="inter-text"> </span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2355">⟨</span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="50">x</span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2355">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="50">x</span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2355">,</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2355">⟩</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-14590">instance</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-14599">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1841">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14608">(</span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2336">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-14608">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-14619">where</span><span class="inter-text">
+  </span><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2343">coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-14633">:=</span><span class="inter-text"> </span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2344">⟨</span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="50">x</span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2344">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="50">x</span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2344">,</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2344">⟩</span><span class="inter-text">
 
 </span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">{ first := 5, second := 5, first_eq_second := _ }</span></code><code class="verso-message information"><span class="text"></span><span class="text">hello
 hello
-</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-14653" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14659">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14660">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14661" data-verso-hover="2353">dbg_trace</span><span class="inter-text"> </span><span class="literal string interpolation token" data-binding="">"hello"</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14661">;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">5</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14660">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14660">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14659">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2347">Twice</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14659">)</span><span class="inter-text">
+</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-14653" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14659">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14660">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14661" data-verso-hover="2342">dbg_trace</span><span class="inter-text"> </span><span class="literal string interpolation token" data-binding="">"hello"</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14661">;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">5</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14660">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14660">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14659">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2336">Twice</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14659">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">hello
 hello
 </span></span></pre><p>
                   Introducing an intermediate name for the result of the evaluation prevents the duplication of <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.dbgTrace : term</code><span class="sep"></span><code class="docstring">`dbg_trace e; body` evaluates to `body` and prints `e` (which can be an
 interpolated string literal) to stderr. It should only be used for debugging.
 </code></code><code class="kw">dbg_trace</code></span>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-14911">instance</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-14920">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1853">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14929">(</span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2347">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-14929">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-14940">where</span><span class="inter-text">
-  </span><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2354">coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-14954">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-14957" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="50">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-14961">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="50">x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.let-14957">;</span><span class="inter-text"> </span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2355">⟨</span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="50">y</span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2355">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="50">y</span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2355">,</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2355">⟩</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-14911">instance</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-14920">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1841">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14929">(</span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2336">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="60">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-14929">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-14940">where</span><span class="inter-text">
+  </span><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2343">coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="50">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-14954">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-14957" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="50">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-14961">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="50">x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.let-14957">;</span><span class="inter-text"> </span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2344">⟨</span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="50">y</span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2344">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20" data-verso-hover="50">y</span><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2344">,</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="316">rfl</span></a><span class="const anon-ctor token" data-binding="const-Twice.mk" data-verso-hover="2344">⟩</span><span class="inter-text">
 
 </span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">{ first := 5, second := 5, first_eq_second := _ }</span></code><code class="verso-message information"><span class="text"></span><span class="text">hello
-</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-14986" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14992">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14993">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14994" data-verso-hover="2353">dbg_trace</span><span class="inter-text"> </span><span class="literal string interpolation token" data-binding="">"hello"</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14994">;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">5</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14993">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14993">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14992">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2347">Twice</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14992">)</span><span class="inter-text">
+</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-14986" data-verso-hover="10">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14992">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14993">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14994" data-verso-hover="2342">dbg_trace</span><span class="inter-text"> </span><span class="literal string interpolation token" data-binding="">"hello"</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-14994">;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">5</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14993">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14993">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14992">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice-_LPAR_in-Duplicate-Evaluation-in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Twice" data-verso-hover="2336">Twice</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-14992">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">hello
 </span></span></pre><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;M4FwTgrgxiFgpgAgCoHcCWUkApCNwIgLhQE8AHJCASkVQAt4EAoRRAM3TFEMV2cWHhQA9gDsAJt14t2nEAH14ARzkDh47jK4BefoNFjGjAAIBtYfAC6jMfFaIQGLImwAPSdSJpMSfHQbw+TRBCHRc+VX0QxDDpDlAFZQj1Ah0wVgAbQ3QRUABDESciAGEhH2cvJ1wPHUAL8gdvQEvyQwBieAA3XPTnbDEAIwBzOXBcpwAienT0oVGAbkQAVm4AOVyQDxRHJBW1rJyQfMLEErLsCp9qPyYWc2iompcAGmintPSmxlaOruwegaGwEZIcbwSbTOaLIjbdZnRBQ3Z5ApIYqlHjlTY8C70K6IG5uFKIdLwYLEKIuOY1YhPSmIV7vT6dbp9QbDMYTKazBbLVbQ9FQoA&quot;)">Live ↪</a></div>
