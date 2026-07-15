@@ -767,7 +767,7 @@ where
 def adminUser : Username := "admin"
 ```
 
-However, {lean}`Username.validate` can't be called on {lean}`"root"` using field notation, because {lean}`String` does not unfold to {lean}`Username`.
+However, {lean}`Username.validate` can't be called on {lean}`"admin"` using field notation, because {lean}`String` does not unfold to {lean}`Username`.
 ```lean +error (name := notString)
 #eval "admin".validate
 ```
