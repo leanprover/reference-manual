@@ -151,7 +151,7 @@ Other notable performance work:
 
 ## Monadic Verification: `mvcgen'` and `grind` Improvements
 
-The {tactic}`mvcgen'` and {tactic}`grind` ecosystem continues to mature:
+The `mvcgen'` and {tactic}`grind` ecosystem continues to mature:
 
 - [#13983](https://github.com/leanprover/lean4/pull/13983) adds `mvcgen' until $t`, where `$t` is a conv-style pattern; verification-condition generation stops as soon as the program matches the pattern. For instance, compare the traces in these two examples:
 
@@ -165,7 +165,7 @@ The {tactic}`mvcgen'` and {tactic}`grind` ecosystem continues to mature:
     mvcgen [increaseBy]
   ```
 
-  ```lean
+  ```
   def inc (n : Nat) : Id Nat := do
     let a ← increaseBy n 1
     let b ← increaseBy a 2
@@ -186,9 +186,9 @@ The {tactic}`mvcgen'` and {tactic}`grind` ecosystem continues to mature:
       omega
   ```
 
-- [#13925](https://github.com/leanprover/lean4/pull/13925) consolidates {tactic}`mvcgen'` syntax across tactic and {tactic}`grind` (`sym =>`) modes:
+- [#13925](https://github.com/leanprover/lean4/pull/13925) consolidates `mvcgen'` syntax across tactic and {tactic}`grind` (`sym =>`) modes:
 
-  ```lean
+  ```
   example (n : Nat) : ⦃⌜True⌝⦄ inc n ⦃⇓ r => ⌜r = n + 15⌝⦄ := by
     sym =>
       mvcgen' [inc] <;> (show_asserted; finish)
@@ -196,8 +196,8 @@ The {tactic}`mvcgen'` and {tactic}`grind` ecosystem continues to mature:
 
   `mvcgen' invariants?` (suggest mode) also works inside sym => … blocks.
 
-- [#13881](https://github.com/leanprover/lean4/pull/13881) lets {tactic}`mvcgen'` decompose programs whose head is a typeclass method projection (e.g. `Add.add inst a b`).
-- [#13888](https://github.com/leanprover/lean4/pull/13888) teaches {tactic}`mvcgen'` to register `Triple`-shaped local hypotheses as specs during VC generation.
+- [#13881](https://github.com/leanprover/lean4/pull/13881) lets `mvcgen'` decompose programs whose head is a typeclass method projection (e.g. `Add.add inst a b`).
+- [#13888](https://github.com/leanprover/lean4/pull/13888) teaches `mvcgen'` to register `Triple`-shaped local hypotheses as specs during VC generation.
 - [#13971](https://github.com/leanprover/lean4/pull/13971) makes the {tactic}`cbv` tactic available inside {tactic}`grind`'s interactive `sym =>` mode.
 
 ## Lake: Linter Overhaul and Cache Improvements

@@ -1247,7 +1247,6 @@ They consist of the following:
   {ref "raw-string-literals"}[Raw string literals] are allowed as patterns, but {ref "string-interpolation"}[interpolated strings] are not.
   {ref "nat-syntax"}[Natural number literals] in patterns are interpreted by synthesizing the corresponding {name}`OfNat` instance and reducing the resulting term to {tech}[normal form], which must be a pattern.
   Similarly, {tech}[scientific literals] are interpreted via the corresponding {name}`OfScientific` instance.
-  While {lean}`Float` has such an instance, {lean}`Float`s cannot be used as patterns because the instance relies on an opaque function that can't be reduced to a valid pattern.
 
 : Structure Instances
 
@@ -1339,6 +1338,34 @@ deriving Inhabited
 instance : OfNat Blah n where
   ofNat := ⟨n + 1⟩
 
+def isFiveOh : Float → Bool
+  | 5.0 => true
+  | _ => false
+
+/-- info: true -/
+#guard_msgs in
+#eval isFiveOh 5.0
+
+/-- info: false -/
+#guard_msgs in
+#eval isFiveOh 0.5
+
+def isZeroFloat : Float → Bool
+  | 0.0 => true
+  | _ => false
+
+/-- info: true -/
+#guard_msgs in
+#eval isZeroFloat 0.0
+
+/-- info: -0.000000 -/
+#guard_msgs in
+#eval (0.0 / -1.0)
+
+/-- info: false -/
+#guard_msgs in
+#eval isZeroFloat (0.0 / -1.0)
+
 /--
 error: Missing cases:
 (Blah.mk Nat.zero)
@@ -1368,17 +1395,6 @@ but is expected to have type
 def defg (n : Blah) : Bool :=
   match n with
   | 0 => true
-
-/--
-error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (Float.ofScientific 25 true 1)
-but is expected to have type
-  motive x✝
--/
-#check_msgs in
-def twoPointFive? : Float → Option Float
-  | 2.5 => some 2.5
-  | _ => none
 
 /--
 info: @Neg.neg.{0} Float instNegFloat
