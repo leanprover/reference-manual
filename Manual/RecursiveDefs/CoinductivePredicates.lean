@@ -346,7 +346,7 @@ Coinductive predicates naturally capture bisimulation-like notions.
 ```lean -show
 variable {Q : Type} {A : Type} {q : Q}
 ```
-A deterministic finite automaton is given by a set of states {lean}`Q`, an alphabet {lean}`A`, a start state {lean}`q` in {lean}`Q`, a subset of {lean}`Q` the define accepting states, and a transition function that takes a state and an element of the alphabet to a new state:
+A deterministic finite automaton is given by a set of states {lean}`Q`, an alphabet {lean}`A`, a start state {lean}`q` in {lean}`Q`, a subset of {lean}`Q` that defines accepting states, and a transition function that takes a state and an element of the alphabet to a new state:
 :::
 ```lean
 structure DFA (Q : Type) (A : Type) : Type where
@@ -377,7 +377,7 @@ languageEquivalent.coinduct {Q A Q' : Type}
 
 It can be used to prove that these two DFAs have equivalent languages:
 :::row (align := "top")
-```diagram (scale := "0.1") +inline
+```diagram (cssScale := "0.1") +inline
 open Illuminate in
 let cfg : StateDiagramConfig := {}
 cfg.start 0 |>.atop
@@ -388,7 +388,7 @@ cfg.start 0 |>.atop
 (cfg.edge 0 1 "b")
 ```
 
-```diagram (scale := "0.1") +inline
+```diagram (cssScale := "0.1") +inline
 open Illuminate in
 let cfg : StateDiagramConfig := {}
 cfg.start 0 |>.atop

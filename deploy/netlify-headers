@@ -1,0 +1,17 @@
+# Netlify _headers rules for the reference manual.
+#
+# Hashed search-index bucket files are content-addressed: their
+# filenames include a per-build version string
+# (searchIndex_<bucket>.<version>.js), so every deploy produces fresh
+# filenames and old ones can be cached forever. The entry-point
+# searchIndex.js is deliberately *not* listed here, so it revalidates
+# normally and clients pick up the new version string on each deploy.
+
+/-verso-search/searchIndex_*.*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/reference/-verso-search/searchIndex_*.*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/tutorials/-verso-search/searchIndex_*.*.js
+  Cache-Control: public, max-age=31536000, immutable

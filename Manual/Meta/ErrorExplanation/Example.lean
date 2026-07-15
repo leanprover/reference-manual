@@ -8,6 +8,7 @@ import VersoManual
 import Manual.Meta.Example
 
 open Lean
+open Verso (reportError)
 set_option doc.verso true
 
 /-
@@ -101,14 +102,14 @@ window.addEventListener('DOMContentLoaded', () => {
     open Verso.Doc.Html in
     open Verso.Output Html in do
     let .ok titles := FromJson.fromJson? (α := Array String) info
-      | HtmlT.logError "Invalid titles JSON for example block"
+      | reportError "Invalid titles JSON for example block"
         pure .empty
     unless titles.size == contents.size do
-      HtmlT.logError s!"Mismatched number of titles and contents for example block: \
+      reportError s!"Mismatched number of titles and contents for example block: \
         Found {contents.size} tab panels but {titles.size} titles."
       return .empty
     let some { htmlId, .. } := (← HtmlT.state).externalTags[id]?
-      | HtmlT.logError "Could not find tag for error example"
+      | reportError "Could not find tag for error example"
         pure .empty
     let buttons ← titles.mapIdxM fun i (title : String) => do
       let (tabIndex, selected) := if i == 0 then ("0", "true") else ("-1", "false")

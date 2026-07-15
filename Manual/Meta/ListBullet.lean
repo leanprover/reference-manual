@@ -42,7 +42,7 @@ def listBullet.descr : BlockDescr where
         match data with
         | .str bullet => pure bullet
         | _ =>
-          HtmlT.logError "Invalid data for listBullet block"
+          reportError "Invalid data for listBullet block"
           pure ""
       pure {{
         <div class="listBullet" style=s!"--bullet: '{bullet} ';">

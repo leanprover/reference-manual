@@ -19,11 +19,18 @@ def plausible := {{
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
   }}
 
+section
+open Verso.Doc.Elab
+open Lean
+@[role]
+def version : RoleExpanderOf Unit
+  | (), _ => ``(Verso.Doc.Inline.text $(quote Lean.versionString))
 
-def version (_content : Array (Verso.Doc.Inline g)) : Verso.Doc.Inline g := .text Lean.versionString
-
-def manualLink (args : Array (Verso.Doc.Inline g)) : Verso.Doc.Inline g:=
-  Verso.Doc.Inline.link args Lean.manualRoot
+@[role]
+def manualLink : RoleExpanderOf Unit
+  | (), content => do
+    ``(Verso.Doc.Inline.link #[$[$(← content.mapM elabInline)],*] Lean.manualRoot)
+end
 
 open Verso.Doc Concrete in
 def tutorials : Tutorials where

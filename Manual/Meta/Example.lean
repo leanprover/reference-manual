@@ -28,7 +28,7 @@ def Block.example (descriptionString : String) (name : Option String) (opened : 
 abbrev ExampleBlockJson := String × Option String × Bool × Option Tag × Option String
 
 structure ExampleConfig where
-  description : FileMap × TSyntaxArray `inline
+  description : TSyntaxArray `inline
   /-- Name for refs -/
   tag : Option String := none
   keep : Bool := false
@@ -110,12 +110,10 @@ def examples : Domain := {}
 @[directive]
 def «example» : DirectiveExpanderOf ExampleConfig
   | cfg, contents => do
-    let description ←
-      DocElabM.withFileMap cfg.description.1 <|
-      cfg.description.2.mapM elabInline
-    let descriptionString := inlinesToString (← getEnv) cfg.description.2
-    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description.2)
-      (selectionRange := mkNullNode cfg.description.2)
+    let description ← cfg.description.mapM elabInline
+    let descriptionString := inlinesToString (← getEnv) cfg.description
+    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description)
+      (selectionSyntax? := some <| mkNullNode cfg.description)
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Example")
 
@@ -143,7 +141,7 @@ def «example» : DirectiveExpanderOf ExampleConfig
 def example.descr : BlockDescr where
   traverse id data contents := do
     match FromJson.fromJson? data (α := ExampleBlockJson) with
-    | .error e => logError s!"Error deserializing example tag: {e}"; pure none
+    | .error e => reportError s!"Error deserializing example tag: {e}"; pure none
     | .ok (descrString, none, _, _, _) => do
       modify (·.saveDomainObject ``examples descrString id)
       pure none
@@ -166,14 +164,14 @@ def example.descr : BlockDescr where
     open Verso.Output.Html in
     some <| fun goI goB id data blocks => do
       if h : blocks.size < 1 then
-        HtmlT.logError "Malformed example"
+        reportError "Malformed example"
         pure .empty
       else
         let .para description := blocks[0]
-          | HtmlT.logError "Malformed example - description not paragraph"; pure .empty
+          | reportError "Malformed example - description not paragraph"; pure .empty
         let (descrString, opened, liveText) ←
           match FromJson.fromJson? data (α := ExampleBlockJson) with
-          | .error e => HtmlT.logError s!"Error deserializing example data {data}: {e}"; pure ("", false, none)
+          | .error e => reportError s!"Error deserializing example data {data}: {e}"; pure ("", false, none)
           | .ok (descrString, _, opened, _, liveText) => pure (descrString, opened, liveText)
         let xref ← HtmlT.state
         let ctxt ← HtmlT.context

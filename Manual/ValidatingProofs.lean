@@ -36,7 +36,7 @@ In particular, we use {deftech}_honest_ when the goal is to create a valid proof
 This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the {option}`debug.skipKernelTC`).
 Note that the {keyword}`unsafe` marker on API functions is unrelated to whether this API can be used in an dishonest way.
 
-In contrast, we use {deftech}_malicious_ to describe code to go out of its way to trick or mislead the user, exploit bugs or compromise the system.
+In contrast, we use {deftech}_malicious_ to describe code that goes out of its way to trick or mislead the user, exploit bugs or compromise the system.
 This includes un-reviewed AI-generated proofs and programs.
 
 Furthermore it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.
@@ -64,7 +64,7 @@ The blue ticks indicate that the theorem statement has been successfully elabora
 
 ## Trust
 
-This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and trusts the authors of the imported libraries to be {tech}[honest], that they performed this check, and that no unsound axioms have been declared and used.
+This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and trusts the authors of the imported libraries to be {tech}[honest], that they checked that the theorems in their libraries express their intended informal meanings, and that no unsound axioms have been declared and used.
 
 ## Protection
 

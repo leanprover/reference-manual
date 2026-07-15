@@ -209,7 +209,7 @@ In particular, functions defined using {tech}[well-founded recursion] or as {tec
 
 :::syntax command (title := "Reducing Terms")
 ```grammar
-#reduce $[(proofs := true)]? $[(types := true)]? $t
+#reduce $[($ident := $tm)]* $t
 ```
 
 {includeDocstring Lean.reduceCmd}
@@ -461,7 +461,7 @@ def intersperse (x : α) : List α → List α
 ```
 ```leanOutput intersperse_eqns
 equations:
-@[defeq] theorem intersperse.eq_1.{u_1} : ∀ {α : Type u_1} (x y z : α) (zs : List α),
+@[backward_defeq] theorem intersperse.eq_1.{u_1} : ∀ {α : Type u_1} (x y z : α) (zs : List α),
   intersperse x (y :: z :: zs) = y :: x :: intersperse x (z :: zs)
 theorem intersperse.eq_2.{u_1} : ∀ {α : Type u_1} (x : α) (x_1 : List α),
   (∀ (y z : α) (zs : List α), x_1 = y :: z :: zs → False) → intersperse x x_1 = x_1
@@ -505,7 +505,7 @@ intersperse.eq_unfold.{u_1} :
 The {keywordOf Lean.Parser.Command.where}`#where` command displays all the modifications made to the current {tech}[section scope], both in the current scope and in the scopes in which it is nested.
 
 ```lean +fresh (name := scopeInfo)
-section
+public section
 open Nat
 
 namespace A
@@ -513,21 +513,23 @@ variable (n : Nat)
 namespace B
 
 open List
-set_option pp.funBinderTypes true
+set_option pp.tagAppFns true
 
 #where
 
 end A.B
 end
 ```
-```leanOutput scopeInfo (allowDiff := 1)
+```leanOutput scopeInfo
+public section
+
 namespace A.B
 
 open Nat List
 
 variable (n : Nat)
 
-set_option pp.funBinderTypes true
+set_option pp.tagAppFns true
 ```
 
 :::

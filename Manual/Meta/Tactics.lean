@@ -612,7 +612,7 @@ def proofStateStyle := r#"
 def proofState.descr : BlockDescr := withHighlighting {
   traverse id data content := do
     match FromJson.fromJson? data (α := Option String × Array (Highlighted.Goal Highlighted)) with
-    | .error e => logError s!"Error deserializing proof state info: {e}"; pure none
+    | .error e => reportError s!"Error deserializing proof state info: {e}"; pure none
     | .ok (none, _) => pure none
     | .ok (some t, v) =>
       let path ← (·.path) <$> read
@@ -627,7 +627,7 @@ def proofState.descr : BlockDescr := withHighlighting {
     some <| fun _ _ id data _ => do
       match FromJson.fromJson? (α := Option Tag × Array (Highlighted.Goal Highlighted)) data with
       | .error err =>
-        HtmlT.logError <| "Couldn't deserialize proof state while rendering HTML: " ++ err
+        reportError <| "Couldn't deserialize proof state while rendering HTML: " ++ err
         pure .empty
       | .ok (_, goals) =>
         let xref ← HtmlT.state
