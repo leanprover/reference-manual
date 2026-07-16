@@ -112,7 +112,7 @@ Because {lean}`Sum` is a type, it is possible to check _which_ constructor was u
 {lean}`Or`, on the other hand, forms propositions: terms that prove a disjunction cannot be interrogated to check which disjunct was true.
 In other words, because {lean}`Or` is not a {tech}[subsingleton], its proofs cannot be used as part of a computation.
 
-In a {ref "tactics"}[tactic] proof, disjunctions can be proved using either constructor ({name}`Or.inl` or {name}`Or.inr`) explicitly via {tactic}`apply`.
+In a {ref "tactics"}[tactic] proof, disjunctions can be proved using either constructor ({name}`Or.inl` or {name}`Or.inr`) explicitly via {tactic}`apply`, but {tactic}`left` and {tactic}`right` are more common.
 Assumptions of disjunctions in the context can be simplified using {tactic}`cases`, pattern matching with {tactic (show := "match")}`Lean.Parser.Tactic.match`, or {tactic}`rcases`.
 
 {docstring Or}
