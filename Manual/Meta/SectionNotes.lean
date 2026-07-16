@@ -5,6 +5,7 @@ Author: David Thrane Christiansen
 -/
 import VersoManual.Marginalia
 
+open Verso
 open Verso.Genre.Manual
 open Verso.Doc.Elab
 
@@ -106,7 +107,7 @@ block_extension Block.sectionNoteTitle where
       match content with
       | #[.para xs] =>
         return {{<h1> {{← xs.mapM goI}} </h1>}}
-      | _ => HtmlT.logError "Malformed section note title"; return .empty
+      | _ => reportError "Malformed section note title"; return .empty
 
 @[directive]
 def tutorials : DirectiveExpanderOf Unit

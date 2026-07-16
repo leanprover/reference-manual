@@ -285,10 +285,10 @@ structure AugmentedIntList where
   augmentation : String := ""
 ```
 
-When testing whether the list is empty, the function {name AugmentedIntList.isEmpty}`isEmpty` is also testing whether the {name AugmentedIntList.augmentation}`augmentation` field is empty, because the omitted field's default value is also used in pattern contexts:
+When testing whether the list is empty, the function {name AugmentedIntList.isEmpty}`isEmpty` must explicitly match the {name AugmentedIntList.augmentation}`augmentation` field, even though it has a default value:
 ```lean (name := isEmptyDefaults)
 def AugmentedIntList.isEmpty : AugmentedIntList → Bool
-  | {list := []} => true
+  | {list := [], augmentation := ""} => true
   | _ => false
 
 #eval {list := [], augmentation := "extra" : AugmentedIntList}.isEmpty
@@ -664,7 +664,7 @@ structure B where
   foo : Nat
 structure C extends A where
   z : String
-/-- info: C.mk (toA : A) (z : String) : C -/
+/-- info: C.mk (toA : A) (z : String) : _root_.C -/
 #check_msgs in
 #check C.mk
 
@@ -677,7 +677,7 @@ def someC : C where
 error: Type mismatch
   someC
 has type
-  C
+  _root_.C
 but is expected to have type
   A
 -/

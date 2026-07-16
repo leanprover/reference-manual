@@ -132,13 +132,13 @@ def elanCommand.descr : BlockDescr := withHighlighting {
 
   traverse id info _ := do
     let Json.arr #[Json.str name, aliases, _] := info
-      | logError s!"Failed to deserialize data while traversing a Elan command, expected 3-element array starting with string but got {info}"
+      | reportError s!"Failed to deserialize data while traversing a Elan command, expected 3-element array starting with string but got {info}"
         pure none
     let aliases : List String ←
       match fromJson? (α := List String) aliases with
       | .ok v => pure v
       | .error e =>
-        logError s!"Failed to deserialize aliases while traversing a Elan command: {e}"; pure []
+        reportError s!"Failed to deserialize aliases while traversing a Elan command: {e}"; pure []
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path name
     Index.addEntry id {term := Inline.concat #[.code name, .text " (Elan command)"]}
@@ -151,11 +151,11 @@ def elanCommand.descr : BlockDescr := withHighlighting {
     open Verso.Doc.Html in
     open Verso.Output Html in do
       let Json.arr #[ Json.str name, aliases, spec] := info
-        | do Verso.Doc.Html.HtmlT.logError s!"Failed to deserialize data while making HTML for Elan command, got {info}"; pure .empty
+        | do reportError s!"Failed to deserialize data while making HTML for Elan command, got {info}"; pure .empty
       let .ok (aliases : List String) := FromJson.fromJson? aliases
-        | do Verso.Doc.Html.HtmlT.logError s!"Failed to deserialize aliases while making HTML for Elan command, got {spec}"; pure .empty
+        | do reportError s!"Failed to deserialize aliases while making HTML for Elan command, got {spec}"; pure .empty
       let .ok (spec : CommandSpec) := FromJson.fromJson? spec
-        | do Verso.Doc.Html.HtmlT.logError s!"Failed to deserialize spec while making HTML for Elan command, got {spec}"; pure .empty
+        | do reportError s!"Failed to deserialize spec while making HTML for Elan command, got {spec}"; pure .empty
 
       let elanTok : Highlighted := .token ⟨.keyword none none none, "elan"⟩
       let nameTok : Highlighted := .token ⟨.keyword none none none, name⟩
@@ -280,7 +280,7 @@ a.elan-command:hover {
             if let some dest := (← read).traverseState.externalTags[id]? then
               return {{<a href={{dest.link}} class="elan-command"><code>s!"elan {n}"</code></a>}}
 
-      HtmlT.logError s!"No name/dest for elan command {name}"
+      reportError s!"No name/dest for elan command {name}"
       is.mapM goI
 
 @[role_expander elanArgs]
@@ -312,9 +312,9 @@ def elanArgs.descr : InlineDescr := withHighlighting {
     some <| fun _ _ data _ => do
       if let .arr #[hl, name] := data then
         match fromJson? (α := Highlighted) hl with
-        | .error e => HtmlT.logError s!"Couldn't deserialize Elan args: {e}"; return .empty
+        | .error e => reportError s!"Couldn't deserialize Elan args: {e}"; return .empty
         | .ok hl =>
           let name := if let Json.str n := name then some n else none
           hl.inlineHtml name (g := Verso.Genre.Manual)
-      else HtmlT.logError s!"Expected two-element JSON array, got {data}"; return .empty
+      else reportError s!"Expected two-element JSON array, got {data}"; return .empty
 }

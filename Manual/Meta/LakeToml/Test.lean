@@ -59,10 +59,14 @@ def deriveTest (declNames : Array Name) : CommandElabM Bool := do
         Format.text $(quote <| toString f ++ " :=") ++ Format.line ++
         $rhs)
 
+    let auxName := mkIdent (.str `Manual.Toml.testToStringFor declName.toString)
     let cmd ←
-      `(instance : Test $header where
-          toString
-            | ⟨$(fs.map mkIdent),*⟩ => "{" ++ .group (.nest 2 <| (Format.text "," ++ .line).joinSep [$fields,*]) ++ "}")
+      `(partial def $auxName : $header → Std.Format
+          | ⟨$(fs.map mkIdent),*⟩ =>
+            have : Test $header := ⟨$auxName⟩
+            "{" ++ Format.group (Format.nest 2 <| (Format.text "," ++ Format.line).joinSep [$fields,*]) ++ "}"
+
+        instance : Test $header := ⟨$auxName⟩)
 
     elabCommand cmd
     return true

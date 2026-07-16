@@ -9,6 +9,7 @@ import VersoManual
 
 -- TODO generalize upstream - this is based on the one in the blog genre.
 namespace Manual
+open Verso
 open Lean.Doc.Syntax
 
 abbrev LexedText.Highlighted := Array (Option String × String)
@@ -126,17 +127,15 @@ r##"
 "##
 
 def Block.c (value : LexedText) : Block where
-  name := `Manual.c
   data := toJson value
 
 def Inline.c (value : LexedText) : Inline where
-  name := `Manual.c
   data := toJson value
 
 def lexedText := ()
 
 @[code_block]
-def c : CodeBlockExpanderOf Unit
+def C : CodeBlockExpanderOf Unit
   | (), str => do
     let codeStr := str.getString
     let toks ← LexedText.highlight hlC codeStr
@@ -144,29 +143,29 @@ def c : CodeBlockExpanderOf Unit
 
 open Verso.Output Html in
 open Verso.Doc.Html in
-@[block_extension c]
+@[block_extension Block.c]
 def c.descr : BlockDescr where
   traverse _ _ _ := pure none
   toTeX := none
   toHtml := some <| fun _ _ _ info _ => do
     let .ok (v : LexedText) := fromJson? info
-      | HtmlT.logError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
+      | reportError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
     pure {{<pre class="c">{{v.toHtml}}</pre>}}
   extraCss := [c.css]
 
 open Verso.Output Html in
 open Verso.Doc.Html in
-@[inline_extension c]
+@[inline_extension Inline.c]
 def c.idescr : InlineDescr where
   traverse _ _ _ := pure none
   toTeX := none
   toHtml := some <| fun _ _ info _ => do
     let .ok (v : LexedText) := fromJson? info
-      | HtmlT.logError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
+      | reportError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
     pure {{<code class="c">{{v.toHtml}}</code>}}
   extraCss := [c.css]
 
-@[role c]
+@[role C]
 def cInline : RoleExpanderOf Unit
   | (), contents => do
     let #[x] := contents
