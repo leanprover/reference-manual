@@ -142,7 +142,7 @@ Lean assigns {lean}`Solo` to {lean}`Type`:
 ```leanOutput OneTy
 Solo : Type
 ```
-The constructor is named {lean}`Solo.solo`, because constructor names are the type constructor's namespace.
+The constructor is named {lean}`Solo.solo`, because constructor names are in the type constructor's namespace.
 Because {lean}`Solo` expects no arguments, the signature inferred for {lean}`Solo.solo` is:
 ```lean (name := oneTy)
 #check Solo.solo
@@ -370,18 +370,18 @@ Not every inductive type is represented as indicated here—some inductive types
 axiom α : Prop
 ```
 
- * The representation of the fixed-width integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`Int8`, …, {lean}`Int64`, and {lean}`USize` depends on the whether the code is compiled for a 32- or 64-bit architecture.
+ * The representation of the fixed-width integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`Int8`, …, {lean}`Int64`, and {lean}`USize` depends on whether the code is compiled for a 32- or 64-bit architecture.
   Their representation is described {ref "fixed-int-runtime"}[in a dedicated section].
 
  * {lean}`Char` is represented by `uint32_t`. Because {lean}`Char` values never require more than 21 bits, they are always unboxed.
 
  * {lean}`Float` is represented by a pointer to a Lean object that contains a “double”.
 
- * An {deftech}_enum inductive_ type of at least 2 and at most $`2^{32}` constructors, each of which has no parameters, is represented by the first type of {c}`uint8_t`, {c}`uint16_t`, {c}`uint32_t` that is sufficient to assign a unique value to each constructor. For example, the type {lean}`Bool` is represented by {c}`uint8_t`, with values {c}`0` for {lean}`false` and {c}`1` for {lean}`true`. {TODO}[Find out whether this should say “no relevant parameters”]
+ * An {deftech}_enum inductive_ type of at least 2 and at most $`2^{32}` constructors, each of which has no parameters, is represented by the first type of {C}`uint8_t`, {C}`uint16_t`, {C}`uint32_t` that is sufficient to assign a unique value to each constructor. For example, the type {lean}`Bool` is represented by {C}`uint8_t`, with values {C}`0` for {lean}`false` and {C}`1` for {lean}`true`. {TODO}[Find out whether this should say “no relevant parameters”]
 
  * {lean}`Decidable α` is represented the same way as `Bool` {TODO}[Aren't Decidable and Bool just special cases of the rules for trivial constructors and irrelevance?]
 
- * {lean}`Nat` and {lean}`Int` are represented by {c}`lean_object *`.
+ * {lean}`Nat` and {lean}`Int` are represented by {C}`lean_object *`.
   Their representations are described in more detail in {ref "nat-runtime"}[the section on natural numbers] and {ref "int-runtime"}[the section on integers].
 
 :::
@@ -421,7 +421,17 @@ However, in cases where some representation is required (such as when they are a
 tag := "inductive-types-trivial-wrappers"
 %%%
 
-If an inductive type has exactly one constructor, and that constructor has exactly one run-time relevant parameter, then the inductive type is represented identically to its parameter.
+:::paragraph
+An inductive type is a {deftech}[trivial wrapper] if it has has exactly one constructor and that constructor has exactly one run-time relevant parameter.
+Trivial wrappers are represented identically to their constructor's parameter in the following circumstances:
+
+ * The inductive type is private.
+
+ * The type is public, and the {tech}[public scope] of the module in which it is defined contains enough information to determine that it is a trivial wrapper.
+
+ * The type is defined in a source file that is not a {tech}[module].
+
+:::
 
 :::example "Zero-Overhead Subtypes"
 The structure {name}`Subtype` bundles an element of some type with a proof that it satisfies a predicate.
@@ -435,7 +445,7 @@ Thus, subtypes impose no runtime overhead in compiled code, and are represented 
 
 :::example "Signed Integers"
 The signed integer types {lean}`Int8`, ..., {lean}`Int64`, {lean}`ISize` are structures with a single field that wraps the corresponding unsigned integer type.
-They are represented by the unsigned C types {c}`uint8_t`, ..., {c}`uint64_t`, {c}`size_t`, respectively, because they have a trivial structure.
+They are represented by the unsigned C types {C}`uint8_t`, ..., {C}`uint64_t`, {C}`size_t`, respectively, because they have a trivial structure.
 :::
 
 ## Other Inductive Types
@@ -457,67 +467,14 @@ Elaborating recursive functions to recursors serves to provide reliable terminat
 tag := "inductive-types-ffi"
 %%%
 
-From the perspective of C, these other inductive types are represented by {c}`lean_object *`.
-Each constructor is stored as a {c}`lean_ctor_object`, and {c}`lean_is_ctor` will return true.
-A {c}`lean_ctor_object` stores the constructor index in its header, and the fields are stored in the {c}`m_objs` portion of the object.
-Lean assumes that {c}`sizeof(size_t) == sizeof(void*)`—while this is not guaranteed by C, the Lean run-time system contains an assertion that fails if this is not the case.
+From the perspective of C, these other inductive types are represented by {C}`lean_object *`.
+Each constructor is stored as a {C}`lean_ctor_object`, and {C}`lean_is_ctor` will return true.
 
-
-The memory order of the fields is derived from the types and order of the fields in the declaration. They are ordered as follows:
-
-* Non-scalar fields stored as {c}`lean_object *`
-* Fields of type {lean}`USize`
-* Other scalar fields, in decreasing order by size
-
-Within each group the fields are ordered in declaration order. *Warning*: Trivial wrapper types count as their underlying wrapped type for this purpose.
-
-* To access fields of the first kind, use {c}`lean_ctor_get(val, i)` to get the `i`th non-scalar field.
-* To access {lean}`USize` fields, use {c}`lean_ctor_get_usize(val, n+i)` to get the {c}`i`th `USize` field and {c}`n` is the total number of fields of the first kind.
-* To access other scalar fields, use {c}`lean_ctor_get_uintN(val, off)` or {c}`lean_ctor_get_usize(val, off)` as appropriate. Here `off` is the byte offset of the field in the structure, starting at {c}`n*sizeof(void*)` where `n` is the number of fields of the first two kinds.
-
-::::keepEnv
-
-For example, a structure such as
-```lean
-structure S where
-  ptr_1 : Array Nat
-  usize_1 : USize
-  sc64_1 : UInt64
-   -- Wrappers of scalars count as scalars:
-  sc64_2 : { x : UInt64 // x > 0 }
-  sc64_3 : Float -- `Float` is 64 bit
-  sc8_1 : Bool
-  sc16_1 : UInt16
-  sc8_2 : UInt8
-  sc64_4 : UInt64
-  usize_2 : USize
-  -- Trivial wrapper around `UInt32`
-  sc32_1 : Char
-  sc32_2 : UInt32
-  sc16_2 : UInt16
-```
-would get re-sorted into the following memory order:
-
-* {name}`S.ptr_1`: {c}`lean_ctor_get(val, 0)`
-* {name}`S.usize_1`: {c}`lean_ctor_get_usize(val, 1)`
-* {name}`S.usize_2`: {c}`lean_ctor_get_usize(val, 2)`
-* {name}`S.sc64_1`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3)`
-* {name}`S.sc64_2`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 8)`
-* {name}`S.sc64_3`: {c}`lean_ctor_get_float(val, sizeof(void*)*3 + 16)`
-* {name}`S.sc64_4`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 24)`
-* {name}`S.sc32_1`: {c}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 32)`
-* {name}`S.sc32_2`: {c}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 36)`
-* {name}`S.sc16_1`: {c}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 40)`
-* {name}`S.sc16_2`: {c}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 42)`
-* {name}`S.sc8_1`: {c}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 44)`
-* {name}`S.sc8_2`: {c}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 45)`
-
-::::
-
-::: TODO
-Figure out how to test/validate/CI these statements
-:::
-
+There are no guarantees about the exact layout of fields in a constructor object; the compiler is free to select any layout.
+Thus, constructor objects should only be created or unpacked by functions defined in Lean code.
+These functions can be made available to C via the {attr}`export` attribute.
+Because the resulting C and Lean code call symbols defined in each other, they should be linked together.
+Each C should be compiled to an object file using a custom target in Lake and added to the Lean library configuration's {tomlField Lake.LeanLibConfig}`moreLinkObjs` field.
 
 # Mutual Inductive Types
 %%%
@@ -605,7 +562,7 @@ Their indices may differ.
 
 ::::keepEnv
 ::: example "Differing numbers of parameters"
-Even though `Both` and `OneOf` are not mutually recursive, they are declared in the same `mutual` block and must therefore have identical parameters:
+Even though `Both` and `Optional` are not mutually recursive, they are declared in the same `mutual` block and must therefore have identical parameters:
 ```lean (name := bothOptional) +error
 mutual
   inductive Both (α : Type u) (β : Type v) where
@@ -625,7 +582,7 @@ Note: All inductive types declared in the same `mutual` block must have the same
 
 ::::keepEnv
 ::: example "Differing parameter types"
-Even though `Many` and `OneOf` are not mutually recursive, they are declared in the same `mutual` block and must therefore have identical parameters.
+Even though `Many` and `Optional` are not mutually recursive, they are declared in the same `mutual` block and must therefore have identical parameters.
 They both have exactly one parameter, but `Many`'s parameter is not necessarily in the same universe as `Optional`'s:
 ```lean (name := manyOptional) +error
 mutual
@@ -865,3 +822,9 @@ Mutual inductive types are represented identically to {ref "run-time-inductives"
 The restrictions on mutual inductive types exist to ensure Lean's consistency as a logic, and do not impact compiled code.
 
 {include 2 Manual.Language.InductiveTypes.Nested}
+
+## Lattice-Theoretic Inductive and Coinductive Predicates
+
+The syntax of inductive type declarations can be used to specify both inductive and coinductive predicates.
+These are not a built-in feature of Lean's type system, but are instead elaborated to a suitable encoding.
+They are described in {ref "coinductive-predicates"}[a dedicated section].

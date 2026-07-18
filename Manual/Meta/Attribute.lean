@@ -10,6 +10,7 @@ import Verso.Code.Highlighted
 
 import Manual.Meta.Basic
 import Manual.Meta.PPrint
+import Manual.Meta.Syntax
 
 open Verso Doc Elab
 open Verso.Genre Manual
@@ -30,6 +31,33 @@ namespace Manual
 def Inline.attr : Inline where
   name := `Manual.attr
 
+open Lean Parser in
+/--
+The syntax kind of the unique production in the `attr` category whose leading token is `tok`.
+
+Attributes such as `export` require arguments, so their bare names don't parse as complete attribute
+syntax. When the leading token identifies a single production, this returns that production's kind,
+which is enough to refer to the attribute and link to its documented syntax.
+-/
+def attrSyntaxKind? (env : Environment) (tok : String) : Option Name := Id.run do
+  let some cat := getCategory (parserExtension.getState env).categories `attr
+    | return none
+  let tok := tok.trimAscii
+  let mut kinds : Array Name := #[]
+  for (tk, prods) in cat.tables.leadingTable do
+    let tkStr :=
+      match tk with
+      | .str .anonymous s => s.trimAscii
+      | _ => tk.toString
+    if tkStr == tok then
+      for (p, _) in prods do
+        for (k, _) in (p.info.collectKinds {}).toList do
+          if cat.kinds.contains k && !kinds.contains k then
+            kinds := kinds.push k
+  match kinds with
+  | #[k] => some k
+  | _ => none
+
 @[role_expander attr]
 def attr : RoleExpander
   | args, inlines => do
@@ -41,7 +69,18 @@ def attr : RoleExpander
     let altStr ← parserInputString a
 
     match Parser.runParserCategory (← getEnv) `attr altStr (← getFileName) with
-    | .error e => throwErrorAt a e
+    | .error e =>
+      -- Attributes whose syntax requires arguments (e.g. `export`) don't parse from their bare name.
+      -- When the name is a leading token, refer to that syntax and link to its docs.
+      match attrSyntaxKind? (← getEnv) a.getString with
+      | some kind =>
+        let kindDoc ← findDocString? (← getEnv) kind
+        pure #[← `(Verso.Doc.Inline.other { Inline.keywordOf with
+          data :=
+            ToJson.toJson (α := String × Option Name × Name × Option String)
+              ($(quote a.getString), $(quote (some `attr)), $(quote kind), $(quote kindDoc))
+        } #[Verso.Doc.Inline.code $(quote a.getString)])]
+      | none => throwErrorAt a e
     | .ok stx =>
       let attrName ←
         match stx.getKind with
@@ -86,7 +125,7 @@ def attr.descr : InlineDescr where
     some <| fun _ _ data _ => do
       match FromJson.fromJson? data with
       | .error err =>
-        HtmlT.logError <| "Couldn't deserialize Lean attribute code while rendering HTML: " ++ err
+        reportError <| "Couldn't deserialize Lean attribute code while rendering HTML: " ++ err
         pure .empty
       | .ok (hl : Highlighted) =>
         hl.inlineHtml (g := Manual) "examples"
@@ -165,7 +204,7 @@ def attrs.descr : InlineDescr where
     some <| fun _ _ data _ => do
       match FromJson.fromJson? data with
       | .error err =>
-        HtmlT.logError <| "Couldn't deserialize Lean attribute code while rendering HTML: " ++ err
+        reportError <| "Couldn't deserialize Lean attribute code while rendering HTML: " ++ err
         pure .empty
       | .ok (hl : Highlighted) =>
         hl.inlineHtml (g := Manual) "examples"

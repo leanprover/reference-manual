@@ -103,3 +103,6 @@ The following monotonicity lemmas are registered, and should allow recursive cal
 
 
 {monotonicityLemmas}
+
+The order-theoretic framework described here also underpins {ref "coinductive-predicates"}[coinductive and inductive predicates].
+For {lean}`Prop`-valued functions, the {name}`Lean.Order.CompleteLattice` instance provides both least and greatest fixpoints, enabling definitions with {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint` and {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` clauses.

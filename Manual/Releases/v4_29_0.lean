@@ -13,13 +13,352 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.29.0-rc1 (2026-02-17)" =>
+set_option linter.typography.quotes false
+
+#doc (Manual) "Lean 4.29.0 (2026-03-27)" =>
 %%%
 tag := "release-v4.29.0"
 file := "v4.29.0"
 %%%
 
-For this release, 303 changes landed. In addition to the 81 feature additions and 71 fixes listed below there were 18 refactoring changes, 15 documentation improvements, 22 performance improvements, 20 improvements to the test suite and 74 other changes.
+For this release, 453 changes landed. In addition to the 112 feature additions and 107 fixes listed below there were 30 refactoring changes, 21 documentation improvements, 29 performance improvements, 26 improvements to the test suite and 115 other changes.
+
+# Highlights
+
+_Violetta Sim has helpfully written the release highlights from 4.16 through 4.29, and the Lean developers gratefully acknowledge her contributions._
+
+
+## Performance Improvements
+
+[#12082](https://github.com/leanprover/lean4/pull/12082) and
+[#12044](https://github.com/leanprover/lean4/pull/12044) reduce
+startup time by storing closed terms directly in the binary, where
+possible, and initializing the remaining ones lazily instead of at
+startup.
+
+[#12406](https://github.com/leanprover/lean4/pull/12406) significantly
+reduces the memory consumed by LRAT proof checking in `bv_decide`.
+
+## New Extensible `do` Elaborator
+
+[#12459](https://github.com/leanprover/lean4/pull/12459) adds a new,
+extensible `do` elaborator. Users can opt into the new elaborator by
+unsetting the option `backward.do.legacy`.
+
+New elaborators for the builtin `doElem` syntax category can be
+registered with attribute `doElem_elab`. For new syntax, additionally
+a control info handler must be registered with attribute
+`doElem_control_info` that specifies whether the new syntax `return`s
+early, `break`s, `continue`s and which `mut` vars it reassigns.
+
+Do elaborators have type
+``TSyntax `doElem → DoElemCont → DoElabM Expr``, where `DoElabM` is
+essentially `TermElabM` and the `DoElemCont` represents how the rest
+of the `do` block is to be elaborated. Consult the docstrings for more
+details.
+
+*Breaking Changes:*
+
+- The syntax for `let pat := rhs | otherwise` and similar now scope
+  over the `doSeq` that follows. Furthermore, `otherwise` and the
+  sequence that follows are now `doSeqIndented` in order not to steal
+  syntax from record syntax.
+
+*Breaking Changes* when opting into the new `do` elaborator by unsetting
+`backward.do.legacy`:
+
+- `do` notation now always requires `Pure`.
+- `do match` is now always non-dependent. There is
+  `do match (dependent := true)` that expands to a term match as a
+  workaround for some dependent uses.
+
+## mvcgen: Specifications in the Local Context
+
+[#12395](https://github.com/leanprover/lean4/pull/12395) adds mvcgen
+support for specifications in the local context. Example:
+
+```
+import Std.Tactic.Do
+
+open Std.Do
+
+set_option mvcgen.warning false
+
+def foo (x : Id Nat → Id Nat) : Id Nat := do
+  let r₁ ← x (pure 42)
+  let r₂ ← x (pure 26)
+  pure (r₁ + r₂)
+
+theorem foo_spec
+    (x : Id Nat → Id Nat)
+    (x_spec : ∀ (k : Id Nat) (_ : ⦃⌜True⌝⦄ k ⦃⇓r => ⌜r % 2 = 0⌝⦄), ⦃⌜True⌝⦄ x k ⦃⇓r => ⌜r % 2 = 0⌝⦄) :
+    ⦃⌜True⌝⦄ foo x ⦃⇓r => ⌜r % 2 = 0⌝⦄ := by
+  mvcgen [foo, x_spec] <;> grind
+
+def bar (k : Id Nat) : Id Nat := do
+  let r ← k
+  if r > 30 then return 12 else return r
+
+example : ⦃⌜True⌝⦄ foo bar ⦃⇓r => ⌜r % 2 = 0⌝⦄ := by
+  mvcgen [foo_spec, bar] -- unfold `bar` and automatically apply the spec for the higher-order argument `k`
+```
+
+## grind: Higher-Order Miller Pattern Support in E-matching
+
+[#12483](https://github.com/leanprover/lean4/pull/12483) adds support
+for higher-order Miller patterns in `grind`'s e-matching engine.
+Previously, lambda arguments in e-matching patterns were always
+treated as `dontCare`, meaning they could not contribute to matching
+or bind pattern variables. This was a significant limitation for
+theorems where lambda arguments carry essential structure, such as
+`List.foldl`, `List.foldrM`, or any combinator that takes a function
+argument.
+
+With this change, when a pattern argument is a lambda whose body
+satisfies the *Miller pattern condition* — i.e., pattern variables
+are applied only to distinct lambda-bound variables — the lambda is
+preserved as an `ho[...]` pattern. At instantiation time, these
+higher-order patterns are matched via `isDefEq` after all first-order
+pattern variables have been assigned by the E-graph.
+
+*Example*
+
+```
+@[grind =] theorem applyFlip_spec (f : Nat → Nat → Nat) (a b : Nat)
+    : applyFlip (fun x y => f y x) a b = f b a := sorry
+```
+
+The pattern `applyFlip ho[fun x => fun y => #2 y x] #1 #0` captures
+the lambda argument structurally: `#2` (the pattern variable for `f`)
+is applied to distinct lambda-bound variables `y` and `x`. When
+`grind` encounters `applyFlip (fun x y => Nat.add y x) 3 4`, it binds
+`f := Nat.add` via `isDefEq` and fires the rewrite.
+
+## One Axiom per Native Computation
+
+[#12217](https://github.com/leanprover/lean4/pull/12217) implements
+RFC [#12216](https://github.com/leanprover/lean4/issues/12216): native
+computation ({tactic}`native_decide`, {tactic}`bv_decide`) is represented in the logic
+as one axiom per computation, asserting the equality that was obtained
+from the native computation. `#print axiom` will no longer show
+`Lean.trustCompiler`, but rather the auto-generated names of these
+axioms (with, for example, `._native.bv_decide.` in the name). See the
+RFC for more information.
+
+## More Reliable Universe Level Inference in `inductive`/`structure` Commands
+
+[#12514](https://github.com/leanprover/lean4/pull/12514) improves
+universe level inference for the `inductive` and `structure` commands
+to be more reliable and to produce better error messages. See the PR
+description for more information.
+
+*Breaking change.* Universe level metavariables present only in
+constructor fields are no longer promoted to be universe level
+parameters: use explicit universe level parameters. This promotion was
+inconsistently done depending on whether the inductive type's universe
+level had a metavariable, and also it caused confusion for users,
+since these universe levels are not constrained by the type former's
+parameters.
+
+*Breaking change.* Now recursive types do not count as “obvious
+`Prop` candidates”. Use an explicit `Prop` type former annotation on
+recursive inductive predicates.
+
+## Simpler `noncomputable` Semantics
+
+[#12028](https://github.com/leanprover/lean4/pull/12028) gives a
+simpler semantics to `noncomputable`, improving predictability as well
+as preparing codegen to be moved into a separate build step without
+breaking immediate generation of error messages.
+
+Specifically, `noncomputable` is now needed whenever an axiom or
+another `noncomputable` def is used by a def except for the following
+special cases:
+
+- uses inside proofs, types, type formers, and constructor arguments
+  corresponding to (fixed) inductive parameters are ignored
+- uses of functions marked `@[extern]/@[implemented_by]/@[csimp]` are
+  ignored
+- for applications of a function marked `@[macro_inline]`,
+  noncomputability of the inlining is instead inspected
+
+*Breaking change*: After this change, more `noncomputable`
+annotations than before may be required in exchange for improved
+future stability.
+
+## Changes to Instance and Reducibility Handling
+
+v4.29.0 brings a significant and breaking change to the handling of reducibility settings.
+We address a longstanding problem: prior to v4.29.0, the `isDefEq` algorithm would bump the
+transparency level up to `.default` (i.e. become willing to unfold default transparency definitions)
+when comparing implicit arguments.
+
+This was a serious problem, causing both immediate unpredictable performance problems in
+`isDefEq`, and hiding many places where definitional abuse was occurring in downstream libraries.
+
+In order to ensure scalability, and address these definitional abuse problems, we have
+made the quite disruptive change, in [#12179](https://github.com/leanprover/lean4/pull/12179),
+of removing this transparency level bump as the default path.
+
+The changes to the transparency bump in comparing implicit arguments can be controlled in two ways:
+* Definitions can be tagged with the new `@[implicit_reducible]` attribute.
+  This is intermediate between `@[reducible]` and `@[semireducible]` (i.e. the default setting),
+  in that the definition is mostly treated as semireducible, except when `isDefEq` is processing
+  implicit arguments or match discriminants.
+  See [#12247](https://github.com/leanprover/lean4/pull/12247) and [#12567](https://github.com/leanprover/lean4/pull/12567).
+* The option `set_option backward.isDefEq.respectTransparency false` restores the previous behaviour prior to `v4.29.0`
+  (equivalently, all semireducible definitions are treated as `implicit_reducible`).
+  As a backward compatibility option, this may eventually be removed, but given how disruptive this change is we anticipate leaving the option available for the medium term.
+
+
+As a consequence of these changes to transparency handling, existing definitional abuse problems in downstream libraries now surface in places
+where previously they didn't. To help address these problems, which primarily, but not exclusively,
+are caused by incorrectly implemented typeclass instances, we have made changes in [#12897](https://github.com/leanprover/lean4/pull/12897)
+to `inferInstanceAs` and the default `deriving` handler.
+These ensure that instances created using them do not leak the definition of the types involved,
+when the instances are reduced at less than semireducible transparency.
+
+`inferInstanceAs α` synthesizes an instance of type `α` but now adjusts it to conform to the
+expected type `β`, which must be inferable from context.
+
+Example:
+```
+def D := Nat
+instance : Inhabited D := inferInstanceAs (Inhabited Nat)
+```
+
+The adjustment will make sure that the resulting instance will not leak the RHS `Nat` when
+reduced at transparency levels below `semireducible`, i.e. where `D` would not be unfolded either.
+
+More specifically, given the source type (the argument) and target type (the expected type),
+`inferInstanceAs` synthesizes an instance for the source type and then unfolds and rewraps its
+components (fields, nested instances) as necessary to make them compatible with the target type. The
+individual steps are represented by the following options, which all default to enabled and can be
+disabled to help with porting:
+
+* `backward.inferInstanceAs.wrap`: master switch for instance adjustment in both `inferInstanceAs`
+  and the default deriving handler
+* `backward.inferInstanceAs.wrap.reuseSubInstances`: reuse existing instances for the target type
+  for sub-instance fields to avoid non-defeq instance diamonds
+* `backward.inferInstanceAs.wrap.instances`: wrap non-reducible instances in auxiliary definitions
+* `backward.inferInstanceAs.wrap.data`: wrap data fields in auxiliary definitions (proof fields are
+  always wrapped)
+
+If you just need to synthesize an instance without transporting between types, use `inferInstance`
+instead, potentially with a type annotation for the expected type.
+
+A third significant change in `v4.29.0` is that `simp` and `dsimp` no longer process typeclass instances.
+This behaviour was producing non-standard instances, and causing problems in Mathlib.
+See [#12244](https://github.com/leanprover/lean4/pull/12244) and [#12195](https://github.com/leanprover/lean4/pull/12195).
+The old behavior can be restored with
+
+```
+set_option backward.dsimp.instances true
+```
+
+or `simp +instances` for `simp`. Our experience so far, however, is that this is not often needed.
+
+Finally we have fixed in [#12172](https://github.com/leanprover/lean4/pull/12172) a problem with how
+we determine whether a function parameter is an instance, which has follow-on effects in several algorithms that depend on this classification.
+This may cause potential regressions: automation may now behave differently
+in cases where it previously misidentified instance parameters.
+For example, a rewrite rule in `simp` that was not firing due to
+incorrect indexing may now fire.
+
+### Migration guide
+
+Any projects wanting to postpone dealing with the adaptations required by the changes to transparency level bumps can
+simply use `set_option backward.isDefEq.respectTransparency false`.
+
+This can be set on a project-wide level in your `lakefile.toml`:
+```
+[leanOptions]
+backward.isDefEq.respectTransparency = false
+```
+
+However we encourage you to instead localize the option in the files that need it,
+or even on individual declarations using `set_option backward.isDefEq.respectTransparency false in ...`.
+This makes it easier to start identifying the definitional abuse problems in your code.
+
+If your project is downstream of Mathlib, you may find the following two scripts useful:
+* `scripts/add_set_option.py` (available in `.lake/packages/mathlib/scripts/add_set_option.py` if you have Mathlib as a dependency)
+  which tries compiling your project, and automatically wrapping any failing declaration with `set_option backward.isDefEq.respectTransparency false in ...`,
+  in those cases where doing so resolves the failure.
+* `scripts/rm_set_option.py`, which compiles your project and identifies all occurrences of `set_option backward.isDefEq.respectTransparency false in ...` which can be removed without causing a failure (in that same declaration).
+  This may happen because of earlier changes which resolve the definitional abuse problem.
+
+These scripts can also be copied out of Mathlib and run on any project.
+
+Again, when downstream of Mathlib you may also use the experimental `#defeq_abuse in ...` command,
+which attempts to identify and explain, or at least give clues to, the underlying definitional abuse problem that
+may explain why a declaration currently needs `set_option backward.isDefEq.respectTransparency false in ...`.
+We encourage users to report problems with this command on the [Zulip](https://leanprover.zulipchat.com/),
+and we hope that as this diagnostic command stabilizes we will be able to make it available as part of a future Lean toolchain.
+
+You are encouraged to review the construction of instances for all default transparency type synonyms in your project.
+Where possible, you should use the `deriving` handler, or the new `inferInstanceAs` elaborator,
+rather than writing term mode constructions which require unfolding the type synonym in order to typecheck.
+The `inferInstanceAs` command now *requires* an expected type.
+If you encounter errors where `inferInstanceAs` now gives an error because an expected type was not provided,
+you may find that you should simply be using `inferInstance` instead.
+
+## Universe Levels as Output Parameters
+
+[#12423](https://github.com/leanprover/lean4/pull/12423) adds the
+attribute `@[univ_out_params]` for specifying which universe levels
+should be treated as output parameters. By default, any universe level
+that does not occur in any input parameter is considered an output
+parameter.
+
+## Library Highlights
+
+This release includes a new string search infrastructure, using a
+polymorphic pattern system that works uniformly over characters,
+predicates, and strings. See:
+
+- [#12333](https://github.com/leanprover/lean4/pull/12333) adds the
+  basic typeclasses that will be used in the verification of our
+  string searching infrastructure.
+
+- [#12424](https://github.com/leanprover/lean4/pull/12424) gives a
+  proof of `LawfulToForwardSearcherModel` for `Slice` patterns, which
+  amounts to proving that our implementation of KMP is correct.
+
+There are also various additions to the library, including:
+
+- [#11938](https://github.com/leanprover/lean4/pull/11938) introduces
+  projected minima and maxima, also known as “argmin/argmax”, for
+  lists under the names `List.minOn` and `List.maxOn`. It also introduces
+  `List.minIdxOn` and `List.maxIdxOn`, which return the index of the
+  minimal or maximal element.
+
+- [#11994](https://github.com/leanprover/lean4/pull/11994) provides
+  more lemmas about sums of lists/arrays/vectors, especially sums of
+  `Nat` or `Int` lists/arrays/vectors.
+
+- [#12363](https://github.com/leanprover/lean4/pull/12363) introduces
+  iterators for vectors via `Vector.iter` and `Vector.iterM`, together
+  with the usual lemmas.
+
+- [#12452](https://github.com/leanprover/lean4/pull/12452) upstreams
+  `List.scanl`, `List.scanr` and their lemmas from batteries into the
+  standard library.
+
+## New Features in Lake
+
+- [#12203](https://github.com/leanprover/lean4/pull/12203) changes
+  artifact transfer from the local cache to prefer hard links over
+  copies, with a fallback to copying when hard linking fails (e.g., on
+  a different filesystem). Cache artifacts are now marked read-only to
+  prevent accidental corruption via hard-linked paths.
+
+- [#12444](https://github.com/leanprover/lean4/pull/12444) adds the
+  Lake CLI command `lake cache clean`, which deletes the Lake cache
+  directory.
+
+- [#12490](https://github.com/leanprover/lean4/pull/12490) adds a
+  system-wide Lake configuration file and uses it to configure the
+  remote cache services used by `lake cache`.
 
 # Language
 
@@ -101,6 +440,9 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
 
 * [#12324](https://github.com/leanprover/lean4/pull/12324) adds a default `Inhabited` instance to `Theorem` type.
 
+* [#12325](https://github.com/leanprover/lean4/pull/12325) adds a warning to any `def` of class type that does not also
+  declare an appropriate reducibility.
+
 * [#12329](https://github.com/leanprover/lean4/pull/12329) adds the option `doc.verso.module`. If set, it controls whether
   module docstrings use Verso syntax. If not set, it defaults to the value
   of the `doc.verso` option.
@@ -166,7 +508,7 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
     if r > 30 then return 12 else return r
 
   example : ⦃⌜True⌝⦄ foo bar ⦃⇓r => ⌜r % 2 = 0⌝⦄ := by
-    mvcgen [foo_spec, bar]
+    mvcgen [foo_spec, bar] -- unfold `bar` and automatically apply the spec for the higher-order argument `k`
   ```
 
 * [#12407](https://github.com/leanprover/lean4/pull/12407) is similar to #12403.
@@ -184,6 +526,12 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
   `defeq`, which could lead to `simp` generation proofs that do not type
   check at default transparency.
 
+* [#12451](https://github.com/leanprover/lean4/pull/12451) provides the necessary hooks for the new do elaborator to call
+  into the let and match elaborator.
+
+* [#12459](https://github.com/leanprover/lean4/pull/12459) adds a new, extensible `do` elaborator. Users can opt into the
+  new elaborator by unsetting the option `backward.do.legacy`.
+
 * [#12460](https://github.com/leanprover/lean4/pull/12460) fixes an `AppBuilder` exception in the `cbv` tactic when
   simplifying projections whose projection function is dependent (closes
   #12457).
@@ -191,6 +539,150 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
 * [#12507](https://github.com/leanprover/lean4/pull/12507) fixes #12495 where equational theorem generation fails for
   structurally recursive definitions using a Box-like wrapper around
   nested inductives.
+
+* [#12514](https://github.com/leanprover/lean4/pull/12514) improves universe level inference for the `inductive` and
+  `structure` commands to be more reliable and to produce better error
+  messages. Recall that the main constraint for inductive types is that if
+  `u` is the universe level for the type and `u > 0`, then each
+  constructor field's universe level `v` satisfies `v ≤ u`, where a
+  *constructor field* is an argument that is not one of the type's
+  *parameters* (recall: the type's parameters are a prefix of the
+  parameters shared by the type former and all the constructors). Given
+  this constraint, the `inductive` elaborator attempts to find reasonable
+  assignments to metavariables that may be present:
+  - For the universe level `u`, choosing an assignment that makes this
+  level least is reasonable, provided it is unique.
+  - For constructor fields, choosing the unique assignment is usually
+  reasonable.
+  - For the type's parameters, promoting level metavariables to new
+  universe level parameters is reasonable.
+
+* [#12524](https://github.com/leanprover/lean4/pull/12524) adds `Std.Iter.toHashSet` and variants.
+
+* [#12525](https://github.com/leanprover/lean4/pull/12525) adds declaration names to leanchecker error messages to make
+  debugging easier when the kernel rejects a declaration.
+
+* [#12530](https://github.com/leanprover/lean4/pull/12530) improves the error message when `mvcgen` cannot resolve the name
+  of a spec theorem.
+
+* [#12538](https://github.com/leanprover/lean4/pull/12538) enables `backward.whnf.reducibleClassField` for v4.29.
+
+* [#12558](https://github.com/leanprover/lean4/pull/12558) fixes a `(kernel) declaration has metavariables` error that
+  occurred when a `by` tactic was used in a dependent inductive type index
+  that refers to a previous index:
+
+  ```
+  axiom P : Prop
+  axiom Q : P → Prop
+  -- Previously gave: (kernel) declaration has metavariables 'Foo'
+  inductive Foo : (h : P) → (Q (by exact h)) → Prop
+  ```
+
+* [#12564](https://github.com/leanprover/lean4/pull/12564) fixes `getStuckMVar?` to detect stuck metavariables through
+  auxiliary parent projections created for diamond inheritance. These
+  coercions (e.g., `AddMonoid'.toAddZero'`) are not registered as regular
+  projections because they construct the parent value from individual
+  fields rather than extracting a single field. Previously,
+  `getStuckMVar?` would give up when encountering them, preventing TC
+  synthesis from being triggered.
+
+* [#12567](https://github.com/leanprover/lean4/pull/12567) renames `instance_reducible` to `implicit_reducible` and adds a
+  new
+  `backward.isDefEq.implicitBump` option to prepare for treating all
+  implicit
+  arguments uniformly during definitional equality checking.
+
+* [#12572](https://github.com/leanprover/lean4/pull/12572) is part 2 of the `implicit_reducible` refactoring (part 1:
+  #12567).
+
+* [#12574](https://github.com/leanprover/lean4/pull/12574) renames `SpecTheorems.add` to `SpecTheorems.insert`
+
+* [#12576](https://github.com/leanprover/lean4/pull/12576) adds `Sym.mkPatternFromDeclWithKey` to the Sym API to generalize
+  and implement `Sym.mkEqPatternFromDecl`. This is useful to implement
+  custom rewrite-like tactics that want to use `Pattern`s for
+  discrimination tree lookup.
+
+* [#12621](https://github.com/leanprover/lean4/pull/12621) fixes a bug where `reduceRecMatcher?` and `reduceProj?` bypassed
+  the `@[cbv_opaque]` attribute. These kernel-level reduction functions
+  use `whnf` internally, which does not know about `@[cbv_opaque]`. This
+  meant `@[cbv_opaque]` values were unfolded when they appeared as match
+  discriminants, recursor major premises, or projection targets. The fix
+  introduces `withCbvOpaqueGuard`, which wraps these calls with
+  `withCanUnfoldPred` to prevent `whnf` from unfolding `@[cbv_opaque]`
+  definitions.
+
+* [#12633](https://github.com/leanprover/lean4/pull/12633) makes `isDefEqProj` bump transparency to `.instances` (via
+  `withInstanceConfig`) when comparing the struct arguments of class
+  projections. This makes the behavior consistent with `isDefEqArgs`,
+  which already applies the same bump for instance-implicit parameters
+  when comparing function applications.
+
+* [#12639](https://github.com/leanprover/lean4/pull/12639) fixes the interaction between
+  `backward.whnf.reducibleClassField` and `isDefEqDelta`'s
+  argument-comparison heuristic.
+
+* [#12650](https://github.com/leanprover/lean4/pull/12650) fixes a performance regression introduced by enabling
+  `backward.whnf.reducibleClassField`
+  (https://github.com/leanprover/lean4/pull/12538). The
+  `isNonTrivialRegular` function in `ExprDefEq` was classifying class
+  projections as nontrivial at all transparency levels, but the extra
+  `.instances` reduction in `unfoldDefault` that motivates this
+  classification only applies at `.reducible` transparency. At higher
+  transparency levels, the nontrivial classification caused unnecessary
+  heuristic comparison attempts in `isDefEqDelta` that cascaded through
+  BitVec reductions, causing elaboration of `Lean.Data.Json.Parser` to
+  double from ~3.6G to ~7.2G instructions.
+
+* [#12698](https://github.com/leanprover/lean4/pull/12698) adds a `result? : Option TraceResult` field to `TraceData` and
+  populates it in `withTraceNode` and `withTraceNodeBefore`, so that
+  metaprograms walking trace trees can determine success/failure
+  structurally instead of string-matching on emoji.
+
+* [#12699](https://github.com/leanprover/lean4/pull/12699) gives the `generate` function's "apply @Foo to Goal" trace nodes
+  their own trace sub-class `Meta.synthInstance.apply` instead of sharing
+  the parent `Meta.synthInstance` class.
+
+* [#12701](https://github.com/leanprover/lean4/pull/12701) fixes a gap in how `@[implicit_reducible]` is assigned to parent
+  projections during structure elaboration.
+
+* [#12719](https://github.com/leanprover/lean4/pull/12719) marks `levelZero`, `levelOne`, and `Level.ofNat` as
+  `@[implicit_reducible]` so that `Level.ofNat 0 =?= Level.zero` succeeds when
+  the definitional equality checker respects transparency annotations.
+
+* [#12756](https://github.com/leanprover/lean4/pull/12756) adds `deriving noncomputable instance` syntax so that
+  delta-derived instances can be marked noncomputable.
+
+* [#12789](https://github.com/leanprover/lean4/pull/12789) skips the noncomputable pre-check in `deriving instance` when
+  the instance type is `Prop`, since proofs are erased by the compiler and
+  computability is irrelevant.
+
+* [#12778](https://github.com/leanprover/lean4/pull/12778) fixes an inconsistency in `getStuckMVar?` where the instance
+  argument to class projection functions and auxiliary parent projections
+  was not whnf-normalized before checking for stuck metavariables. Every
+  other case in `getStuckMVar?` (recursors, quotient recursors, `.proj`
+  nodes) normalizes the major argument via `whnf` before recursing — class
+  projection functions and aux parent projections were the exception.
+
+* [#12897](https://github.com/leanprover/lean4/pull/12897) adjusts the results of `inferInstanceAs` and the `def` `deriving`
+  handler to conform to recently strengthened restrictions on reducibility.
+  When deriving or inferring an instance for a semireducible type definition,
+  the definition's RHS is no longer leaked when the instance is reduced at
+  lower than semireducible transparency. The synthesized instance's components
+  (fields, nested instances) are unfolded and rewrapped as necessary.
+
+* [#13043](https://github.com/leanprover/lean4/pull/13043) fixes a bug where `inferInstanceAs` and the default `deriving`
+  handler, when used inside a `meta section`, would create auxiliary
+  definitions (via `normalizeInstance`) that were not marked as `meta`.
+  This caused the compiler to reject the parent `meta` definition with:
+
+  ```
+  Invalid `meta` definition `instEmptyCollectionNamePrefixRel`, `instEmptyCollectionNamePrefixRel._aux_1` not marked `meta`
+  ```
+
+* [#13059](https://github.com/leanprover/lean4/pull/13059) switches the meta marking of auxiliary definitions created by
+  `normalizeInstance` from using `isMetaSection` to the `declName?` pattern,
+  fixing a bug where `deriving` in meta sections would fail because aux defs
+  were incorrectly marked `meta` while the instance itself was not.
 
 # Library
 
@@ -392,13 +884,24 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
 * [#12438](https://github.com/leanprover/lean4/pull/12438) provides (1) lemmas showing that lists obtained from ranges have
   no duplicates and (2) lemmas about `forIn` and `foldl` on slices.
 
+* [#12441](https://github.com/leanprover/lean4/pull/12441) removes `Subarray.foldl(M)`, `Subarray.toArray` and
+  `Subarray.size` in favor of the `Std.Slice`-namespaced operations. Dot
+  notation will continue to work. If, say, `Subarray.size` is explicitly
+  referred to, an error suggesting to use `Std.Slice.size` will show up.
+
 * [#12442](https://github.com/leanprover/lean4/pull/12442) derives `DecidableEq` instances for the types of ranges such as
   `a...b` (in this case, `Std.Rco`).
+
+* [#12445](https://github.com/leanprover/lean4/pull/12445) provides lemmas characterizing `Nat.toDigits`, `Nat.repr` and
+  `ToString Nat`.
 
 * [#12449](https://github.com/leanprover/lean4/pull/12449) marks `String.toString_eq_singleton` as a `simp` lemma.
 
 * [#12450](https://github.com/leanprover/lean4/pull/12450) moves the `String.Slice`/`String` iterators out into their own
   file, in preparation for verification.
+
+* [#12452](https://github.com/leanprover/lean4/pull/12452) upstreams `List.scanl`, `List.scanr` and their lemmas from
+  batteries into the standard library.
 
 * [#12456](https://github.com/leanprover/lean4/pull/12456) verifies all of the `String` iterators except for the bytes
   iterator by relating them to `String.toList`.
@@ -408,6 +911,44 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
   `abs_eq_zero_iff`, `abs_pos_iff`) protected, so they don't shadow the
   general `abs_*` lemmas when the `Rat` namespace is opened in downstream
   projects.
+
+* [#12521](https://github.com/leanprover/lean4/pull/12521) shows `HashSet.ofList l ~m l.foldl (init := ∅) fun acc a =>
+  acc.insert a` (which is "just" the definition).
+
+* [#12531](https://github.com/leanprover/lean4/pull/12531) bundles some lemmas about hash maps into equivalences for easier
+  rewriting.
+
+* [#12582](https://github.com/leanprover/lean4/pull/12582) uses a `ptrEq` fast path for `Name.quickCmp`. It is particularly
+  effective at speeding up
+  `quickCmp` calls in `TreeMap`'s indexed by `FVarId` as usually there is
+  only one pointer per `FVarId`
+  so equality is always instantly detected without traversing the linked
+  list of `Name` components.
+
+* [#12583](https://github.com/leanprover/lean4/pull/12583) inlines the accessor for the computed hash field of `Name`. This
+  ensures that accessing the
+  value is basically always just a single load instead of doing a full
+  function call.
+
+* [#12596](https://github.com/leanprover/lean4/pull/12596) adds an `Std.Do` spec lemma for `ForIn` over strings.
+
+* [#12641](https://github.com/leanprover/lean4/pull/12641) derives the linear order on string positions (`String.Pos.Raw`,
+  `String.Pos`, `String.Slice.Pos`) via `Std.LinearOrderPackage`, which
+  ensures that all data-carrying and propositional instances are present.
+
+* [#12642](https://github.com/leanprover/lean4/pull/12642) adds dsimprocs for reducing `String.toList` and `String.push`.
+
+* [#12651](https://github.com/leanprover/lean4/pull/12651) adds some missing lemmas about `min`, `minOn`, `List.min`,
+  `List.minOn`.
+
+* [#12757](https://github.com/leanprover/lean4/pull/12757) marks `Id.run` as `[implicit_reducible]` to ensure that
+  `Id.instMonadLiftTOfPure` and `instMonadLiftT Id` are definitionally
+  equal when using `.implicitReducible` transparency setting.
+
+* [#12821](https://github.com/leanprover/lean4/pull/12821) removes the `@[grind →]` attribute from
+  `List.getElem_of_getElem?` and `Vector.getElem_of_getElem?`. These were
+  identified as problematic in Mathlib by
+  https://github.com/leanprover/lean4/issues/12805.
 
 # Tactics
 
@@ -479,6 +1020,10 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
   resolve to global declarations. In fact, local variable dot notation
   produces anchors that need the original term to be loaded during replay,
   so they must be preserved in the suggestion.
+
+* [#12226](https://github.com/leanprover/lean4/pull/12226) fixes a bug where `grind [foo]` fails when the theorem `foo` has
+  a different universe variable name than the goal, even though universe
+  polymorphism should allow the universes to unify.
 
 * [#12244](https://github.com/leanprover/lean4/pull/12244) ensures `simp` does not "simplify" instances by default. The old
   behavior can be retrieved by using `simp +instances`. is similar
@@ -602,7 +1147,79 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
 * [#12486](https://github.com/leanprover/lean4/pull/12486) caches `isDefEqI` results in `Sym`. During symbolic computation
   (e.g., VC generators), we find the same instances over and over again.
 
+* [#12500](https://github.com/leanprover/lean4/pull/12500) improves the error messages produced by the `decide_cbv` tactic
+  by only reducing the left-hand side of the equality introduced by
+  `of_decide_eq_true`, rather than attempting to reduce both sides via
+  `cbvGoal`.
+
+* [#12506](https://github.com/leanprover/lean4/pull/12506) adds the ability to register theorems with the `cbv_eval`
+  attribute in the reverse direction using the `←` modifier, mirroring the
+  existing `simp` attribute behavior. When `@[cbv_eval ←]` is used, the
+  equation `lhs = rhs` is inverted to `rhs = lhs`, allowing `cbv` to
+  rewrite occurrences of `rhs` to `lhs`.
+
+* [#12562](https://github.com/leanprover/lean4/pull/12562) fixes #12554 where the `cbv` tactic throws "unexpected kernel
+  projection term during structural definitional equality" when a rewrite
+  theorem's pattern contains a lambda and the expression being matched has
+  a `.proj` (kernel projection) at the corresponding position.
+
+* [#12568](https://github.com/leanprover/lean4/pull/12568) removes `tryMatchEquations` and `tryMatcher` from
+  `Lean.Meta.Tactic.Cbv.Main`, as both are already defined and used in
+  `Lean.Meta.Tactic.Cbv.ControlFlow`. The copies in `Main.lean` were
+  unreachable dead code.
+
+* [#12585](https://github.com/leanprover/lean4/pull/12585) removes unnecessary `trySynthInstance ` in `ite` and `dite`
+  simprocs used by `cbv` that previously contributed to too much of
+  unnecessary unrolling by the tactic.
+
+* [#12588](https://github.com/leanprover/lean4/pull/12588) adds a benchmark for `cbv` tactic that involves evaluating
+  `List.mergeSort` on a reversed list on natural numbers.
+
+* [#12601](https://github.com/leanprover/lean4/pull/12601) adds a warning when using `cbv` or `decide_cbv` in tactic mode,
+  matching the existing warning in conv mode
+  (`src/Lean/Elab/Tactic/Conv/Cbv.lean`). The warning informs users that
+  these tactics are experimental and still under development. It can be
+  disabled with `set_option cbv.warning false`.
+
+* [#12612](https://github.com/leanprover/lean4/pull/12612) fixes a crash in the `cbv` tactic's `handleProj` simproc when
+  processing a dependent projection (e.g. `Sigma.snd`) whose struct is
+  rewritten via `@[cbv_eval]` to a non-definitionally-equal term that
+  cannot be further reduced.
+
+* [#12615](https://github.com/leanprover/lean4/pull/12615) fixes a flipped condition in `handleConst` that prevented `cbv`
+  from unfolding nullary (non-function) constant definitions like
+  `def myVal : Nat := 42`. The check `unless eType matches .forallE` was
+  intended to skip bare function constants (whose unfold theorems expect
+  arguments) but instead skipped value constants. The fix changes the
+  guard to `if eType matches .forallE`, matching the logic used in the
+  standard `simp` ground evaluator.
+
+* [#12622](https://github.com/leanprover/lean4/pull/12622) fixes a bug where `simp` made no progress on class projection
+  reductions when `backward.whnf.reducibleClassField` is `true`.
+
+* [#12627](https://github.com/leanprover/lean4/pull/12627) reverts #12615, which accidentally broke Leroy's compiler
+  verification course benchmark.
+
+* [#12646](https://github.com/leanprover/lean4/pull/12646) enables the `cbv` tactic to unfold nullary (non-function)
+  constant
+  definitions such as `def myNat : Nat := 42`, allowing ground term
+  evaluation
+  (e.g. `evalEq`, `evalLT`) to recognize their values as literals.
+
+* [#12782](https://github.com/leanprover/lean4/pull/12782) adds high priority to instances for `OfSemiring.Q` in the grind
+  ring envelope. When Mathlib is imported, instance synthesis for types
+  like `OfSemiring.Q Nat` becomes very expensive because the solver
+  explores many irrelevant paths before finding the correct instances. By
+  marking these instances as high priority and adding shortcut instances
+  for basic operations (`Add`, `Sub`, `Mul`, `Neg`, `OfNat`, `NatCast`,
+  `IntCast`, `HPow`), instance synthesis resolves quickly.
+
 # Compiler
+
+* [#12044](https://github.com/leanprover/lean4/pull/12044) implements lazy initialization of closed terms. Previous work
+  has already made sure that ~70% of the closed terms occurring in core
+  can be statically initialized from the binary. With this the remaining
+  ones are initialized lazily instead of at startup.
 
 * [#12052](https://github.com/leanprover/lean4/pull/12052) avoids a potential deadlock on shutdown of a Lean program when
   the number of pooled threads has temporarily been pushed above the
@@ -735,6 +1352,38 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
 * [#12472](https://github.com/leanprover/lean4/pull/12472) inlines `mix_hash` from C++ which provides general speedups for
   hash functions.
 
+* [#12548](https://github.com/leanprover/lean4/pull/12548) ports the RC insertion from IR to LCNF.
+
+* [#12580](https://github.com/leanprover/lean4/pull/12580) makes `computed_field` respect the inline attributes on the
+  function for computing the
+  field. This means we can inline the accessor for the field, allowing
+  quicker access.
+
+* [#12604](https://github.com/leanprover/lean4/pull/12604) makes the derived value analysis in RC insertion recognize
+  `Array.uget` as another kind of
+  "projection-like" operation. This allows it to reduce reference count
+  pressure on elements accessed
+  through uget.
+
+* [#12625](https://github.com/leanprover/lean4/pull/12625) ensures that failure in initial compilation marks the relevant
+  definitions as `noncomputable`, inside and outside `noncomputable
+  section`, so that follow-up errors/noncomputable markings are detected
+  in initial compilation as well instead of somewhere down the pipeline.
+
+* [#12644](https://github.com/leanprover/lean4/pull/12644) ports the toposorting pass from IR to LCNF.
+
+* [#12759](https://github.com/leanprover/lean4/pull/12759) replaces the `isImplicitReducible` check with `Meta.isInstance`
+  in the `shouldInline` function within `inlineCandidate?`.
+
+# Pretty Printing
+
+* [#12688](https://github.com/leanprover/lean4/pull/12688) adds the `pp.fvars.anonymous` option (default `true`) that
+  controls the display of loose free variables (fvars not in the local
+  context). When `false`, they display as `_fvar._` instead of their internal
+  name. This is useful for stabilizing output in `#guard_msgs`.
+  [#12745](https://github.com/leanprover/lean4/pull/12745) fixes the
+  behavior when the option is set to `false`.
+
 # Documentation
 
 * [#12157](https://github.com/leanprover/lean4/pull/12157) updates #12137 with a link to the Lean reference manual.
@@ -758,6 +1407,19 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
   - When a universe parameter should be considered an output (determined
   by inputs) vs. not (part of the question being asked)
 
+* [#12616](https://github.com/leanprover/lean4/pull/12616) adds documentation to the Cbv evaluator files under
+  `Meta/Tactic/Cbv/`. Module docstrings describe the evaluation strategy,
+  limitations, attributes, and unfolding order. Function docstrings cover
+  the public API and key internal simprocs.
+
+* [#13115](https://github.com/leanprover/lean4/pull/13115) updates the `inferInstanceAs` docstring to reflect current
+  behavior: it requires an
+  expected type from context and should not be used as a simple
+  `inferInstance` synonym. The
+  old example (`#check inferInstanceAs (Inhabited Nat)`) no longer works,
+  so it's replaced
+  with one demonstrating the intended transport use case.
+
 # Server
 
 * [#12197](https://github.com/leanprover/lean4/pull/12197) fixes a bug in `System.Uri.fileUriToPath?` where it wouldn't use
@@ -765,6 +1427,13 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
 
 * [#12332](https://github.com/leanprover/lean4/pull/12332) fixes an issue on new NeoVim versions that would cause the
   language server to display an error when using certain code actions.
+
+* [#12553](https://github.com/leanprover/lean4/pull/12553) fixes an issue where commands that do not support incrementality
+  did not have their elaboration interrupted when a relevant edit is made
+  by the user. As all built-in variants of def/theorem share a common
+  incremental elaborator, this likely had negligible impact on standard
+  Lean files but could affect other use cases heavily relying on custom
+  commands such as Verso.
 
 # Lake
 
@@ -809,6 +1478,26 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
   the CI now creates `nightly-YYYY-MM-DD-rev1` (then `-rev2`, etc.)
   instead of silently skipping.
 
+* [#12490](https://github.com/leanprover/lean4/pull/12490) adds a system-wide Lake configuration file and uses it to
+  configure the remote cache services used by `lake cache`.
+
+* [#12532](https://github.com/leanprover/lean4/pull/12532) fixes a bug with `cache clean` where it would fail if the cache
+  directory does not exist.
+
+* [#12537](https://github.com/leanprover/lean4/pull/12537) fixes a bug where Lake recached artifacts already present within
+  the cache. As a result, Lake would attempt to overwrite the read-only
+  artifacts, causing a permission denied error.
+
+* [#12835](https://github.com/leanprover/lean4/pull/12835) changes Lake to only emit `.nobuild` traces (introduced in
+  #12076) if the normal trace file already exists. This fixes an issue
+  where a `lake build --no-build` would create the build directory and
+  thereby prevent a cloud release fetch in a future build.
+
+* [#13141](https://github.com/leanprover/lean4/pull/13141) changes Lake to run `git clean -xf` when updating dependency
+  repositories, ensuring stale untracked files (such as `.hash` files) in the
+  source tree are removed. Stale `.hash` files could cause incorrect trace
+  computation and break builds.
+
 # Other
 
 * [#12351](https://github.com/leanprover/lean4/pull/12351) extends the `@[csimp]` attribute to be correctly tracked by
@@ -821,10 +1510,30 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
   nightly release workflow
   (https://github.com/leanprover/lean4/pull/12461):
 
-  **1. Date logic:** The `workflow_dispatch` path used `date -u +%F`
+  *1. Date logic:* The `workflow_dispatch` path used `date -u +%F`
   (current UTC date) to find the base nightly to revise. If the most
   recent nightly was from yesterday (e.g. `nightly-2026-02-12`) but UTC
   has rolled over to Feb 13, the code would look for `nightly-2026-02-13`,
   not find it, and create a fresh nightly instead of a revision. Now finds
   the latest `nightly-*` tag via `sort -rV` and creates a revision of
   that.
+
+* [#12517](https://github.com/leanprover/lean4/pull/12517) adds tooling for profiling Lean programs with human-readable
+  function names in Firefox Profiler:
+
+  - *`script/lean_profile.sh`* — One-command pipeline: record with
+  samply, symbolicate, demangle, and open in Firefox Profiler
+  - *`script/profiler/lean_demangle.py`* — Faithful port of
+  `Name.demangleAux` from `NameMangling.lean`, with a postprocessor that
+  folds compiler suffixes into compact annotations (`[λ, arity↓]`, `spec
+  at context[flags]`)
+  - *`script/profiler/symbolicate_profile.py`* — Resolves raw addresses
+  via samply's symbolication API
+  - *`script/profiler/serve_profile.py`* — Serves demangled profiles to
+  Firefox Profiler without re-symbolication
+  - *`PROFILER_README.md`* — Documentation including a guide to reading
+  demangled names
+
+* [#12533](https://github.com/leanprover/lean4/pull/12533) adds human-friendly demangling of Lean symbol names in runtime
+  backtraces. When a Lean program panics, stack traces now show readable
+  names instead of mangled C identifiers.

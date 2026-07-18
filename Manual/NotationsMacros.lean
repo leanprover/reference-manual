@@ -14,6 +14,7 @@ import Manual.NotationsMacros.Precedence
 import Manual.NotationsMacros.Notations
 import Manual.NotationsMacros.SyntaxDef
 import Manual.NotationsMacros.Elab
+import Manual.NotationsMacros.DoElab
 import Manual.NotationsMacros.Delab
 
 import Lean.Parser.Command
@@ -509,7 +510,7 @@ Spaces are not allowed between the dollar sign and the identifier.
 def ex2 (e) := show m _ from `(2 + $ e:num)
 ```
 ```leanOutput ex2err1
-<example>:1:34-1:36: unexpected token '$'; expected '`(tactic|' or no space before spliced term
+<example>:1:34-1:36: unexpected token '$'; expected '`(tactic|', 'do' or no space before spliced term
 ```
 
 Spaces are also not allowed before the colon:
@@ -1199,6 +1200,14 @@ info: TSyntax `str
 info: TSyntax Name.anonymous
 ---
 info: Syntax.TSepArray `num ","
+---
+info: Syntax.TSepArray `num ","
+---
+info: TSyntax Name.anonymous
+---
+info: Syntax.TSepArray `num ","
+---
+info: Syntax.TSepArray `num ","
 -/
 #check_msgs in
 macro "gah!" thing:str other:(str <|> num) arg:num,* : term => do
@@ -1266,5 +1275,7 @@ Evaluating this new expression demonstrates that the macro is present.
 ::::
 
 {include 0 Manual.NotationsMacros.Elab}
+
+{include 0 Manual.NotationsMacros.DoElab}
 
 {include 0 Manual.NotationsMacros.Delab}
