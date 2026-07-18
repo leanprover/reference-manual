@@ -7,22 +7,19 @@ Author: Joscha Mennicken
 import VersoManual
 import Manual.Meta
 import Manual.Meta.Markdown
+import Std.Tactic.Do
 
 open Manual
+open Std.Do
 open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.32.0-rc1 (2026-06-17)" =>
+#doc (Manual) "Lean 4.32.0 (2026-07-13)" =>
 %%%
 tag := "release-v4.32.0"
 file := "v4.32.0"
 %%%
-
-:::warn
-These release notes describe a _release candidate_, not the final release.
-They may be incomplete and are subject to change.
-:::
 
 For this release, 102 changes landed.
 In addition to the 35 feature additions,
@@ -32,6 +29,214 @@ there were 7 refactoring changes,
 9 performance improvements,
 2 improvements to the test suite,
 and 27 other changes.
+
+# Highlights
+
+Lean 4.32.0 makes the new {ref "do-notation"}`do` elaborator the default, expands `do` notation with the `do←` marker for effect forwarding, and brings notable performance improvements including a ~10% reduction in `import Mathlib` time. Lake's linting framework gains option-based control and module-level linters, and an experimental incremental-compilation mode lands behind CLI flags.
+
+_This highlights section was contributed by Juanjo Madrigal._
+
+## New `do` Elaborator is Now the Default
+
+[#13305](https://github.com/leanprover/lean4/pull/13305) makes the new {ref "do-notation"}`do` elaborator (introduced as experimental in v4.31.0) the default by flipping {option}`backward.do.legacy` to `false`. The legacy elaborator remains available via `set_option backward.do.legacy true`. [#13912](https://github.com/leanprover/lean4/pull/13912) and [#13931](https://github.com/leanprover/lean4/pull/13931) add significant new capabilities:
+
+### `do←` — Effect Forwarding
+
+[#13931](https://github.com/leanprover/lean4/pull/13931) introduces the `do← body` marker (ASCII `do<- body`), which lets ordinary continuation-taking wrappers like `withReader` or `Meta.withLocalDecl` participate in the surrounding `do` block's control flow. When `do← body` appears as the last argument of an application inside a `do` block, the body's `return`, `break`, `continue`, and `mut`-variable reassignments are forwarded out through the wrapper to the enclosing block. For instance, let
+
+```lean
+def withLogging [Monad m] [MonadLiftT IO m] (act : m α) : m α := do
+  IO.print "log!"
+  act
+```
+
+Internal `do← body` can mutate external variables:
+
+```lean
+def mutForward : IO Nat := do
+  let mut x := 0
+  withLogging (do← x := x + 1)
+  return x
+
+/--
+info: log!
+---
+info: 1
+-/
+#guard_msgs in
+#eval mutForward
+```
+
+It can also trigger an early return:
+
+```lean
+def retForward : IO Nat := do
+  let x <- withLogging (do← return 5)
+  IO.println "unreachable"
+  return x + 100
+
+/--
+info: log!
+---
+info: 5
+-/
+#guard_msgs in
+#eval retForward
+```
+
+Or break an external loop (and the `do← body` can be executed multiple times):
+
+```lean
+def brkForward : IO Nat := do
+  let mut total := 0
+  for i in [1, 2, 3, 4, 5] do
+    total := total + (← withLogging (do←
+      if i > 3 then break
+      pure i))
+  return total
+
+/--
+info: log!log!log!log!
+---
+info: 6
+-/
+#guard_msgs in
+#eval brkForward
+```
+
+The syntax is reminiscent of a nested action `(← body)`, but unlike a nested action, `body` is not run eagerly before the wrapping function is called. The wrapping function decides when to run `body`, and code is inserted to forward `body`'s effects to the outer `do` block.
+
+### Arbitrary `doElem`s in Nested Actions
+
+[#13912](https://github.com/leanprover/lean4/pull/13912) extends the `nestedAction` parser (`←` inside `do` blocks) to accept arbitrary `doElem`s after `←` instead of just terms.
+
+```lean
+def bumpAndUse : IO Nat := do
+  let mut y := 1
+  let x ← pure (← if y < 3 then
+    y := y + 1
+    pure y
+  else
+    pure 0)
+  return x + y     -- x = 2 and y = 2
+
+/-- info: 4 -/
+#guard_msgs in
+#eval bumpAndUse
+```
+
+`return e` inside `(← do …)` or `(← try … catch …)` now early-returns from the _enclosing_ `do` block, not from the nested action. This a *breaking change*: replace with `pure e` when value-return from the nested block is intended, or wrap the `do` block in parentheses (`(← (do …))`).
+
+### Other `do` Elaborator Improvements
+
+- [#13970](https://github.com/leanprover/lean4/pull/13970) makes printed names of `mut` variables in error messages carry hover info so the infoview surfaces their type.
+- [#13910](https://github.com/leanprover/lean4/pull/13910) renames the `liftMethod` parser to `nestedAction`, reflecting the terminology already used in documentation.
+
+## Performance
+
+A fix to DiscrTree insertion ([#13928](https://github.com/leanprover/lean4/pull/13928)) reduces the time to `import Mathlib` by approximately 10% by eliminating a non-linearity in the insertion algorithm.
+
+Other notable performance work:
+
+- [#13123](https://github.com/leanprover/lean4/pull/13123) makes the task thread pool reclaim idle worker threads after 5 seconds of inactivity, reducing memory waste from the 1GB default stack size per thread.
+- [#13938](https://github.com/leanprover/lean4/pull/13938) adds tail-recursive `@[csimp]` runtime replacements for bounded-quantifier `Decidable` instances (`Nat.decidableBallLT`, `Nat.decidableExistsLT`, `Nat.decidableExistsLT'`), so running examples like
+
+  ```lean (name := ex)
+  #eval decide (∀ k, k < 2000000 → 0 ≤ k)
+  #eval decide (∃ k, k < 50000000 ∧ k + 1 = 0)
+  ```
+
+  no longer take quadratic time or overflow the stack.
+- [#13991](https://github.com/leanprover/lean4/pull/13991) adds constant folding for `USize` operations and common bitwise operations, and [#13974](https://github.com/leanprover/lean4/pull/13974) extends it to `USize` relations. [#14044](https://github.com/leanprover/lean4/pull/14044) adds constant folding for `Nat.reprFast`.
+
+## Monadic Verification: `mvcgen'` and `grind` Improvements
+
+The `mvcgen'` and {tactic}`grind` ecosystem continues to mature:
+
+- [#13983](https://github.com/leanprover/lean4/pull/13983) adds `mvcgen' until $t`, where `$t` is a conv-style pattern; verification-condition generation stops as soon as the program matches the pattern. For instance, compare the traces in these two examples:
+
+  ```lean -show
+  set_option mvcgen.warning false
+
+  def increaseBy (n m : Nat) : Id Nat := pure (n + m)
+
+  @[spec]
+  theorem increaseBy_spec (n : Nat) : ⦃⌜True⌝⦄ increaseBy n m ⦃⇓ r => ⌜r = n + m⌝⦄ := by
+    mvcgen [increaseBy]
+  ```
+
+  ```
+  def inc (n : Nat) : Id Nat := do
+    let a ← increaseBy n 1
+    let b ← increaseBy a 2
+    let c ← increaseBy b 3
+    let d ← increaseBy c 4
+    increaseBy d 5
+
+  example (n : Nat) : ⦃⌜True⌝⦄ inc n ⦃⇓ r => ⌜r = n + 15⌝⦄ := by
+    mvcgen' [inc]
+    trace_state
+    omega
+
+  example (n : Nat) : ⦃⌜True⌝⦄ inc n ⦃⇓ r => ⌜r = n + 15⌝⦄ := by
+    mvcgen' [inc] until increaseBy _ 4
+    case vc1 a =>
+      trace_state
+      mvcgen'    -- resume: run the remaining program to completion
+      omega
+  ```
+
+- [#13925](https://github.com/leanprover/lean4/pull/13925) consolidates `mvcgen'` syntax across tactic and {tactic}`grind` (`sym =>`) modes:
+
+  ```
+  example (n : Nat) : ⦃⌜True⌝⦄ inc n ⦃⇓ r => ⌜r = n + 15⌝⦄ := by
+    sym =>
+      mvcgen' [inc] <;> (show_asserted; finish)
+  ```
+
+  `mvcgen' invariants?` (suggest mode) also works inside sym => … blocks.
+
+- [#13881](https://github.com/leanprover/lean4/pull/13881) lets `mvcgen'` decompose programs whose head is a typeclass method projection (e.g. `Add.add inst a b`).
+- [#13888](https://github.com/leanprover/lean4/pull/13888) teaches `mvcgen'` to register `Triple`-shaped local hypotheses as specs during VC generation.
+- [#13971](https://github.com/leanprover/lean4/pull/13971) makes the {tactic}`cbv` tactic available inside {tactic}`grind`'s interactive `sym =>` mode.
+
+## Lake: Linter Overhaul and Cache Improvements
+
+### Environment Linters via Options
+
+[#13893](https://github.com/leanprover/lean4/pull/13893) (building on [#13852](https://github.com/leanprover/lean4/pull/13852)'s builtin linter sets) makes environment linters controlled by Lean options ({name}`Lean.Option`), just like ordinary linters. Each environment linter is tied to a boolean option, so you can enable or disable it per declaration with `set_option linter.X false in ...` and across a lint run with the new `lake lint --linters=linter.X,-linter.Y` flag. Using `--lint-only` with the same syntax collects information only from the specified linters. *Breaking change:* the previous `lake lint` flags `--extra`, `--lint-all`, and the `builtin_nolint` attribute are removed in favour of this option-based control. `linter.extra` becomes a linter set whose members are the existing extra linters.
+
+### Module Linters
+
+[#13917](https://github.com/leanprover/lean4/pull/13917) adds module linters, which run once at the end of elaborating a module rather than after every command. A module linter receives the full array of top-level command syntaxes for the module, making it suitable for checks that need a whole-module view (e.g. enforcing module-wide syntactic conventions).
+
+### Other Lake Improvements
+
+- [#13961](https://github.com/leanprover/lean4/pull/13961) adds a `--record-exceptions` flag to `lake lint`, which inserts `set_option` flags to silence warnings on the definitions that triggered them.
+- [#14060](https://github.com/leanprover/lean4/pull/14060) deduplicates cached artifacts by hash, and [#14036](https://github.com/leanprover/lean4/pull/14036) refines when and how Lake overwrites cache data with new `--no-overwrite` and `--force-overwrite` options. [#13949](https://github.com/leanprover/lean4/pull/13949) adds a `LAKE_RESTORE_ARTIFACTS` environment variable to override the workspace's `restoreAllArtifacts` configuration.
+
+## Experimental: Incremental Compilation Caching
+
+[#13965](https://github.com/leanprover/lean4/pull/13965) adds *experimental* CLI flags that cache `lean`'s post-import elaboration state across invocations: `--incr-save FILE` writes a full snapshot at end of run, `--incr-load FILE` reuses one at startup, and `--incr-header-save FILE` writes a header-only snapshot (post-import `Environment`, no command bodies). A loaded snapshot is reused as far as unchanged syntax allows.
+
+## Library Highlights
+
+- [#3727](https://github.com/leanprover/lean4/pull/3727) adds `BitVec.flattenList` for concatenating lists of bitvectors, with characterizing lemmas and a `@[csimp]`-driven divide-and-conquer implementation that's ~900× faster than a naive left fold.
+- [#12030](https://github.com/leanprover/lean4/pull/12030) links OpenSSL into Lean's runtime, with [#13988](https://github.com/leanprover/lean4/pull/13988) making it lazily loadable.
+- [#14054](https://github.com/leanprover/lean4/pull/14054) upstreams `Nat.sqrt` from Batteries, with characterizing lemmas that avoid exposing internals.
+- [#13798](https://github.com/leanprover/lean4/pull/13798) simplifies the `Std.Time` API: `DateTime (tz : TimeZone)` is removed and the former `ZonedDateTime` is renamed to `DateTime`. *Breaking change:* code using `DateTime` or `ZonedDateTime` directly will need updating.
+- [#13908](https://github.com/leanprover/lean4/pull/13908) deprecates `Lean.RBMap` and `Lean.RBTree` in favour of `Std.TreeMap` and `Std.TreeSet`. Importers now receive a deprecation warning via {keywordOf Lean.Parser.Command.deprecated_module}`deprecated_module`.
+- [#13891](https://github.com/leanprover/lean4/pull/13891) adds opt-in support for serializing closures to `.olean` files via `CompactedRegion.save (allowClosures := true)`.
+
+## Breaking Changes
+
+In addition to the `do` elaborator and linter changes described above:
+
+- [#13305](https://github.com/leanprover/lean4/pull/13305) (new `do` elaborator default): `do` notation now requires a `Pure` instance, not just `Bind`. The arms of `do match` are non-dependent by default — write `do match (dependent := true)` to recover the legacy term-match expansion. `try`/`catch` no longer accepts a body whose result type matches the surrounding expected type only via coercion. Unreachable code now triggers a warning instead of an error. The syntax `let pat := rhs | otherwise` now scopes over the `doSeq` that follows.
+- [#13912](https://github.com/leanprover/lean4/pull/13912) (nested actions): `return e` inside `(← do …)` or `(← try … catch …)` now early-returns from the *enclosing* `do` block. *Migration:* replace with `pure e` when value-return from the nested block is intended, or wrap in parentheses `(← (do …))`.
+- [#13893](https://github.com/leanprover/lean4/pull/13893) (Lake lint): the `--extra`, `--lint-all` flags and `@[builtin_nolint]` attribute are removed. Use `lake lint --linters=linter.X,-linter.Y` and `set_option linter.X false in ...` instead.
+- [#13798](https://github.com/leanprover/lean4/pull/13798) (Std.Time): `DateTime (tz : TimeZone)` is removed; use `DateTime` (the former `ZonedDateTime`). *Migration:* replace uses of `DateTime` with an explicit timezone argument with the new `DateTime`, and rename references to the old `ZonedDateTime` to `DateTime`.
+- [#13908](https://github.com/leanprover/lean4/pull/13908): `Lean.RBMap` and `Lean.RBTree` are deprecated. *Migration:* switch to `Std.TreeMap` and `Std.TreeSet`.
 
 # Language
 
@@ -284,6 +489,9 @@ and 27 other changes.
   fixes `mkSimpleThunkType` to use `_` instead of `Name.anonymous` as its binder name. A local declaration whose user name is `Name.anonymous` matches every identifier in `resolveLocalName`, shadowing all global constants and making the pretty printer render every constant in the local context as inaccessible (e.g., `True✝`). The `match` compiler uses `mkSimpleThunkType` to create the minor premises of parameterless alternatives, and tactics that introduce these binders using their binder name verbatim (e.g., `grind`) ended up with a corrupted local context. Found while investigating #13773.
 
 - [#13965](https://github.com/leanprover/lean4/pull/13965)
-  adds **experimental** CLI flags that cache `lean`'s post-import elaboration state across invocations: `--incr-save FILE` writes a full snapshot at end of run, `--incr-load FILE` reuses one at startup, and `--incr-header-save FILE` writes a header-only snapshot (post-import `Environment`, no command bodies). A loaded snapshot will be reused as far as unchanged syntax (i.e. import header plus subsequent commands, if saved) allows for.
+  adds **experimental** CLI flags that cache `lean`'s elaboration state used for in-process incrementality across invocations:
+  * `--incr-save FILE` writes a full snapshot including the states after import and after each command at the end of the run
+  * `--incr-load FILE` reuses such a snapshot at startup, up to the first point of syntactic difference just like incrementality in the language server
+    *  `--incr-header-save FILE` writes a cheaper and smaller import-only snapshot
 
 ```

@@ -474,6 +474,8 @@ module.c
 module.c.o
 module.c.o.export
 module.c.o.noexport
+module.depHash
+module.depTrace
 module.deps
 module.dynlib
 module.exportInfo
@@ -488,6 +490,8 @@ module.ir
 module.ir.sig
 module.lean
 module.leanArts
+module.linkInfoExport
+module.linkInfoNoExport
 module.ltar
 module.o
 module.o.export
@@ -496,6 +500,7 @@ module.olean
 module.olean.private
 module.olean.server
 module.precompileImports
+module.presetup
 module.setup
 module.transImports
 -/
@@ -517,6 +522,14 @@ The facets available for modules are:
 : `deps`
 
   The module's dependencies (e.g., imports or shared libraries).
+
+: `depHash`
+
+  A hash of a module's build dependencies (e.g., imports, source, plugins).
+
+: `depTrace`
+
+  A Lake build trace data structure (i.e., composite hash and modification time) of a module's build dependencies (e.g., imports, source, plugins).
 
 : `olean`
 
@@ -582,7 +595,7 @@ The facets available for modules are:
 
 : `c.o.noexport`
 
- The compiled object file, produced from the C file, with Lean symbols exported.
+ The compiled object file, produced from the C file, without Lean symbols exported.
 
 : `bc.o`
 
@@ -599,6 +612,14 @@ The facets available for modules are:
 : `ltar`
 
   A compressed archive (produced via `leantar`) of the module's build artifacts. {TODO}[Document `leantar` in the manual as well]
+
+: `linkInfoExport`
+
+  A structured representation of the linker arguments, static objects, and dynamic libraries needed to link a module and its dependencies. Objects have Lean symbols exported.
+
+: `linkInfoNoExport`
+
+  A structured representation of the linker arguments, static objects, and dynamic libraries needed to link a module and its dependencies. Objects do not Lean symbols exported.
 
 :::
 
