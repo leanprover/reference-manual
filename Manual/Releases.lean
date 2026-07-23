@@ -7,6 +7,7 @@ Author: Joachim Breitner
 import VersoManual
 
 import Manual.Releases.«v4_33_0»
+import Manual.Releases.«v4_32_1»
 import Manual.Releases.«v4_32_0»
 import Manual.Releases.«v4_31_0»
 import Manual.Releases.«v4_30_0»
@@ -65,6 +66,8 @@ read the corresponding release notes. They may contain advice that will help you
 the differences with the previous version and upgrade your projects.
 
 {include 0 Manual.Releases.«v4_33_0»}
+
+{include 0 Manual.Releases.«v4_32_1»}
 
 {include 0 Manual.Releases.«v4_32_0»}
 
