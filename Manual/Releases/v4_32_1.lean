@@ -23,7 +23,7 @@ This point release fixes a soundness bug in the kernel.
 
 The issue was discovered by Patrick Hulin with the help of GPT-5.6 Sol.
 
-This bug can be used by a malicious meta program to trick the kernel to accept a proof of `False`, or any other theorem. It requires the malicious meta program to run in the same process as the kernel. In that situation, malicious meta programs already have other, blunter, ways to let the system accept bad proofs, so this bug does not create a new attack vector.
+This bug can be used by a malicious meta program to trick the kernel into accepting a proof of `False`, or any other theorem. It requires the malicious meta program to run in the same process as the kernel. In that situation, malicious meta programs already have other, blunter, ways to let the system accept bad proofs, so this bug does not create a new attack vector.
 
 The {ref "validating-comparator"}`recommended way to check possibly dishonest proofs` using comparator is *not* affected by this bug.
 
