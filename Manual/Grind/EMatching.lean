@@ -305,6 +305,8 @@ grindExt
 grindFunCC
 grindFwd
 grindGen
+grindHom
+grindHomPred
 grindInj
 grindIntro
 grindLR
@@ -642,6 +644,26 @@ norm
 ```
 {includeDocstring Lean.Parser.Attr.grindNorm}
 :::
+
+The {tactic}`grind` tactic can work with a source algebra that doesn't have a great deal of solving infrastructure (e.g. bitvectors) by “̲injecting”̲ it into another algebra that has more solving infrastructure (like natural numbers or integers).
+Homomorphism rules describe the injection from source to target, and how the injection commutes with other operations (like addition or multiplication in the case of bitvectors).
+Homomorphism predicates present additional facts that {tactic}`grind` can use about the injection (like that a bitvector of length $`n` corresponds to a natural number less than $`2^n`).
+
+:::syntax Lean.Parser.Attr.grindMod (title := "Homomorphism Rules")
+```grammar
+hom
+```
+{includeDocstring Lean.Parser.Attr.grindHom}
+:::
+
+:::syntax Lean.Parser.Attr.grindMod (title := "Homomorphism Predicates")
+```grammar
+hom_pred
+```
+{includeDocstring Lean.Parser.Attr.grindHomPred}
+:::
+
+{TODO}[Grind's hom infrastructure could use an example]
 
 {TODO}[Document `gen` modifier for `grind` patterns]
 
