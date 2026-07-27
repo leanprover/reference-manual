@@ -340,7 +340,7 @@ Propositional equality is typically denoted by the infix `=` operator.
 $_ ▸ $_
 ```
 When a term's type includes one side of an equality as a sub-term, it can be rewritten using the `▸` operator.
-If the both sides of the equality occur in the term's type, then the left side is rewritten to the right.
+If both sides of the equality occur in the term's type, then the left side is rewritten to the right.
 :::
 
 ## Uniqueness of Equality Proofs
@@ -372,8 +372,7 @@ def K {α : Sort u}
 
 example {α : Sort u} {a : α}
     {motive : {x : α} → x = x → Sort u}
-    {d : {x : α} → motive (Eq.refl x)}
-    {v : motive (Eq.refl a)} :
+    {d : {x : α} → motive (Eq.refl x)} :
     K (motive := motive) d a rfl = d := by
   rfl
 ```
