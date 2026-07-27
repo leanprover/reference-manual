@@ -372,8 +372,7 @@ def K {α : Sort u}
 
 example {α : Sort u} {a : α}
     {motive : {x : α} → x = x → Sort u}
-    {d : {x : α} → motive (Eq.refl x)}
-    {v : motive (Eq.refl a)} :
+    {d : {x : α} → motive (Eq.refl x)} :
     K (motive := motive) d a rfl = d := by
   rfl
 ```
