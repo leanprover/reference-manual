@@ -29,6 +29,6 @@ The bug can be exploited even when using `comparator`.
 
 The external checker `nanoda` does not suffer from the same bug. However, by the nature of this bug, it is possible to write proof terms that exploit it and at the same time exploit unrelated bugs in the external checker, as demonstrated by Kumar with a bug in `nanoda` that was (independently) [reported and fixed very recently](https://github.com/ammkrn/nanoda_lib/pull/22/changes). We highly recommend users who have to account for malicious proofs and follow the {ref "validating-comparator"}[recommended way to validate proofs] to upgrade to the latest `nanoda` version as well.
 
-The FRO takes these issues serious and will invest in the checker ecosystem, towards more hardening, more testing and more independent implementations of kernels and checkers.
+The FRO takes these issues seriously and will invest in the checker ecosystem, towards more hardening, more testing and more independent implementations of kernels and checkers.
 
 See [issue #14576](https://github.com/leanprover/lean4/issues/14576) for more details on the bug and [PR #14577](https://github.com/leanprover/lean4/pull/14577) for the fix.
