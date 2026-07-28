@@ -606,7 +606,7 @@ Declarations marked with {attr}`cbv_opaque` are never unfolded unless a matching
 
 :::syntax tactic (title := "Call-by-Value Evaluation")
 ```grammar
-cbv $[at $[$h]*]?
+cbv 
 ```
 :::
 
@@ -644,29 +644,6 @@ The {tactic}`cbv` tactic can reduce {lean}`countdown 3` via propositional rewrit
 ```lean
 example : countdown 3 = [3, 2, 1, 0] := by
   cbv
-```
-:::
-
-:::example "Reducing Hypotheses"
-The {tactic}`cbv` tactic supports the standard `at` location syntax.
-When used with `at h`, it reduces the type of hypothesis `h`.
-When used with `at *`, it reduces all non-dependent propositional
-hypotheses and the goal target.
-```lean
-def countdown (n : Nat) : List Nat :=
-  match n with
-  | 0 => [0]
-  | n + 1 => (n + 1) :: countdown n
-termination_by n
-```
-```lean -show
-set_option cbv.warning false
-```
-```lean
-example (x : List Nat) (h : x = countdown 2) :
-    x = [2, 1, 0] := by
-  cbv at h
-  exact h
 ```
 :::
 
