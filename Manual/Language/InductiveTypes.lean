@@ -562,7 +562,7 @@ Their indices may differ.
 
 ::::keepEnv
 ::: example "Differing numbers of parameters"
-Even though `Both` and `OneOf` are not mutually recursive, they are declared in the same `mutual` block and must therefore have identical parameters:
+Even though `Both` and `Optional` are not mutually recursive, they are declared in the same `mutual` block and must therefore have identical parameters:
 ```lean (name := bothOptional) +error
 mutual
   inductive Both (α : Type u) (β : Type v) where
@@ -582,7 +582,7 @@ Note: All inductive types declared in the same `mutual` block must have the same
 
 ::::keepEnv
 ::: example "Differing parameter types"
-Even though `Many` and `OneOf` are not mutually recursive, they are declared in the same `mutual` block and must therefore have identical parameters.
+Even though `Many` and `Optional` are not mutually recursive, they are declared in the same `mutual` block and must therefore have identical parameters.
 They both have exactly one parameter, but `Many`'s parameter is not necessarily in the same universe as `Optional`'s:
 ```lean (name := manyOptional) +error
 mutual
