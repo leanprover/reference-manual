@@ -8,6 +8,8 @@ import VersoManual
 import Manual.Meta
 import Manual.Meta.Markdown
 
+open Lean.MessageSeverity
+
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
@@ -32,6 +34,222 @@ there were 12 refactoring changes,
 21 performance improvements,
 6 improvements to the test suite,
 and 50 other changes.
+
+# Highlights
+
+Lean 4.33.0 concentrates on responsiveness and consolidation: the editor keeps more of your work while you type, `try?` can propose proofs on its own, the experimental `mvcgen'` tactic is rebuilt and renamed to `vcgen`, and `Float` stops being an opaque type. Continuing the transparency work of v4.31.0, it also enables `backward.isDefEq.respectTransparency.types` by default — the change most likely to need attention when porting.
+
+_This highlights section was contributed by Juanjo Madrigal._
+
+## A More Responsive Editor
+
+Several independent changes make interactive editing noticeably smoother:
+
+- [#11958](https://github.com/leanprover/lean4/pull/11958) stops the elaborator from rerunning a tactic when only the whitespace *following* it changes. Pressing return after a tactic to prepare the next line no longer discards the progress made by everything after it.
+
+- [#13712](https://github.com/leanprover/lean4/pull/13712) makes `exact?`, `apply?`, `rw?`, and `grind +locals` stop waiting for earlier theorems in the same file to finish kernel-checking. In an editor session this used to show up as `try?` and `exact?` appearing to hang near the top of long files.
+
+- [#14234](https://github.com/leanprover/lean4/pull/14234) makes completion, hovers, and the interactive term goal see the open namespaces and options of a term-level `open … in` or `set_option … in` scope, rather than those of the enclosing command.
+
+- [#14296](https://github.com/leanprover/lean4/pull/14296) restores go-to-definition and find-references on a `let mut` variable that is referenced after a `for` loop.
+
+Diagnostics became more actionable as well. The `unusedVariables` linter now offers the underscore rename as an applicable hint ([#14259](https://github.com/leanprover/lean4/pull/14259)):
+
+```lean (name := unusedVar)
+def constantly (n : Nat) : Nat := 0
+```
+```leanOutput unusedVar (severity := warning)
+Variable name `n` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _n
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+```
+
+And a new linter warns about an `open` that does not in fact open every namespace ending in the given name ([#14325](https://github.com/leanprover/lean4/pull/14325)): inside `namespace A`, an `open B` stops reaching `_root_.B` as soon as an upstream `A.B` appears, which explains the otherwise puzzling `unknown identifier` errors that follow. Finally, [#14196](https://github.com/leanprover/lean4/pull/14196) clarifies the warnings around reducibility attributes.
+
+## Automatic `try?` Suggestions
+
+[#13830](https://github.com/leanprover/lean4/pull/13830) lets `try?` run on its own where a proof is missing, gated by three options that default to off:
+
+- `autoTry.onEmptyProof` — an empty `by`, an empty `· `, an empty `case h => `, and so on.
+- `autoTry.onUnsolvedGoal` — like the above, but also fires on proofs that already contain tactics and left a goal open; there the suggestion is appended to what is already written.
+- `autoTry.onSorry` — a `sorry`, which the suggestion replaces.
+
+```lean +error (name := autoTry)
+set_option autoTry.onEmptyProof true in
+example (a b : Nat) : a + b = b + a := by
+```
+```leanOutput autoTry (severity := error)
+unsolved goals
+a b : Nat
+⊢ a + b = b + a
+```
+```leanOutput autoTry (severity := information)
+Try these:
+  [apply] simp +arith
+  [apply] simp +arith only
+  [apply] grind
+  [apply] grind only
+```
+
+## Experimental Verification: `mvcgen'` Is Now `vcgen`
+
+The experimental verification-condition generator `mvcgen'` is renamed to `vcgen` ([#14146](https://github.com/leanprover/lean4/pull/14146)) and rebuilt on the `Std.Internal.Do` meta theory, where generation works on lattice entailments `pre ⊑ wp x post epost` ([#14015](https://github.com/leanprover/lean4/pull/14015)). The original {tactic}`mvcgen` is unchanged.
+
+```lean -show
+open Lean.Order Std.Internal.Do
+set_option mvcgen.warning false
+```
+
+```lean
+def half (n : Nat) : Except String Nat :=
+  if n % 2 = 0 then pure (n / 2) else throw "odd"
+
+theorem half_spec (n : Nat) :
+    ⦃⌜True⌝⦄ half n
+    ⦃fun r => ⌜2 * r = n⌝; epost⟨fun e => ⌜e = "odd"⌝⟩⦄ := by
+  vcgen [half] <;> grind
+```
+
+The slot after `;` is new: it now holds a single `EPred` term instead of a list of exception cases ([#14114](https://github.com/leanprover/lean4/pull/14114)). Loop invariants no longer restate the exceptional postcondition, and all state components are introduced as local hypotheses so more facts reach {tactic}`grind` ([#14015](https://github.com/leanprover/lean4/pull/14015)).
+
+### Framing
+
+A spec is often *lossy*: it says nothing about the state its program leaves alone, so those facts are dropped at every call that uses it. [#14167](https://github.com/leanprover/lean4/pull/14167) adds a `frames` clause naming an assertion to carry across a matched call, in exchange for a side goal that the program preserves it:
+
+```lean
+def bump : StateM (Nat × Nat) Unit :=
+  modify fun s => (s.1 + 1, s.2)
+
+-- this spec is silent about `s.2`
+@[spec] theorem bump_spec (n : Nat) :
+    ⦃fun s => s.1 = n⦄ bump ⦃fun _ s => s.1 = n + 1⦄ := by
+  vcgen [bump] <;> grind
+
+theorem bump_frames (k : Nat) :
+    WP.Frames Lean.Order.meet bump (fun s => s.2 = k) :=
+  .of_wp_conjunctive fun _ =>
+    Triple.le_wp (by vcgen [bump, -bump_spec] <;> grind)
+
+example :
+    ⦃fun s => s.1 = 0 ∧ s.2 = 7⦄ bump
+    ⦃fun _ s => s.1 = 1 ∧ s.2 = 7⦄ := by
+  fail_if_success (vcgen [bump_spec] <;> grind)  -- loses `s.2 = 7`
+  vcgen [bump_spec] frames | bump => (fun s => s.2 = 7)
+    <;> first | grind | exact bump_frames 7
+```
+
+Each alternative fires at most once. [#14195](https://github.com/leanprover/lean4/pull/14195) makes framing automatic and extensible: `@[frameproc]` lets a program type register how it frames a resource, and any join-preserving operator works, not just the lattice meet — so cost budgets, separation-logic footprints, and trace invariants all use the same mechanism.
+
+### Weakest Preconditions Beyond Monads
+
+[#14080](https://github.com/leanprover/lean4/pull/14080) extracts a `WP` type class from `WPMonad`, so weakest-precondition reasoning applies to any program type, not only to monads. A deeply embedded language — an inductive command syntax with its own operational semantics, say — can be given a `WP` instance, specified with `Triple`, and decomposed by `vcgen`. The triple notation also gained an optional `(m := m)` clause pinning the program's monad, so specifications need fewer type ascriptions.
+
+### Faster Matching
+
+Spec and backward-rule patterns are built outside the `SymM` share table that holds the program, so their instance telescopes were structurally equal to the program's but pointer-distinct, and got re-internalized on every match. Internalizing them once lets those telescopes match by pointer instead, which the benchmarks show cutting the `vcgen` step by up to 5× on the deepest transformer stacks. More information in [#14134](https://github.com/leanprover/lean4/pull/14134) / [#14142](https://github.com/leanprover/lean4/pull/14142) / [#14137](https://github.com/leanprover/lean4/pull/14137).
+
+## Tactic Improvements
+
+`lia` ran with E-matching disabled, so it could not see definitional lemmas. [#14098](https://github.com/leanprover/lean4/pull/14098) gives it its own `@[lia]` set — far smaller than `@[grind]`, which stays disabled — and [#14107](https://github.com/leanprover/lean4/pull/14107) tags the `min`/`max` definitions, closing the most common case where {tactic}`omega` could not simply be replaced by `lia`:
+
+```lean
+example (a b : Nat) : min a b ≤ max a b := by lia
+example (a b : Int) : max a b = max b a := by lia
+```
+
+{tactic}`grind` gains propagators that evaluate {name}`BitVec` operations on literals, including through equalities recorded in the e-graph ([#14393](https://github.com/leanprover/lean4/pull/14393)):
+
+```lean
+example {x : BitVec 64} (h : x = 0#64 + 42#64) :
+    BitVec.extractLsb' 63 32 x = 0#32 := by grind
+```
+
+It also collects a batch of correctness fixes:
+
+- bitvector literals that were not normalized to the form {tactic}`grind` expects could be treated as two distinct values, in one case yielding a proof the kernel rejects ([#14371](https://github.com/leanprover/lean4/pull/14371) / [#14370](https://github.com/leanprover/lean4/pull/14370) / [#14379](https://github.com/leanprover/lean4/pull/14379));
+- constraints of the form `0 ∣ p` could send the search into a loop ([#14373](https://github.com/leanprover/lean4/pull/14373));
+- the ring solver could lose information in rings without `NoNatZeroDivisors` ([#14390](https://github.com/leanprover/lean4/pull/14390));
+- `SymM` term invariants that user simprocs could silently break are now detected and repaired ([#14299](https://github.com/leanprover/lean4/pull/14299)).
+
+A new `liaSteps` option bounds the search on hard linear integer arithmetic ([#14392](https://github.com/leanprover/lean4/pull/14392)). Finally, the e-matching annotations on container operations were retuned to connect two theories only when both are already in the e-graph, instead of one dragging in the other. More information in [#14177](https://github.com/leanprover/lean4/pull/14177) / [#14194](https://github.com/leanprover/lean4/pull/14194) / [#14192](https://github.com/leanprover/lean4/pull/14192) / [#14182](https://github.com/leanprover/lean4/pull/14182) / [#14178](https://github.com/leanprover/lean4/pull/14178).
+
+## `Float` Is No Longer Opaque
+
+{name}`Float` and {name}`Float32` were opaque types with no logical content. [#14079](https://github.com/leanprover/lean4/pull/14079) adds `Float.Model` and `Float32.Model`, validated against the native implementation on cases from Berkeley TestFloat, and [#14091](https://github.com/leanprover/lean4/pull/14091) redefines the types to wrap them, with arithmetic, comparison, and conversion delegating to the model. Compiled code is unaffected. This is deliberately not a full floating-point library — the point is to let a downstream one connect to {name}`Float` so its theorems transport.
+
+Two consequences are visible right away. [#14180](https://github.com/leanprover/lean4/pull/14180) adds a {name}`DecidableEq` instance that compares bit patterns, which is *not* the IEEE 754 relation `==` implements. And [#14110](https://github.com/leanprover/lean4/pull/14110) rewrites `Float.ofScientific` so that it rounds correctly — it passes over five million tests of the `parse-number-fxx-test-data` suite, at the cost of a much slower fallback path — and now reduces in the kernel:
+
+```lean
+def nan : Float := 0.0 / 0.0
+
+/-- info: false -/
+#guard_msgs in
+#eval nan == nan
+
+example : nan = nan := by decide
+example : (0.0 : Float) ≠ -0.0 := by decide
+example : 0.1 + 0.2 != 0.3 := rfl
+```
+
+That instance also backs float literals as `match` patterns ([#14181](https://github.com/leanprover/lean4/pull/14181)), so `0.0` and `-0.0` select different branches:
+
+```lean
+def describe (x : Float) : String :=
+  match x with
+  | 0.0 => "zero" | -0.0 => "negative zero" | _ => "other"
+
+/-- info: "negative zero" -/
+#guard_msgs in
+#eval describe (-0.0)
+```
+
+## Lake
+
+[#14235](https://github.com/leanprover/lean4/pull/14235) makes module archives (`.ltar`) content-stable: byte-identical module outputs now produce a byte-identical archive whatever the inputs, checkout path, or build machine, so an input-only change uploads no new bytes and identical outputs deduplicate across revisions on cache services. [#13646](https://github.com/leanprover/lean4/pull/13646) adds a `requiresModuleSystem` package option, warning when a file without a `module` header imports the package; `allowNonModules` opts out.
+
+Two fixes retire a class of `compiled configuration is invalid; run with '-R' to reconfigure` failures: [#14284](https://github.com/leanprover/lean4/pull/14284) makes an interrupted configuration leave a valid trace behind, and [#14285](https://github.com/leanprover/lean4/pull/14285) reconfigures when the trace cannot be read at all. There are also new module facets for dependency and link information ([#14300](https://github.com/leanprover/lean4/pull/14300) / [#14254](https://github.com/leanprover/lean4/pull/14254)), and `lake new`/`lake init` with the `exe` template no longer emits library files ([#14366](https://github.com/leanprover/lean4/pull/14366)).
+
+## Breaking Changes
+
+### Transparency
+
+[#13895](https://github.com/leanprover/lean4/pull/13895) enables `backward.isDefEq.respectTransparency.types` by default: a metavariable assigned at reducible, instances, or implicit transparency now has its type compared with its value's type at *implicit* rather than default transparency, and many existing declarations are marked implicit-reducible to compensate. The payoff is more control over what unfolds, and better scaling on large projects.
+
+The symptom of a breakage is a lemma that {tactic}`simp`, {tactic}`grind`, or another tactic stops applying, because an argument's type is not definitionally equal to the expected one at implicit transparency.
+
+*Migration:*
+
+- `set_option backward.isDefEq.respectTransparency.types false` restores the old behavior. Scope it as narrowly as possible.
+- The durable fix is to work out why the lemma statement or the goal is not well-typed at implicit transparency and address that, or to mark the definitions involved `@[implicit_reducible]`.
+- To diagnose, reach first for `set_option linter.tacticCheckInstances true`, then `trace.Meta.isDefEq`, `trace.Meta.isDefEq.printTransparency`, and `trace.Meta.Tactic.simp`. Running `simp?` on the old toolchain shows which lemmas *should* fire.
+- For auto-generated lemmas whose statements are {tactic}`simp`-normalized (in Mathlib, those from `@[simps]` and `@[reassoc]`), the fix usually belongs where the lemma is generated, not where the error appears.
+
+Relatedly, [#13637](https://github.com/leanprover/lean4/pull/13637) splits the old `instances` transparency in two, giving `none < reducible < instances < implicit < default < all`. `@[implicit_reducible]` no longer carries the side effects of `@[instance_reducible]`, such as letting type class search see through the declaration; use `@[instance_reducible]` for that. A `with_implicit` tactic joins `with_reducible_and_instances`.
+
+### Other Breaking Changes
+
+- [#13956](https://github.com/leanprover/lean4/pull/13956) bounds kernel type checking by `maxRecDepth` rather than the physical stack, making `(kernel) deep recursion detected` deterministic across platforms and builds. Deeply recursive code may need a `set_option maxRecDepth` bump.
+
+- [#14372](https://github.com/leanprover/lean4/pull/14372) moves `Lean.initializing`, `enableInitializersExecution`, and `isInitializerExecutionEnabled` from `IO` to `BaseIO`. `lean_enable_initializer_execution` now returns a scalar, so C FFI callers must stop handling its result with the `lean_io_result_*` functions or `lean_dec_ref`; failing to adapt is likely to segfault.
+
+- [#13679](https://github.com/leanprover/lean4/pull/13679) stops code generation from inspecting the private constructor of a public type. In rare cases this changes a structure's FFI representation; the manual no longer recommends accessing such fields directly from C.
+
+- [#14241](https://github.com/leanprover/lean4/pull/14241) makes {tactic}`bv_decide` use `ext_iff` lemmas for structure equality and otherwise not reason about it, so structures may need `@[ext]` or hand-written extensionality lemmas.
+
+- [#14091](https://github.com/leanprover/lean4/pull/14091) changes `Float.lt` and `Float.le` from `Float → Float → Prop` to `Float → Float → Bool`; the {name}`LE` and {name}`LT` instances are unaffected.
+
+- [#14290](https://github.com/leanprover/lean4/pull/14290) splits `int_toBitVec` into a `SymM` and a `MetaM` simp set; {tactic}`simp` calls should now use `int_toBitVec_meta`.
+
+- [#14114](https://github.com/leanprover/lean4/pull/14114) makes the slot after `;` in the Hoare-triple notation a single `EPred` term; a former list of exception cases is now written explicitly as `epost⟨…⟩`.
+
+- [#14206](https://github.com/leanprover/lean4/pull/14206) moves Lake's deferred docstring checks onto the linter framework, under the `linter.doc.deferred` option; custom Verso docstring elements become a two-constructor type.
+
+- A round of namespace and module hygiene relocated declarations that were in the wrong place — `Int.Linear` to `Int.Internal.Linear` ([#14255](https://github.com/leanprover/lean4/pull/14255)), `IO.AsyncList` to `Lean.AsyncList` ([#14263](https://github.com/leanprover/lean4/pull/14263)), and more in [#14265](https://github.com/leanprover/lean4/pull/14265) / [#14260](https://github.com/leanprover/lean4/pull/14260) / [#14258](https://github.com/leanprover/lean4/pull/14258) / [#14256](https://github.com/leanprover/lean4/pull/14256) / [#14303](https://github.com/leanprover/lean4/pull/14303) / [#14302](https://github.com/leanprover/lean4/pull/14302) / [#14293](https://github.com/leanprover/lean4/pull/14293). {name}`Nat.ne_of_gt` is now `protected` ([#14216](https://github.com/leanprover/lean4/pull/14216)).
+
+- Lake's `setup` facet is no longer buildable from the CLI, since it produces JSON rather than artifacts ([#14300](https://github.com/leanprover/lean4/pull/14300)).
 
 # Language
 
