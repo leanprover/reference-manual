@@ -243,8 +243,6 @@ Relatedly, [#13637](https://github.com/leanprover/lean4/pull/13637) splits the o
 
 - [#14290](https://github.com/leanprover/lean4/pull/14290) splits `int_toBitVec` into a `SymM` and a `MetaM` simp set; {tactic}`simp` calls should now use `int_toBitVec_meta`.
 
-- [#14114](https://github.com/leanprover/lean4/pull/14114) makes the slot after `;` in the Hoare-triple notation a single `EPred` term; a former list of exception cases is now written explicitly as `epost⟨…⟩`.
-
 - [#14206](https://github.com/leanprover/lean4/pull/14206) moves Lake's deferred docstring checks onto the linter framework, under the `linter.doc.deferred` option; custom Verso docstring elements become a two-constructor type.
 
 - A round of namespace and module hygiene relocated declarations that were in the wrong place — `Int.Linear` to `Int.Internal.Linear` ([#14255](https://github.com/leanprover/lean4/pull/14255)), `IO.AsyncList` to `Lean.AsyncList` ([#14263](https://github.com/leanprover/lean4/pull/14263)), and more in [#14265](https://github.com/leanprover/lean4/pull/14265) / [#14260](https://github.com/leanprover/lean4/pull/14260) / [#14258](https://github.com/leanprover/lean4/pull/14258) / [#14256](https://github.com/leanprover/lean4/pull/14256) / [#14303](https://github.com/leanprover/lean4/pull/14303) / [#14302](https://github.com/leanprover/lean4/pull/14302) / [#14293](https://github.com/leanprover/lean4/pull/14293). {name}`Nat.ne_of_gt` is now `protected` ([#14216](https://github.com/leanprover/lean4/pull/14216)).
