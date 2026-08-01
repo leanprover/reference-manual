@@ -37,7 +37,7 @@ and 50 other changes.
 
 # Highlights
 
-Lean 4.33.0 concentrates on responsiveness and consolidation: the editor keeps more of your work while you type, `try?` can propose proofs on its own, the experimental `mvcgen'` tactic is rebuilt and renamed to `vcgen`, and `Float` stops being an opaque type. Continuing the transparency work of v4.31.0, it also enables `backward.isDefEq.respectTransparency.types` by default — the change most likely to need attention when porting.
+Lean 4.33.0 concentrates on responsiveness and consolidation: the editor keeps more of your work while you type, `try?` can propose proofs on its own, `lia` and `grind` tactics are improved, and `Float` stops being an opaque type. Continuing the transparency work of v4.31.0, it also enables `backward.isDefEq.respectTransparency.types` by default — the change most likely to need attention when porting.
 
 _This highlights section was contributed by Juanjo Madrigal._
 
@@ -93,63 +93,6 @@ Try these:
   [apply] grind
   [apply] grind only
 ```
-
-## Experimental Verification: `mvcgen'` Is Now `vcgen`
-
-The experimental verification-condition generator `mvcgen'` is renamed to `vcgen` ([#14146](https://github.com/leanprover/lean4/pull/14146)) and rebuilt on the `Std.Internal.Do` meta theory, where generation works on lattice entailments `pre ⊑ wp x post epost` ([#14015](https://github.com/leanprover/lean4/pull/14015)). The original {tactic}`mvcgen` is unchanged.
-
-```lean -show
-open Lean.Order Std.Internal.Do
-set_option mvcgen.warning false
-```
-
-```lean
-def half (n : Nat) : Except String Nat :=
-  if n % 2 = 0 then pure (n / 2) else throw "odd"
-
-theorem half_spec (n : Nat) :
-    ⦃⌜True⌝⦄ half n
-    ⦃fun r => ⌜2 * r = n⌝; epost⟨fun e => ⌜e = "odd"⌝⟩⦄ := by
-  vcgen [half] <;> grind
-```
-
-The slot after `;` is new: it now holds a single `EPred` term instead of a list of exception cases ([#14114](https://github.com/leanprover/lean4/pull/14114)). Loop invariants no longer restate the exceptional postcondition, and all state components are introduced as local hypotheses so more facts reach {tactic}`grind` ([#14015](https://github.com/leanprover/lean4/pull/14015)).
-
-### Framing
-
-A spec is often *lossy*: it says nothing about the state its program leaves alone, so those facts are dropped at every call that uses it. [#14167](https://github.com/leanprover/lean4/pull/14167) adds a `frames` clause naming an assertion to carry across a matched call, in exchange for a side goal that the program preserves it:
-
-```lean
-def bump : StateM (Nat × Nat) Unit :=
-  modify fun s => (s.1 + 1, s.2)
-
--- this spec is silent about `s.2`
-@[spec] theorem bump_spec (n : Nat) :
-    ⦃fun s => s.1 = n⦄ bump ⦃fun _ s => s.1 = n + 1⦄ := by
-  vcgen [bump] <;> grind
-
-theorem bump_frames (k : Nat) :
-    WP.Frames Lean.Order.meet bump (fun s => s.2 = k) :=
-  .of_wp_conjunctive fun _ =>
-    Triple.le_wp (by vcgen [bump, -bump_spec] <;> grind)
-
-example :
-    ⦃fun s => s.1 = 0 ∧ s.2 = 7⦄ bump
-    ⦃fun _ s => s.1 = 1 ∧ s.2 = 7⦄ := by
-  fail_if_success (vcgen [bump_spec] <;> grind)  -- loses `s.2 = 7`
-  vcgen [bump_spec] frames | bump => (fun s => s.2 = 7)
-    <;> first | grind | exact bump_frames 7
-```
-
-Each alternative fires at most once. [#14195](https://github.com/leanprover/lean4/pull/14195) makes framing automatic and extensible: `@[frameproc]` lets a program type register how it frames a resource, and any join-preserving operator works, not just the lattice meet — so cost budgets, separation-logic footprints, and trace invariants all use the same mechanism.
-
-### Weakest Preconditions Beyond Monads
-
-[#14080](https://github.com/leanprover/lean4/pull/14080) extracts a `WP` type class from `WPMonad`, so weakest-precondition reasoning applies to any program type, not only to monads. A deeply embedded language — an inductive command syntax with its own operational semantics, say — can be given a `WP` instance, specified with `Triple`, and decomposed by `vcgen`. The triple notation also gained an optional `(m := m)` clause pinning the program's monad, so specifications need fewer type ascriptions.
-
-### Faster Matching
-
-Spec and backward-rule patterns are built outside the `SymM` share table that holds the program, so their instance telescopes were structurally equal to the program's but pointer-distinct, and got re-internalized on every match. Internalizing them once lets those telescopes match by pointer instead, which the benchmarks show cutting the `vcgen` step by up to 5× on the deepest transformer stacks. More information in [#14134](https://github.com/leanprover/lean4/pull/14134) / [#14142](https://github.com/leanprover/lean4/pull/14142) / [#14137](https://github.com/leanprover/lean4/pull/14137).
 
 ## Tactic Improvements
 
