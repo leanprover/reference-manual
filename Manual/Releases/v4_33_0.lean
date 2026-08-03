@@ -154,6 +154,24 @@ def describe (x : Float) : String :=
 [#14235](https://github.com/leanprover/lean4/pull/14235) makes module archives (`.ltar`) content-stable: byte-identical module outputs now produce a byte-identical archive whatever the inputs, checkout path, or build machine, so an input-only change uploads no new bytes and identical outputs deduplicate across revisions on cache services. [#13646](https://github.com/leanprover/lean4/pull/13646) adds a `requiresModuleSystem` package option, warning when a file without a `module` header imports the package; `allowNonModules` opts out.
 
 Two fixes retire a class of `compiled configuration is invalid; run with '-R' to reconfigure` failures: [#14284](https://github.com/leanprover/lean4/pull/14284) makes an interrupted configuration leave a valid trace behind, and [#14285](https://github.com/leanprover/lean4/pull/14285) reconfigures when the trace cannot be read at all. There are also new module facets for dependency and link information ([#14300](https://github.com/leanprover/lean4/pull/14300) / [#14254](https://github.com/leanprover/lean4/pull/14254)), and `lake new`/`lake init` with the `exe` template no longer emits library files ([#14366](https://github.com/leanprover/lean4/pull/14366)).
+## Kernel soundness fixes and further improvements
+
+This release fixes bugs in the Lean kernel and improves its robustness. Some of the soundness bugs can only be exploited from a malicious meta program running in the same process (which is already known to be unsafe). Others survive the export format and affect {ref "validating-comparator"}[proof checking via `comparator` too], unless external checkers like `nanoda` are used as well.
+
+* [PR #14498](https://github.com/leanprover/lean4/pull/14498) guards against free variables in opaque values. Soundness bug, but not affecting users of `comparator`.
+* [PR #14577](https://github.com/leanprover/lean4/pull/14577) typechecks arguments to phantom parameters of nesting inductives. Soundness bug, affecting users of `comparator`.
+* [PR #14582](https://github.com/leanprover/lean4/pull/14582) checks uniformity of such phantom parameters. Not a known source of unsoundness, but hardening the kernel.
+* [PR #14607](https://github.com/leanprover/lean4/pull/14607) adds more checking against free variables. Possible soundness issue, not affecting `comparator`.
+* [PR #14608](https://github.com/leanprover/lean4/pull/14608) checks level parameters uniformity in recursive definitions. Not a known soundness issue, as it only affects declarations marked as `partial` or `unsafe`.
+* [PR #14609](https://github.com/leanprover/lean4/pull/14609) fixes a soundness issue in the module system. Does not affect users of `comparator`.
+* [PR #14613](https://github.com/leanprover/lean4/pull/14613) recognize level expressions that may normalize to `Prop`. Soundness bug, affecting users of `comparator`.
+* [PR #14615](https://github.com/leanprover/lean4/pull/14615) adds more level normalization to the handling of inductives. Not a soundness bug.
+* [PR #14616](https://github.com/leanprover/lean4/pull/14616) rejects names using `_nested` in the names, to prevent clashes with the kernel’s internal construction for nested inductives. Soundness bug, but not affecting users of `comparator`.
+* [PR #14621](https://github.com/leanprover/lean4/pull/14621) adds more hardening to the handling of nested inductives.
+* [PR #14631](https://github.com/leanprover/lean4/pull/14631) checks the name field of a projection expression when comparing them. This hardens the kernel.
+* [PR #14632](https://github.com/leanprover/lean4/pull/14632) hardens the kernel by checking more invariants explicitly.
+
+Also see the [Postmortem for Kernel Soundness Bug #14576](https://leodemoura.github.io/blog/2026-8-1-postmortem-for-kernel-soundness-bug-14576/).
 
 ## Breaking Changes
 
