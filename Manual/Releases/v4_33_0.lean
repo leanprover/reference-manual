@@ -161,7 +161,6 @@ This release fixes bugs in the Lean kernel and improves its robustness. Some of 
 
 * [PR #14498](https://github.com/leanprover/lean4/pull/14498) guards against free variables in opaque values. Soundness bug, but not affecting users of `comparator`.
 * [PR #14577](https://github.com/leanprover/lean4/pull/14577) typechecks arguments to phantom parameters of nesting inductives. Soundness bug, affecting users of `comparator`.
-* [PR #14582](https://github.com/leanprover/lean4/pull/14582) checks uniformity of such phantom parameters. Not a known source of unsoundness, but hardening the kernel.
 * [PR #14607](https://github.com/leanprover/lean4/pull/14607) adds more checking against free variables. Possible soundness issue, not affecting `comparator`.
 * [PR #14608](https://github.com/leanprover/lean4/pull/14608) checks level parameters uniformity in recursive definitions. Not a known soundness issue, as it only affects declarations marked as `partial` or `unsafe`.
 * [PR #14609](https://github.com/leanprover/lean4/pull/14609) fixes a soundness issue in the module system. Does not affect users of `comparator`.
