@@ -170,6 +170,7 @@ This release fixes bugs in the Lean kernel and improves its robustness. Some of 
 * [PR #14621](https://github.com/leanprover/lean4/pull/14621) adds more hardening to the handling of nested inductives.
 * [PR #14631](https://github.com/leanprover/lean4/pull/14631) checks the name field of a projection expression when comparing them. This hardens the kernel.
 * [PR #14632](https://github.com/leanprover/lean4/pull/14632) hardens the kernel by checking more invariants explicitly.
+* [PR #14633](https://github.com/leanprover/lean4/pull/14633) hardens the kernel by checking types of local context declarations sooner.
 
 Also see the [Postmortem for Kernel Soundness Bug #14576](https://leodemoura.github.io/blog/2026-8-1-postmortem-for-kernel-soundness-bug-14576/).
 
