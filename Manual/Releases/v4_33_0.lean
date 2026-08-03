@@ -15,7 +15,7 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.33.0-rc1 (2026-07-15)" =>
+#doc (Manual) "Lean 4.33.0-rc2 (2026-08-03)" =>
 %%%
 tag := "release-v4.33.0"
 file := "v4.33.0"
@@ -26,14 +26,14 @@ These release notes describe a _release candidate_, not the final release.
 They may be incomplete and are subject to change.
 :::
 
-For this release, 194 changes landed.
+For this release, 208 changes landed.
 In addition to the 53 feature additions,
-and 41 fixes listed below,
+and 50 fixes listed below,
 there were 12 refactoring changes,
 11 documentation improvements,
 21 performance improvements,
 6 improvements to the test suite,
-and 50 other changes.
+and 55 other changes.
 
 # Highlights
 
@@ -214,6 +214,9 @@ Relatedly, [#13637](https://github.com/leanprover/lean4/pull/13637) splits the o
 # Language
 
 ````markdown
+
+- [#14498](https://github.com/leanprover/lean4/pull/14498)
+  fixes a kernel unsoundness: just as for definitions and theorems, an `opaque` declaration's value must not contain fvars.
 
 - [#14352](https://github.com/leanprover/lean4/pull/14352)
   provides the experimental `postprocess_traces tracePostprocessor in cmd` command, which is useful for working with large trees of trace nodes. It runs the command `cmd` and then transforms the traces using a function `tracePostprocessor`. The transformation can affect which nodes are expanded or collaped by default, it can change messages of the trace nodes, and it can add or delete nodes.
@@ -433,6 +436,9 @@ Relatedly, [#13637](https://github.com/leanprover/lean4/pull/13637) splits the o
 # Tactics
 
 ````markdown
+
+- [#14618](https://github.com/leanprover/lean4/pull/14618)
+  fixes a `grind` regression on goals that use a bit-vector literal written with `#` syntax under a quantifier, such as `example (f g : Nat → BitVec 2) (h : ∀ n, f n = g n ||| 1#2) : f 0 = g 0 ||| 1#2 := by grind`. The tactic failed with a kernel error instead of closing the goal.
 
 - [#14393](https://github.com/leanprover/lean4/pull/14393)
   implements `grind` propagators that evaluate `BitVec` operations on literals
@@ -698,6 +704,39 @@ Relatedly, [#13637](https://github.com/leanprover/lean4/pull/13637) splits the o
 # Other
 
 ```markdown
+
+- [#14633](https://github.com/leanprover/lean4/pull/14633)
+  makes `infer_lambda` and `infer_let` check a binder's type, and for `let` also its value, before adding the corresponding declaration to the local context, which is what `infer_pi` already did. No valid declaration changes behavior.
+
+- [#14632](https://github.com/leanprover/lean4/pull/14632)
+  is a hardening pass over the kernel. None of these commits fixes a bug reachable from ordinary Lean code: each one takes an invariant the kernel already depends on and checks it locally instead of assuming it holds elsewhere. The intent is that a future mistake in a neighbouring part of the kernel surfaces as a clean error rather than being amplified.
+
+- [#14631](https://github.com/leanprover/lean4/pull/14631)
+  makes the kernel compare the structure name when deciding whether two projection expressions are definitionally equal. Both `type_checker::is_def_eq_core` and `equiv_manager::is_equiv_core` compared only the projection index and the projected expression, ignoring `proj_sname`.
+
+- [#14621](https://github.com/leanprover/lean4/pull/14621)
+  makes the kernel recheck the declarations it adds to the environment after eliminating a nested inductive type.
+
+- [#14616](https://github.com/leanprover/lean4/pull/14616)
+  fixes a kernel bug: an inductive declaration could reference one of the auxiliary types the kernel generates when eliminating nested inductives, and end up with a stored constructor type that is ill typed. Such a declaration can only be produced with metaprogramming.
+
+- [#14615](https://github.com/leanprover/lean4/pull/14615)
+  makes the inductive checker test a resulting universe for zero up to normalization, so that `Sort (imax 1 0)` and `Sort 0` describe the same inductive type. The two spellings previously disagreed on whether a constructor field may carry data, on whether the recursor eliminates only into `Prop`, and on whether the type is a K-like reduction target. Only declarations produced with metaprogramming are affected, since the elaborator normalizes levels before the kernel sees them.
+
+- [#14613](https://github.com/leanprover/lean4/pull/14613)
+  fixes a kernel bug: a type whose sort is `Prop` only after universe normalization, such as `Sort (imax 1 0)`, was not recognized as a proposition, so the kernel allowed a non-proof field to be projected out of a proof. Such a declaration cannot be written in surface syntax and can only be produced with metaprogramming, and `nanoda` rejects it.
+
+- [#14609](https://github.com/leanprover/lean4/pull/14609)
+  fixes a soundness bug in the module system. A `partial` definition lost its `partial` marking when it crossed a module boundary, so downstream modules could use it from safe declarations. This issue can only be exploited using meta-programming.
+
+- [#14608](https://github.com/leanprover/lean4/pull/14608)
+  checks that declarations in a mutual block use the same universe parameters. The elaborator already enforces this invariant, but meta-programming can bypass it.
+
+- [#14607](https://github.com/leanprover/lean4/pull/14607)
+  adds a missing `check_no_metavar_no_fvar` checks to the kernel inductive type module. Without it, users could use metaprogramming to sneak in nested inductive declarations containing free variables or metavariables. Note that Comparator would catch this exploit, since lean4export refuses to export declarations containing free variables or metavariables.
+
+- [#14577](https://github.com/leanprover/lean4/pull/14577)
+  fixes a kernel bug where a nested inductive datatype whose parametric arguments are ill typed could be accepted.
 
 - [#14354](https://github.com/leanprover/lean4/pull/14354)
   implements a minor optimization at `withExporting/withoutExporting`. When they call `modifyEnv` to toggle `Environment.isExporting`, and `MonadEnv` `MetaM`'s `modifyEnv` wipes all `Core` and `Meta` caches.
