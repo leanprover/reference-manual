@@ -253,7 +253,7 @@ tag := "automatic-implicit-parameters"
 %%%
 
 
-By default, otherwise-unbound names that occur in signatures are converted into implicit parameters when possible
+By default, otherwise-unbound names that occur in signatures are converted into implicit parameters when possible.
 These parameters are called {deftech}_automatic implicit parameters_.
 This is possible when they are not in the function position of an application and when there is sufficient information available in the signature to infer their type and any ordering constraints on them.
 This process is iterated: if the inferred type for the freshly-inserted implicit parameter has dependencies that are not uniquely determined, then these dependencies are replaced with further implicit parameters.
@@ -392,7 +392,7 @@ AtLeast.add {n✝ : Nat} {i : Fin n✝} (x y : AtLeast i) : AtLeast i
 :::::
 
 Automatic implicit parameter insertion takes place after the insertion of parameters due to {tech}[section variables].
-Parameters that correspond to section variables have the same name as the corresponding variable, even when they do not correspond to a name written directly in the signature, and disabling automatic implicit parameters has no effect the parameters that correspond to section variables.
+Parameters that correspond to section variables have the same name as the corresponding variable, even when they do not correspond to a name written directly in the signature, and disabling automatic implicit parameters has no effect on the parameters that correspond to section variables.
 However, when automatic implicit parameters are enabled, section variable declarations that contain otherwise-unbound variables receive additional section variables that follow the same rules as those for implicit parameters.
 
 Automatic implicit parameters insertion is controlled by two options.
