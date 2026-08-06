@@ -19,6 +19,7 @@ import Manual.Grind.Cutsat
 import Manual.Grind.Algebra
 import Manual.Grind.Linarith
 import Manual.Grind.Annotation
+import Manual.Grind.Interactive
 import Manual.Grind.ExtendedExamples
 
 -- Needed for the if-then-else normalization example.
@@ -160,9 +161,12 @@ The two largest classes are shown as `True propositions` and `False propositions
 Inspect these lists to spot missing facts or contradictory assumptions.
 
 # Minimizing `grind` calls
+%%%
+tag := "grind-minimizing"
+%%%
 
 The `grind only [...]` tactic invokes {tactic}`grind` with a limited set of theorems, which can improve performance.
-Calls to `grind only` can be conveniently constructed using {tactic}`grind?`, which automatically records the theorems used by {tactic}`grind` and suggests a suitable `grind only`.
+Calls to `grind only` can be conveniently constructed using {tactic}`grind?`, which automatically records the theorems used by {tactic}`grind` and suggests a suitable `grind only` or {ref "grind-interactive"}[script].
 
 These theorems will typically include a symbol prefix such as `=`, `←`, or `→`, indicating the
 pattern that triggered the instantiation. See the {ref "e-matching"}[section on E-matching] for details.
@@ -183,6 +187,8 @@ Some theorems may be labelled with a `usr` prefix, which indicates that a custom
 {include 1 Manual.Grind.Linarith}
 
 {include 1 Manual.Grind.Annotation}
+
+{include 1 Manual.Grind.Interactive}
 
 # Reducibility
 
