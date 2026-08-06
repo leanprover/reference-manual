@@ -1,0 +1,27 @@
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+    merge_group:
+
+name: "Check dependency revisions"
+
+jobs:
+    check:
+        name: Forbid nightly dependency revisions on main
+        runs-on: ubuntu-latest
+        # Merge queues may serve branches where nightly revisions are expected,
+        # so restrict merge_group runs to those targeting main.
+        if: github.event_name != 'merge_group' || github.event.merge_group.base_ref == 'refs/heads/main'
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Check lakefile for nightly revisions
+              run: |
+                  if grep -nE '@"[^"]*nightly[^"]*"' lakefile.lean; then
+                      echo '::error file=lakefile.lean::lakefile.lean pins a dependency to a nightly revision. On main, dependencies must track a stable branch such as main.'
+                      exit 1
+                  fi
