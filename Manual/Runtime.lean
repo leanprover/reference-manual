@@ -525,6 +525,8 @@ To run this code (e.g. with {keywordOf Lean.Parser.Command.eval}`#eval`), the fo
   1. The module containing the declaration and its dependencies must be compiled into a shared library
   1. This shared library should be provided to `lean --load-dynlib=` to run code that imports the module.
 
+The `precompileModules` {ref "lake-config"}[configuration option] instructs Lake to do the above automatically.
+
 It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each {attr}`extern` declaration.
 Thus it is not possible to interpret an {attr}`extern` declaration in the same file.
 The Lean source repository contains an example of this usage in [`tests/compiler/foreign`](https://github.com/leanprover/lean4/tree/master/tests/compiler/foreign/).
