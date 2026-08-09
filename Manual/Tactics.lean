@@ -857,9 +857,6 @@ tag := "tactic-language-local-defs"
 {tactic}`have` and {tactic}`let` both create local assumptions.
 Generally speaking, {tactic}`have` should be used when proving an intermediate lemma; {tactic}`let` should be reserved for local definitions.
 
-:::tactic "have"
-:::
-
 :::tactic Lean.Parser.Tactic.tacticHave__
 :::
 
