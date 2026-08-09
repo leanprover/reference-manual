@@ -363,7 +363,7 @@ tag := "mutual-partial-fixpoint"
 
 Lean supports the definition of {tech}[mutually recursive] functions using {tech}[partial fixpoint].
 Mutual recursion may be introduced using a {tech}[mutual block], but it also results from {keywordOf Lean.Parser.Term.letrec}`let rec` expressions and {keywordOf Lean.Parser.Command.declaration}`where` blocks.
-The rules for mutual well-founded recursion are applied to a group of actually mutually recursive, lifted definitions, that results from the {ref "mutual-syntax"}[elaboration steps] for mutual groups.
+The rules for mutual recursion with partial fixpoints are applied to a group of actually mutually recursive, lifted definitions, that results from the {ref "mutual-syntax"}[elaboration steps] for mutual groups.
 
 If all functions in the mutual group have the {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint` clause, then this strategy is used.
 

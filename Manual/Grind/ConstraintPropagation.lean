@@ -135,7 +135,7 @@ builtin_grind_propagator propagateAndDown ↓And :=
     -- (a ∧ b) = True  ⇒  a = True
     pushEqTrue a <| mkApp3
       (mkConst ``Grind.eq_true_of_and_eq_true_left) a b h
-    -- (a ∧ b) = True  ⇒  B = True
+    -- (a ∧ b) = True  ⇒  b = True
     pushEqTrue b <| mkApp3
       (mkConst ``Grind.eq_true_of_and_eq_true_right) a b h
 ```
