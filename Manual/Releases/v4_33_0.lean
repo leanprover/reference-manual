@@ -15,16 +15,11 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.33.0-rc2 (2026-08-03)" =>
+#doc (Manual) "Lean 4.33.0 (2026-08-10)" =>
 %%%
 tag := "release-v4.33.0"
 file := "v4.33.0"
 %%%
-
-:::warn
-These release notes describe a _release candidate_, not the final release.
-They may be incomplete and are subject to change.
-:::
 
 For this release, 208 changes landed.
 In addition to the 53 feature additions,
