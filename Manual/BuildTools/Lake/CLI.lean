@@ -892,6 +892,9 @@ OPTIONS:
                         `set_option <linter> false in` exception by editing the
                         offending source files in place, silencing the warning
                         for that declaration. Implies `--builtin-lint`.
+  --code-quality        records each linter warning as a code quality check result
+                        and runs the registered code quality checks.
+                        Setting this flag will skip lint driver.
 
 A lint driver can be configured by either setting the `lintDriver` package
 configuration option or by tagging a script or executable `@[lint_driver]`.
@@ -943,7 +946,10 @@ The {lakeMeta}`options` may be:
 
   Run only the specified linter (repeatable).
 
+: `--code-quality`
 
+  Records each linter warning as a code quality check result and runs the registered code quality checks.
+  Setting this flag will skip the lint driver.
 
 A lint driver can be configured by either setting the `lintDriver` package
 configuration option or by tagging a script or executable `@[lint_driver]`.
