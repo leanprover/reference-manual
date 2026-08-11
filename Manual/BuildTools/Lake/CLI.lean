@@ -525,7 +525,7 @@ mappings can then be used to upload build artifacts to a remote cache with
 
 ::::lake build "[targets...] [\"-o\" mappings]"
 
-Builds the specified facts of the specified targets.
+Builds the specified facets of the specified targets.
 
 Each of the {lakeMeta}`targets` is specified by a string of the form:
 
