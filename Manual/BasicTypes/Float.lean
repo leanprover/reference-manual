@@ -231,7 +231,7 @@ Instead, floating-point literals are resolved via the appropriate instances of t
 
 The term
 ```leanTerm
-(-2.523 : Float)
+(-2.2523 : Float)
 ```
 is syntactic sugar for
 ```leanTerm
