@@ -559,7 +559,7 @@ The {attr}`implemented_by` attribute can be used to instruct the compiler to emi
 
 :::syntax Lean.Parser.Command.declaration (alias := Lean.Parser.Command.opaque) (title := "Opaque Constants")
 Opaque definitions with right-hand sides are elaborated like other definitions.
-This demonstrates that the type is inhabited; the inhabitant plays no further role.
+This demonstrates that the type is inhabited; the inhabitant plays no further role in logic (but used in compiled code).
 ```grammar
 $_:declModifiers
 opaque $_ $_ := $_
