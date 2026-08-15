@@ -338,6 +338,9 @@ Unknown identifier `three`
 ::::
 
 # Exporting Names
+%%%
+tag := "exporting-names"
+%%%
 
 {deftech}_Exporting_ a name makes it available in the current namespace.
 Unlike a definition, this alias is completely transparent: uses are resolved directly to the original name.
