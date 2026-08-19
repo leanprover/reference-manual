@@ -127,9 +127,9 @@ In {lean}`getAlpha`, a line of input is read.
 If the line consists only of letters (after removing whitespace from the beginning and end of it), then it is returned; otherwise, the function returns {name}`none`.
 
 ```lean
-def getAlpha : IO (Option String) := do
-  let line := (← (← IO.getStdin).getLine).trim
-  if line.length > 0 && line.all Char.isAlpha then
+def getAlpha : IO (Option String.Slice) := do
+  let line := (← (← IO.getStdin).getLine).trimAscii
+  if !line.isEmpty && line.all Char.isAlpha then
     return line
   else
     return none

@@ -137,23 +137,40 @@ def «example» : DirectiveExpanderOf ExampleConfig
     ``(Block.other (Block.example $(quote descriptionString) $(quote cfg.tag) (opened := $(quote cfg.opened)) $(quote liveLinkContent))
          #[Block.para #[$description,*], $blocks,*])
 
+/--
+The name under which an example is registered in the {name}`examples` domain. This is the
+external tag assigned to it, so that cross-references use the same name as the generated
+HTML anchor.
+-/
+def exampleKey [Monad m] [MonadStateOf TraverseState m]
+    (id : InternalId) (descrString : String) : m String := do
+  match (← get).externalTags[id]? with
+  | some l => pure (toString l.htmlId)
+  | none => pure descrString
+
 @[block_extension «example»]
 def example.descr : BlockDescr where
   traverse id data contents := do
     match FromJson.fromJson? data (α := ExampleBlockJson) with
     | .error e => reportError s!"Error deserializing example tag: {e}"; pure none
-    | .ok (descrString, none, _, _, _) => do
-      modify (·.saveDomainObject ``examples descrString id)
-      pure none
-    | .ok (descrString, some x, opened, none, liveText) =>
-      modify (·.saveDomainObject ``examples descrString id)
+    | .ok (descrString, tag?, opened, none, liveText) => do
       let path ← (·.path) <$> read
-      let tag ← Verso.Genre.Manual.externalTag id path x
-      pure <| some <| Block.other {Block.example descrString none false liveText with
+      -- Examples are tagged using the same steps as sections: a user-provided
+      -- tag is respected as written once sluggified, and otherwise a tag is
+      -- derived from the description and uniquified.
+      let tag ←
+        match tag? with
+        | some x =>
+          match ← Verso.Genre.Manual.providedTag id path x with
+          | some t => pure t
+          | none => Verso.Genre.Manual.externalTag id path descrString
+        | none => Verso.Genre.Manual.externalTag id path descrString
+      modify (·.saveDomainObject ``examples (← exampleKey id descrString) id)
+      pure <| some <| Block.other {Block.example descrString tag? opened liveText with
         id := some id,
-        data := toJson (some x, opened, some tag)} contents -- Is this line reachable?
-    | .ok (descrString, some _, _, some _, liveText) =>
-      modify (·.saveDomainObject ``examples descrString id)
+        data := toJson (descrString, tag?, opened, some tag, liveText)} contents
+    | .ok (descrString, _, _, some _, _) =>
+      modify (·.saveDomainObject ``examples (← exampleKey id descrString) id)
       pure none
   toTeX :=
     some <| fun _ go _ _ content => do
