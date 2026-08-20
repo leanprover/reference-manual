@@ -737,7 +737,7 @@ When the condition becomes true, iteration stops.
 :::syntax Lean.Parser.Term.doSeqItem (title := "Post-Tested Loops")
 ```grammar
 repeat
-  $e*
+  $e:doSeq
 until $_
 ```
 :::
@@ -749,7 +749,7 @@ Just like {keywordOf Lean.doElemWhile_Do_}`while` loops, these loops can be used
 :::syntax Lean.Parser.Term.doSeqItem (title := "Unconditional Loops")
 ```grammar
 repeat
-  $e*
+  $e:doSeq
 ```
 :::
 
