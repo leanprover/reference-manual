@@ -1193,6 +1193,9 @@ tag := "tactic-ref-mvcgen"
 :::tactic "mvcgen"
 :::
 
+:::tactic "vcgen"
+:::
+
 ## Tactics for Stateful Goals in `Std.Do.SPred`
 %%%
 tag := "tactic-ref-spred"
