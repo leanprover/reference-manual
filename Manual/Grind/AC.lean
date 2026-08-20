@@ -66,7 +66,7 @@ The normal forms used by the `ac` solver depend on the properties that have been
   If {lean}`op` is associative and commutative, then the normal form of both {lean}`op z (op x y)` and {lean}`op (op x z) y` is {lean}`[x, y, z]`.
   In other words, the normal form is a multiset.
 
-: Idempotency
+: Idempotence
 
   If the operator is idempotent, then runs of duplicate elements are collapsed in the operand list.
   If {lean}`op` is associative and idempotent, then the normal form of {lean}`op x (op x y)` is {lean}`[x, y]`, but the normal form of {lean}`op (op x y) x` is still {lean}`[x, y, x]`.
