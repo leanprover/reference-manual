@@ -10,6 +10,7 @@ import VersoTutorial
 import Manual.Meta
 import Manual.Papers
 
+import Std.WP
 import Std.Tactic.Do
 
 open Verso.Genre Manual
@@ -33,11 +34,11 @@ set_option mvcgen.warning false
 tag := "vcgen-tactic-tutorial"
 slug := "vcgen"
 summary := inlines!"A demonstration of how to use Lean's verification condition generator to conveniently and compositionally prove properties of monadic programs."
-exampleStyle := .inlineLean `MVCGenTutorial
+exampleStyle := .inlineLean `VCGenTutorial
 %%%
 
-This section is a tutorial that introduces the most important concepts of {tactic}`mvcgen` top-down.
-Recall that you need to import {module}`Std.Tactic.Do` and open {namespace}`Std.Do` to run these examples:
+This section is a tutorial that introduces the most important concepts of {tactic}`vcgen` top-down.
+Recall that you need to import {module}`Std.WP` and {module}`Std.Tactic.Do` and open {namespace}`Std.WP` to run these examples:
 
 :::codeOnly
 ```imports
@@ -46,6 +47,7 @@ import Std.Data.HashSet
 ```
 :::
 ```imports
+import Std.WP
 import Std.Tactic.Do
 ```
 :::codeOnly
@@ -55,9 +57,12 @@ set_option mvcgen.warning false
 ```lean
 namespace VCGenTutorial
 ```
+```lean
+section
+```
 :::
 ```lean
-open Std.Do
+open Std.WP
 ```
 
 # Preconditions and Postconditions
@@ -76,7 +81,7 @@ This means that the postcondition holds no matter what.
 # Loops and Invariants
 
 :::leanFirst
-As a first example of {tactic}`mvcgen`, the function {name}`mySum` computes the sum of an array using {ref "let-mut" (remote := "reference")}[local mutable state] and a {keywordOf Lean.Parser.Term.doFor}`for` loop:
+As a first example of {tactic}`vcgen`, the function {name}`mySum` computes the sum of an array using {ref "let-mut" (remote := "reference")}[local mutable state] and a {keywordOf Lean.Parser.Term.doFor}`for` loop:
 
 ```lean
 def mySum (l : Array Nat) : Nat := Id.run do
@@ -89,80 +94,68 @@ def mySum (l : Array Nat) : Nat := Id.run do
 
 If {name}`mySum` is correct, then it is equal to {name}`Array.sum`.
 In {name}`mySum`, the use of {keywordOf Lean.Parser.Term.do}`do` is an internal implementation detail—the function's signature makes no mention of any monad.
-Thus, the proof first manipulates the goal into a form that is amenable to the use of {tactic}`mvcgen`, using the lemma {name}`Id.of_wp_run_eq`.
+Thus, the proof first manipulates the goal into a form that is amenable to the use of {tactic}`vcgen`, using the lemma {name}`Id.of_run_eq_wp`.
 This lemma states that facts about the result of running a computation in the {name}`Id` monad that terminates normally (`Id` computations never throw exceptions) can be proved by showing that the {tech (remote := "reference")}[weakest precondition] that ensures the desired result is true.
-Next, the proof uses {tactic}`mvcgen` to replace the formulation in terms of weakest preconditions with a set of {tech (remote := "reference")}[verification conditions].
+Next, the proof uses {tactic}`vcgen` to replace the formulation in terms of weakest preconditions with a set of {tech (remote := "reference")}[verification conditions].
 
-While {tactic}`mvcgen` is mostly automatic, it does require an invariant for the loop.
+While {tactic}`vcgen` is mostly automatic, it does require an invariant for the loop.
 A {tech (remote := "reference")}_loop invariant_ is a statement that is both assumed and guaranteed by the body of the loop; if it is true when the loop begins, then it will be true when the loop terminates.
 
 ```lean
 theorem mySum_correct (l : Array Nat) : mySum l = l.sum := by
   -- Focus on the part of the program with the `do` block (`Id.run ...`)
   generalize h : mySum l = x
-  apply Id.of_wp_run_eq h
+  apply Id.of_run_eq_wp h
   -- Break down into verification conditions
-  mvcgen
-  -- Specify the invariant which should hold throughout the loop
-  -- * `out` refers to the current value of the `let mut` variable
-  -- * `xs` is a `List.Cursor`, which is a data structure representing
-  --   a list that is split into `xs.prefix` and `xs.suffix`.
-  --   It tracks how far into the loop we have gotten.
+  vcgen
+  -- Specify the invariant which should hold throughout the loop.
+  -- It is a function of three arguments:
+  -- * `pref` is the list of elements that the loop has already visited
+  -- * `suff` is the list of elements that the loop has yet to visit
+  -- * `out` is the current value of the `let mut` variable
   -- Our invariant is that `out` holds the sum of the prefix.
-  -- The notation ⌜p⌝ embeds a `p : Prop` into the assertion language.
-  case inv1 => exact ⇓⟨xs, out⟩ => ⌜xs.prefix.sum = out⌝
-  -- After specifying the invariant, we can further simplify our goals
-  -- by "leaving the proof mode". `mleave` is just
-  -- `simp only [...] at *` with a stable simp subset.
-  all_goals mleave
-  -- Prove that our invariant is preserved at each step of the loop
-  case vc1 ih =>
-    -- The goal here mentions `pref`, which binds the `prefix` field of
-    -- the cursor passed to the invariant. Unpacking the
-    -- (dependently-typed) cursor makes it easier for `grind`.
-    grind
+  case inv1 => exact fun pref suff out => pref.sum = out
   -- Prove that the invariant is true at the start
-  case vc2 =>
+  case vc1 =>
     grind
   -- Prove that the invariant at the end of the loop implies the
   -- property we wanted
-  case vc3 h =>
+  case vc2 =>
+    grind
+  -- Prove that our invariant is preserved at each step of the loop
+  case vc3 =>
     grind
 ```
 
 :::paragraph
-Note that the case labels are actually unique prefixes of the full case labels.
-Whenever referring to cases, only this prefix should be used; the suffix is merely a hint to the user of where that particular {tech (remote := "reference")}[VC] came from.
-For example:
+The case labels `vc1`, `vc2`, … number the {tech (remote := "reference")}[VCs] in the order in which they arise during generation.
+In this proof:
 
-* `vc1.step` conveys that this {tech (remote := "reference")}[VC] proves the inductive step for the loop
-* `vc2.a.pre` is meant to prove that the hypotheses of a goal imply the precondition of a specification (of {name}`forIn`).
-* `vc3.a.post.success` is meant to prove that the postcondition of a specification (of {name}`forIn`) implies the desired property.
+* `vc1` proves that the invariant holds when the loop starts.
+* `vc2` proves that the invariant after the final iteration implies the desired property.
+* `vc3` proves that each iteration of the loop body preserves the invariant.
 :::
 
 :::paragraph
-After specifying the loop invariant, the proof can be shortened to just {keyword}`all_goals mleave; grind` (where {tactic}`mleave` leaves the stateful proof mode, cleaning up the proof state).
+After specifying the loop invariant, the proof can be shortened to just {keyword}`all_goals grind`.
 ```lean
 theorem mySum_correct_short (l : Array Nat) : mySum l = l.sum := by
   generalize h : mySum l = x
-  apply Id.of_wp_run_eq h
-  mvcgen
-  case inv1 => exact ⇓⟨xs, out⟩ => ⌜xs.prefix.sum = out⌝
-  all_goals mleave; grind
+  apply Id.of_run_eq_wp h
+  vcgen
+  case inv1 => exact fun pref suff out => pref.sum = out
+  all_goals grind
 ```
-This pattern is so common that {tactic}`mvcgen` comes with special syntax for it:
+This pattern is so common that {tactic}`vcgen` comes with special syntax for it:
 ```lean
 theorem mySum_correct_shorter (l : Array Nat) : mySum l = l.sum := by
   generalize h : mySum l = x
-  apply Id.of_wp_run_eq h
-  mvcgen
-  invariants
-  · ⇓⟨xs, out⟩ => ⌜xs.prefix.sum = out⌝
-  with grind
+  apply Id.of_run_eq_wp h
+  vcgen invariants
+  · fun pref suff out => pref.sum = out
+  with finish
 ```
-The {multiCode}[{keyword}`mvcgen invariants `{lit}`...`{keyword}` with `{lit}`...`] is an abbreviation for the
-tactic sequence {multiCode}[{keyword}`mvcgen; case`{lit}` inv1 => ...`{keyword}`; all_goals mleave; grind`]
-above. It is the form that we will be using from now on.
+The {multiCode}[{keyword}`vcgen invariants `{lit}`...`{keyword}` with `{lit}`...`] form supplies the invariants and then runs the given `grind` step on every remaining VC; the `finish` step closes each VC with `grind`'s full automation. It is the form that we will be using from now on.
 :::
 
 :::paragraph
@@ -182,7 +175,7 @@ theorem mySum_correct_vanilla (l : Array Nat) : mySum l = l.sum := by
 :::
 
 :::paragraph
-This proof is similarly succinct as the proof in {name}`mySum_correct_shorter` that uses {tactic}`mvcgen`.
+This proof is similarly succinct as the proof in {name}`mySum_correct_shorter` that uses {tactic}`vcgen`.
 However, the traditional approach relies on important properties of the program:
 
 * The {keywordOf Lean.Parser.Term.doFor}`for` loop does not {keywordOf Lean.Parser.Term.doBreak}`break` or {keywordOf Lean.Parser.Term.doReturn}`return` early. Otherwise, the {name}`forIn` could not be rewritten to a {name Array.foldl}`foldl`.
@@ -191,14 +184,23 @@ However, the traditional approach relies on important properties of the program:
   The {name}`Id` monad has no effects, so all of its comptutations are pure.
   While {name}`forIn` could still be rewritten to a {name Array.foldlM}`foldlM`, reasoning about the monadic loop body can be tough for {tactic}`grind`.
 
-In the following sections, we will go through several examples to learn about {tactic}`mvcgen` and its support library, and also see where traditional proofs become difficult.
+In the following sections, we will go through several examples to learn about {tactic}`vcgen` and its support library, and also see where traditional proofs become difficult.
 This is usually caused by:
 
 * {keywordOf Lean.Parser.Term.do}`do` blocks using control flow constructs such as {keywordOf Lean.Parser.Term.doFor}`for` loops, {keywordOf Lean.Parser.Term.doBreak}`break`s and early {keywordOf Lean.Parser.Term.doReturn}`return`.
 * The use of effects in non-{name}`Id` monads, which affects the implicit monadic context (state, exceptions) in ways that need to be reflected in loop invariants.
 
-{tactic}`mvcgen` scales to these challenges with reasonable effort.
+{tactic}`vcgen` scales to these challenges with reasonable effort.
 
+:::
+
+:::codeOnly
+```lean
+end
+```
+```lean
+open Std.Do
+```
 :::
 
 # Control Flow
