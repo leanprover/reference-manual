@@ -129,7 +129,7 @@ If the line consists only of letters (after removing whitespace from the beginni
 ```lean
 def getAlpha : IO (Option String.Slice) := do
   let line := (← (← IO.getStdin).getLine).trimAscii
-  if line.length > 0 && line.all Char.isAlpha then
+  if !line.isEmpty && line.all Char.isAlpha then
     return line
   else
     return none

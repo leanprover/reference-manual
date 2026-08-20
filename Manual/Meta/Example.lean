@@ -107,6 +107,40 @@ def renderExampleContent (exampleBlocks : List String) : String :=
 /-- A domain for named examples -/
 def examples : Domain := {}
 
+open Verso.Search in
+def examplesDomainMapper : DomainMapper := {
+  displayName := "Example",
+  className := "example-domain",
+  dataToSearchables :=
+    "(domainData) =>
+  Object.entries(domainData.contents).map(([key, value]) => ({
+    searchKey: value[0].data?.title ?? key,
+    address: `${value[0].address}#${value[0].id}`,
+    domainId: 'Manual.examples',
+    ref: value,
+  }))",
+  customRender := "(searchable, matchedParts, document) => {
+    const result = document.createElement('p');
+    for (const { t, v } of matchedParts) {
+      if (t === 'text') {
+        result.append(v);
+      } else {
+        const emEl = document.createElement('em');
+        emEl.textContent = v;
+        result.append(emEl);
+      }
+    }
+    const context = searchable.ref?.[0]?.data?.context ?? [];
+    if (context.length > 0) {
+      result.append(document.createElement('br'));
+      const contextEl = document.createElement('small');
+      contextEl.textContent = context.join(' › ');
+      result.append(contextEl);
+    }
+    return result;
+  }"
+  : DomainMapper }.setFont { family := .structure }
+
 @[directive]
 def «example» : DirectiveExpanderOf ExampleConfig
   | cfg, contents => do
@@ -150,6 +184,11 @@ def exampleKey [Monad m] [MonadStateOf TraverseState m]
 
 @[block_extension «example»]
 def example.descr : BlockDescr where
+  init st := st
+    |>.setDomainTitle ``examples "Examples"
+    |>.setDomainDescription ``examples "Worked examples of Lean features"
+    |>.addQuickJumpMapper ``examples examplesDomainMapper
+
   traverse id data contents := do
     match FromJson.fromJson? data (α := ExampleBlockJson) with
     | .error e => reportError s!"Error deserializing example tag: {e}"; pure none
@@ -165,12 +204,18 @@ def example.descr : BlockDescr where
           | some t => pure t
           | none => Verso.Genre.Manual.externalTag id path descrString
         | none => Verso.Genre.Manual.externalTag id path descrString
-      modify (·.saveDomainObject ``examples (← exampleKey id descrString) id)
+      let key ← exampleKey id descrString
+      -- The document root is in the header stack during traversal; drop it so that
+      -- context starts at the chapter level, as in section search results.
+      let context := ((← read).headers.map (·.titleString))[1:].toArray
+      modify (·.saveDomainObject ``examples key id |>.saveDomainObjectData ``examples key (json%{"title": $descrString, "context": $context}))
       pure <| some <| Block.other {Block.example descrString tag? opened liveText with
         id := some id,
         data := toJson (descrString, tag?, opened, some tag, liveText)} contents
     | .ok (descrString, _, _, some _, _) =>
-      modify (·.saveDomainObject ``examples (← exampleKey id descrString) id)
+      let key ← exampleKey id descrString
+      let context := ((← read).headers.map (·.titleString))[1:].toArray
+      modify (·.saveDomainObject ``examples key id |>.saveDomainObjectData ``examples key (json%{"title": $descrString, "context": $context}))
       pure none
   toTeX :=
     some <| fun _ go _ _ content => do
