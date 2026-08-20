@@ -557,15 +557,6 @@ The VC generator will move pure hypotheses from the stateful context into the re
 This is referred to as {deftech (key := "vcgen framing")}_framing_ hypotheses.
 Hypotheses in the Lean context are part of the immutable {deftech (key := "vcgen frame")}_frame_ of the stateful logic, because in contrast to stateful hypotheses they survive the rule of consequence.
 
-:::codeOnly
-```lean
-end
-```
-```lean
-open Std.Do
-```
-:::
-
 # Monad Transformers and Lifting
 
 Real-world programs often use monads that are built from multiple {tech (remote := "reference")}[monad transformers], with operations being frequently {ref "lifting-monads" (remote := "reference")}[lifted] from one monad to another.
@@ -577,7 +568,7 @@ We can tweak the previous example to demonstrate this.
 namespace Transformers
 ```
 ```lean -show
-variable {m : Type → Type} {α : Type} {ps : PostShape.{0}}
+variable {m : Type → Type} {α : Type}
 attribute [-instance] Lake.instMonadLiftTOfMonadLift_lake
 ```
 :::
@@ -613,33 +604,32 @@ def mkFreshN (n : Nat) : AppM (List Nat) := do
 ::::
 
 ::::paragraph
-Then the {tactic}`mvcgen`-based proof goes through unchanged:
+Then the {tactic}`vcgen`-based proof goes through unchanged:
 ```lean
 @[spec]
 theorem mkFresh_spec (c : Nat) :
     ⦃fun state => ⌜state.counter = c⌝⦄
     mkFresh
-    ⦃⇓ r state => ⌜r = c ∧ c < state.counter⌝⦄ := by
-  mvcgen [mkFresh] with grind
+    ⦃fun r state => ⌜r = c ∧ c < state.counter⌝⦄ := by
+  vcgen [mkFresh] with finish
 
 @[spec]
 theorem mkFreshN_spec (n : Nat) :
-    ⦃⌜True⌝⦄ mkFreshN n ⦃⇓ r => ⌜r.Nodup⌝⦄ := by
-  -- `liftCounterM` here ensures unfolding
-  mvcgen [mkFreshN]
-  invariants
-  · ⇓⟨xs, acc⟩ _ state =>
+    ⦃⌜True⌝⦄ mkFreshN n ⦃fun r => ⌜r.Nodup⌝⦄ := by
+  vcgen [mkFreshN] invariants
+  · fun pref suff acc _ state =>
       ⌜(∀ n ∈ acc, n < state.counter) ∧ acc.toList.Nodup⌝
-  with grind
+  with finish
 ```
+The corner brackets absorb the assertion arguments that a specification does not mention: the precondition of {name}`mkFresh_spec` names the {name}`Supply` state, and `⌜state.counter = c⌝` covers the reader environment beneath it.
 ::::
 
 :::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {α  : Type u}  {prog : m α}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type u} {prog : m α}
 ```
-The {name}`WPMonad` type class asserts that {lean}`wp⟦prog⟧` distributes over the {name}`Monad` operations (“monad morphism”).
+The {name}`WPMonad` type class asserts that {name}`wp` distributes over the {name}`Monad` operations (“monad morphism”).
 This proof might not look much more exciting than when only a single monad was involved.
 However, under the radar of the user the proof builds on a cascade of specifications for {name}`MonadLift` instances.
 
@@ -648,6 +638,15 @@ However, under the radar of the user the proof builds on a cascade of specificat
 :::codeOnly
 ```lean
 end Transformers
+```
+:::
+
+:::codeOnly
+```lean
+end
+```
+```lean
+open Std.Do
 ```
 :::
 
