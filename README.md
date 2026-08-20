@@ -71,10 +71,9 @@ following shell script:
 Then run a local web server on its output:
 
 ```
-python3 ./server.py 8880 &
+lake exe verso-serve
 ```
 
-Then open <http://localhost:8880> in your browser.
 
 ## Contributing
 
