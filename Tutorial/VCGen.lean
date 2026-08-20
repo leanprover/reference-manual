@@ -943,55 +943,21 @@ example :
 ```
 :::
 
+# Discharging Verification Conditions
+
+It is a priority of {tactic}`vcgen` to break down monadic programs into {tech (remote := "reference")}[verification conditions] that are straightforward to understand.
+The VCs are ordinary Lean goals, so any tactic can discharge them.
+When the assertion language is concrete, as for {name}`Id` or {name}`StateM` programs, the goals speak directly about result values and states, and {tactic}`grind` applies.
+When an applied invariant combinator such as {name}`Invariant.withEarlyReturnNewDo` reaches a VC, {tactic}`simp_all` unfolds it into its per-case propositions first.
+
+During VC generation, {tactic}`vcgen` internalizes the goal context into `grind`'s E-graph.
+The `with` clause runs a single `grind`-mode step on every remaining VC inside that shared context, which avoids re-internalizing the context for every VC.
+The step `finish` closes a VC with `grind`'s full automation.
+
 :::codeOnly
 ```lean
 end
 ```
-```lean
-open Std.Do
-```
-:::
-
-# Proof Mode for Stateful Goals
-
-```lean -show
-variable {σs : List (Type u)} {H T : SPred σs}
-```
-
-It is a priority of {tactic}`mvcgen` to break down monadic programs into {tech (remote := "reference")}[verification conditions] that are straightforward to understand.
-For example, when the monad is monomorphic and all loop invariants have been instantiated, an invocation of {multiCode}[{tactic}`all_goals`{lit}` `{tactic}`mleave`] should simplify away any {name}`Std.Do.SPred`-specific constructs and leave behind a goal that is easily understood by humans and {tactic}`grind`.
-This {multiCode}[{tactic}`all_goals`{lit}` `{tactic}`mleave`]step is carried out automatically by {tactic}`mvcgen` after loop invariants have been instantiated.
-
-However, there are times when {tactic}`mleave` will be unable to remove all {name}`Std.Do.SPred` constructs.
-In this case, verification conditions of the form {lean}`H ⊢ₛ T` will be left behind.
-The assertion language {name}`Assertion` translates into an {name}`Std.Do.SPred` as follows:
-
-```lean -keep
-abbrev PostShape.args : PostShape.{u} → List (Type u)
-  | .pure => []
-  | .arg σ s => σ :: PostShape.args s
-  | .except _ s => PostShape.args s
-
-abbrev Assertion (ps : PostShape.{u}) : Type u :=
-  SPred (PostShape.args ps)
-```
-
-
-:::leanSection
-```lean -show
-universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
-```
-
-A common case for when a VC of the form {lean}`H ⊢ₛ T` is left behind is when the base monad {lean}`m` is polymorphic.
-In this case, the proof will depend on a {lean}`WP m ps` instance which governs the translation into the {name}`Assertion` language, but the exact correspondence to `σs : List (Type u)` is yet unknown.
-To successfully discharge such a VC, `mvcgen` comes with an entire proof mode that is inspired by that of the Iris concurrent separation logic.
-(In fact, the proof mode was adapted in large part from its Lean clone, [`iris-lean`](https://github.com/leanprover-community/iris-lean).)
-The {ref "tactic-ref-spred" (remote := "reference")}[tactic reference] contains a list of all proof mode tactics.
-
-:::
-
-:::codeOnly
 ```lean
 end VCGenTutorial
 ```
