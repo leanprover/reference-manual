@@ -28,10 +28,10 @@ set_option linter.typography.dashes true
 
 set_option mvcgen.warning false
 
-#doc (Tutorial) "Verifying Imperative Programs Using `mvcgen`" =>
+#doc (Tutorial) "Verifying Imperative Programs Using `vcgen`" =>
 %%%
-tag := "mvcgen-tactic-tutorial"
-slug := "mvcgen"
+tag := "vcgen-tactic-tutorial"
+slug := "vcgen"
 summary := inlines!"A demonstration of how to use Lean's verification condition generator to conveniently and compositionally prove properties of monadic programs."
 exampleStyle := .inlineLean `MVCGenTutorial
 %%%
@@ -51,6 +51,9 @@ import Std.Tactic.Do
 :::codeOnly
 ```lean
 set_option mvcgen.warning false
+```
+```lean
+namespace VCGenTutorial
 ```
 :::
 ```lean
@@ -582,8 +585,8 @@ theorem add_spec_pre (x y : UInt8) :
 
 The first approach is advisable, although it should not make a difference in practice.
 The VC generator will move pure hypotheses from the stateful context into the regular Lean context, so the second form turns effectively into the first form.
-This is referred to as {deftech}_framing_ hypotheses (cf. the {tactic}`mpure` and {tactic}`mframe` tactics).
-Hypotheses in the Lean context are part of the immutable {deftech}_frame_ of the stateful logic, because in contrast to stateful hypotheses they survive the rule of consequence.
+This is referred to as {deftech (key := "vcgen framing")}_framing_ hypotheses (cf. the {tactic}`mpure` and {tactic}`mframe` tactics).
+Hypotheses in the Lean context are part of the immutable {deftech (key := "vcgen frame")}_frame_ of the stateful logic, because in contrast to stateful hypotheses they survive the rule of consequence.
 
 # Monad Transformers and Lifting
 
@@ -1029,4 +1032,10 @@ To successfully discharge such a VC, `mvcgen` comes with an entire proof mode th
 (In fact, the proof mode was adapted in large part from its Lean clone, [`iris-lean`](https://github.com/leanprover-community/iris-lean).)
 The {ref "tactic-ref-spred" (remote := "reference")}[tactic reference] contains a list of all proof mode tactics.
 
+:::
+
+:::codeOnly
+```lean
+end VCGenTutorial
+```
 :::

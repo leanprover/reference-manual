@@ -30,18 +30,18 @@ open Manual (comment)
 
 open Std.Do
 
-#doc (Manual) "The `mvcgen` tactic" =>
+#doc (Manual) "The `vcgen` tactic" =>
 %%%
-tag := "mvcgen-tactic"
+tag := "vcgen-tactic"
 %%%
 
 :::tutorials
- * {ref "mvcgen-tactic-tutorial" (remote := "tutorials")}[Verifying Imperative Programs Using `mvcgen`]
+ * {ref "vcgen-tactic-tutorial" (remote := "tutorials")}[Verifying Imperative Programs Using `vcgen`]
 :::
 
 The {tactic}`mvcgen` tactic implements a _monadic verification condition generator_:
-It breaks down a goal involving a program written using Lean's imperative {keywordOf Lean.Parser.Term.do}`do` notation into a number of smaller {tech}_verification conditions_ ({deftech}[VCs]) that are sufficient to prove the goal.
-In addition to a reference that describes the use of {tactic}`mvcgen`, this chapter includes a {ref "mvcgen-tactic-tutorial" (remote := "tutorials")}[tutorial] that can be read independently of the reference.
+It breaks down a goal involving a program written using Lean's imperative {keywordOf Lean.Parser.Term.do}`do` notation into a number of smaller {tech}_verification conditions_ ({deftech (key := "vcgen VCs")}[VCs]) that are sufficient to prove the goal.
+In addition to a reference that describes the use of {tactic}`mvcgen`, this chapter includes a {ref "vcgen-tactic-tutorial" (remote := "tutorials")}[tutorial] that can be read independently of the reference.
 
 In order to use the {tactic}`mvcgen` tactic, {module}`Std.Tactic.Do` must be imported and the namespace {namespace}`Std.Do` must be opened.
 
@@ -59,11 +59,11 @@ The workflow of {tactic}`mvcgen` consists of the following:
 2. Programs are composed from smaller programs.
    Each statement in a {keywordOf Lean.Parser.Term.do}`do`-block is associated with a predicate transformer, and there are general-purpose rules for combining these statements with sequencing and control-flow operators.
    A statement with its pre- and postconditions is called a {tech}_Hoare triple_.
-   In a program, the postcondition of each statement should suffice to prove the precondition of the next one, and loops require a specified {deftech}_loop invariant_, which is a statement that must be true at the beginning of the loop and at the end of each iteration.
+   In a program, the postcondition of each statement should suffice to prove the precondition of the next one, and loops require a specified {deftech (key := "vcgen loop invariant")}_loop invariant_, which is a statement that must be true at the beginning of the loop and at the end of each iteration.
    Designated {tech}_specification lemmas_ associate functions with Hoare triples that specify them.
 3. Applying the weakest-precondition semantics of a monadic program to a desired proof goal results in the precondition that must hold in order to prove the goal.
    Any missing steps such as loop invariants or proofs that a statement's precondition implies its postcondition become new subgoals.
-   These missing steps are called the {deftech}_verification conditions_.
+   These missing steps are called the {deftech (key := "vcgen verification conditions")}_verification conditions_.
    The {tactic}`mvcgen` tactic performs this transformation, replacing the goal with its verification conditions.
    During this transformation, {tactic}`mvcgen` uses specification lemmas to discharge proofs about individual statements.
 4. After supplying loop invariants, many verification conditions can in practice be discharged automatically.
@@ -72,10 +72,10 @@ The workflow of {tactic}`mvcgen` consists of the following:
 
 # Predicate Transformers
 
-A {deftech}_predicate transformer semantics_ is an interpretation of programs as functions from predicates to predicates, rather than values to values.
-A {deftech}_postcondition_ is an assertion that holds after running a program, while a {deftech}_precondition_ is an assertion that must hold prior to running the program in order for the postcondition to be guaranteed to hold.
+A {deftech (key := "vcgen predicate transformer semantics")}_predicate transformer semantics_ is an interpretation of programs as functions from predicates to predicates, rather than values to values.
+A {deftech (key := "vcgen postcondition")}_postcondition_ is an assertion that holds after running a program, while a {deftech (key := "vcgen precondition")}_precondition_ is an assertion that must hold prior to running the program in order for the postcondition to be guaranteed to hold.
 
-The predicate transformer semantics used by {tactic}`mvcgen` transforms postconditions into the {deftech}_weakest preconditions_ under which the program will ensure the postcondition.
+The predicate transformer semantics used by {tactic}`mvcgen` transforms postconditions into the {deftech (key := "vcgen weakest preconditions")}_weakest preconditions_ under which the program will ensure the postcondition.
 An assertion $`P` is weaker than $`P'` if, in all states, $`P'` suffices to prove $`P`, but $`P` does not suffice to prove $`P'`.
 Logically equivalent assertions are considered to be equal.
 
@@ -291,7 +291,7 @@ Just as {name}`SPred` represents predicate over states, {name}`SVal` represents 
 
 ## Assertions
 
-The language of assertions about monadic programs is parameterized by a {deftech}_postcondition shape_, which describes the inputs to and outputs from a computation in a given monad.
+The language of assertions about monadic programs is parameterized by a {deftech (key := "vcgen postcondition shape")}_postcondition shape_, which describes the inputs to and outputs from a computation in a given monad.
 Preconditions may mention the initial values of the monad's state, while postconditions may mention the returned value, the final values of the monad's state, and must furthermore account for any exceptions that could have been thrown.
 The postcondition shape of a given monad determines the states and exceptions in the monad.
 {name}`PostShape.pure` describes a monad in which assertions may not mention any states, {name}`PostShape.arg` describes a state value, and {name}`PostShape.except` describes a possible exception.
@@ -321,7 +321,7 @@ Syntactic sugar for a nested sequence of product constructors, terminating in {l
 universe u v
 variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α  : Type u}  {prog : m α} {Q' : α → Assertion ps}
 ```
-Postconditions for programs that might throw exceptions come in two varieties. The {deftech}_total correctness interpretation_ {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` asserts that, given {lean}`P` holds, then {lean}`prog` terminates _and_ {lean}`Q'` holds for the result. The {deftech}_partial correctness interpretation_ {lean}`⦃P⦄ prog ⦃⇓? r => Q' r⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates _then_ {lean}`Q'` holds for the result.
+Postconditions for programs that might throw exceptions come in two varieties. The {deftech (key := "vcgen total correctness interpretation")}_total correctness interpretation_ {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` asserts that, given {lean}`P` holds, then {lean}`prog` terminates _and_ {lean}`Q'` holds for the result. The {deftech (key := "vcgen partial correctness interpretation")}_partial correctness interpretation_ {lean}`⦃P⦄ prog ⦃⇓? r => Q' r⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates _then_ {lean}`Q'` holds for the result.
 :::
 
 
@@ -375,7 +375,7 @@ Syntactic sugar for {name}`PostCond.imp`
 ## Predicate Transformers
 
 A predicate transformer is a function from postconditions for some postcondition state into assertions for that state.
-The function must be {deftech}_conjunctive_, which means it must distribute over {name}`PostCond.and`.
+The function must be {deftech (key := "vcgen conjunctive")}_conjunctive_, which means it must distribute over {name}`PostCond.and`.
 
 {docstring PredTrans}
 
@@ -526,12 +526,12 @@ theorem rev_correct :
 
 ### Adequacy Lemmas
 %%%
-tag := "mvcgen-adequacy"
+tag := "vcgen-adequacy"
 %%%
 
 Monads that can be invoked from pure code typically provide a invocation operator that takes any required input state as a parameter and returns either a value paired with an output state or some kind of exceptional value.
 Examples include {name}`StateT.run`, {name}`ExceptT.run`, and {name}`Id.run`.
-{deftech}_Adequacy lemmas_ provide a bridge between statements about invocations of monadic programs and those programs' {tech}[weakest precondition] semantics as given by their {name}`WP` instances.
+{deftech (key := "vcgen Adequacy lemmas")}_Adequacy lemmas_ provide a bridge between statements about invocations of monadic programs and those programs' {tech}[weakest precondition] semantics as given by their {name}`WP` instances.
 They show that a property about the invocation is true if its weakest precondition is true.
 
 {docstring Id.of_wp_run_eq}
@@ -548,7 +548,7 @@ They show that a property about the invocation is true if its weakest preconditi
 
 ## Hoare Triples
 
-A {deftech}_Hoare triple_{citep hoare69}[] consists of a precondition, a program, and a postcondition.
+A {deftech (key := "vcgen Hoare triple")}_Hoare triple_{citep hoare69}[] consists of a precondition, a program, and a postcondition.
 Running the program in a state for which the precondition is true results in a state where the postcondition is true.
 
 {docstring Triple}
@@ -571,7 +571,7 @@ variable [WP m ps] {x : m α} {P : Assertion ps} {Q : PostCond α ps}
 
 ## Specification Lemmas
 
-{deftech}_Specification lemmas_ are designated theorems that associate Hoare triples with functions.
+{deftech (key := "vcgen Specification lemmas")}_Specification lemmas_ are designated theorems that associate Hoare triples with functions.
 When {tactic}`mvcgen` encounters a function, it checks whether there are any registered specification lemmas and attempts to use them to discharge intermediate {tech}[verification conditions].
 If there is no applicable specification lemma, then the connection between the statement's pre- and postconditions will become a verification condition.
 Specification lemmas allow compositional reasoning about libraries of monadic code.
@@ -590,7 +590,7 @@ spec $[$_:prio]?
 :::
 
 Universally-quantified variables in specification lemmas can be used to relate input states to output states and return values.
-These variables are referred to as {deftech}_schematic variables_.
+These variables are referred to as {deftech (key := "vcgen schematic variables")}_schematic variables_.
 
 :::example "Schematic Variables"
 ```imports -show
@@ -693,7 +693,7 @@ Other monads will require instances of {name}`WP`, {name}`LawfulMonad`, and {nam
 The tactic has been designed to support monads that model single-threaded control with state that might be interrupted; in other words, the effects that are present in ordinary imperative programming.
 More exotic effects have not yet been investigated.
 
-Once the basic instances are provided, the next step is to prove an {ref "mvcgen-adequacy"}[adequacy lemma].
+Once the basic instances are provided, the next step is to prove an {ref "vcgen-adequacy"}[adequacy lemma].
 This lemma should show that the weakest precondition for running the monadic computation and asserting a desired predicate is in fact sufficient to prove the predicate.
 
 In addition to the definition of the monad, typical libraries provide a set of primitive operators.
@@ -866,7 +866,7 @@ theorem logUntil_length : (logUntil n).run.2.size = n := by
 
 # Proof Mode
 %%%
-tag := "mvcgen-proof-mode"
+tag := "vcgen-proof-mode"
 %%%
 
 Stateful goals can be proven using a special _proof mode_ in which goals are rendered with two contexts of hypotheses: the ordinary Lean context, which contains Lean variables, and a special stateful context, which contains assumptions about the monadic state.
