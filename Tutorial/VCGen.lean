@@ -194,15 +194,6 @@ This is usually caused by:
 
 :::
 
-:::codeOnly
-```lean
-end
-```
-```lean
-open Std.Do
-```
-:::
-
 # Control Flow
 
 :::leanFirst
@@ -225,18 +216,18 @@ def nodup (l : List Int) : Bool := Id.run do
 
 This function is correct if it returns {name}`true` for every list that satisfies {name}`List.Nodup` and {name}`false` for every list that does not.
 Just as it was in {name}`mySum`, the use of {keywordOf Lean.Parser.Term.do}`do`-notation and the {name}`Id` monad is an internal implementation detail of {name}`nodup`.
-Thus, the proof begins by using {name}`Id.of_wp_run_eq` to make the proof state amenable to {tactic}`mvcgen`:
+Thus, the proof begins by using {name}`Id.of_run_eq_wp` to make the proof state amenable to {tactic}`vcgen`:
 ```lean
 theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
   generalize h : nodup l = r
-  apply Id.of_wp_run_eq h
-  mvcgen
-  invariants
+  apply Id.of_run_eq_wp h
+  vcgen invariants
   · Invariant.withEarlyReturnNewDo
-      (onReturn := fun ret seen => ⌜ret = false ∧ ¬l.Nodup⌝)
-      (onContinue := fun xs seen =>
-        ⌜(∀ x, x ∈ seen ↔ x ∈ xs.prefix) ∧ xs.prefix.Nodup⌝)
-  with grind
+      (onReturn := fun ret seen => ret = false ∧ ¬l.Nodup)
+      (onContinue := fun pref suff seen =>
+        (∀ x, x ∈ seen ↔ x ∈ pref) ∧ pref.Nodup)
+  all_goals simp_all
+  all_goals grind
 ```
 ::::
 
@@ -244,50 +235,27 @@ theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
 :::paragraph
 ```lean -show
 section
-variable {l : List Int} {ret : Bool} {seen : Std.HashSet Int} {xs : l.Cursor}
-axiom onReturn : Bool → Std.HashSet Int → SPred PostShape.pure.args
-axiom onContinue : l.Cursor → Std.HashSet Int → SPred PostShape.pure.args
-axiom onExcept : ExceptConds PostShape.pure
+variable {l : List Int} {ret : Bool} {seen : Std.HashSet Int} {pref suff : List Int}
+axiom onReturn : Bool → Std.HashSet Int → Prop
+axiom onContinue : List Int → List Int → Std.HashSet Int → Prop
 ```
-The proof has the same succinct structure as for the initial {name}`mySum` example, because we again offload all proofs to {tactic}`grind` and its existing automation around {name}`List.Nodup`.
+The proof again offloads all verification conditions to {tactic}`grind` and its existing automation around {name}`List.Nodup`; the additional {tactic}`simp_all` step first unfolds the applied invariant combinator in each VC.
 Therefore, the only difference is in the {tech (remote := "reference")}[loop invariant].
 Since our loop has an {ref "early-return" (remote := "reference")}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturnNewDo`, which supports the {ref "do-elab" (remote := "reference")}[extensible `do`-notation elaborator].
-This function allows us to specify the invariant in three parts:
+This function allows us to specify the invariant in two parts:
 
 * {lean}`onReturn ret seen` holds after the loop was left through an early return with value {lean}`ret`.
   In case of {name}`nodup`, the only value that is ever returned is {name}`false`, in which case {name}`nodup` has decided there _is_ a duplicate in the list.
-* {lean}`onContinue xs seen` is the regular induction step that proves the invariant is preserved each loop iteration.
-  The iteration state is captured by the cursor {lean}`xs`.
+* {lean}`onContinue pref suff seen` is the regular induction step that proves the invariant is preserved each loop iteration.
+  As in {name}`mySum`, the list {lean}`pref` holds the elements that the loop has already visited and {lean}`suff` holds the elements that the loop has yet to visit.
   The given example asserts that the set {lean}`seen` contains all the elements of previous loop iterations and asserts that there were no duplicates so far.
-* {lean}`onExcept` must hold when the loop throws an exception.
-  There are no exceptions in {lean}`Id`, so we leave it unspecified to use the default.
-  (Exceptions will be discussed at a later point.)
 ```lean -show
 end
 ```
 :::
 
 :::paragraph
-Note that the form `mvcgen invariants?` will suggest an initial invariant, so there is no need to memorize the exact syntax for specifying invariants:
-```lean (name := invariants?)
-example (l : List Int) : nodup l ↔ l.Nodup := by
-  generalize h : nodup l = r
-  apply Id.of_wp_run_eq h
-  mvcgen invariants? <;> sorry
-```
-The tactic suggests a starting invariant.
-This starting point will not allow the proof to succeed—after all, if the invariant can be inferred by the system, then there's no need to make the user specify it—but it does provide a reminder of the correct syntax to use for assertions in the current monad:
-```leanOutput invariants?
-Try this:
-  [apply] invariants
-  ·
-    Invariant.withEarlyReturnNewDo (onReturn := fun r letMuts => ⌜(r = true ↔ l.Nodup) ∧ l.Nodup⌝) (onContinue :=
-      fun xs letMuts => ⌜xs.prefix = [] ∧ letMuts = ∅ ∨ xs.suffix = [] ∧ l.Nodup⌝)
-```
-:::
-
-:::paragraph
-Now consider the following direct (and excessively golfed) proof without {tactic}`mvcgen`:
+Now consider the following direct (and excessively golfed) proof without {tactic}`vcgen`:
 
 ```lean
 theorem nodup_correct_directly (l : List Int) : nodup l ↔ l.Nodup := by
@@ -303,7 +271,7 @@ theorem nodup_correct_directly (l : List Int) : nodup l ↔ l.Nodup := by
 :::paragraph
 Some observations:
 
-* The proof is even shorter than the one with {tactic}`mvcgen`.
+* The proof is even shorter than the one with {tactic}`vcgen`.
 * The use of {tactic}`generalize` to generalize the accumulator relies on there being exactly one occurrence of {lean (type := "Std.HashSet Int")}`∅` to generalize. If that were not the case, we would have to copy parts of the program into the proof. This is a no-go for larger functions.
 * {tactic}`grind` splits along the control flow of the function and reasons about {name}`Id`, given the right lemmas.
   While this works for {name}`Id.run_pure` and {name}`Id.run_bind`, it would not work for {name}`Id.run_seq`, for example, because that lemma is not {tech (key := "E-matching") (remote := "reference")}[E-matchable].
@@ -312,9 +280,18 @@ Some observations:
 
 The usual way to avoid replicating the control flow of a definition in a proof is to use the {tactic}`fun_cases` or {tactic}`fun_induction` tactics.
 Unfortunately, {tactic}`fun_cases` does not help with control flow inside a {name}`forIn` application.
-The {tactic}`mvcgen` tactic, on the other hand, ships with support for many {name}`forIn` implementations.
+The {tactic}`vcgen` tactic, on the other hand, ships with support for many {name}`forIn` implementations.
 It can easily be extended (with {attrs}`@[spec]` annotations) to support custom {name}`forIn` implementations.
-Furthermore, an {tactic}`mvcgen`-powered proof will never need to copy any part of the original program.
+Furthermore, a {tactic}`vcgen`-powered proof will never need to copy any part of the original program.
+
+:::codeOnly
+```lean
+end
+```
+```lean
+open Std.Do
+```
+:::
 
 # Compositional Reasoning About Effectful Programs Using Hoare Triples
 
