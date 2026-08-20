@@ -641,47 +641,37 @@ end Transformers
 ```
 :::
 
-:::codeOnly
-```lean
-end
-```
-```lean
-open Std.Do
-```
-:::
-
 # Exceptions
 
 ::::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α  : Type u}  {prog : m α} {Q' : α → Assertion ps}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {P : Pred} {α : Type u} {prog : m α} {Q' : α → Pred}
 ```
 
 If {keyword}`let mut` is the {keywordOf Lean.Parser.Term.do}`do`-equivalent of {name}`StateT`, then early {keywordOf Lean.Parser.Term.doReturn}`return` is the equivalent of {name}`ExceptT`.
-We have seen how the {tactic}`mvcgen` copes with {name}`StateT`; here we will look at the program logic's support for {name}`ExceptT`.
+We have seen how {tactic}`vcgen` copes with {name}`StateT`; here we will look at the program logic's support for {name}`ExceptT`.
 
-Exceptions are the reason why the type of postconditions {lean}`PostCond α ps` is not simply a single condition of type {lean}`α → Assertion ps` for the success case.
-To see why, suppose the latter was the case, and suppose that program {lean}`prog` throws an exception in a prestate satisfying {lean}`P`.
-Should we be able to prove {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄`?
-(Recall that `⇓` is grammatically similar to `fun`.)
-There is no result `r`, so it is unclear what this proof means for {lean}`Q'`!
+Exceptions are the reason why a triple carries an exception postcondition next to the success postcondition.
+To see why, suppose there were only the success postcondition, and suppose that program {lean}`prog` throws an exception in a prestate satisfying {lean}`P`.
+Should we be able to prove {lean}`⦃P⦄ prog ⦃Q'⦄`?
+There is no result value, so it is unclear what this proof means for {lean}`Q'`!
 
 So there are two reasonable options, inspired by non-termination in traditional program logics:
 
 : The {tech (remote := "reference")}_total correctness interpretation_
 
-  {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` asserts that, given {lean}`P` holds, then {lean}`prog` terminates _and_ {lean}`Q'` holds for the result.
+  {lean}`⦃P⦄ prog ⦃Q'⦄` asserts that, given {lean}`P` holds, then {lean}`prog` terminates normally _and_ {lean}`Q'` holds for the result.
 
 : The {tech (remote := "reference")}_partial correctness interpretation_
 
-  {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates _then_ {lean}`Q'` holds for the result.
+  {lean}`⦃P⦄ prog ⦃Q'; ⊤⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates normally _then_ {lean}`Q'` holds for the result.
 
-The notation {lean}`⇓ r => Q' r` has the total interpretation, while {lean}`⇓? r => Q' r` has the partial interpretation.
+A triple without an explicit exception postcondition carries the bottom assertion {lean}`(⊥ : EPred)` and thus has the total interpretation: an exception would have to establish `⊥`, so no exception can be thrown.
+The top assertion {lean}`(⊤ : EPred)` permits every exception and yields the partial interpretation.
 
-In the running example, {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` is unprovable, but {lean}`⦃P⦄ prog ⦃⇓? r => Q' r⦄` is trivially provable.
-However, the binary choice suggests that there is actually a _spectrum_ of correctness properties to express.
-The notion of postconditions {name}`PostCond` in `Std.Do` supports this spectrum.
+In the running example, {lean}`⦃P⦄ prog ⦃Q'⦄` is unprovable, but {lean}`⦃P⦄ prog ⦃Q'; ⊤⦄` is trivially provable.
+Between {lean}`(⊥ : EPred)` and {lean}`(⊤ : EPred)`, the exception postcondition expresses a _spectrum_ of correctness properties.
 
 ::::
 
@@ -715,15 +705,15 @@ The following correctness property expresses this:
 ```lean
 @[spec]
 theorem mkFresh_spec (c : Nat) :
-    ⦃fun state => ⌜state.counter = c⌝⦄
+    ⦃fun state => state.counter = c⦄
     mkFresh
-    ⦃post⟨fun r state => ⌜r = c ∧ c < state.counter⌝,
-          fun _ state => ⌜c = state.counter ∧ c = state.limit⌝⟩⦄ := by
-  mvcgen [mkFresh] with grind
+    ⦃fun r state => r = c ∧ c < state.counter;
+      fun _ state => c = state.counter ∧ c = state.limit⦄ := by
+  vcgen [mkFresh] with finish
 ```
 
-In this property, the postcondition has two branches: the first covers successful termination, and the second applies when an exception is thrown.
-The monad's {name}`WP` instance determines both how many branches the postcondition may have and the number of parameters in each branch: each exception that might be triggered gives rise to an extra branch, and each state gives an extra parameter.
+In this property, the triple has two postconditions, separated by a semicolon: the first covers successful termination, and the second applies when an exception is thrown.
+The monad's {name}`WP` instance determines the types of both postconditions: the exception postcondition takes the thrown exception in place of the result value, and each state gives an extra parameter.
 
 :::leanFirst
 In this new monad, {name}`mkFreshN`'s implementation is unchanged, except for the type signature:
@@ -737,33 +727,31 @@ def mkFreshN (n : Nat) : EStateM String Supply (List Nat) := do
 :::
 
 :::paragraph
-However, the specification lemma must account for both successful termination and exceptions being thrown, in both the postcondition and the loop invariant:
+However, the specification lemma must account for both successful termination and exceptions being thrown; the loop invariant itself stays as before:
 ```lean
 @[spec]
 theorem mkFreshN_spec (n : Nat) :
-    ⦃⌜True⌝⦄
+    ⦃fun _ => True⦄
     mkFreshN n
-    ⦃post⟨fun r => ⌜r.Nodup⌝,
-          fun _msg state => ⌜state.counter = state.limit⌝⟩⦄ := by
-  mvcgen [mkFreshN]
-  invariants
-  · post⟨fun ⟨xs, acc⟩ state =>
-           ⌜(∀ n ∈ acc, n < state.counter) ∧ acc.toList.Nodup⌝,
-         fun _msg state => ⌜state.counter = state.limit⌝⟩
-  with grind
+    ⦃fun r _ => r.Nodup;
+      fun _msg state => state.counter = state.limit⦄ := by
+  vcgen [mkFreshN] invariants
+  · fun pref suff acc state =>
+      (∀ n ∈ acc, n < state.counter) ∧ acc.toList.Nodup
+  with finish
 ```
 :::
 
 :::paragraph
-The final proof uses the specification lemmas and {tactic}`mvcgen`, just as before:
+The final proof uses the specification lemmas and {tactic}`vcgen`, just as before:
 ```lean
 theorem mkFreshN_correct (n : Nat) :
     match (mkFreshN n).run s with
     | .ok    l _  => l.Nodup
     | .error _ s' => s'.counter = s'.limit := by
   generalize h : (mkFreshN n).run s = x
-  apply EStateM.of_wp_run_eq h
-  mvcgen
+  apply EStateM.of_run_eq_wp h
+  vcgen with finish
 ```
 :::
 
@@ -776,18 +764,23 @@ end Exceptions
 :::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type} {σ ε : Type}
 ```
 
-Just as any {lean}`StateT σ`-like monad transformer gives rise to a {lean}`PostShape.arg σ` layer in the {lean}`ps` that {name}`WP` maps into, any {lean}`ExceptT ε`-like layer gives rise to a {lean}`PostShape.except ε` layer.
-
-Every {lean}`PostShape.arg σ` adds another `σ → ...` layer to the language of {lean}`Assertion`s.
-Every {lean}`PostShape.except ε` leaves the {lean}`Assertion` language unchanged, but adds another exception
-condition to the postcondition.
-Hence the {name}`WP` instance for {lean}`EStateM ε σ` maps to the {name}`PostShape` {lean}`PostShape.except ε (.arg σ .pure)`, just
-as for {lean}`ExceptT ε (StateM σ)`.
+A {lean}`StateT σ` layer turns the assertion type `Pred` into `σ → Pred` and leaves the exception postcondition type unchanged.
+An {lean}`ExceptT ε` layer leaves the assertion type unchanged and turns the exception postcondition type `EPred` into {lean}`EPost.Cons (ε → Pred) EPred`, adding one exception branch of type `ε → Pred`.
+The {name}`WP` instance for {lean}`EStateM ε σ` uses assertions of type `σ → Prop` and exception postconditions of type `ε → σ → Prop`, mirroring the single exception branch of the equivalent transformer stack {lean}`ExceptT ε (StateM σ)`.
 :::
 
+
+:::codeOnly
+```lean
+end
+```
+```lean
+open Std.Do
+```
+:::
 
 # Extending `mvcgen` With Support for Custom Monads
 
