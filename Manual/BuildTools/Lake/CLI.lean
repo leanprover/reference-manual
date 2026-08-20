@@ -458,7 +458,7 @@ The {lakeMeta}`template` may be:
 
   Creates a package that contains a library that depends on [Mathlib](https://github.com/leanprover-community/mathlib4).
 
-The {lakeMeta}`language` selects the file format used for the {tech}[package configuration] file and may be `lean` (the default) or `toml`.
+The {lakeMeta}`language` selects the file format used for the {tech}[package configuration] file and may be `lean` or `toml` (the default).
 :::
 
 :::TODO
