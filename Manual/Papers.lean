@@ -130,7 +130,7 @@ def wadler1989 : InProceedings where
 def wadlerBlott89 : InProceedings where
   title := inlines!"How to make ad-hoc polymorphism less ad hoc"
   authors := #[inlines!"Philip Wadler", inlines!"Stephen Blott"]
-  year := 1980
+  year := 1989
   booktitle := inlines!"Proceedings of the 16th Symposium on Principles of Programming Languages"
 
 def wadler2003 : InProceedings where
