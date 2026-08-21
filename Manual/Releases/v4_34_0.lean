@@ -13,7 +13,7 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.34.0-rc1 (2026-08-10)" =>
+#doc (Manual) "Lean 4.34.0-rc2 (2026-08-21)" =>
 %%%
 tag := "release-v4.34.0"
 file := "v4.34.0"
@@ -24,18 +24,24 @@ These release notes describe a _release candidate_, not the final release.
 They may be incomplete and are subject to change.
 :::
 
-For this release, 144 changes landed.
-In addition to the 52 feature additions
-and 53 fixes listed below,
+For this release, 156 changes landed.
+In addition to the 55 feature additions
+and 61 fixes listed below,
 there were 5 refactoring changes,
 5 documentation improvements,
 6 performance improvements,
-1 improvement to the test suite,
+2 improvements to the test suite,
 and 22 other changes.
 
 # Language
 
 ````markdown
+
+- [#14582](https://github.com/leanprover/lean4/pull/14582)
+  makes the kernel reject inductive declarations in which a datatype being declared occurs applied to anything other than the parameters and universe levels of the declaration. Such non-uniform occurrences could previously hide in positions that escape the kernel's checks: behind a reduction that erases them, or in the parametric arguments of a nested occurrence, which are dropped from the auxiliary declaration the kernel generates and were therefore only checked for well-typedness.
+
+- [#14826](https://github.com/leanprover/lean4/pull/14826)
+  reports the intrinsic verification syntax as experimental wherever it is used: the `requires` and `ensures` contract clauses of a `def`, the `assert` element, and the `invariant` clause of a loop each report at their keyword. Setting `experimental.intrinsic` to `true` acknowledges the experimental status and silences the reports.
 
 - [#14701](https://github.com/leanprover/lean4/pull/14701)
   lets the `ensures` clause of a `def` contract be written like a `fun`, so a postcondition may be stated per shape of the result: `ensures | none => False | some v => 2 * v ≤ n`. A contract clause now also starts on its own line when pretty printed, as it is written in source.
@@ -146,6 +152,9 @@ and 22 other changes.
 
 ````markdown
 
+- [#14788](https://github.com/leanprover/lean4/pull/14788)
+  changes `Bool.and`, `Bool.or`, `Bool.not` so that they are defined directly in terms of `Bool.rec` for better kernel performance.
+
 - [#14728](https://github.com/leanprover/lean4/pull/14728)
   makes `Expr.getUsedConstants` collect the `typeName` field of `Expr.proj` so we get a full list of constants that are directly used.
 
@@ -247,7 +256,7 @@ and 22 other changes.
 
 # Tactics
 
-```markdown
+````markdown
 
 - [#14713](https://github.com/leanprover/lean4/pull/14713)
   adds support for `bv_decide` to make use of the `grind` state when used in `sym`/`grind` interactive mode. `bv_decide` now picks up on the (relevant) equivalence classes, encodes them into the SAT problem and then handles the problem as normally.
@@ -381,11 +390,17 @@ and 22 other changes.
 - [#14401](https://github.com/leanprover/lean4/pull/14401)
   fixes `preprocessType` in `SymM`. It must not perform `zetaDelta` by default.
 
-```
+````
 
 # Compiler
 
-```markdown
+````markdown
+
+- [#14838](https://github.com/leanprover/lean4/pull/14838)
+  prevents memory corruption when an object's 32-bit reference count overflows. On machines with at least 18GB of free RAM, it could be used to trigger use-after-free in the official kernel, which could be extended into a proof of False. Other kernels such as nanoda not based on the Lean runtime were not affected.
+
+- [#14791](https://github.com/leanprover/lean4/pull/14791)
+  makes the compiler `macro_inline` results of `csimp` lemmas.
 
 - [#14717](https://github.com/leanprover/lean4/pull/14717)
   the model/runtime mismatch in `String.Pos.Raw.extract` and adds a faster variant (`lean_string_utf8_extract_fast`) for `String.extract` that assumes that the positions are valid positions.
@@ -411,11 +426,11 @@ and 22 other changes.
 - [#14204](https://github.com/leanprover/lean4/pull/14204)
   prevents silent olean truncation when disk space is exhausted.
 
-```
+````
 
 # Pretty Printing
 
-```markdown
+````markdown
 
 - [#14512](https://github.com/leanprover/lean4/pull/14512)
   makes a `for` do-element pretty-print with a space before `do`. The do-element `for` parser emitted `"do "` with no leading space, so reformatting a `for … do` block glued the range to the keyword (`for x in xs do` printed as `for x in xsdo`). Every sibling do-keyword (`while`, `unless`, term-level `for`) already emits ` do `; this aligns `for`.
@@ -423,20 +438,20 @@ and 22 other changes.
 - [#14367](https://github.com/leanprover/lean4/pull/14367)
   fixes an issue where the `@[simp ←]` attribute would pretty-print as `@[simp← ]`, along with analogous issues with `@[grind norm ←]`, `@[wf_preprocess ←]`, `@[bv_normalize ←]`, etc. See also discussion on [Zulip](https://leanprover.zulipchat.com/#narrow/channel/287929-mathlib4/topic/Whitespace.20linter.20interaction.20with.20reverse.20simp.20attributes/near/590971428).
 
-```
+````
 
 # Documentation
 
-```markdown
+````markdown
 
 - [#14436](https://github.com/leanprover/lean4/pull/14436)
   removes references to the unfolding lemma from the `repeatM` docstrings and moves that lemma into the `repeatM.Internal` namespace.
 
-```
+````
 
 # Lake
 
-```markdown
+````markdown
 
 - [#14723](https://github.com/leanprover/lean4/pull/14723)
   makes the `MACOSX_DEPLOYMENT_TARGET` configurable via the Lake API -- both across a build and for custom builds of shared libraries or executables.  It also includes the target in traces, ensuring a rebuilding if the value changes (e.g., if the environment variable `MACOSX_DEPLOYMENT_TARGET` is set).
@@ -465,13 +480,35 @@ and 22 other changes.
 - [#14630](https://github.com/leanprover/lean4/pull/14630)
   makes `lake update <pkg>...` fail with a clear error when a specified package name is not known to the current dependency manifest. Previously, unknown or misspelled names (including case mismatches) were silently ignored, which was confusing.
 
-```
+````
 
 # Other
 
-```markdown
+````markdown
+
+- [#14833](https://github.com/leanprover/lean4/pull/14833)
+  makes Lean require GMP 6.3.0 or newer and builds the official releases against GMP 6.3.0. Earlier GMP versions contain bugs that can cause Lean to produce unsound (i.e., incorrect) results in corner cases; independent kernels that do not depend on GMP will catch such unsoundness. The portable Linux releases were previously linked against GMP 6.1.2 (inherited from the old glibc nixpkgs used for portability).
+
+- [#14849](https://github.com/leanprover/lean4/pull/14849)
+  makes the kernel reject `Nat` literals and computations whose representation would exceed a configurable size limit (128 MB by default). This prevents pathological or adversarial inputs from driving the kernel to spend unbounded memory and time constructing enormous numerals, and keeps the kernel's arithmetic comfortably within the range where its arbitrary-precision integer backend is well exercised. The limit can be raised with the `LEAN_NAT_MAX_SIZE` environment variable for the rare workloads that legitimately compute very large numerals in the kernel.
+
+- [#14847](https://github.com/leanprover/lean4/pull/14847)
+  adds another test for the `is_prop` bug in the kernel.
+  The exploit was submitted by Daniel Selsam (OpenAI) and was generated using OpenAI's internal models.
+
+- [#14843](https://github.com/leanprover/lean4/pull/14843)
+  applies the fix from #14807 to `inductive.h`. As the comment in `inductive.h` points out, the code should check whether `e_type` is a proposition using `is_prop`, but it was still inlining the old, buggy version of `is_prop`.
+
+- [#14808](https://github.com/leanprover/lean4/pull/14808)
+  adds a new defensive check to the kernel. When the kernel generates a recursor for an inductive type, it installs the recursor and its computation rules with `add_core`, which does not re-check them. It adds a verification pass that (1) type-checks each generated recursor's type and (2) checks that each computation rule is type-preserving: reducing the recursor applied to a constructor yields a term whose type is the recursor's declared result type. This catches a recursor whose minor-premise type and reduction rule disagree, for example a minor premise that expects an induction hypothesis while the rule omits it. Checking only that a rule's right-hand side has some type is not enough, because an under-applied minor premise is still a well-typed (function) term. The check is defense-in-depth: it does not change what the kernel accepts for well-formed inductives, and only rejects declarations that were already malformed.
+
+- [#14807](https://github.com/leanprover/lean4/pull/14807)
+  fixes a soundness issue. The kernel's `is_prop` decided whether a term is a proposition by taking the weak head normal form of its inferred type and checking that the result is syntactically `Sort 0`. When the inferred type did not reduce to a sort but was left as a stuck term, `is_prop` returned `false` instead of treating the term as ill-formed. This let the proof-irrelevance guard in projection inference be skipped, so a non-proof field could be projected out of a value used as a `Prop`, and `False` derived. The fix computes the inferred type with `ensure_sort`, which reduces it and requires the result to be a sort, raising `(kernel) type expected` otherwise. The bogus proof was also accepted by nanoda, an independent implementation of the Lean kernel. We believe the lean4lean external kernel does not have this bug.
+
+- [#14806](https://github.com/leanprover/lean4/pull/14806)
+  fixes a soundness issue in the kernel. The kernel cached successful `is_def_eq` queries in a union-find structure. Because the implemented `is_def_eq` is sound but incomplete, and therefore not transitive, the transitive closure computed by the union-find made a query's result depend on the order of earlier queries: `is_def_eq(v0, v2)` could return `false` on its own but `true` after `is_def_eq(v0, v1)` and `is_def_eq(v1, v2)` had succeeded. A crafted input used this to build a recursor whose type and computation rule disagreed, and derive `False`. The fix replaces the union-find with a plain cache keyed on the query pair, so `is_def_eq` is again a function of its two arguments. The issue was reported by Daniel Selsam (OpenAI) using their internal models. An OpenAI agent then produced two distinct exploits based on it. Both exploits are also caught by nanoda, and both are caught by the new lean-inductive-models developed by Joachim Breitner.
 
 - [#14161](https://github.com/leanprover/lean4/pull/14161)
   adds support for compiling with thread sanitizer. This both increases memory consumption and slows lean down massively so we only run a very small subset of tests to remain in a reasonable time. Developers need to add additional tests to the set themselves.
 
-```
+````
