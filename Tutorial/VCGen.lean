@@ -771,7 +771,7 @@ variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [Assertion Pred] 
 ```
 
 A {lean}`StateT σ` layer turns the assertion type `Pred` into `σ → Pred` and leaves the exception postcondition type unchanged.
-An {lean}`ExceptT ε` layer leaves the assertion type unchanged and turns the exception postcondition type `EPred` into {lean}`EPost.Cons (ε → Pred) EPred`, adding one exception branch of type `ε → Pred`.
+An {lean}`ExceptT ε` layer leaves the assertion type unchanged and turns the exception postcondition type `EPred` into {lean}`(ε → Pred) × EPred`, adding one exception branch of type `ε → Pred`.
 The {name}`WP` instance for {lean}`EStateM ε σ` uses assertions of type `σ → Prop` and exception postconditions of type `ε → σ → Prop`, mirroring the single exception branch of the equivalent transformer stack {lean}`ExceptT ε (StateM σ)`.
 :::
 
@@ -880,7 +880,7 @@ Finally, we also prove an adequacy lemma similar to {name}`Except.of_eq_wp` for 
 ```lean
 theorem Result.of_eq_wp {α} {x prog : Result α}
     (h : prog = x) (P : Result α → Prop)
-    (hwp : wp prog (fun a => P (.ok a)) epost⟨fun e => P (.fail e)⟩) :
+    (hwp : wp prog (fun a => P (.ok a)) (fun e => P (.fail e))) :
       P x := by
   subst h
   match prog with
@@ -918,8 +918,8 @@ There are two relevant specification lemmas to register:
 ```lean
 @[spec]
 theorem Result.throw_spec {α} {post : α → Prop}
-    {epost : EPost⟨Error → Prop⟩} (e : Error) :
-    ⦃epost.head e⦄ throw (m := Result) (α := α) e ⦃post; epost⦄ :=
+    {epost : Error → Prop} (e : Error) :
+    ⦃epost e⦄ throw (m := Result) (α := α) e ⦃post; epost⦄ :=
   ⟨PartialOrder.rel_refl⟩
 
 @[spec]

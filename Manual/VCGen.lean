@@ -172,9 +172,14 @@ Since unit and pair types come with {name}`Assertion` instances, such exception 
 The {name}`WP` translation turns monad transformer stacks turn into exception postcondition stacks.
 The notation `EStack⟨e₁, e₂, ...⟩` abbreviates the type of exception postcondition stack `e₁ × (e₂ × (... × Unit))`, and the notation `estack⟨v₁, v₂, ...⟩` builds a value `(v₁, v₂, ..., ())` of such a stack.
 
+:::syntax term (title := "Exception Postcondition Stacks") (namespace := Std.WP)
 ```grammar
-Insert this, Claude!
+EStack⟨$_,*⟩
 ```
+```grammar
+estack⟨$_,*⟩
+```
+:::
 
 {TODO}[I think the partial vs. total correctness discussion should maybe happen after we have actually introduced Triple? It discusses its syntax.]
 
@@ -218,15 +223,15 @@ The {name}`bind` operator composes predicate transformers.
 
 {docstring PredTrans.bind}
 
-The helper operators {name}`PredTrans.pushArg`, {name}`PredTrans.pushExcept`, and {name}`PredTrans.pushOption` modify a predicate transformer by adding a standard side effect.
+The helper operators {name}`PredTrans.pushArg`, {name}`PredTrans.pushExceptT`, and {name}`PredTrans.pushOptionT` modify a predicate transformer by adding a standard side effect.
 They are used to implement the {name}`WP` instances for transformers such as {name}`StateT`, {name}`ExceptT`, and {name}`OptionT`; they can also be used to implement monads that can be thought of in terms of one of these.
 For example, {name}`PredTrans.pushArg` is typically used for state monads, but can also be used to implement a reader monad's instance, treating the reader's value as read-only state.
 
 {docstring PredTrans.pushArg}
 
-{docstring PredTrans.pushExcept}
+{docstring PredTrans.pushExceptT}
 
-{docstring PredTrans.pushOption}
+{docstring PredTrans.pushOptionT}
 
 ### Weakest Preconditions
 
@@ -448,7 +453,7 @@ The assertion in the precondition is a function because the assertion type of {l
 :::
 ```lean -show -keep
 -- Test preceding examples' claims
-#synth WP (StateM Nat Unit) Unit (Nat → Prop) EPost.Nil
+#synth WP (StateM Nat Unit) Unit (Nat → Prop) EStack⟨⟩
 ```
 
 ## Invariant Specifications
@@ -627,7 +632,7 @@ Semantically, the empty array is the correct choice so as to not place items in 
 theorem LogM.of_run_eq_wp {α : Type u} {β : Type v}
     {x : α × Array β} {prog : LogM β α}
     (h : LogM.run prog = x) (P : α × Array β → Prop)
-    (hwp : wp prog (fun v l => P (v, l)) EPost.Nil.mk #[]) : P x := by
+    (hwp : wp prog (fun v l => P (v, l)) () #[]) : P x := by
   rw [← h]
   simp [wp, WP.wpTrans] at hwp
   exact hwp
