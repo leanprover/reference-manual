@@ -554,8 +554,8 @@ theorem add_spec_pre (x y : UInt8) :
 
 The first approach is advisable, although it should not make a difference in practice.
 The VC generator will move pure hypotheses from the stateful context into the regular Lean context, so the second form turns effectively into the first form.
-This is referred to as {deftech (key := "vcgen framing")}_framing_ hypotheses.
-Hypotheses in the Lean context are part of the immutable {deftech (key := "vcgen frame")}_frame_ of the stateful logic, because in contrast to stateful hypotheses they survive the rule of consequence.
+This is referred to as {deftech}_framing_ hypotheses.
+Hypotheses in the Lean context are part of the immutable {deftech}_frame_ of the stateful logic, because in contrast to stateful hypotheses they survive the rule of consequence.
 
 # Monad Transformers and Lifting
 
