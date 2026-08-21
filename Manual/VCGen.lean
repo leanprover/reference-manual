@@ -165,9 +165,14 @@ Since unit and pair types come with {name}`Assertion` instances, such exception 
 The {name}`WP` translation turns monad transformer stacks turn into exception postcondition stacks.
 The notation `EStack⟨e₁, e₂, ...⟩` abbreviates the type of exception postcondition stack `e₁ × (e₂ × (... × Unit))`, and the notation `estack⟨v₁, v₂, ...⟩` builds a value `(v₁, v₂, ..., ())` of such a stack.
 
+:::syntax term (title := "Exception Postcondition Stacks") (namespace := Std.WP)
 ```grammar
-Insert this, Claude!
+EStack⟨$_,*⟩
 ```
+```grammar
+estack⟨$_,*⟩
+```
+:::
 
 {TODO}[I think the partial vs. total correctness discussion should maybe happen after we have actually introduced Triple? It discusses its syntax.]
 
@@ -209,15 +214,15 @@ The {name}`bind` operator composes predicate transformers.
 
 {docstring Lean.Order.instMonadPredTrans}
 
-The helper operators {name}`Lean.Order.pushArg`, {name}`PredTrans.pushExcept`, and {name}`PredTrans.pushOption` modify a predicate transformer by adding a standard side effect.
+The helper operators {name}`Lean.Order.pushArg`, {name}`PredTrans.pushExceptT`, and {name}`PredTrans.pushOptionT` modify a predicate transformer by adding a standard side effect.
 They are used to implement the {name}`WP` instances for transformers such as {name}`StateT`, {name}`ExceptT`, and {name}`OptionT`; they can also be used to implement monads that can be thought of in terms of one of these.
 For example, {name}`Lean.Order.pushArg` is typically used for state monads, but can also be used to implement a reader monad's instance, treating the reader's value as read-only state.
 
 {docstring Lean.Order.pushArg}
 
-{docstring PredTrans.pushExcept}
+{docstring PredTrans.pushExceptT}
 
-{docstring PredTrans.pushOption}
+{docstring PredTrans.pushOptionT}
 
 ### Weakest Preconditions
 
@@ -291,7 +296,7 @@ The {name}`WP` interpretation of {name}`Identity` is a plain definition marked {
 {TODO}[It is a wart of `vcgen` that we cannot declare the WP instance below. I'll think about fixing it by canonicalizing `WPMonad.toWP` to the `WP` instance, but not in time for 4.35. Let's maybe leave an "under construction" sign for the reader.]
 ```lean
 @[instance_reducible] def Identity.wpInst :
-    WP (Identity α) α Prop EPost.Nil where
+    WP (Identity α) α Prop EStack⟨⟩ where
   wpTrans x := ⟨fun post _ => post x.run⟩
   wp_trans_monotone x := fun _ _ _ _ _ hpost => hpost x.run
 
@@ -303,7 +308,7 @@ This interpretation alone suffices to state weakest preconditions and to prove a
 ```lean +error (name := noInst)
 theorem Identity.of_run_eq_wp' {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop)
-    (hwp : wp prog P EPost.Nil.mk) : P x := by
+    (hwp : wp prog P ()) : P x := by
   simp_all [wp, WP.wpTrans, ← h]
 
 theorem rev_correct_bad {xs : List α} :
@@ -321,7 +326,7 @@ No spec applicable to program (forIn xs [] fun x __s => pure (ForInStep.yield (x
 ```
 The issue can be resolved by defining a {name}`WPMonad` instance whose {name}`WPMonad.toWP` field carries the interpretation:
 ```lean
-instance : WPMonad Identity Prop EPost.Nil where
+instance : WPMonad Identity Prop EStack⟨⟩ where
   toWP _ := Identity.wpInst
   pure_le_wp_pure x post epost := PartialOrder.rel_refl
   bind_le_wp_bind x f post epost := PartialOrder.rel_refl
@@ -330,7 +335,7 @@ With this instance, and a suitable invariant, {tactic}`vcgen` and the {tactic}`g
 ```lean
 theorem Identity.of_run_eq_wp {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop)
-    (hwp : wp prog P EPost.Nil.mk) : P x := by
+    (hwp : wp prog P ()) : P x := by
   simp_all [wp, WP.wpTrans, ← h]
 
 theorem rev_correct {xs : List α} :
@@ -451,7 +456,7 @@ The assertion in the precondition is a function because the assertion type of {l
 :::
 ```lean -show -keep
 -- Test preceding examples' claims
-#synth WP (StateM Nat Unit) Unit (Nat → Prop) EPost.Nil
+#synth WP (StateM Nat Unit) Unit (Nat → Prop) EStack⟨⟩
 ```
 
 ## Invariant Specifications
@@ -608,12 +613,12 @@ This operator was designed to model state monads, but {name}`LogM` can be seen a
 This appending is visible in the body of the instance, where the initial state and the log that resulted from the action are appended:
 ```lean
 @[instance_reducible]
-def LogM.instWP : WP (LogM β α) α (Array β → Prop) EPost.Nil where
+def LogM.instWP : WP (LogM β α) α (Array β → Prop) EStack⟨⟩ where
   wpTrans | { log, value } => pushArg (fun s => pure (value, s ++ log))
   wp_trans_monotone x := fun _ _ _ _ _ hpost s =>
     hpost x.value (s ++ x.log)
 
-instance : WPMonad (LogM β) (Array β → Prop) EPost.Nil where
+instance : WPMonad (LogM β) (Array β → Prop) EStack⟨⟩ where
   toWP _ := LogM.instWP
   pure_le_wp_pure x post epost := by simp [wp, WP.wpTrans, pure]
   bind_le_wp_bind x f post epost := by simp [wp, WP.wpTrans, bind]
@@ -626,7 +631,7 @@ Semantically, the empty array is the correct choice so as to not place items in 
 theorem LogM.of_run_eq_wp {α : Type u} {β : Type v}
     {x : α × Array β} {prog : LogM β α}
     (h : LogM.run prog = x) (P : α × Array β → Prop)
-    (hwp : wp prog (fun v l => P (v, l)) EPost.Nil.mk #[]) : P x := by
+    (hwp : wp prog (fun v l => P (v, l)) () #[]) : P x := by
   rw [← h]
   simp [wp, WP.wpTrans] at hwp
   exact hwp
