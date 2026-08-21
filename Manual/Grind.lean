@@ -19,6 +19,8 @@ import Manual.Grind.Cutsat
 import Manual.Grind.Algebra
 import Manual.Grind.Linarith
 import Manual.Grind.Annotation
+import Manual.Grind.Hom
+import Manual.Grind.AC
 import Manual.Grind.ExtendedExamples
 
 -- Needed for the if-then-else normalization example.
@@ -168,6 +170,48 @@ These theorems will typically include a symbol prefix such as `=`, `←`, or `�
 pattern that triggered the instantiation. See the {ref "e-matching"}[section on E-matching] for details.
 Some theorems may be labelled with a `usr` prefix, which indicates that a custom pattern was used.
 
+# Local Definitions
+
+{tactic}`grind` has two flags that control how it treats local definitions with {keywordOf Lean.Parser.Term.let}`let`.
+They are enabled by default, but duplicating the local definition's value can lead to the term exploding in size; consider disabling them when working with terms that contain many nested {keywordOf Lean.Parser.Term.let}`let`s.
+
+: `zeta` (default `true`)
+
+  This controls whether {tactic}`grind` performs {tech (key := "ζ")}[ζ-reduction].
+  Unless this flag is disabled, terms that contain a {keywordOf Lean.Parser.Term.let}`let` are reduced before they are added to the whiteboard, so that {lean}`let x := 5; x + x` is reduced to {lean}`5 + 5` before further processing.
+  If it is disabled, the term is not reduced.
+  ```lean -show
+  example : (let x := 5; x + x) = 10 := by grind
+  /-- `grind` failed -/
+  #guard_msgs (substring := true) in
+  example : (let x := 5; x + x) = 10 := by grind -zeta
+  ```
+
+: `zetaDelta` (default `true`)
+
+  This flag controls whether {tactic}`grind` replaces variables in terms that have local definitions in the context with their definitions.
+  :::tacticExample
+  If a proof goal is {goal}`let x := 5; (x + x = 10)`, running
+  ```setup
+  intro x
+  ```
+  results in a proof state in which the definition of `x` is in the context:
+  ```pre
+  x : Nat := 5
+  ⊢ x + x = 10
+  ```
+  Running {tacticStep}`grind` succeeds, because {lean}`5` is substituted for `x`.
+  Without the `zetaDelta` flag, it fails.
+  ```post -show
+  ```
+  :::
+  ```lean -show
+  example : let x := 5; (x + x = 10) := by intro x; grind
+  /-- `grind` failed -/
+  #guard_msgs (substring := true) in
+  example : let x := 5; (x + x = 10) := by intro x; grind -zetaDelta
+  ```
+
 {include 1 Manual.Grind.CongrClosure}
 
 {include 1 Manual.Grind.ConstraintPropagation}
@@ -175,6 +219,8 @@ Some theorems may be labelled with a `usr` prefix, which indicates that a custom
 {include 1 Manual.Grind.CaseAnalysis}
 
 {include 1 Manual.Grind.EMatching}
+
+{include 1 Manual.Grind.AC}
 
 {include 1 Manual.Grind.Cutsat}
 
@@ -300,5 +346,7 @@ Threshold notices, learned equivalence classes, integer assignments, algebraic b
 # Troubleshooting & FAQ
 TBD
 ```
+
+{include 1 Manual.Grind.Hom}
 
 {include 1 Manual.Grind.ExtendedExamples}
