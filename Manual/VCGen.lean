@@ -83,8 +83,7 @@ Logically equivalent assertions are considered to be equal.
 
 The predicates in question can be stateful: they can mention the program's current state.
 Furthermore, postconditions can relate the return value and any exceptions thrown by the program to the final state.
-Each monad that can be used with {tactic}`vcgen` is assigned an assertion type and an exception postcondition type by an instance of {name}`WP`.
-An assertion type is a complete lattice; the type class {name}`Assertion` expresses this requirement.
+Each monad that can be used with {tactic}`vcgen` is assigned an assertion type and an exception assertion type by an instance of {name}`WP`.
 For a state monad such as {lean}`StateM Nat`, an assertion is a predicate on the state, of type {lean}`Nat → Prop`.
 A postcondition additionally takes the return value as its first argument, and the exception postcondition covers each exception that the monad can throw.
 
@@ -93,13 +92,14 @@ A postcondition additionally takes the return value as its first argument, and t
 
 The predicate transformer semantics of monadic programs is based on a logic in which propositions may mention the program's state.
 Here, “state” refers not only to mutable state, but also to read-only values such as those that are provided via {name}`ReaderT`.
-Different monads have different assertion types, and the type class {name}`Assertion` captures what the framework requires of them: an assertion type is a complete lattice.
+Different monads have different assertion types, which can be any complete lattice.
+More specifically, assertion types instantiate {name}`Assertion`, which is a `class abbrev` over {name}`CompleteLattice` that is recognized by `vcgen`.
 
 {docstring Assertion}
 
 The lattice structure provides the logical vocabulary of assertions:
 
-* The order {name Lean.Order.PartialOrder.rel}`⊑` is entailment.
+* The order relation {name Lean.Order.PartialOrder.rel}`⊑` is entailment.
 * The meet {name Lean.Order.meet}`⊓` is conjunction and the join {name Lean.Order.join}`⊔` is disjunction.
 * The top element {name Lean.Order.top}`⊤` is the trivial assertion and the bottom element {name Lean.Order.bot}`⊥` is the absurd assertion.
 * The indexed supremum {name Lean.Order.iSup}`⨆` is existential quantification and the indexed infimum {name Lean.Order.iInf}`⨅` is universal quantification.
@@ -107,16 +107,19 @@ The lattice structure provides the logical vocabulary of assertions:
 
 The difference between entailment and implication is that entailment is a statement in Lean's logic, while implication is internal to the assertion language: for assertions `P` and `Q`, `P ⊑ Q` is a {lean}`Prop` while `P ⇨ Q` is again an assertion.
 
+{module}`Std.WP` comes with {name}`Assertion` instances for {lean}`Prop`, function types and pairs.
 The lattice operations on {lean}`Prop` coincide with the ordinary logical connectives, with entailment being implication.
 The lattice operations on a function type such as {lean}`Nat → Prop` operate pointwise, so entailment of state predicates is universally-quantified implication.
+The lattice operations on a pair such as {lean}`(Nat → Prop) × (Bool → Prop)` operate componentwise, so entailment of pair predicates is the pair of entailments on the component predicates.
 
 ::::leanSection
 ```lean -show
 universe u
 variable {P : Prop} {Pred : Type u} [Assertion Pred]
 ```
-Ordinary propositions that do not mention the state can be embedded into any assertion lattice.
+Ordinary propositions that do not mention the state can be embedded into any assertion lattice with corner brackets.
 This is written with the syntax {lean (type := "Pred")}`⌜P⌝`, which is notation for {name}`Lean.Order.CompleteLattice.ofProp`.
+The popular Iris proof mode uses the same syntax and meaning.
 :::syntax term (title := "Embedding Propositions") (namespace := Lean.Order)
 ```grammar
 ⌜$_:term⌝
@@ -140,7 +143,7 @@ set_option mvcgen.warning false
 ```
 The predicate {name}`ItIsSecret` expresses that a state of type {name}`String` is {lean}`"secret"`:
 ```lean
-def ItIsSecret : String → Prop := fun s => ⌜s = "secret"⌝
+def ItIsSecret : String → Prop := fun s => s = "secret"
 ```
 Entailment between such assertions is pointwise implication:
 ```lean
@@ -149,46 +152,33 @@ example : ItIsSecret ⊑ (⌜True⌝ : String → Prop) := by
 ```
 :::
 
-### Reading Values from the State
-
-An assertion frequently constrains the value that a function of the state evaluates to.
-The type class {name}`Assertion.NondetFun` equips an assertion lattice with a notion of total nondeterministic functions, and {name}`Assertion.NondetFun.EvalsTo` relates such a function to its value inside the assertion lattice.
-The specification lemmas for reader-like operations are stated in terms of {name}`Assertion.NondetFun.EvalsTo`.
-
-{docstring Assertion.NondetFun}
-
-{docstring Assertion.NondetFun.EvalsTo}
-
-
 ## Exception Postconditions
 
 A postcondition for successful termination is a function from the return value to an assertion.
-Programs that can throw exceptions additionally require an {deftech}_exception postcondition_, an assertion that covers each exception that the monad can throw.
+Programs that can throw exceptions additionally require an {deftech}_exception postcondition_, asserting what holds when the program throws an exception.
 The exception postcondition type of a given monad is determined by its {name}`WP` instance.
-A monad without exceptions uses {name}`EPost.Nil`, and each exception layer contributes one branch through {name}`EPost.Cons`.
-Because these constructors can be continually added, the exception postcondition type of a monad transformer can be defined in terms of that of the underlying transformed monad.
 
-{docstring EPost.Nil}
+For example, the {name}`WP` instance for {lean}`EStateM String Nat Bool` determines {lean}`Nat → Prop` as the assertion type, hence {lean}`Bool → Nat → Prop` as the postcondition type, and {lean}`String → Nat → Prop` as the exception postcondition type.
+A monad without exceptions uses {name}`Unit`, and each exception layer of e.g., {name}`ExceptT` contributes an additional exception postcondition as `(ε → Pred) × EPred`, where `Pred` is the assertion type and `EPred` the exception assertion type of the wrapped base monad.
+Since unit and pair types come with {name}`Assertion` instances, such exception postcondition stacks are automatically assertions as well.
 
-{docstring EPost.Cons}
+The {name}`WP` translation turns monad transformer stacks turn into exception postcondition stacks.
+The notation `EStack⟨e₁, e₂, ...⟩` abbreviates the type of exception postcondition stack `e₁ × (e₂ × (... × Unit))`, and the notation `estack⟨v₁, v₂, ...⟩` builds a value `(v₁, v₂, ..., ())` of such a stack.
 
-{docstring EPost.Cons.head}
+```grammar
+Insert this, Claude!
+```
 
-{docstring EPost.Cons.tail}
-
-The notation `EPost⟨e₁, e₂, ...⟩` abbreviates the type of exception postconditions with branches `e₁, e₂, ...`, and the notation `epost⟨v₁, v₂, ...⟩` builds a value of such a type from the branch values.
-
-Exception postconditions form assertion lattices themselves: {name}`EPost.Nil` carries the trivial lattice, and {name}`EPost.Cons` is ordered componentwise.
+{TODO}[I think the partial vs. total correctness discussion should maybe happen after we have actually introduced Triple? It discusses its syntax.]
 
 :::leanSection
 ```lean -show
 universe u v
 variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {P : Pred} {α : Type u} {prog : m α} {Q' : α → Pred}
 ```
-Triples for programs that might throw exceptions come in two varieties. The {deftech}_total correctness interpretation_ {lean}`⦃P⦄ prog ⦃Q'⦄` asserts that, given {lean}`P` holds, then {lean}`prog` terminates normally _and_ {lean}`Q'` holds for the result. The {deftech}_partial correctness interpretation_ {lean}`⦃P⦄ prog ⦃Q'; ⊤⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates normally _then_ {lean}`Q'` holds for the result.
+Specifications for programs that might throw exceptions come in two varieties. The {deftech}_total correctness interpretation_ {lean}`⦃P⦄ prog ⦃Q'⦄` asserts that, given {lean}`P` holds, then {lean}`prog` terminates normally _and_ {lean}`Q'` holds for the result. The {deftech}_partial correctness interpretation_ {lean}`⦃P⦄ prog ⦃Q'; ⊤⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates normally _then_ {lean}`Q'` holds for the result.
 A triple without an explicit exception postcondition carries the bottom assertion {lean}`(⊥ : EPred)` and thus has the total interpretation; between `⊥` and `⊤`, the exception postcondition expresses a spectrum of correctness properties.
 :::
-
 
 ## Predicate Transformers
 
@@ -197,25 +187,25 @@ universe u v w
 variable {Pred : Type u} {EPred : Type v} {α : Type w} [Assertion Pred] [Assertion EPred]
 ```
 
-A predicate transformer maps a postcondition and an exception postcondition to an assertion.
-{lean}`PredTrans Pred EPred α` wraps a function of type {lean}`(α → Pred) → EPred → Pred` for a program with results of type {lean}`α`.
+A predicate transformer is a function from postconditions into assertions that describe preconditions.
 
 {docstring Lean.Order.PredTrans}
 
 {docstring Lean.Order.PredTrans.apply}
-
-{docstring Lean.Order.PredTrans.monotone}
 
 :::leanSection
 ```lean -show
 variable {x y : PredTrans Pred EPred α} {post : α → Pred} {epost : EPred}
 ```
 The partial order on predicate transformers is inherited pointwise from the assertion lattice: {lean}`x ⊑ y` when {lean}`x.apply post epost ⊑ y.apply post epost` for all {lean}`post` and {lean}`epost`.
+A predicate transformer is often {deftech}_monotone_, which means it must preserve entailment: the stronger the postcondition, the stronger the resulting precondition.
+
+{docstring Lean.Order.PredTrans.monotone}
 :::
 
 Predicate transformers form a monad.
-The {name Pure.pure}`pure` operator is the identity transformer; it simply instantiates the postcondition with its argument.
-The {name Bind.bind}`bind` operator composes predicate transformers.
+The {name}`pure` operator is the identity transformer; it simply instantiates the postcondition with its argument.
+The {name}`bind` operator composes predicate transformers.
 
 {docstring Lean.Order.instMonadPredTrans}
 
@@ -237,22 +227,24 @@ variable {Prog : Type u} {Value : Type v} [WP Prog Value Pred EPred] {x : Prog} 
 
 The {tech}[weakest precondition] semantics of a program type are provided by the {name}`WP` type class.
 An instance {lean}`WP Prog Value Pred EPred` interprets programs of type {lean}`Prog` with results of type {lean}`Value` as monotone predicate transformers over the assertion type {lean}`Pred` and the exception postcondition type {lean}`EPred`.
+The type {lean}`Prog` determines {lean}`Value`, {lean}`Pred` and {lean}`EPred` as {name}`outParam`s.
 The function {name}`wp` applies the interpretation: {lean}`wp x post epost` is the weakest precondition under which the program {lean}`x` establishes the postcondition {lean}`post` and the exception postcondition {lean}`epost`.
 
 {docstring WP}
 
 {docstring WP.wp}
 
-A program that is {deftech}_conjunctive_ distributes over the meet of two weakest preconditions.
-The type class {name}`WPConjunctive` captures this property, which the specification lemmas for `if` and `match` splitting rely on.
+A program `x` that is {deftech}_conjunctive_ distributes a weakest precondition of a meet of two postconditions into a meet of the weakest preconditions of the postconditions.
+The type class {name}`WPConjunctive` captures this property, which allows for combining two specifications for `x` into a single strongest one, for example ({name}`Triple.and`).
 
 {docstring WPConjunctive}
 
-### Weakest Precondition Monad Morphisms
+### Monads preserving weakest preconditions
 
 Most of the built-in specification lemmas for {tactic}`vcgen` rely on the presence of a {name}`WPMonad` instance.
 A {name}`WPMonad` instance carries the {name}`WP` interpretation for every result type and asserts that this interpretation is sound for the monad's implementations of {name Pure.pure}`pure` and {name Bind.bind}`bind`.
-Without a {name}`WPMonad` instance, {tactic}`vcgen` reports that no specification applies to the program.
+This means that to prove something about a do block, it suffices to prove it about the chain of elements of the do block.
+This unlocks compositional reasoning about do blocks.
 
 {docstring WPMonad}
 
@@ -296,57 +288,57 @@ instance : LawfulMonad Identity :=
 ```
 
 The {name}`WP` interpretation of {name}`Identity` is a plain definition marked {attr}`instance_reducible`, following the pattern of the interpretations in {module}`Std.WP`:
+{TODO}[It is a wart of `vcgen` that we cannot declare the WP instance below. I'll think about fixing it by canonicalizing `WPMonad.toWP` to the `WP` instance, but not in time for 4.35. Let's maybe leave an "under construction" sign for the reader.]
 ```lean
 @[instance_reducible] def Identity.wpInst :
     WP (Identity α) α Prop EPost.Nil where
   wpTrans x := ⟨fun post _ => post x.run⟩
   wp_trans_monotone x := fun _ _ _ _ _ hpost => hpost x.run
-```
-This interpretation alone suffices to state weakest preconditions and to prove an adequacy lemma, but not to run {tactic}`vcgen`:
-```lean -show
+
 section OnlyWP
 
-attribute [local instance] Identity.wpInst
-
+attribute [local instance] Identity.wpInst -- working around the wart
+```
+This interpretation alone suffices to state weakest preconditions and to prove an adequacy lemma, but not to run {tactic}`vcgen`:
+```lean +error (name := noInst)
 theorem Identity.of_run_eq_wp' {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop)
     (hwp : wp prog P EPost.Nil.mk) : P x := by
   simp_all [wp, WP.wpTrans, ← h]
-```
-The specifications for {name Pure.pure}`pure` and {name Bind.bind}`bind` require a {name}`WPMonad` instance for {name}`Identity`, so {tactic}`vcgen` reports that it cannot take the program apart:
-```lean +error (name := noInst)
+
 theorem rev_correct_bad {xs : List α} :
     (rev xs).run = xs.reverse := by
   generalize h : (rev xs).run = x
   apply Identity.of_run_eq_wp' h
   vcgen [rev]
+
+end OnlyWP
 ```
+The specifications for {name}`pure` and {name}`bind` require a {name}`WPMonad` instance for {name}`Identity`, so {tactic}`vcgen` reports that it cannot take the program apart:
 ```leanOutput noInst
 No spec applicable to program (forIn xs [] fun x __s => pure (ForInStep.yield (x :: __s))) >>=
   pure in monad Identity. Candidates were [SpecProof.global Std.WP.Spec.bind].
 ```
-```lean -show
-end OnlyWP
-```
 The issue can be resolved by defining a {name}`WPMonad` instance whose {name}`WPMonad.toWP` field carries the interpretation:
 ```lean
-instance Identity.instWPMonad : WPMonad Identity Prop EPost.Nil where
+instance : WPMonad Identity Prop EPost.Nil where
   toWP _ := Identity.wpInst
   pure_le_wp_pure x post epost := PartialOrder.rel_refl
   bind_le_wp_bind x f post epost := PartialOrder.rel_refl
-
+```
+With this instance, and a suitable invariant, {tactic}`vcgen` and the {tactic}`grind`-mode tactic `finish` can prove the theorem.
+```lean
 theorem Identity.of_run_eq_wp {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop)
     (hwp : wp prog P EPost.Nil.mk) : P x := by
   simp_all [wp, WP.wpTrans, ← h]
-```
-With this instance, and a suitable invariant, {tactic}`vcgen` and `grind` can prove the theorem.
-```lean
+
 theorem rev_correct {xs : List α} :
     (rev xs).run = xs.reverse := by
   generalize h : (rev xs).run = x
   apply Identity.of_run_eq_wp h
   simp only [rev]
+  set_option trace.Elab.Tactic.Do.vcgen true in
   vcgen invariants
   · fun pref suff out => out = pref.reverse
   with finish
@@ -391,9 +383,6 @@ Running the program in a state for which the precondition is true results in a s
 ```grammar
 ⦃ $_ ⦄ $_ ⦃ $_; $_ ⦄
 ```
-```grammar
-⦃ $_ ⦄ $_ ⦃ $x, $_ ⦄
-```
 :::leanSection
 ```lean -show
 universe z
@@ -401,7 +390,6 @@ variable {Prog : Type u} {Value : Type v} {Pred : Type w} {EPred : Type z} [Asse
 ```
 {lean}`⦃ P ⦄ x ⦃ Q; E ⦄` is syntactic sugar for {lean}`Triple x P Q E`.
 When the exception postcondition is omitted, as in {lean}`⦃ P ⦄ x ⦃ Q ⦄`, it defaults to the bottom assertion `⊥`, asserting that the program throws no exception.
-The binder form `⦃ P ⦄ x ⦃ r, Q ⦄` binds the result value `r` in the postcondition `Q`.
 :::
 ::::
 
@@ -474,12 +462,9 @@ The {tech}[specification lemmas] for {name}`ForIn.forIn` and {name}`ForIn'.forIn
 {docstring Invariant}
 
 Invariants use lists to model the sequence of values in a {keywordOf Lean.Parser.Term.doFor}`for` loop.
-An invariant is a function of the list of elements that the loop has already consumed, the list of elements that remain, and the current accumulator state.
+An invariant is a function of the prefix of elements that the loop has already consumed, the suffix of elements that remain, the current accumulator state, and any further state arguments of the monad's assertion language.
 
 {docstring Invariant.withEarlyReturnNewDo}
-
-{docstring RepeatInvariant.ofInvariantAndBreak}
-
 
 # Verification Conditions
 
@@ -490,22 +475,22 @@ In particular, {tech}[Hoare triples] are defined in terms of weakest preconditio
 ```lean -show
 variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type u} {e : m α} {P : Pred} {Q : α → Pred} {E : EPred}
 ```
+{TODO}[This is not completely faithful to the current implementation and does not talk about advanced topics like frameprocs. But it is a good model to keep for now, I think]
 The verification conditions for a goal are generated as follows:
 1. A number of simplifications and rewrites are applied, and the goal context is internalized into `grind`'s E-graph.
 2. The goal should now be of the form {lean}`P ⊑ wp e Q E` (that is, an entailment from some assertion to the weakest precondition that implies a desired postcondition).
-3. {tech}[Reducible] constants and definitions marked {attrs}`@[spec]` in the expression {lean}`e` are unfolded.
-4. If the expression is an application of an {tech}[auxiliary matching function] or a conditional ({name}`ite` or {name}`dite`), then it is first simplified.
+3. If the expression is an application of an {tech}[auxiliary matching function] or a conditional ({name}`ite` or {name}`dite`), then it is first simplified.
    The {tech (key := "match discriminant")}[discriminant] of each matcher is simplified, and the entire term is reduced in an attempt to eliminate the matcher or conditional.
    If this fails, then a new goal is generated for each branch.
-5. If the expression is an application of a constant, then the applicable lemmas marked {attrs}`@[spec]` are attempted in priority order.
+4. If the expression is an application of a constant, then the applicable lemmas marked {attrs}`@[spec]` are attempted in priority order.
    Lean includes specification lemmas for constants such as {name Bind.bind}`bind`, {name Pure.pure}`pure`, and {name}`ForIn.forIn` that result from desugaring {keywordOf Lean.Parser.Term.do}`do`-notation.
    Instantiating the lemma will sometimes discharge its premises, in particular schematic variables due to definitional equalities with the goal.
-   Assumptions of type {name}`Invariant` are never instantiated this way, however.
+   Assumptions of a type registered with {attr}`spec_invariant_type` are never instantiated this way, however.
    If the spec lemma's precondition or postcondition do not exactly match those of the goal, then new metavariables are created that prove the necessary entailments.
    If these cannot be immediately discharged using simple automation that attempts to use local assumptions and decomposes conjunctions in postconditions, then they remain as verification conditions.
-6. Each remaining goal created by this process is recursively processed for verification conditions if it has the form {lean}`P ⊑ wp e Q E`. If not, it is added to the set of invariants or verification conditions.
-7. The resulting subgoals for invariants and verification conditions are assigned the names `vc1`, `vc2`, … in the order in which they arise.
-8. An `until` clause stops VC generation at the first program that matches the given pattern.
+5. Each remaining goal created by this process is recursively processed for verification conditions if it has the form {lean}`P ⊑ wp e Q E`. If not, it is added to the set of invariants or verification conditions.
+6. The resulting subgoals for invariants and verification conditions are assigned suitable names in the proof state.
+7. An `until` clause stops VC generation at the first program that matches the given pattern.
    A `with` clause runs the given `grind`-mode step on every remaining verification condition inside the internalized context.
 :::
 
@@ -516,7 +501,7 @@ Additionally, ensuring that the {tech}[simp normal form] of terms is suitable fo
 # Enabling `vcgen` For Monads
 
 If a monad is implemented in terms of {tech}[monad transformers] that are provided by the Lean standard library, such as {name}`ExceptT` and {name}`StateT`, then it should not require additional instances.
-Other monads will require instances of {name}`LawfulMonad` and {name}`WPMonad`.
+Other monads will require instances of {name}`WP`, {name}`LawfulMonad`, and {name}`WPMonad`.
 The tactic has been designed to support monads that model single-threaded control with state that might be interrupted; in other words, the effects that are present in ordinary imperative programming.
 More exotic effects have not yet been investigated.
 
@@ -622,16 +607,16 @@ Rather than writing it from scratch, the {name}`WP` interpretation inside the {n
 This operator was designed to model state monads, but {name}`LogM` can be seen as a state monad that can only append to the state.
 This appending is visible in the body of the instance, where the initial state and the log that resulted from the action are appended:
 ```lean
+@[instance_reducible]
+def LogM.instWP : WP (LogM β α) α (Array β → Prop) EPost.Nil where
+  wpTrans | { log, value } => pushArg (fun s => pure (value, s ++ log))
+  wp_trans_monotone x := fun _ _ _ _ _ hpost s =>
+    hpost x.value (s ++ x.log)
+
 instance : WPMonad (LogM β) (Array β → Prop) EPost.Nil where
-  toWP α := {
-    wpTrans x := pushArg fun s => pure (x.value, s ++ x.log)
-    wp_trans_monotone x := fun _ _ _ _ _ hpost s =>
-      hpost x.value (s ++ x.log)
-  }
-  pure_le_wp_pure x post epost := by
-    simp [wp, WP.wpTrans, pure, PartialOrder.rel]
-  bind_le_wp_bind x f post epost := by
-    simp [wp, WP.wpTrans, bind, PartialOrder.rel, pushArg]
+  toWP _ := LogM.instWP
+  pure_le_wp_pure x post epost := by simp [wp, WP.wpTrans, pure]
+  bind_le_wp_bind x f post epost := by simp [wp, WP.wpTrans, bind]
 ```
 
 The adequacy lemma has one important detail: the weakest precondition is applied to the empty array.
@@ -643,7 +628,7 @@ theorem LogM.of_run_eq_wp {α : Type u} {β : Type v}
     (h : LogM.run prog = x) (P : α × Array β → Prop)
     (hwp : wp prog (fun v l => P (v, l)) EPost.Nil.mk #[]) : P x := by
   rw [← h]
-  simp [wp, WP.wpTrans, pushArg, LogM.run] at hwp ⊢
+  simp [wp, WP.wpTrans] at hwp
   exact hwp
 ```
 
@@ -654,7 +639,7 @@ For new monads, these proofs must often break the abstraction boundaries of {tec
 theorem log_spec {x : β} {s' : Array β} :
     ⦃ fun s => s = s' ⦄ log x ⦃ fun _ s => s = s'.push x ⦄ := by
   constructor
-  simp [log, wp, WP.wpTrans, pushArg, PartialOrder.rel]
+  simp [log, wp, WP.wpTrans]
 ```
 
 A better specification for {name}`log` uses a schematic postcondition:
@@ -663,7 +648,7 @@ A better specification for {name}`log` uses a schematic postcondition:
 theorem log_spec_better {x : β} {Q : Unit → Array β → Prop} :
     ⦃ fun s => Q () (s.push x) ⦄ log x ⦃ Q ⦄ := by
   constructor
-  simp [log, wp, WP.wpTrans, pushArg, PartialOrder.rel]
+  simp [log, wp, WP.wpTrans]
 ```
 
 A function {name}`logUntil` that logs all the natural numbers up to some bound will always result in a log whose length is equal to its argument:
@@ -679,7 +664,6 @@ theorem logUntil_length {n : Nat} : (logUntil n).run.2.size = n := by
   vcgen invariants
   · fun pref suff _ s => pref.length = s.size
   all_goals simp_all [Std.Internal.ForIn.toList_rco]
-  all_goals grind
 ```
 :::
 
@@ -719,10 +703,10 @@ def bump (n : Nat) : StateT Nat m Nat := do
   getThe Nat
 ```
 
-The specification lemma quantifies over the abstract assertion lattice, and its verification conditions are entailments in that lattice.
+The specification lemma for {name}`bump` quantifies over the abstract assertion lattice, and its verification conditions are entailments in that lattice.
 The `finish` step discharges them:
 ```lean
-theorem bump_correct {k i : Nat} :
+theorem bump_correct :
     ⦃ fun n => ⌜n = k⌝ ⦄
     bump (m := m) i
     ⦃ fun r n => ⌜r = n ∧ n = k + i⌝ ⦄ := by
