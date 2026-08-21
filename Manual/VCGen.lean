@@ -294,13 +294,18 @@ instance : LawfulMonad Identity :=
     (bind_assoc := fun _ _ _ => rfl)
 ```
 
-A {name}`WP` instance alone suffices to state weakest preconditions and to prove an adequacy lemma, but not to run {tactic}`vcgen`:
+The {name}`WP` interpretation of {name}`Identity` is a plain definition marked {attr}`instance_reducible`, following the pattern of the interpretations in {module}`Std.WP`:
+```lean
+@[instance_reducible] def Identity.wpInst :
+    WP (Identity α) α Prop EPost.Nil where
+  wpTrans x := ⟨fun post _ => post x.run⟩
+  wp_trans_monotone x := fun _ _ _ _ _ hpost => hpost x.run
+```
+This interpretation alone suffices to state weakest preconditions and to prove an adequacy lemma, but not to run {tactic}`vcgen`:
 ```lean -show
 section OnlyWP
 
-local instance Identity.instWP : WP (Identity α) α Prop EPost.Nil where
-  wpTrans x := ⟨fun post _ => post x.run⟩
-  wp_trans_monotone x := fun _ _ _ _ _ hpost => hpost x.run
+attribute [local instance] Identity.wpInst
 
 theorem Identity.of_run_eq_wp' {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop)
@@ -322,13 +327,10 @@ No spec applicable to program (forIn xs [] fun x __s => pure (ForInStep.yield (x
 ```lean -show
 end OnlyWP
 ```
-The issue can be resolved by defining a {name}`WPMonad` instance that carries the interpretation:
+The issue can be resolved by defining a {name}`WPMonad` instance whose {name}`WPMonad.toWP` field carries the interpretation:
 ```lean
 instance Identity.instWPMonad : WPMonad Identity Prop EPost.Nil where
-  toWP α := {
-    wpTrans x := ⟨fun post _ => post x.run⟩
-    wp_trans_monotone x := fun _ _ _ _ _ hpost => hpost x.run
-  }
+  toWP _ := Identity.wpInst
   pure_le_wp_pure x post epost := PartialOrder.rel_refl
   bind_le_wp_bind x f post epost := PartialOrder.rel_refl
 
