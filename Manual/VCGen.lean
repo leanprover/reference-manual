@@ -40,11 +40,12 @@ tag := "vcgen-tactic"
  * {ref "vcgen-tactic-tutorial" (remote := "tutorials")}[Verifying Imperative Programs Using `vcgen`]
 :::
 
-The {tactic}`vcgen` tactic implements a _monadic verification condition generator_:
-It breaks down a goal involving a program written using Lean's imperative {keywordOf Lean.Parser.Term.do}`do` notation into a number of smaller {tech}_verification conditions_ ({deftech (key := "vcgen VCs")}[VCs]) that are sufficient to prove the goal.
+The {tactic}`vcgen` tactic implements a _verification condition generator_:
+It breaks down a goal involving a program, for example one written using Lean's imperative {keywordOf Lean.Parser.Term.do}`do` notation, into a number of smaller {tech}_verification conditions_ ({deftech (key := "vcgen VCs")}[VCs]) that are sufficient to prove the goal.
 In addition to a reference that describes the use of {tactic}`vcgen`, this chapter includes a {ref "vcgen-tactic-tutorial" (remote := "tutorials")}[tutorial] that can be read independently of the reference.
 
 In order to use the {tactic}`vcgen` tactic, {module}`Std.WP` and {module}`Std.Tactic.Do` must be imported and the namespaces {namespace}`Std.WP` and {namespace}`Lean.Order` must be opened.
+The dependency on {namespace}`Lean.Order` is a temporary measure: this namespace holds the {ref "partial-fixpoint-theory"}[order theory behind `partial_fixpoint`], which is yet to be upstreamed into `Std`.
 
 
 # Overview
