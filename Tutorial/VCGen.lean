@@ -10,6 +10,7 @@ import VersoTutorial
 import Manual.Meta
 import Manual.Papers
 
+import Std.WP
 import Std.Tactic.Do
 
 open Verso.Genre Manual
@@ -28,16 +29,16 @@ set_option linter.typography.dashes true
 
 set_option mvcgen.warning false
 
-#doc (Tutorial) "Verifying Imperative Programs Using `mvcgen`" =>
+#doc (Tutorial) "Verifying Imperative Programs Using `vcgen`" =>
 %%%
-tag := "mvcgen-tactic-tutorial"
-slug := "mvcgen"
+tag := "vcgen-tactic-tutorial"
+slug := "vcgen"
 summary := inlines!"A demonstration of how to use Lean's verification condition generator to conveniently and compositionally prove properties of monadic programs."
-exampleStyle := .inlineLean `MVCGenTutorial
+exampleStyle := .inlineLean `VCGenTutorial
 %%%
 
-This section is a tutorial that introduces the most important concepts of {tactic}`mvcgen` top-down.
-Recall that you need to import {module}`Std.Tactic.Do` and open {namespace}`Std.Do` to run these examples:
+This section is a tutorial that introduces the most important concepts of {tactic}`vcgen` top-down.
+Recall that you need to import {module}`Std.WP` and {module}`Std.Tactic.Do` and open the namespaces {namespace}`Std.WP` and {namespace}`Lean.Order` to run these examples:
 
 :::codeOnly
 ```imports
@@ -46,15 +47,22 @@ import Std.Data.HashSet
 ```
 :::
 ```imports
+import Std.WP
 import Std.Tactic.Do
 ```
 :::codeOnly
 ```lean
 set_option mvcgen.warning false
 ```
+```lean
+namespace VCGenTutorial
+```
+```lean
+section
+```
 :::
 ```lean
-open Std.Do
+open Std.WP Lean.Order
 ```
 
 # Preconditions and Postconditions
@@ -73,7 +81,7 @@ This means that the postcondition holds no matter what.
 # Loops and Invariants
 
 :::leanFirst
-As a first example of {tactic}`mvcgen`, the function {name}`mySum` computes the sum of an array using {ref "let-mut" (remote := "reference")}[local mutable state] and a {keywordOf Lean.Parser.Term.doFor}`for` loop:
+As a first example of {tactic}`vcgen`, the function {name}`mySum` computes the sum of an array using {ref "let-mut" (remote := "reference")}[local mutable state] and a {keywordOf Lean.Parser.Term.doFor}`for` loop:
 
 ```lean
 def mySum (l : Array Nat) : Nat := Id.run do
@@ -86,80 +94,68 @@ def mySum (l : Array Nat) : Nat := Id.run do
 
 If {name}`mySum` is correct, then it is equal to {name}`Array.sum`.
 In {name}`mySum`, the use of {keywordOf Lean.Parser.Term.do}`do` is an internal implementation detail—the function's signature makes no mention of any monad.
-Thus, the proof first manipulates the goal into a form that is amenable to the use of {tactic}`mvcgen`, using the lemma {name}`Id.of_wp_run_eq`.
+Thus, the proof first manipulates the goal into a form that is amenable to the use of {tactic}`vcgen`, using the lemma {name}`Id.of_run_eq_wp`.
 This lemma states that facts about the result of running a computation in the {name}`Id` monad that terminates normally (`Id` computations never throw exceptions) can be proved by showing that the {tech (remote := "reference")}[weakest precondition] that ensures the desired result is true.
-Next, the proof uses {tactic}`mvcgen` to replace the formulation in terms of weakest preconditions with a set of {tech (remote := "reference")}[verification conditions].
+Next, the proof uses {tactic}`vcgen` to replace the formulation in terms of weakest preconditions with a set of {tech (remote := "reference")}[verification conditions].
 
-While {tactic}`mvcgen` is mostly automatic, it does require an invariant for the loop.
+While {tactic}`vcgen` is mostly automatic, it does require an invariant for the loop.
 A {tech (remote := "reference")}_loop invariant_ is a statement that is both assumed and guaranteed by the body of the loop; if it is true when the loop begins, then it will be true when the loop terminates.
 
 ```lean
 theorem mySum_correct (l : Array Nat) : mySum l = l.sum := by
   -- Focus on the part of the program with the `do` block (`Id.run ...`)
   generalize h : mySum l = x
-  apply Id.of_wp_run_eq h
+  apply Id.of_run_eq_wp h
   -- Break down into verification conditions
-  mvcgen
-  -- Specify the invariant which should hold throughout the loop
-  -- * `out` refers to the current value of the `let mut` variable
-  -- * `xs` is a `List.Cursor`, which is a data structure representing
-  --   a list that is split into `xs.prefix` and `xs.suffix`.
-  --   It tracks how far into the loop we have gotten.
+  vcgen
+  -- Specify the invariant which should hold throughout the loop.
+  -- It is a function of three arguments:
+  -- * `pref` is the list of elements that the loop has already visited
+  -- * `suff` is the list of elements that the loop has yet to visit
+  -- * `out` is the current value of the `let mut` variable
   -- Our invariant is that `out` holds the sum of the prefix.
-  -- The notation ⌜p⌝ embeds a `p : Prop` into the assertion language.
-  case inv1 => exact ⇓⟨xs, out⟩ => ⌜xs.prefix.sum = out⌝
-  -- After specifying the invariant, we can further simplify our goals
-  -- by "leaving the proof mode". `mleave` is just
-  -- `simp only [...] at *` with a stable simp subset.
-  all_goals mleave
-  -- Prove that our invariant is preserved at each step of the loop
-  case vc1 ih =>
-    -- The goal here mentions `pref`, which binds the `prefix` field of
-    -- the cursor passed to the invariant. Unpacking the
-    -- (dependently-typed) cursor makes it easier for `grind`.
-    grind
+  case inv1 => exact fun pref suff out => pref.sum = out
   -- Prove that the invariant is true at the start
-  case vc2 =>
+  case vc1 =>
     grind
   -- Prove that the invariant at the end of the loop implies the
   -- property we wanted
-  case vc3 h =>
+  case vc2 =>
+    grind
+  -- Prove that our invariant is preserved at each step of the loop
+  case vc3 =>
     grind
 ```
 
 :::paragraph
-Note that the case labels are actually unique prefixes of the full case labels.
-Whenever referring to cases, only this prefix should be used; the suffix is merely a hint to the user of where that particular {tech (remote := "reference")}[VC] came from.
-For example:
+The case labels `vc1`, `vc2`, … number the {tech (remote := "reference")}[VCs] in the order in which they arise during generation.
+In this proof:
 
-* `vc1.step` conveys that this {tech (remote := "reference")}[VC] proves the inductive step for the loop
-* `vc2.a.pre` is meant to prove that the hypotheses of a goal imply the precondition of a specification (of {name}`forIn`).
-* `vc3.a.post.success` is meant to prove that the postcondition of a specification (of {name}`forIn`) implies the desired property.
+* `vc1` proves that the invariant holds when the loop starts.
+* `vc2` proves that the invariant after the final iteration implies the desired property.
+* `vc3` proves that each iteration of the loop body preserves the invariant.
 :::
 
 :::paragraph
-After specifying the loop invariant, the proof can be shortened to just {keyword}`all_goals mleave; grind` (where {tactic}`mleave` leaves the stateful proof mode, cleaning up the proof state).
+After specifying the loop invariant, the proof can be shortened to just {keyword}`all_goals grind`.
 ```lean
 theorem mySum_correct_short (l : Array Nat) : mySum l = l.sum := by
   generalize h : mySum l = x
-  apply Id.of_wp_run_eq h
-  mvcgen
-  case inv1 => exact ⇓⟨xs, out⟩ => ⌜xs.prefix.sum = out⌝
-  all_goals mleave; grind
+  apply Id.of_run_eq_wp h
+  vcgen
+  case inv1 => exact fun pref suff out => pref.sum = out
+  all_goals grind
 ```
-This pattern is so common that {tactic}`mvcgen` comes with special syntax for it:
+This pattern is so common that {tactic}`vcgen` comes with special syntax for it:
 ```lean
 theorem mySum_correct_shorter (l : Array Nat) : mySum l = l.sum := by
   generalize h : mySum l = x
-  apply Id.of_wp_run_eq h
-  mvcgen
-  invariants
-  · ⇓⟨xs, out⟩ => ⌜xs.prefix.sum = out⌝
-  with grind
+  apply Id.of_run_eq_wp h
+  vcgen invariants
+  · fun pref suff out => pref.sum = out
+  with finish
 ```
-The {multiCode}[{keyword}`mvcgen invariants `{lit}`...`{keyword}` with `{lit}`...`] is an abbreviation for the
-tactic sequence {multiCode}[{keyword}`mvcgen; case`{lit}` inv1 => ...`{keyword}`; all_goals mleave; grind`]
-above. It is the form that we will be using from now on.
+The {multiCode}[{keyword}`vcgen invariants `{lit}`...`{keyword}` with `{lit}`...`] form supplies the invariants and then runs the given `grind` step on every remaining VC; the `finish` step closes each VC with `grind`'s full automation. It is the form that we will be using from now on.
 :::
 
 :::paragraph
@@ -179,7 +175,7 @@ theorem mySum_correct_vanilla (l : Array Nat) : mySum l = l.sum := by
 :::
 
 :::paragraph
-This proof is similarly succinct as the proof in {name}`mySum_correct_shorter` that uses {tactic}`mvcgen`.
+This proof is similarly succinct as the proof in {name}`mySum_correct_shorter` that uses {tactic}`vcgen`.
 However, the traditional approach relies on important properties of the program:
 
 * The {keywordOf Lean.Parser.Term.doFor}`for` loop does not {keywordOf Lean.Parser.Term.doBreak}`break` or {keywordOf Lean.Parser.Term.doReturn}`return` early. Otherwise, the {name}`forIn` could not be rewritten to a {name Array.foldl}`foldl`.
@@ -188,13 +184,13 @@ However, the traditional approach relies on important properties of the program:
   The {name}`Id` monad has no effects, so all of its comptutations are pure.
   While {name}`forIn` could still be rewritten to a {name Array.foldlM}`foldlM`, reasoning about the monadic loop body can be tough for {tactic}`grind`.
 
-In the following sections, we will go through several examples to learn about {tactic}`mvcgen` and its support library, and also see where traditional proofs become difficult.
+In the following sections, we will go through several examples to learn about {tactic}`vcgen` and its support library, and also see where traditional proofs become difficult.
 This is usually caused by:
 
 * {keywordOf Lean.Parser.Term.do}`do` blocks using control flow constructs such as {keywordOf Lean.Parser.Term.doFor}`for` loops, {keywordOf Lean.Parser.Term.doBreak}`break`s and early {keywordOf Lean.Parser.Term.doReturn}`return`.
 * The use of effects in non-{name}`Id` monads, which affects the implicit monadic context (state, exceptions) in ways that need to be reflected in loop invariants.
 
-{tactic}`mvcgen` scales to these challenges with reasonable effort.
+{tactic}`vcgen` scales to these challenges with reasonable effort.
 
 :::
 
@@ -220,18 +216,18 @@ def nodup (l : List Int) : Bool := Id.run do
 
 This function is correct if it returns {name}`true` for every list that satisfies {name}`List.Nodup` and {name}`false` for every list that does not.
 Just as it was in {name}`mySum`, the use of {keywordOf Lean.Parser.Term.do}`do`-notation and the {name}`Id` monad is an internal implementation detail of {name}`nodup`.
-Thus, the proof begins by using {name}`Id.of_wp_run_eq` to make the proof state amenable to {tactic}`mvcgen`:
+Thus, the proof begins by using {name}`Id.of_run_eq_wp` to make the proof state amenable to {tactic}`vcgen`:
 ```lean
 theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
   generalize h : nodup l = r
-  apply Id.of_wp_run_eq h
-  mvcgen
-  invariants
+  apply Id.of_run_eq_wp h
+  vcgen invariants
   · Invariant.withEarlyReturnNewDo
-      (onReturn := fun ret seen => ⌜ret = false ∧ ¬l.Nodup⌝)
-      (onContinue := fun xs seen =>
-        ⌜(∀ x, x ∈ seen ↔ x ∈ xs.prefix) ∧ xs.prefix.Nodup⌝)
-  with grind
+      (onReturn := fun ret seen => ret = false ∧ ¬l.Nodup)
+      (onContinue := fun pref suff seen =>
+        (∀ x, x ∈ seen ↔ x ∈ pref) ∧ pref.Nodup)
+  all_goals simp_all
+  all_goals grind
 ```
 ::::
 
@@ -239,50 +235,27 @@ theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
 :::paragraph
 ```lean -show
 section
-variable {l : List Int} {ret : Bool} {seen : Std.HashSet Int} {xs : l.Cursor}
-axiom onReturn : Bool → Std.HashSet Int → SPred PostShape.pure.args
-axiom onContinue : l.Cursor → Std.HashSet Int → SPred PostShape.pure.args
-axiom onExcept : ExceptConds PostShape.pure
+variable {l : List Int} {ret : Bool} {seen : Std.HashSet Int} {pref suff : List Int}
+axiom onReturn : Bool → Std.HashSet Int → Prop
+axiom onContinue : List Int → List Int → Std.HashSet Int → Prop
 ```
-The proof has the same succinct structure as for the initial {name}`mySum` example, because we again offload all proofs to {tactic}`grind` and its existing automation around {name}`List.Nodup`.
+The proof again offloads all verification conditions to {tactic}`grind` and its existing automation around {name}`List.Nodup`; the additional {tactic}`simp_all` step first unfolds the applied invariant combinator in each VC.
 Therefore, the only difference is in the {tech (remote := "reference")}[loop invariant].
 Since our loop has an {ref "early-return" (remote := "reference")}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturnNewDo`, which supports the {ref "do-elab" (remote := "reference")}[extensible `do`-notation elaborator].
-This function allows us to specify the invariant in three parts:
+This function allows us to specify the invariant in two parts:
 
 * {lean}`onReturn ret seen` holds after the loop was left through an early return with value {lean}`ret`.
   In case of {name}`nodup`, the only value that is ever returned is {name}`false`, in which case {name}`nodup` has decided there _is_ a duplicate in the list.
-* {lean}`onContinue xs seen` is the regular induction step that proves the invariant is preserved each loop iteration.
-  The iteration state is captured by the cursor {lean}`xs`.
+* {lean}`onContinue pref suff seen` is the regular induction step that proves the invariant is preserved each loop iteration.
+  As in {name}`mySum`, the list {lean}`pref` holds the elements that the loop has already visited and {lean}`suff` holds the elements that the loop has yet to visit.
   The given example asserts that the set {lean}`seen` contains all the elements of previous loop iterations and asserts that there were no duplicates so far.
-* {lean}`onExcept` must hold when the loop throws an exception.
-  There are no exceptions in {lean}`Id`, so we leave it unspecified to use the default.
-  (Exceptions will be discussed at a later point.)
 ```lean -show
 end
 ```
 :::
 
 :::paragraph
-Note that the form `mvcgen invariants?` will suggest an initial invariant, so there is no need to memorize the exact syntax for specifying invariants:
-```lean (name := invariants?)
-example (l : List Int) : nodup l ↔ l.Nodup := by
-  generalize h : nodup l = r
-  apply Id.of_wp_run_eq h
-  mvcgen invariants? <;> sorry
-```
-The tactic suggests a starting invariant.
-This starting point will not allow the proof to succeed—after all, if the invariant can be inferred by the system, then there's no need to make the user specify it—but it does provide a reminder of the correct syntax to use for assertions in the current monad:
-```leanOutput invariants?
-Try this:
-  [apply] invariants
-  ·
-    Invariant.withEarlyReturnNewDo (onReturn := fun r letMuts => ⌜(r = true ↔ l.Nodup) ∧ l.Nodup⌝) (onContinue :=
-      fun xs letMuts => ⌜xs.prefix = [] ∧ letMuts = ∅ ∨ xs.suffix = [] ∧ l.Nodup⌝)
-```
-:::
-
-:::paragraph
-Now consider the following direct (and excessively golfed) proof without {tactic}`mvcgen`:
+Now consider the following direct (and excessively golfed) proof without {tactic}`vcgen`:
 
 ```lean
 theorem nodup_correct_directly (l : List Int) : nodup l ↔ l.Nodup := by
@@ -298,7 +271,7 @@ theorem nodup_correct_directly (l : List Int) : nodup l ↔ l.Nodup := by
 :::paragraph
 Some observations:
 
-* The proof is even shorter than the one with {tactic}`mvcgen`.
+* The proof is even shorter than the one with {tactic}`vcgen`.
 * The use of {tactic}`generalize` to generalize the accumulator relies on there being exactly one occurrence of {lean (type := "Std.HashSet Int")}`∅` to generalize. If that were not the case, we would have to copy parts of the program into the proof. This is a no-go for larger functions.
 * {tactic}`grind` splits along the control flow of the function and reasons about {name}`Id`, given the right lemmas.
   While this works for {name}`Id.run_pure` and {name}`Id.run_bind`, it would not work for {name}`Id.run_seq`, for example, because that lemma is not {tech (key := "E-matching") (remote := "reference")}[E-matchable].
@@ -307,9 +280,9 @@ Some observations:
 
 The usual way to avoid replicating the control flow of a definition in a proof is to use the {tactic}`fun_cases` or {tactic}`fun_induction` tactics.
 Unfortunately, {tactic}`fun_cases` does not help with control flow inside a {name}`forIn` application.
-The {tactic}`mvcgen` tactic, on the other hand, ships with support for many {name}`forIn` implementations.
+The {tactic}`vcgen` tactic, on the other hand, ships with support for many {name}`forIn` implementations.
 It can easily be extended (with {attrs}`@[spec]` annotations) to support custom {name}`forIn` implementations.
-Furthermore, an {tactic}`mvcgen`-powered proof will never need to copy any part of the original program.
+Furthermore, a {tactic}`vcgen`-powered proof will never need to copy any part of the original program.
 
 # Compositional Reasoning About Effectful Programs Using Hoare Triples
 
@@ -354,27 +327,26 @@ variable (n : Nat)
 {lean}`mkFreshN n` returns {lean}`n` “fresh” numbers, modifying the internal {name}`Supply` state through {name}`mkFresh`.
 Here, “fresh” refers to all previously generated numbers being distinct from the next generated number.
 We can formulate and prove a correctness property {name}`mkFreshN_correct` in terms of {name}`List.Nodup`: the returned list of numbers should contain no duplicates.
-In this proof, {name}`StateM.of_wp_run'_eq` serves the same role that {name}`Id.of_wp_run_eq` did in the preceding examples.
+In this proof, {name}`StateM.of_run'_eq_wp` serves the same role that {name}`Id.of_run_eq_wp` did in the preceding examples.
 :::
 
 ```lean
 theorem mkFreshN_correct (n : Nat) : ((mkFreshN n).run' s).Nodup := by
   -- Focus on `(mkFreshN n).run' s`.
   generalize h : (mkFreshN n).run' s = x
-  apply StateM.of_wp_run'_eq h
+  apply StateM.of_run'_eq_wp h
   -- Show something about monadic program `mkFresh n`.
-  -- The `mkFreshN` and `mkFresh` arguments to `mvcgen` add to an
-  -- internal `simp` set and makes `mvcgen` unfold these definitions.
-  mvcgen [mkFreshN, mkFresh]
-  invariants
+  -- The `mkFreshN` and `mkFresh` arguments to `vcgen` add to an
+  -- internal `simp` set and makes `vcgen` unfold these definitions.
+  vcgen [mkFreshN, mkFresh] invariants
   -- Invariant: The counter is larger than any accumulated number,
   --            and all accumulated numbers are distinct.
   -- Note that the invariant may refer to the state through function
   -- argument `state : Supply`. Since the next number to accumulate is
   -- the counter, it is distinct to all accumulated numbers.
-  · ⇓⟨xs, acc⟩ state =>
-      ⌜(∀ x ∈ acc, x < state.counter) ∧ acc.toList.Nodup⌝
-  with grind
+  · fun pref suff acc state =>
+      (∀ x ∈ acc, x < state.counter) ∧ acc.toList.Nodup
+  with finish
 ```
 ::::
 
@@ -383,16 +355,16 @@ theorem mkFreshN_correct (n : Nat) : ((mkFreshN n).run' s).Nodup := by
 ::::::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [Monad m] [WP m ps] {α σ ε : Type u} {P : Assertion ps} {Q : PostCond α ps} {prog : m α} {c : Nat}
+variable {m : Type u → Type v} [Monad m] {α σ ε : Type u} {Pred : Type u} {EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {P : Pred} {Q : α → Pred} {epost : EPred} {prog : m α} {c : Nat}
 ```
 
 A {tech (remote := "reference")}_Hoare triple_ consists of a precondition, a statement, and a postcondition; it asserts that if the precondition holds, then the postcondition holds after running the statement.
 In Lean syntax, this is written {lean}`⦃ P ⦄ prog ⦃ Q ⦄`, where {lean}`P` is the precondition, {typed}`prog : m α` is the statement, and {lean}`Q` is the postcondition.
-{lean}`P` and {lean}`Q` are written in an assertion language that is determined by the specific monad {lean}`m`.{margin}[In particular, monad's instance of the type class {name}`WP` specifies the ways in which assertions may refer to the monad's state or the exceptions it may throw.]
+{lean}`P` and {lean}`Q` are written in an assertion language that is determined by the specific monad {lean}`m`.{margin}[In particular, the monad's instance of the type class {name}`WP` specifies the ways in which assertions may refer to the monad's state or the exceptions it may throw.]
 
 :::leanSection
 ```lean -show
-variable  {stmt1 stmt2 : m PUnit} {ps : PostShape.{0}} {P : Assertion ps} {Q : PostCond Unit ps} {P' : Assertion ps} {Q' : PostCond Unit ps}
+variable {stmt1 stmt2 : m PUnit} {P : Pred} {Q : PUnit → Pred} {P' : Pred} {Q' : PUnit → Pred}
 ```
 
 Specifications as Hoare triples are compositional because they allow statements to be sequenced.
@@ -401,23 +373,20 @@ Just as proofs about ordinary functions can rely on lemmas about the functions t
 :::
 
 :::::paragraph
-One suitable specification for {name}`mkFresh` as a Hoare triple is this translation of {name}`mkFreshN_correct`:
+One suitable specification for {name}`mkFreshN` as a Hoare triple is this translation of {name}`mkFreshN_correct`:
 ::::displayOnly
 :::leanSection
 ```lean -show
 variable {n : Nat}
 ```
 ```leanTerm
-⦃⌜True⌝⦄ mkFreshN n ⦃⇓ r => ⌜r.Nodup⌝⦄
+⦃fun _ => True⦄ mkFreshN n ⦃fun r _ => r.Nodup⦄
 ```
 :::
 ::::
-```lean -show
-variable {p : Prop}
-```
-Corner brackets embed propositions into the monadic assertion language, so {lean}`⌜p⌝` is the assertion of the proposition {lean}`p`.
-The precondition {lean}`⌜True⌝` asserts that {lean}`True` is true; this trivial precondition is used to state that the specification imposes no requirements on the state in which it is called.
-The postcondition states that the result value is a list with no duplicate elements.
+For {name}`StateM` programs, an assertion is a predicate on the state, and a postcondition additionally takes the result value as its first argument.
+The precondition {lean}`fun (_ : Supply) => True` imposes no requirements on the state in which the program is called.
+The postcondition states that the result value is a list with no duplicate elements, regardless of the final state.
 :::::
 
 :::::paragraph
@@ -429,9 +398,9 @@ variable {n : Nat}
 ```
 ```leanTerm
 ∀ (c : Nat),
-⦃fun state => ⌜state.counter = c⌝⦄
+⦃fun state => state.counter = c⦄
 mkFresh
-⦃⇓ r state => ⌜r = c ∧ c < state.counter⌝⦄
+⦃fun r state => r = c ∧ c < state.counter⦄
 ```
 When working in a state monad, preconditions may be parameterized over the value of the state prior to running the code.
 Here, the universally quantified {name}`Nat` is used to _relate_ the initial state to the final state; the precondition is used to connect it to the initial state.
@@ -448,15 +417,23 @@ This is good, because specifications may _abstract over_ uninteresting implement
 
 
 :::paragraph
-Hoare triples are defined in terms of a logic of stateful predicates plus a {tech (remote := "reference")}[weakest precondition] semantics {lean}`wp⟦prog⟧` that translates monadic programs into this logic.
+Hoare triples are defined in terms of a {tech (remote := "reference")}[weakest precondition] semantics {lean}`wp prog Q epost` that translates monadic programs into assertions.
 A weakest precondition semantics is an interpretation of programs as mappings from postconditions to the weakest precondition that the program would require to ensure the postcondition; in this interpretation, programs are understood as {tech (key := "predicate transformer semantics") (remote := "reference")}_predicate transformers_.
-The Hoare triple syntax is notation for {name}`Std.Do.Triple`:
+The Hoare triple syntax is notation for {name}`Std.WP.Triple`:
 
-```lean -keep
--- This is the definition of Std.Do.Triple:
-def Triple [WP m ps] {α : Type u} (prog : m α)
-    (P : Assertion ps) (Q : PostCond α ps) : Prop :=
-  P ⊢ₛ wp⟦prog⟧ Q
+```lean -show
+section
+variable {Prog : Type u} {Value : Type v} {Pred : Type} {EPred : Type} [Assertion Pred] [Assertion EPred]
+```
+```lean
+-- This is the definition of Std.WP.Triple:
+structure Triple (x : Prog) [WP Prog Value Pred EPred]
+    (pre : Pred) (post : Value → Pred) (epost : EPred) : Prop where
+  intro ::
+  le_wp : pre ⊑ wp x post epost
+```
+```lean -show
+end
 ```
 :::
 
@@ -464,81 +441,73 @@ def Triple [WP m ps] {α : Type u} (prog : m α)
 variable {σ : Type u}
 ```
 :::paragraph
-The {name}`WP` type class maps a monad {lean}`m` to its {name}`PostShape` {lean}`ps`, and this {name}`PostShape` governs the exact shape of the {name}`Std.Do.Triple`.
-Many of the standard monad transformers such as {name}`StateT`, {name}`ReaderT` and {name}`ExceptT` come with a canonical {name}`WP` instance.
-For example, {lean}`StateT σ` comes with a {name}`WP` instance that adds a {lean}`σ` argument to every {name}`Assertion`.
-Stateful entailment `⊢ₛ` eta-expands through these additional {lean}`σ` arguments.
-For {name}`StateM` programs, the following type is definitionally equivalent to {name}`Std.Do.Triple`:
+The {name}`WP` type class interprets a program type `Prog` with result values of type `Value` as a predicate transformer over an assertion type `Pred` and an exception assertion type `EPred`.
+Many of the standard monads and monad transformers such as {name}`StateT`, {name}`ReaderT` and {name}`ExceptT` come with a canonical {name}`WP` instance.
+For example, {lean}`StateT σ` comes with a {name}`WP` instance that adds a {lean}`σ` argument to every assertion.
+The entailment `⊑` in the definition is the order of the assertion lattice; for {name}`StateM` it is pointwise implication.
+For {name}`StateM` programs, the following type is equivalent to {name}`Std.WP.Triple`:
 
 ```lean
-def StateMTriple {α σ : Type u} (prog : StateM σ α)
-    (P : σ → ULift Prop) (Q : (α → σ → ULift Prop) × PUnit) : Prop :=
-  ∀ s, (P s).down → let (a, s') := prog.run s; (Q.1 a s').down
+def StateMTriple {α σ : Type} (prog : StateM σ α)
+    (P : σ → Prop) (Q : α → σ → Prop) : Prop :=
+  ∀ s, P s → (fun (a, s') => Q a s') (prog.run s)
 ```
 ```lean -show
-example : @StateMTriple α σ = Std.Do.Triple (m := StateM σ) := rfl
+example {α σ : Type} (prog : StateM σ α) (P : σ → Prop) (Q : α → σ → Prop) :
+    Std.WP.Triple prog P Q ⊥ ↔ StateMTriple prog P Q :=
+  ⟨fun h => h.le_wp, fun h => ⟨h⟩⟩
 ```
 :::
 
-
-```lean -show
-variable {p : Prop}
-```
-
-The common postcondition notation `⇓ r => ...` injects an assertion of type {lean}`α → Assertion ps` into
-{lean}`PostCond α ps` (the `⇓` is meant to be parsed like `fun`); in case of {name}`StateM` by adjoining it with an empty tuple {name}`PUnit.unit`.
+The binder notation `⦃ P ⦄ prog ⦃ r, Q ⦄` is available for postconditions; it binds the result value `r` in `Q`.
+An explicit exception postcondition can be supplied after a semicolon, as in `⦃ P ⦄ prog ⦃ Q; E ⦄`.
+When the exception postcondition is omitted, it defaults to the bottom assertion `⊥`, which asserts that the program throws no exception.
 The shape of postconditions becomes more interesting once exceptions enter the picture.
-The notation {lean}`⌜p⌝` embeds a pure hypotheses {lean}`p` into a stateful assertion.
-Vice versa, any stateful hypothesis {lean}`P` is called _pure_ if it is equivalent to {lean}`⌜p⌝`
-for some {lean}`p`.
-Pure, stateful hypotheses may be freely moved into the regular Lean context and back.
-(This can be done manually with the {tactic}`mpure` tactic.)
 
 ::::::
 
 ## Composing Specifications
 
-Nested unfolding of definitions as in {multiCode}[{tactic}`mvcgen`{lit}` [`{name}`mkFreshN`{lit}`, `{name}`mkFresh`{lit}`]`] is quite blunt but effective for small programs.
+Nested unfolding of definitions as in {multiCode}[{tactic}`vcgen`{lit}` [`{name}`mkFreshN`{lit}`, `{name}`mkFresh`{lit}`]`] is quite blunt but effective for small programs.
 A more compositional way is to develop individual {tech (remote := "reference")}_specification lemmas_ for each monadic function.
 A specification lemma is a Hoare triple that is automatically used during {tech (remote := "reference")}[verification condition] generation to obtain the pre- and postconditions of each statement in a {keywordOf Lean.Parser.Term.do}`do`-block.
 When the system cannot automatically prove that the postcondition of one statement implies the precondition of the next, then this missing reasoning step becomes a verification condition.
 
 :::paragraph
-Specification lemmas can either be passed as arguments to {tactic}`mvcgen` or registered in a global (or {keyword}`scoped`, or {keyword}`local`) database of specifications using the {attrs}`@[spec]` attribute:
+Specification lemmas can either be passed as arguments to {tactic}`vcgen` or registered in a global (or {keyword}`scoped`, or {keyword}`local`) database of specifications using the {attrs}`@[spec]` attribute:
 
 ```lean
 @[spec]
 theorem mkFresh_spec (c : Nat) :
-    ⦃fun state => ⌜state.counter = c⌝⦄
+    ⦃fun state => state.counter = c⦄
     mkFresh
-    ⦃⇓ r state => ⌜r = c ∧ c < state.counter⌝⦄ := by
+    ⦃fun r state => r = c ∧ c < state.counter⦄ := by
   -- Unfold `mkFresh` and blast away:
-  mvcgen [mkFresh] with grind
+  vcgen [mkFresh] with finish
 
 @[spec]
 theorem mkFreshN_spec (n : Nat) :
-    ⦃⌜True⌝⦄ mkFreshN n ⦃⇓ r => ⌜r.Nodup⌝⦄ := by
-  -- `mvcgen [mkFreshN, mkFresh_spec]` if `mkFresh_spec` were not
+    ⦃fun _ => True⦄ mkFreshN n ⦃fun r _ => r.Nodup⦄ := by
+  -- `vcgen [mkFreshN, mkFresh_spec]` if `mkFresh_spec` were not
   -- registered with `@[spec]`
-  mvcgen [mkFreshN]
-  invariants
+  vcgen [mkFreshN] invariants
   -- As before:
-  · ⇓⟨xs, acc⟩ state =>
-      ⌜(∀ x ∈ acc, x < state.counter) ∧ acc.toList.Nodup⌝
-  with grind
+  · fun pref suff acc state =>
+      (∀ x ∈ acc, x < state.counter) ∧ acc.toList.Nodup
+  with finish
 ```
 :::
 
 :::paragraph
-The original correctness theorem can now be proved using {tactic}`mvcgen` alone:
+The original correctness theorem can now be proved using {tactic}`vcgen` alone:
 ```lean
 theorem mkFreshN_correct_compositional (n : Nat) :
     ((mkFreshN n).run' s).Nodup := by
   generalize h : (mkFreshN n).run' s = x
-  apply StateM.of_wp_run'_eq h
-  mvcgen
+  apply StateM.of_run'_eq_wp h
+  vcgen
 ```
-The specification lemma {name}`mkFreshN_spec` is automatically used by {tactic}`mvcgen`.
+The specification lemma {name}`mkFreshN_spec` is automatically used by {tactic}`vcgen`.
 :::
 
 
@@ -551,7 +520,9 @@ This subsection is a bit of a digression and can be skipped on first reading.
 :::codeOnly
 ```lean
 axiom M : Type → Type
-variable {x y : UInt8} [Monad M] [WP M .pure]
+variable {x y : UInt8} {Pred EPred : Type}
+variable [Assertion Pred] [Assertion EPred]
+variable [Monad M] [WPMonad M Pred EPred]
 def addQ (x y : UInt8) : M UInt8 := pure (x + y)
 local infix:1023 " +? " => addQ
 ```
@@ -563,18 +534,19 @@ local notation "…" => dots
 
 Say the specification for some [`Aeneas`](https://github.com/AeneasVerif/aeneas)-inspired monadic addition function {typed}`x +? y : M UInt8` has the
 requirement that the addition won't overflow, that is, `h : x.toNat + y.toNat ≤ UInt8.size`.
+The corner brackets `⌜p⌝` embed a proposition `p` into the assertion language as a _pure_ assertion, an assertion that holds independently of the monadic state.
 Should this requirement be encoded as a regular Lean hypothesis of the specification (`add_spec_hyp`) or should this requirement be encoded as a pure precondition of the Hoare triple, using `⌜·⌝` notation (`add_spec_pre`)?
 
 :::displayOnly
 ```lean
 theorem add_spec_hyp (x y : UInt8)
     (h : x.toNat + y.toNat ≤ UInt8.size) :
-    ⦃⌜True⌝⦄ x +? y ⦃⇓ r => ⌜r.toNat = x.toNat + y.toNat⌝⦄ := …
+    ⦃⌜True⌝⦄ x +? y ⦃fun r => ⌜r.toNat = x.toNat + y.toNat⌝⦄ := …
 
 theorem add_spec_pre (x y : UInt8) :
     ⦃⌜x.toNat + y.toNat ≤ UInt8.size⌝⦄
     x +? y
-    ⦃⇓ r => ⌜r.toNat = x.toNat + y.toNat⌝⦄ := …
+    ⦃fun r => ⌜r.toNat = x.toNat + y.toNat⌝⦄ := …
 ```
 :::
 
@@ -582,7 +554,7 @@ theorem add_spec_pre (x y : UInt8) :
 
 The first approach is advisable, although it should not make a difference in practice.
 The VC generator will move pure hypotheses from the stateful context into the regular Lean context, so the second form turns effectively into the first form.
-This is referred to as {deftech}_framing_ hypotheses (cf. the {tactic}`mpure` and {tactic}`mframe` tactics).
+This is referred to as {deftech}_framing_ hypotheses.
 Hypotheses in the Lean context are part of the immutable {deftech}_frame_ of the stateful logic, because in contrast to stateful hypotheses they survive the rule of consequence.
 
 # Monad Transformers and Lifting
@@ -596,7 +568,7 @@ We can tweak the previous example to demonstrate this.
 namespace Transformers
 ```
 ```lean -show
-variable {m : Type → Type} {α : Type} {ps : PostShape.{0}}
+variable {m : Type → Type} {α : Type}
 attribute [-instance] Lake.instMonadLiftTOfMonadLift_lake
 ```
 :::
@@ -632,33 +604,32 @@ def mkFreshN (n : Nat) : AppM (List Nat) := do
 ::::
 
 ::::paragraph
-Then the {tactic}`mvcgen`-based proof goes through unchanged:
+Then the {tactic}`vcgen`-based proof goes through unchanged:
 ```lean
 @[spec]
 theorem mkFresh_spec (c : Nat) :
     ⦃fun state => ⌜state.counter = c⌝⦄
     mkFresh
-    ⦃⇓ r state => ⌜r = c ∧ c < state.counter⌝⦄ := by
-  mvcgen [mkFresh] with grind
+    ⦃fun r state => ⌜r = c ∧ c < state.counter⌝⦄ := by
+  vcgen [mkFresh] with finish
 
 @[spec]
 theorem mkFreshN_spec (n : Nat) :
-    ⦃⌜True⌝⦄ mkFreshN n ⦃⇓ r => ⌜r.Nodup⌝⦄ := by
-  -- `liftCounterM` here ensures unfolding
-  mvcgen [mkFreshN]
-  invariants
-  · ⇓⟨xs, acc⟩ _ state =>
+    ⦃⌜True⌝⦄ mkFreshN n ⦃fun r => ⌜r.Nodup⌝⦄ := by
+  vcgen [mkFreshN] invariants
+  · fun pref suff acc _ state =>
       ⌜(∀ n ∈ acc, n < state.counter) ∧ acc.toList.Nodup⌝
-  with grind
+  with finish
 ```
+The corner brackets absorb the assertion arguments that a specification does not mention: the precondition of {name}`mkFresh_spec` names the {name}`Supply` state, and `⌜state.counter = c⌝` covers the reader environment beneath it.
 ::::
 
 :::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {α  : Type u}  {prog : m α}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type u} {prog : m α}
 ```
-The {name}`WPMonad` type class asserts that {lean}`wp⟦prog⟧` distributes over the {name}`Monad` operations (“monad morphism”).
+The {name}`WPMonad` type class asserts that {name}`wp` distributes over the {name}`Monad` operations (“monad morphism”).
 This proof might not look much more exciting than when only a single monad was involved.
 However, under the radar of the user the proof builds on a cascade of specifications for {name}`MonadLift` instances.
 
@@ -675,33 +646,32 @@ end Transformers
 ::::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α  : Type u}  {prog : m α} {Q' : α → Assertion ps}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {P : Pred} {α : Type u} {prog : m α} {Q' : α → Pred}
 ```
 
 If {keyword}`let mut` is the {keywordOf Lean.Parser.Term.do}`do`-equivalent of {name}`StateT`, then early {keywordOf Lean.Parser.Term.doReturn}`return` is the equivalent of {name}`ExceptT`.
-We have seen how the {tactic}`mvcgen` copes with {name}`StateT`; here we will look at the program logic's support for {name}`ExceptT`.
+We have seen how {tactic}`vcgen` copes with {name}`StateT`; here we will look at the program logic's support for {name}`ExceptT`.
 
-Exceptions are the reason why the type of postconditions {lean}`PostCond α ps` is not simply a single condition of type {lean}`α → Assertion ps` for the success case.
-To see why, suppose the latter was the case, and suppose that program {lean}`prog` throws an exception in a prestate satisfying {lean}`P`.
-Should we be able to prove {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄`?
-(Recall that `⇓` is grammatically similar to `fun`.)
-There is no result `r`, so it is unclear what this proof means for {lean}`Q'`!
+Exceptions are the reason why a triple carries an exception postcondition next to the success postcondition.
+To see why, suppose there were only the success postcondition, and suppose that program {lean}`prog` throws an exception in a prestate satisfying {lean}`P`.
+Should we be able to prove {lean}`⦃P⦄ prog ⦃Q'⦄`?
+There is no result value, so it is unclear what this proof means for {lean}`Q'`!
 
 So there are two reasonable options, inspired by non-termination in traditional program logics:
 
 : The {tech (remote := "reference")}_total correctness interpretation_
 
-  {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` asserts that, given {lean}`P` holds, then {lean}`prog` terminates _and_ {lean}`Q'` holds for the result.
+  {lean}`⦃P⦄ prog ⦃Q'⦄` asserts that, given {lean}`P` holds, then {lean}`prog` terminates normally _and_ {lean}`Q'` holds for the result.
 
 : The {tech (remote := "reference")}_partial correctness interpretation_
 
-  {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates _then_ {lean}`Q'` holds for the result.
+  {lean}`⦃P⦄ prog ⦃Q'; ⊤⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates normally _then_ {lean}`Q'` holds for the result.
 
-The notation {lean}`⇓ r => Q' r` has the total interpretation, while {lean}`⇓? r => Q' r` has the partial interpretation.
+A triple without an explicit exception postcondition carries the bottom assertion {lean}`(⊥ : EPred)` and thus has the total interpretation: an exception would have to establish `⊥`, so no exception can be thrown.
+The top assertion {lean}`(⊤ : EPred)` permits every exception and yields the partial interpretation.
 
-In the running example, {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` is unprovable, but {lean}`⦃P⦄ prog ⦃⇓? r => Q' r⦄` is trivially provable.
-However, the binary choice suggests that there is actually a _spectrum_ of correctness properties to express.
-The notion of postconditions {name}`PostCond` in `Std.Do` supports this spectrum.
+In the running example, {lean}`⦃P⦄ prog ⦃Q'⦄` is unprovable, but {lean}`⦃P⦄ prog ⦃Q'; ⊤⦄` is trivially provable.
+Between {lean}`(⊥ : EPred)` and {lean}`(⊤ : EPred)`, the exception postcondition expresses a _spectrum_ of correctness properties.
 
 ::::
 
@@ -735,15 +705,15 @@ The following correctness property expresses this:
 ```lean
 @[spec]
 theorem mkFresh_spec (c : Nat) :
-    ⦃fun state => ⌜state.counter = c⌝⦄
+    ⦃fun state => state.counter = c⦄
     mkFresh
-    ⦃post⟨fun r state => ⌜r = c ∧ c < state.counter⌝,
-          fun _ state => ⌜c = state.counter ∧ c = state.limit⌝⟩⦄ := by
-  mvcgen [mkFresh] with grind
+    ⦃fun r state => r = c ∧ c < state.counter;
+      fun _ state => c = state.counter ∧ c = state.limit⦄ := by
+  vcgen [mkFresh] with finish
 ```
 
-In this property, the postcondition has two branches: the first covers successful termination, and the second applies when an exception is thrown.
-The monad's {name}`WP` instance determines both how many branches the postcondition may have and the number of parameters in each branch: each exception that might be triggered gives rise to an extra branch, and each state gives an extra parameter.
+In this property, the triple has two postconditions, separated by a semicolon: the first covers successful termination, and the second applies when an exception is thrown.
+The monad's {name}`WP` instance determines the types of both postconditions: the exception postcondition takes the thrown exception in place of the result value, and each state gives an extra parameter.
 
 :::leanFirst
 In this new monad, {name}`mkFreshN`'s implementation is unchanged, except for the type signature:
@@ -757,33 +727,31 @@ def mkFreshN (n : Nat) : EStateM String Supply (List Nat) := do
 :::
 
 :::paragraph
-However, the specification lemma must account for both successful termination and exceptions being thrown, in both the postcondition and the loop invariant:
+However, the specification lemma must account for both successful termination and exceptions being thrown; the loop invariant itself stays as before:
 ```lean
 @[spec]
 theorem mkFreshN_spec (n : Nat) :
-    ⦃⌜True⌝⦄
+    ⦃fun _ => True⦄
     mkFreshN n
-    ⦃post⟨fun r => ⌜r.Nodup⌝,
-          fun _msg state => ⌜state.counter = state.limit⌝⟩⦄ := by
-  mvcgen [mkFreshN]
-  invariants
-  · post⟨fun ⟨xs, acc⟩ state =>
-           ⌜(∀ n ∈ acc, n < state.counter) ∧ acc.toList.Nodup⌝,
-         fun _msg state => ⌜state.counter = state.limit⌝⟩
-  with grind
+    ⦃fun r _ => r.Nodup;
+      fun _msg state => state.counter = state.limit⦄ := by
+  vcgen [mkFreshN] invariants
+  · fun pref suff acc state =>
+      (∀ n ∈ acc, n < state.counter) ∧ acc.toList.Nodup
+  with finish
 ```
 :::
 
 :::paragraph
-The final proof uses the specification lemmas and {tactic}`mvcgen`, just as before:
+The final proof uses the specification lemmas and {tactic}`vcgen`, just as before:
 ```lean
 theorem mkFreshN_correct (n : Nat) :
     match (mkFreshN n).run s with
     | .ok    l _  => l.Nodup
     | .error _ s' => s'.counter = s'.limit := by
   generalize h : (mkFreshN n).run s = x
-  apply EStateM.of_wp_run_eq h
-  mvcgen
+  apply EStateM.of_run_eq_wp h
+  vcgen with finish
 ```
 :::
 
@@ -796,37 +764,34 @@ end Exceptions
 :::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type} {σ ε : Type}
 ```
 
-Just as any {lean}`StateT σ`-like monad transformer gives rise to a {lean}`PostShape.arg σ` layer in the {lean}`ps` that {name}`WP` maps into, any {lean}`ExceptT ε`-like layer gives rise to a {lean}`PostShape.except ε` layer.
-
-Every {lean}`PostShape.arg σ` adds another `σ → ...` layer to the language of {lean}`Assertion`s.
-Every {lean}`PostShape.except ε` leaves the {lean}`Assertion` language unchanged, but adds another exception
-condition to the postcondition.
-Hence the {name}`WP` instance for {lean}`EStateM ε σ` maps to the {name}`PostShape` {lean}`PostShape.except ε (.arg σ .pure)`, just
-as for {lean}`ExceptT ε (StateM σ)`.
+A {lean}`StateT σ` layer turns the assertion type `Pred` into `σ → Pred` and leaves the exception postcondition type unchanged.
+An {lean}`ExceptT ε` layer leaves the assertion type unchanged and turns the exception postcondition type `EPred` into {lean}`(ε → Pred) × EPred`, adding one exception branch of type `ε → Pred`.
+The {name}`WP` instance for {lean}`EStateM ε σ` uses assertions of type `σ → Prop` and exception postconditions of type `ε → σ → Prop`, mirroring the single exception branch of the equivalent transformer stack {lean}`ExceptT ε (StateM σ)`.
 :::
 
 
-# Extending `mvcgen` With Support for Custom Monads
+# Extending `vcgen` With Support for Custom Monads
 
-The {tactic}`mvcgen` framework is designed to be extensible.
-None of the monads presented so far have in any way been hard-coded into {tactic}`mvcgen`.
-Rather, {tactic}`mvcgen` relies on instances of the {name}`WP` and {name}`WPMonad` type class and user-provided specifications to generate {tech (remote := "reference")}[verification conditions].
+The {tactic}`vcgen` framework is designed to be extensible.
+None of the monads presented so far have in any way been hard-coded into {tactic}`vcgen`.
+Rather, {tactic}`vcgen` relies on instances of the {name}`WP` and {name}`WPMonad` type class and user-provided specifications to generate {tech (remote := "reference")}[verification conditions].
 
 :::leanSection
 ```lean -show
-variable {m : Type u → Type v} [Monad m] {ps : PostShape.{u}}
+universe u v
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [Assertion Pred] [Assertion EPred] {α : Type u}
 ```
 
-The {name}`WP` instance defines the weakest precondition interpretation of a monad {lean}`m` into a predicate transformer {lean}`PredTrans ps`,
+The {name}`WP` instance defines the weakest precondition interpretation of a monad {lean}`m` into predicate transformers {lean}`PredTrans Pred EPred α`,
 and the matching {name}`WPMonad` instance asserts that this translation distributes over the {name}`Monad` operations.
 :::
 
 :::::paragraph
 ::::leanFirst
-Suppose one wants to use `mvcgen` to generate verification conditions for programs generated by [`Aeneas`](https://github.com/AeneasVerif/aeneas).
+Suppose one wants to use `vcgen` to generate verification conditions for programs generated by [`Aeneas`](https://github.com/AeneasVerif/aeneas).
 `Aeneas` translates Rust programs into Lean programs in the following {name}`Result` monad:
 
 ```lean
@@ -858,9 +823,9 @@ instance Result.instLawfulMonad : LawfulMonad Result := by
 
 :::paragraph
 There are both {inst}`Monad Result` and {inst}`LawfulMonad Result` instances.
-Supporting this monad in {tactic}`mvcgen` is a matter of:
+Supporting this monad in {tactic}`vcgen` is a matter of:
 
-1. Adding {name}`WP` and {name}`WPMonad` instances for {name}`Result`
+1. Adding a {name}`WPMonad` instance for {name}`Result`
 2. Registering specification lemmas for the translation of basic Rust primitives such as addition etc.
 :::
 
@@ -869,74 +834,56 @@ Supporting this monad in {tactic}`mvcgen` is a matter of:
 
 ```lean -show
 universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
+variable {α : Type u} {v : α} {e : Error}
 ```
-The {name}`WP` instance for {name}`Result` specifies a postcondition shape {lean (type := "PostShape.{0}")}`.except Error .pure` because there are no state-like effects, but there is a single exception of type {lean}`Error`.
-The {name}`WP` instance translates programs in {lean}`Result α` to predicate transformers in {lean}`PredTrans ps α`.
-That is, a function in {lean}`PostCond α ps → Assertion ps`, mapping a postcondition to its weakest precondition.
-The implementation of {name}`WP.wp` is similar to that of {lean}`Except Error`.
-Each case of {name}`Result` is implemented by an existing predicate transformer:
-* {name}`PredTrans.pure` for {lean}`Result.ok`
-* {name}`PredTrans.throw` for {lean}`Result.fail`
-* {lean}`PredTrans.const ⌜False⌝` for {lean}`Result.div`, meaning that all specifications assert that the program never diverges.
+The {name}`WPMonad` instance for {name}`Result` picks the assertion type {lean}`Prop` because there are no state-like effects, and the exception postcondition type {lean}`Error → Prop` because there is a single exception of type {lean}`Error`.
+Its {name}`WP` interpretation translates a program in {lean}`Result α` to a predicate transformer in {lean}`PredTrans Prop (Error → Prop) α`.
+That is, a function mapping a postcondition and an exception postcondition to the weakest precondition.
+Each case of {name}`Result` determines the precondition directly:
+* {lean}`Result.ok v` yields the success postcondition at {lean}`v`.
+* {lean}`Result.fail e` yields the exception postcondition at {lean}`e`.
+* {name}`Result.div` yields {lean}`False`, meaning that all specifications assert that the program never diverges.
+
+The remaining fields prove that the interpretation is monotone and that it distributes over {name}`pure` and {name}`bind`.
+The law {name}`WPMonad.pure_le_wp_pure` holds by reflexivity, because the interpretation of {lean}`Result.ok v` is exactly the success postcondition at {lean}`v`.
+For {name}`WPMonad.bind_le_wp_bind`, a case split on the program exposes the {keyword}`match` structure in the definition of {name}`bind`, and {tactic}`simp` closes each case.
 ::::
 ```lean
-instance : WP Result (.except Error .pure) where
-  wp
-    | .ok v => PredTrans.pure v
-    | .fail e => PredTrans.throw e
-    | .div => PredTrans.const ⌜False⌝
+instance Result.instWPMonad :
+    WPMonad Result Prop (Error → Prop) where
+  toWP α := {
+    wpTrans x := ⟨fun post epost =>
+      match x with
+      | .ok v => post v
+      | .fail e => epost e
+      | .div => False⟩
+    wp_trans_monotone x := by
+      intro post post' epost epost' hepost hpost
+      cases x <;> simp_all [PartialOrder.rel]
+  }
+  pure_le_wp_pure x post epost := PartialOrder.rel_refl
+  bind_le_wp_bind x f post epost := by
+    cases x <;> simp [wp, WP.wpTrans, bind, PartialOrder.rel]
 ```
 :::::
 
-:::paragraph
-The implementation of {name}`WP.wp` should distribute over the basic monad operators.
-We prove this as separate theorems for {name}`pure` and {name}`bind`.
-For {name}`bind`, both the definition of {name}`wp` and the definition of {name}`bind` need to be
-unfolded to expose the nested {keyword}`match` structure that {tactic}`grind` makes short process of.
-The {tactic}`simp` and {tactic}`grind` theory for predicate transformers triggers whenever a predicate transformer
-is applied to a postcondition.
-To bring the goals of {name}`WPMonad.wp_pure` and {name}`WPMonad.wp_bind` into this form, we use {tactic}`ext`.
-```lean
-theorem Result.apply_wp_pure {α} {a : α} {Q} :
-  wp⟦pure (f := Result) a⟧ Q = Q.1 a := by rfl
-
-theorem Result.apply_wp_bind {α β} {x} {f : α → Result β} {Q} :
-  wp⟦do let a ← x; f a⟧ Q = wp⟦x⟧ (fun a => wp⟦f a⟧ Q, Q.2) := by
-  simp only [wp, bind]
-  grind
-
-instance Result.instWPMonad : WPMonad Result (.except Error .pure) where
-  wp_pure _ := by ext Q : 1; apply Result.apply_wp_pure
-  wp_bind x f := by ext Q : 1; apply Result.apply_wp_bind
-```
-:::
-
 ::: paragraph
-Finally, we also prove an adequacy lemma similar to {name}`Except.of_wp_eq` for {lean}`Result`.
+Finally, we also prove an adequacy lemma similar to {name}`Except.of_eq_wp` for {lean}`Result`.
 ```lean
-theorem Result.of_wp_eq {α} {x prog : Result α}
+theorem Result.of_eq_wp {α} {x prog : Result α}
     (h : prog = x) (P : Result α → Prop)
-    (hspec : ⊢ₛ wp⟦prog⟧ post⟨fun a => ⌜P (.ok a)⌝,
-                              fun e => ⌜P (.fail e)⌝⟩) :
+    (hwp : wp prog (fun a => P (.ok a)) (fun e => P (.fail e))) :
       P x := by
   subst h
   match prog with
-  | .ok a   => simpa [wp] using hspec
-  | .fail e => simpa [wp] using hspec
-  | .div    => simp [wp] at hspec
+  | .ok a   => simpa [wp, WP.wpTrans] using hwp
+  | .fail e => simpa [wp, WP.wpTrans] using hwp
+  | .div    => simp [wp, WP.wpTrans] at hwp
 ```
 :::
 
-:::leanSection
-```lean -show
-universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
-```
-
-The definition of the {name}`WP` instance determines what properties can be derived from proved specifications via {lean}`Result.of_wp_eq`.
+The definition of the {name}`WP` interpretation determines what properties can be derived from proved specifications via {name}`Result.of_eq_wp`.
 This lemma defines what “weakest precondition” means.
-:::
 
 :::paragraph
 To exemplify the second part, here is an example definition of {name}`UInt32` addition in {name}`Result` that models integer overflow:
@@ -962,15 +909,18 @@ There are two relevant specification lemmas to register:
 
 ```lean
 @[spec]
-theorem Result.throw_spec {α Q} (e : Error) :
-    ⦃Q.2.1 e⦄ throw (m := Result) (α := α) e ⦃Q⦄ := id
+theorem Result.throw_spec {α} {post : α → Prop}
+    {epost : Error → Prop} (e : Error) :
+    ⦃epost e⦄ throw (m := Result) (α := α) e ⦃post; epost⦄ :=
+  ⟨PartialOrder.rel_refl⟩
 
 @[spec]
 theorem addOp_ok_spec {x y} (h : x.toNat + y.toNat < UInt32.size) :
-    ⦃⌜True⌝⦄
+    ⦃True⦄
     addOp x y
-    ⦃⇓ r => ⌜r = x + y ∧ (x + y).toNat = x.toNat + y.toNat⌝⦄ := by
-  mvcgen [addOp] with (simp_all; try grind)
+    ⦃fun r => r = x + y ∧ (x + y).toNat = x.toNat + y.toNat⦄ := by
+  vcgen [addOp]
+  all_goals simp_all; try grind
 ```
 :::
 
@@ -979,54 +929,35 @@ This is already enough to prove the following example:
 
 ```lean
 example :
-  ⦃⌜True⌝⦄
-  do let mut x ← addOp 1 3
-     for _ in [:4] do
+  ⦃True⦄
+  (do let mut x ← addOp 1 3
+      for _ in [:4] do
         x ← addOp x 5
-     return x
-  ⦃⇓ r => ⌜r.toNat = 24⌝⦄ := by
-  mvcgen
-  invariants
-  · ⇓⟨xs, x⟩ => ⌜x.toNat = 4 + 5 * xs.prefix.length⌝
-  with (simp_all [UInt32.size]; try grind)
+      return x : Result UInt32)
+  ⦃fun r => r.toNat = 24⦄ := by
+  vcgen invariants
+  · fun pref suff x => x.toNat = 4 + 5 * pref.length
+  all_goals simp_all
+  all_goals grind
 ```
 :::
 
-# Proof Mode for Stateful Goals
+# Discharging Verification Conditions
 
-```lean -show
-variable {σs : List (Type u)} {H T : SPred σs}
+It is a priority of {tactic}`vcgen` to break down monadic programs into {tech (remote := "reference")}[verification conditions] that are straightforward to understand.
+The VCs are ordinary Lean goals, so any tactic can discharge them.
+When the assertion language is concrete, as for {name}`Id` or {name}`StateM` programs, the goals speak directly about result values and states, and {tactic}`grind` applies.
+When an applied invariant combinator such as {name}`Invariant.withEarlyReturnNewDo` reaches a VC, {tactic}`simp_all` unfolds it into its per-case propositions first.
+
+During VC generation, {tactic}`vcgen` internalizes the goal context into `grind`'s E-graph.
+The `with` clause runs a single `grind`-mode step on every remaining VC inside that shared context, which avoids re-internalizing the context for every VC.
+The step `finish` closes a VC with `grind`'s full automation.
+
+:::codeOnly
+```lean
+end
 ```
-
-It is a priority of {tactic}`mvcgen` to break down monadic programs into {tech (remote := "reference")}[verification conditions] that are straightforward to understand.
-For example, when the monad is monomorphic and all loop invariants have been instantiated, an invocation of {multiCode}[{tactic}`all_goals`{lit}` `{tactic}`mleave`] should simplify away any {name}`Std.Do.SPred`-specific constructs and leave behind a goal that is easily understood by humans and {tactic}`grind`.
-This {multiCode}[{tactic}`all_goals`{lit}` `{tactic}`mleave`]step is carried out automatically by {tactic}`mvcgen` after loop invariants have been instantiated.
-
-However, there are times when {tactic}`mleave` will be unable to remove all {name}`Std.Do.SPred` constructs.
-In this case, verification conditions of the form {lean}`H ⊢ₛ T` will be left behind.
-The assertion language {name}`Assertion` translates into an {name}`Std.Do.SPred` as follows:
-
-```lean -keep
-abbrev PostShape.args : PostShape.{u} → List (Type u)
-  | .pure => []
-  | .arg σ s => σ :: PostShape.args s
-  | .except _ s => PostShape.args s
-
-abbrev Assertion (ps : PostShape.{u}) : Type u :=
-  SPred (PostShape.args ps)
+```lean
+end VCGenTutorial
 ```
-
-
-:::leanSection
-```lean -show
-universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
-```
-
-A common case for when a VC of the form {lean}`H ⊢ₛ T` is left behind is when the base monad {lean}`m` is polymorphic.
-In this case, the proof will depend on a {lean}`WP m ps` instance which governs the translation into the {name}`Assertion` language, but the exact correspondence to `σs : List (Type u)` is yet unknown.
-To successfully discharge such a VC, `mvcgen` comes with an entire proof mode that is inspired by that of the Iris concurrent separation logic.
-(In fact, the proof mode was adapted in large part from its Lean clone, [`iris-lean`](https://github.com/leanprover-community/iris-lean).)
-The {ref "tactic-ref-spred" (remote := "reference")}[tactic reference] contains a list of all proof mode tactics.
-
 :::
