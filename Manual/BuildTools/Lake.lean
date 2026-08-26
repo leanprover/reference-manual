@@ -474,6 +474,8 @@ module.c
 module.c.o
 module.c.o.export
 module.c.o.noexport
+module.depHash
+module.depTrace
 module.deps
 module.dynlib
 module.exportInfo
@@ -485,8 +487,11 @@ module.importInfo
 module.imports
 module.input
 module.ir
+module.ir.sig
 module.lean
 module.leanArts
+module.linkInfoExport
+module.linkInfoNoExport
 module.ltar
 module.o
 module.o.export
@@ -495,6 +500,7 @@ module.olean
 module.olean.private
 module.olean.server
 module.precompileImports
+module.presetup
 module.setup
 module.transImports
 -/
@@ -516,6 +522,14 @@ The facets available for modules are:
 : `deps`
 
   The module's dependencies (e.g., imports or shared libraries).
+
+: `depHash`
+
+  A hash of a module's build dependencies (e.g., imports, source, plugins).
+
+: `depTrace`
+
+  A Lake build trace data structure (i.e., composite hash and modification time) of a module's build dependencies (e.g., imports, source, plugins).
 
 : `olean`
 
@@ -556,7 +570,12 @@ The facets available for modules are:
 
 : `ir`
 
-  The `.ir` file produced by `lean` (with the {ref "module-structure"}[experimental module system] enabled).
+  The `.ir` file produced for modules that use the {ref "module-structure"}[module system].
+
+
+: `ir.sig`
+
+  The `.ir.sig` file produced for modules that use the {ref "module-structure"}[module system].
 
 : `c`
 
@@ -576,7 +595,7 @@ The facets available for modules are:
 
 : `c.o.noexport`
 
- The compiled object file, produced from the C file, with Lean symbols exported.
+ The compiled object file, produced from the C file, without Lean symbols exported.
 
 : `bc.o`
 
@@ -593,6 +612,14 @@ The facets available for modules are:
 : `ltar`
 
   A compressed archive (produced via `leantar`) of the module's build artifacts. {TODO}[Document `leantar` in the manual as well]
+
+: `linkInfoExport`
+
+  A structured representation of the linker arguments, static objects, and dynamic libraries needed to link a module and its dependencies. Objects have Lean symbols exported.
+
+: `linkInfoNoExport`
+
+  A structured representation of the linker arguments, static objects, and dynamic libraries needed to link a module and its dependencies. Objects do not Lean symbols exported.
 
 :::
 
@@ -702,7 +729,9 @@ root = "Tests"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       bootstrap := false,
       extraDepTargets := #[],
       precompileModules := false,
@@ -764,7 +793,9 @@ root = "Tests"
                     backend := Lake.Backend.default,
                     platformIndependent := none,
                     dynlibs := #[],
-                    plugins := #[] },
+                    plugins := #[],
+                    requiresModuleSystem := false,
+                    allowNonModules := false },
                 srcDir := FilePath.mk ".",
                 root := `Tests,
                 exeName := "my-package-tests",
@@ -797,7 +828,9 @@ root = "Tests"
                           backend := Lake.Backend.default,
                           platformIndependent := none,
                           dynlibs := #[],
-                          plugins := #[] },
+                          plugins := #[],
+                          requiresModuleSystem := false,
+                          allowNonModules := false },
                       srcDir := FilePath.mk ".",
                       root := `Tests,
                       exeName := "my-package-tests",
@@ -860,7 +893,9 @@ lean_exe «my-package-tests» where
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       bootstrap := false,
       extraDepTargets := #[],
       precompileModules := false,
@@ -922,7 +957,9 @@ lean_exe «my-package-tests» where
                     backend := Lake.Backend.default,
                     platformIndependent := none,
                     dynlibs := #[],
-                    plugins := #[] },
+                    plugins := #[],
+                    requiresModuleSystem := false,
+                    allowNonModules := false },
                 srcDir := FilePath.mk ".",
                 root := `Tests,
                 exeName := "my-package-tests",
@@ -955,7 +992,9 @@ lean_exe «my-package-tests» where
                           backend := Lake.Backend.default,
                           platformIndependent := none,
                           dynlibs := #[],
-                          plugins := #[] },
+                          plugins := #[],
+                          requiresModuleSystem := false,
+                          allowNonModules := false },
                       srcDir := FilePath.mk ".",
                       root := `Tests,
                       exeName := "my-package-tests",
@@ -1058,7 +1097,9 @@ root = "Lint"
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       bootstrap := false,
       extraDepTargets := #[],
       precompileModules := false,
@@ -1120,7 +1161,9 @@ root = "Lint"
                     backend := Lake.Backend.default,
                     platformIndependent := none,
                     dynlibs := #[],
-                    plugins := #[] },
+                    plugins := #[],
+                    requiresModuleSystem := false,
+                    allowNonModules := false },
                 srcDir := FilePath.mk ".",
                 root := `Lint,
                 exeName := "my-package-lint",
@@ -1153,7 +1196,9 @@ root = "Lint"
                           backend := Lake.Backend.default,
                           platformIndependent := none,
                           dynlibs := #[],
-                          plugins := #[] },
+                          plugins := #[],
+                          requiresModuleSystem := false,
+                          allowNonModules := false },
                       srcDir := FilePath.mk ".",
                       root := `Lint,
                       exeName := "my-package-lint",
@@ -1217,7 +1262,9 @@ lean_exe «my-package-lint» where
           backend := Lake.Backend.default,
           platformIndependent := none,
           dynlibs := #[],
-          plugins := #[] },
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
       bootstrap := false,
       extraDepTargets := #[],
       precompileModules := false,
@@ -1279,7 +1326,9 @@ lean_exe «my-package-lint» where
                     backend := Lake.Backend.default,
                     platformIndependent := none,
                     dynlibs := #[],
-                    plugins := #[] },
+                    plugins := #[],
+                    requiresModuleSystem := false,
+                    allowNonModules := false },
                 srcDir := FilePath.mk ".",
                 root := `Lint,
                 exeName := "my-package-lint",
@@ -1312,7 +1361,9 @@ lean_exe «my-package-lint» where
                           backend := Lake.Backend.default,
                           platformIndependent := none,
                           dynlibs := #[],
-                          plugins := #[] },
+                          plugins := #[],
+                          requiresModuleSystem := false,
+                          allowNonModules := false },
                       srcDir := FilePath.mk ".",
                       root := `Lint,
                       exeName := "my-package-lint",

@@ -346,7 +346,7 @@ Coinductive predicates naturally capture bisimulation-like notions.
 ```lean -show
 variable {Q : Type} {A : Type} {q : Q}
 ```
-A deterministic finite automaton is given by a set of states {lean}`Q`, an alphabet {lean}`A`, a start state {lean}`q` in {lean}`Q`, a subset of {lean}`Q` the define accepting states, and a transition function that takes a state and an element of the alphabet to a new state:
+A deterministic finite automaton is given by a set of states {lean}`Q`, an alphabet {lean}`A`, a start state {lean}`q` in {lean}`Q`, a subset of {lean}`Q` that defines accepting states, and a transition function that takes a state and an element of the alphabet to a new state:
 :::
 ```lean
 structure DFA (Q : Type) (A : Type) : Type where

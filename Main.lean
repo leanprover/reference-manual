@@ -56,6 +56,7 @@ where
         (`Verso.Genre.Manual.doc.tactic.conv, 60),
         (`Verso.Genre.Manual.doc.option,      60),
         (`Verso.Genre.Manual.example,         60),
+        (`Manual.examples,                    60),
       ]
     },
   }

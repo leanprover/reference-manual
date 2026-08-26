@@ -4,21 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Data.RBMap
 import Lean.Data.Json
 import Lean.Widget.TaggedText
 
 namespace Manual.Meta.PPrint
-open Lean (RBMap)
-open Std (Format)
+open Std (Format TreeMap)
 
 structure FormatWithTags (α : Type u) where
   format : Format
-  tags : RBMap Nat α compare
+  tags : TreeMap Nat α compare
 
 structure TagFormatM.State (α) where
   nextTag : Nat := 0
-  tags : RBMap Nat α compare := {}
+  tags : TreeMap Nat α compare := {}
 
 def TagFormatT α m := StateT (TagFormatM.State α) m
 
@@ -55,7 +53,7 @@ private structure TaggedState (α) where
   column : Nat := 0
 deriving Inhabited
 
-private abbrev RenderM α := (ReaderT (RBMap Nat α compare) (StateM (TaggedState α)))
+private abbrev RenderM α := (ReaderT (TreeMap Nat α compare) (StateM (TaggedState α)))
 
 instance inst [Inhabited α] : Format.MonadPrettyFormat (RenderM α) where
   pushOutput s       := modify fun ⟨out, ts, col⟩ => ⟨out.appendText s, ts, col + s.length⟩
@@ -66,7 +64,7 @@ instance inst [Inhabited α] : Format.MonadPrettyFormat (RenderM α) where
     let tagVals ← read
     modify fun ⟨out, ts, col⟩ =>
       let (ended, left) := (ts.take n, ts.drop n)
-      let out' := ended.foldl (init := out) fun acc (tag, top) => top.appendTag (tagVals.find! tag) acc
+      let out' := ended.foldl (init := out) fun acc (tag, top) => top.appendTag (tagVals.get! tag) acc
       ⟨out', left, col⟩
 
 def FormatWithTags.render [Inhabited α] (format : FormatWithTags α) (indent := 0) (w : Nat := Std.Format.defWidth) : TaggedText α :=

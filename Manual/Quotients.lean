@@ -426,7 +426,7 @@ tag := "quotient-proofs"
 
 The fundamental tools for proving properties of elements of quotient types are the soundness axiom and the induction principle.
 The soundness axiom states that if two elements of the underlying type are related by the quotient's equivalence relation, then they are equal in the quotient type.
-The induction principle follows the structure of recursors for inductive types: in order to prove that a predicate holds all elements of a quotient type, it suffices to prove that it holds for an application of {name}`Quotient.mk` to each element of the underlying type.
+The induction principle follows the structure of recursors for inductive types: in order to prove that a predicate holds for all elements of a quotient type, it suffices to prove that it holds for an application of {name}`Quotient.mk` to each element of the underlying type.
 Because {name}`Quotient` is not an {tech}[inductive type], tactics such as {tactic}`cases` and {tactic}`induction` require that {name}`Quotient.ind` be specified explicitly with the {keyword}`using` modifier.
 
 {docstring Quotient.sound}

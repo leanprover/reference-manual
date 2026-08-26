@@ -291,6 +291,10 @@ All section variables are added in the order in which they are declared, before 
 Section variables are added only when they occur in the _statement_ of a theorem.
 Otherwise, modifying the proof of a theorem could change its statement if the proof term made use of a section variable.
 
+Section variables are not added as definition parameters until after the definition's body has been elaborated.
+This means that they cannot vary in recursive definitions, and their values are fixed.
+Explicit parameters may shadow section variables and can be used for definitions in which the value must vary.
+
 Variables are declared using the {keywordOf Lean.Parser.Command.variable}`variable` command.
 
 
@@ -333,6 +337,40 @@ def addAll :=
   xs.foldr (init := 0) (· + ·)
 ```
 :::
+::::
+
+::::example "Section Variables and Recursion"
+Section variables are fixed in recursive functions.
+The variable {lean}`length` represents a number that should decrease:
+```lean
+variable (length : Nat)
+```
+However, it cannot be used directly to define recursive functions, because the body of the function does not treat the section variable as a parameter:
+```lean +error -keep (name := varNoRec)
+def copies (x : α) : List α :=
+  match length with
+  | 0 => []
+  | length' + 1 => x :: copies length' x
+```
+The error arises because {name}`copies` expects only one explicit argument but has received two:
+```leanOutput varNoRec
+Function expected at
+  copies length'
+but this term has type
+  List Nat
+
+Note: Expected a function because this term is being applied to the argument
+  x
+```
+
+Even though {lean}`length` is already a section variable, it can be shadowed in order to define the function:
+```lean
+def copies (length : Nat) (x : α) : List α :=
+  match length with
+  | 0 => []
+  | length' + 1 => x :: copies length' x
+```
+
 ::::
 
 To add a section variable to a theorem even if it is not explicitly mentioned in the statement, mark the variable with the {keywordOf Lean.Parser.Command.include}`include` command.

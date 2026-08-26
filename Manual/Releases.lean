@@ -6,6 +6,12 @@ Author: Joachim Breitner
 
 import VersoManual
 
+import Manual.Releases.«v4_34_0»
+import Manual.Releases.«v4_33_1»
+import Manual.Releases.«v4_33_0»
+import Manual.Releases.«v4_32_2»
+import Manual.Releases.«v4_32_1»
+import Manual.Releases.«v4_32_0»
 import Manual.Releases.«v4_31_0»
 import Manual.Releases.«v4_30_0»
 import Manual.Releases.«v4_29_1»
@@ -61,6 +67,18 @@ searchPriority := 10
 This section provides release notes about recent versions of Lean. When updating to a new version, please
 read the corresponding release notes. They may contain advice that will help you understand
 the differences with the previous version and upgrade your projects.
+
+{include 0 Manual.Releases.«v4_34_0»}
+
+{include 0 Manual.Releases.«v4_33_1»}
+
+{include 0 Manual.Releases.«v4_33_0»}
+
+{include 0 Manual.Releases.«v4_32_2»}
+
+{include 0 Manual.Releases.«v4_32_1»}
+
+{include 0 Manual.Releases.«v4_32_0»}
 
 {include 0 Manual.Releases.«v4_31_0»}
 
