@@ -237,6 +237,38 @@ example (p q : Prop) (h : p ∨ q) : q ∨ p := by
   [split] #4283 := p ∨ q
 ```
 
+In some cases, multiple terms may be assigned the same anchor.
+Instantiating with an anchor instantiates all terms that share the anchor, but case splitting requires more control.
+When multiple case split candidates share an anchor, they are assigned {deftech}_ordinal disambiguators_: sequential numbers that track the order in which they were added to the whiteboard.
+These numbers are written after a `/`, so `#7a83/2` refers to the second term with anchor `#7a83`.
+Number `1` is assigned to the first term with a given anchor; thus, `#7a83/1` is equivalent to `#7a83`.
+Because they are assigned in order, ordinals are less stable than anchors; re-ordering hypotheses can change them.
+
+:::example "Ordinal Disambiguators"
+This theorem statement says that if there exist two values that are mapped to `0` or `1` by a function, and the sum of those two values of the function is `2`, then there exists a point that the function maps to `1`.
+Both disjunctions map to the same underlying anchor, namely `#4f8c`.
+After exposing them using {tactic}`obtain`, {grindTactic}`cases?` displays two possibilities, each with an ordinal disambiguator:
+```lean +error (name := ordinals)
+example (f : Nat → Nat)
+    (h : ∃ a b,
+      (f a = 0 ∨ f a = 1) ∧
+      (f b = 0 ∨ f b = 1) ∧
+      f a + f b = 2) :
+    ∃ a, f a = 1 := by
+  obtain ⟨_, _, ha, hb, hab⟩ := h
+  grind =>
+    cases?
+```
+```leanOutput ordinals
+Try these:
+  [apply] cases #4f8c for
+    f w✝ = 0 ∨ f w✝ = 1
+  [apply] cases #4f8c/2 for
+    f w✝¹ = 0 ∨ f w✝¹ = 1
+```
+:::
+
+
 ## Filters
 
 Any {tactic}`grind` tactic may be followed by `|` and a {deftech}_filter_ that selects some subset of the data in the {tactic}`grind` state.
@@ -343,6 +375,9 @@ They mirror the corresponding {ref "tactic-language-control"}[control structures
 
 A sequence may be grouped with parentheses, written `( steps )`, which runs the enclosed steps on the current goals with no added effect.
 This grouping is used to delimit the scope of a control structure such as {grindTactic}`first` or {grindTactic}`repeat`.
+
+:::grindTactic "case"
+:::
 
 :::grindTactic "focus"
 :::
@@ -478,6 +513,7 @@ These tactics add new facts to the {tactic}`grind` state (that is, the “whiteb
 {grindTactic}`instantiate` runs a single round of E-matching.
 By default, this round uses all of {tactic}`grind`'s currently active theorems; the bracketed list supplies further theorems to instantiate alongside them, and an {tech}[anchor] adds a specific local theorem from the state.
 Running {grindTactic}`show_local_thms` displays the local theorems' anchors.
+The bracketed list may additionally specify namespaces using the {keyword}`namespace` keyword, which causes theorems with scoped {attr}`grind` attributes from the namespace to be used.
 The {keywordOf Lean.Parser.Tactic.Grind.instantiate}`only` modifier restricts the round to the listed theorems.
 
 The {keywordOf Lean.Parser.Tactic.Grind.instantiate}`approx` modifier has no effect on how the step runs.
@@ -506,6 +542,43 @@ Instantiating {lean}`h` at {lean}`3` adds the fact {lean}`f 3 ≤ 3 * 3` to the 
 :::
 
 :::grindTactic "use"
+:::
+
+:::example "Namespaces"
+The predicate {name}`IsEmpty` is a roundabout way of stating that a list is empty.
+Within namespace `A`, the theorem {name}`A.nil_IsEmpty` is used by {tactic}`grind` to prove {lean}`IsEmpty []`.
+```lean
+def IsEmpty (xs : List α) : Prop := xs.length = 0
+
+namespace A
+@[scoped grind .]
+theorem nil_IsEmpty : IsEmpty ([] : List α) := rfl
+
+example : IsEmpty ([] : List String) := by grind
+end A
+```
+
+Outside of the namespace, the theorem is not used:
+```lean +error (name := nogrind)
+example : IsEmpty ([] : List String) := by grind
+```
+```leanOutput nogrind
+`grind` failed
+case grind
+h : ¬IsEmpty []
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] False propositions
+```
+
+Specifying the `A` namespace in {grindTactic}`instantiate` re-enables {name}`A.nil_IsEmpty`:
+```lean
+example : IsEmpty ([] : List String) := by
+  grind =>
+    instantiate [namespace A]
+```
+
 :::
 
 :::grindTactic "mbtc"
@@ -736,6 +809,12 @@ The shorthand `intros~` introduces all remaining binders without internalizing t
 :::grindTactic "by_contra"
 :::
 
+:::grindTactic "rw"
+:::
+
+:::grindTactic "cbv"
+:::
+
 The {grindTactic}`simp` and {grindTactic}`dsimp` tactics in {tactic}`sym` scripts run {tactic}`grind`'s own simplifier, a separate implementation built for its internal representation of terms, with its own performance characteristics and feature set.
 This simplifier operates directly on that representation and avoids testing definitional equality.
 Instead of {tech}[simp sets], it uses {deftech}_named variants_: named bundles of simprocs (to be run before and after simplification) along with configuration overrides.
@@ -745,6 +824,22 @@ Named variants are described in more detail {ref "grind-sym-simp-variants"}[in t
 :::
 
 :::grindTactic "dsimp"
+:::
+
+Bitvector decision procedures are also available.
+They are available in both {tactic}`grind` and {tactic}`sym` scripts and act on the goal.
+In {tactic}`grind` or {tactic}`sym` scripts, {grindTactic}`bv_normalize` fails if it does not close the goal.
+
+:::grindTactic "bv_decide"
+:::
+
+:::grindTactic "bv_decide?"
+:::
+
+:::grindTactic "bv_normalize"
+:::
+
+:::grindTactic "bv_check"
 :::
 
 ## Registering Simplification Variants
