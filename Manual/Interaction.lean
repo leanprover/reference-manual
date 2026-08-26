@@ -505,7 +505,7 @@ intersperse.eq_unfold.{u_1} :
 The {keywordOf Lean.Parser.Command.where}`#where` command displays all the modifications made to the current {tech}[section scope], both in the current scope and in the scopes in which it is nested.
 
 ```lean +fresh (name := scopeInfo)
-section
+public section
 open Nat
 
 namespace A
@@ -513,21 +513,23 @@ variable (n : Nat)
 namespace B
 
 open List
-set_option pp.funBinderTypes true
+set_option pp.tagAppFns true
 
 #where
 
 end A.B
 end
 ```
-```leanOutput scopeInfo (allowDiff := 1)
+```leanOutput scopeInfo
+public section
+
 namespace A.B
 
 open Nat List
 
 variable (n : Nat)
 
-set_option pp.funBinderTypes true
+set_option pp.tagAppFns true
 ```
 
 :::

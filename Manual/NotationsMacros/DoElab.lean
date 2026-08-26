@@ -25,7 +25,6 @@ set_option linter.unusedVariables false
 open Lean
 
 #doc (Manual) "Extending `do`-Notation" =>
-
 %%%
 tag := "do-elab"
 %%%
@@ -38,11 +37,11 @@ Macros translate the new {keywordOf Lean.Parser.Term.do}`do`-elements into previ
 :::paragraph
 This chapter describes the extension mechanisms that are available for {keywordOf Lean.Parser.Term.do}`do`-notation.
 Extensible {keywordOf Lean.Parser.Term.do}`do`-notation was introduced in Lean version 4.29.0; prior to this release, it was not extensible.
-The extensible {keywordOf Lean.Parser.Term.do}`do` elaborator is controlled by the option {option}`backward.do.legacy`:
+The extensible {keywordOf Lean.Parser.Term.do}`do` elaborator is controlled by the option {option}`backward.do.legacy`, which defaults to {name}`false`:
 
 {optionDocs backward.do.legacy}
 
-When {option}`backward.do.legacy` is `false`, the extensible elaborator is enabled.
+When {option}`backward.do.legacy` is {name}`false`, the extensible elaborator is enabled.
 Custom {keywordOf Lean.Parser.Term.do}`do`-element elaborators extend the desugaring described in {ref "do-notation"}[the section on syntax for monads].
 :::
 
@@ -208,7 +207,8 @@ This means that mutable variables in the surrounding block cannot be modified:
   return y
 ```
 ```leanOutput noMutFreeze
-`y` cannot be mutated, only variables declared using `let mut` can be mutated. If you did not intend to mutate but define `y`, consider using `let y` instead
+Variable `y` cannot be mutated. Only variables declared using `let mut` can be mutated.
+      If you did not intend to mutate but define `y`, consider using `let y` instead
 ```
 Additionally, an early {keywordOf Lean.Parser.Term.doReturn}`return` exits the inner {keywordOf Lean.Parser.Term.do}`do`, rather than the surrounding one, as indicated by the fact that it is expected to return a {lean}`Unit` (in this case, the universe-polymorphic {name}`PUnit`):
 ```lean +error (name := noInnerReturn)
@@ -221,14 +221,12 @@ Additionally, an early {keywordOf Lean.Parser.Term.doReturn}`return` exits the i
   return y
 ```
 ```leanOutput noInnerReturn
-Application type mismatch: The argument
+Type mismatch
   x
 has type
   Nat
 but is expected to have type
   PUnit
-in the application
-  pure x
 ```
 ::::
 
@@ -334,7 +332,6 @@ import Lean.Elab
 ```
 ```lean -show
 open Lean Elab Do
-set_option backward.do.legacy false
 ```
 A version of the built-in syntax {keywordOf Lean.Parser.Term.InternalSyntax.doSkip}`skip`, which is equivalent to {lean (type := "Option Unit")}`pure ()`, can be implemented using an elaborator that immediately invokes its continuation with {name}`Unit`.
 For better error messages, it also asserts that the continuation is expecting {name}`Unit`.
@@ -369,7 +366,6 @@ import Lean.Elab
 ```
 ```lean -show
 open Lean Elab Do
-set_option backward.do.legacy false
 ```
 An alternative version of {keywordOf doNothing}`nothing`, which is equivalent to the built-in syntax {keywordOf Lean.Parser.Term.InternalSyntax.doSkip}`skip`, can be implemented using {keywordOf Lean.Parser.Command.«elab_rules»}`elab_rules` as an alternative to an elaborator with the {attr}`doElem_elab` attribute.
 ```lean
@@ -412,7 +408,6 @@ import Lean.Elab
 ```
 ```lean -show
 open Lean Elab Term Do
-set_option backward.do.legacy false
 ```
 
 The operator {keywordOf doAbsurd}`absurd` marks code as unreachable when provided with a proof of {name}`False`, which indicates that the current local context is logically inconsistent.
@@ -508,7 +503,6 @@ import Lean.Elab
 ```
 ```lean -show
 open Lean Elab Term Do
-set_option backward.do.legacy false
 ```
 The single-iteration loop {keywordOf doOnce}`once` executes its body a single time, skipping to the end of the loop on {keywordOf Lean.Parser.Term.doBreak}`break` or {keywordOf Lean.Parser.Term.doContinue}`continue`:
 ```lean
@@ -631,7 +625,10 @@ In some advanced cases, one of the functions in {namespace}`Lean.Elab.Do.InferCo
 
 One important part of the context is the set of mutable variables available for the {keywordOf Lean.Parser.Term.do}`do`-element being elaborated.
 This is available in two fields: {name Lean.Elab.Do.Context.mutVars}`mutVars` provides the identifiers that initially bound the variables, while {name Lean.Elab.Do.Context.mutVarDefs}`mutVarDefs` maps their names to the local variables that represent them.
-Due to {tech}[hygiene], the identifiers in {name Lean.Elab.Do.Context.mutVars}`mutVars` contain {tech}[macro scopes]; these should be removed using {name}`Name.simpMacroScopes` prior to constructing a user-facing error message.
+Due to {tech}[hygiene], the identifiers in {name Lean.Elab.Do.Context.mutVars}`mutVars` contain {tech}[macro scopes], but these are automatically removed by the {inst}`ToMessageData MutVar` instance.
+If the names are displayed in some other way, then the macro scopes should be removed using {name}`Name.simpMacroScopes` prior to constructing a user-facing error message.
+
+{docstring Lean.Elab.Do.MutVar}
 
 Each mutable variable corresponds to at least one elaborated variable ({name}`Expr.fvar`).
 These elaborated variables exist in a local context that tracks their user-visible names.
@@ -657,7 +654,6 @@ import Lean.Elab
 ```
 ```lean -show
 open Lean Elab Do
-set_option backward.do.legacy false
 ```
 The new syntax {keywordOf dbgMut}`dbg_mut` traces the current values of all mutable variables.
 
@@ -666,9 +662,9 @@ syntax (name := dbgMut) "dbg_mut" : doElem
 
 @[doElem_elab dbgMut] def elabDbgMut : DoElab := fun _stx cont => do
   let ctx ← readThe Do.Context
-  let parts : Array Term ← ctx.mutVars.mapM fun (x : Ident) => do
+  let parts : Array Term ← ctx.mutVars.mapM fun (x : MutVar) => do
     let nameLit := x.getId.simpMacroScopes.toString
-    `(term| s!"{$(quote nameLit)} = {repr $x}")
+    `(term| s!"{$(quote nameLit)} = {repr $(x.ident)}")
   let msg ← `(term| String.intercalate ", " [$parts,*])
   elabDoElem (← `(doElem| dbg_trace $msg)) cont
 ```
@@ -708,7 +704,6 @@ import Lean.Elab
 ```
 ```lean -show
 open Lean Elab Do
-set_option backward.do.legacy false
 ```
 The operator {keywordOf doCensor}`censor` replaces all mutable variables with the default value defined in their type's {name}`Inhabited` instance.
 
@@ -724,7 +719,7 @@ def elabCensor : DoElab := fun stx dec => do
     dec.continueWithUnit
   else
     let assigns ← vars.mapM fun v =>
-      `(doElem| $v:ident := Inhabited.default)
+      `(doElem| $(v.ident):ident := Inhabited.default)
     elabDoElems1 assigns dec
 ```
 
@@ -772,23 +767,23 @@ Functions like {name}`tryCatch` have dedicated syntax that allows both the code 
 These other operators have no such syntax.
 
 A {keywordOf Lean.Parser.Term.do}`do`-element elaborator can arrange for the body of the function that is passed to one of these operators in the elaborated expression to be part of the source {keywordOf Lean.Parser.Term.do}`do`-block, just as the exception-handling syntax does.
-This is done using a {name Lean.Elab.Do.ControlLifter}`ControlLifter`, which generates suitable wrapper code around both the inner sequence of {keywordOf Lean.Parser.Term.do}`do`-elements and the function itself.
+This is done using a {name Lean.Elab.Do.EffectForwarder}`EffectForwarder`, which generates suitable wrapper code around both the inner sequence of {keywordOf Lean.Parser.Term.do}`do`-elements and the function itself.
 There are three steps:
-1. A {name Lean.Elab.Do.ControlLifter}`ControlLifter` for the inner sequence is created based on its control info and the current element's continuation, using {name Lean.Elab.Do.ControlLifter.ofCont}`ControlLifter.ofCont`.
-2. The inner sequence is elaborated using {name Lean.Elab.Do.ControlLifter.lift}`ControlLifter.lift`, which supplies the inner elaborator with a suitable continuation that generates the wrapping code.
-3. Instead of invoking the original continuation, the elaborator invokes a continuation generated by {name Lean.Elab.Do.ControlLifter.restoreCont}`ControlLifter.restoreCont`, which adds suitable unwrapping code to the result.
+1. A {name Lean.Elab.Do.EffectForwarder}`EffectForwarder` for the inner sequence is created based on its control info and the current element's continuation, using {name Lean.Elab.Do.EffectForwarder.ofCont}`EffectForwarder.ofCont`.
+2. The inner sequence is elaborated using {name Lean.Elab.Do.EffectForwarder.lift}`EffectForwarder.lift`, which supplies the inner elaborator with a suitable continuation that generates the wrapping code.
+3. Instead of invoking the original continuation, the elaborator invokes a continuation generated by {name Lean.Elab.Do.EffectForwarder.restoreCont}`EffectForwarder.restoreCont`, which adds suitable unwrapping code to the result.
 
 The lifting code resembles the implementation of Lean's built-in {ref "monad-transformers"}[monad transformers].
 For example, if the inner {keywordOf Lean.Parser.Term.do}`do`-sequence mutates a variable, then the wrapping and unwrapping code arranges for the variable to be passed to the lifted code and returned in a tuple, just like {name}`StateT`.
 If the inner {keywordOf Lean.Parser.Term.do}`do`-sequence could throw an exception, then the lifted version resembles a use of {name}`ExceptT`.
 
-{docstring Lean.Elab.Do.ControlLifter +allowMissing}
+{docstring Lean.Elab.Do.EffectForwarder +allowMissing}
 
-{docstring Lean.Elab.Do.ControlLifter.ofCont +allowMissing}
+{docstring Lean.Elab.Do.EffectForwarder.ofCont +allowMissing}
 
-{docstring Lean.Elab.Do.ControlLifter.lift +allowMissing}
+{docstring Lean.Elab.Do.EffectForwarder.lift +allowMissing}
 
-{docstring Lean.Elab.Do.ControlLifter.restoreCont +allowMissing}
+{docstring Lean.Elab.Do.EffectForwarder.restoreCont +allowMissing}
 
 :::example "Syntax for {name}`withReader`"
 ```imports -show
@@ -796,7 +791,6 @@ import Lean.Elab
 ```
 ```lean -show
 open Lean Elab Do Term
-set_option backward.do.legacy false
 ```
 
 In a {keywordOf Lean.Parser.Term.do}`do`-block, {keywordOf doLocally}`locally` allows a sequence of {keywordOf Lean.Parser.Term.do}`do`-elements to be run with a modified {name}`MonadReader` context:
@@ -824,7 +818,7 @@ Finally, the control lifter is used once again to reconstruct a suitable continu
 @[doElem_elab doLocally] def elabDoLocally : DoElab := fun stx dec => do
   let `(doElem| locally $x:ident => $e do $seq) := stx
     | throwUnsupportedSyntax
-  let lifter ← ControlLifter.ofCont (← inferControlInfoElem stx) dec
+  let lifter ← EffectForwarder.ofCont (← inferControlInfoElem stx) dec
   let body ← lifter.lift (elabDoSeq seq)
   let ρ ← Meta.mkFreshExprMVar (mkSort (.succ (← read).monadInfo.u))
   let f ← Term.elabTermEnsuringType (← `(fun $x => $e)) (← mkArrow ρ ρ)
@@ -861,7 +855,6 @@ import Lean.Elab
 ```lean -show
 open Lean Elab Do Term Meta
 open Lean.Parser.Term (doSeq)
-set_option backward.do.legacy false
 ```
 When some invariant of a mutable variable needs to be maintained, it is typically most convenient to use a subtype.
 However, subtypes have the drawback that the invariant must _always_ be maintained; it cannot be broken locally and re-established.

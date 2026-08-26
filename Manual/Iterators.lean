@@ -401,8 +401,10 @@ Because there are infinitely many {name}`Nat`s, using {name}`Iter.ensureTerminat
     IO.println s!"{x}"
 ```
 ```leanOutput natterm
-failed to synthesize instance for 'for_in%' notation
-  ForIn (EIO IO.Error) (Iter.Total Nat) ?m.12
+failed to synthesize instance of type class
+  ForIn IO (Iter.Total Nat) ?α
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 :::
 ::::
@@ -604,16 +606,15 @@ instance : Iterator FileIterator IO ByteArray where
     | .skip .. => False
     | .done => it.internalState.stream?.isNone
   step it := do
-    let { stream?, count } := it.internalState
-    match stream? with
-    | none => return .deflate <| .done rfl
+    match h : it.internalState.stream? with
+    | none => return .deflate <| .done (by simp [h])
     | some stream =>
-      let bytes ← stream.read count
+      let bytes ← stream.read it.internalState.count
       let it' :=
         { it with internalState.stream? :=
           if bytes.size == 0 then none else some stream
         }
-      return .deflate <| .yield it' bytes (by grind)
+      return .deflate <| .yield it' bytes (by simp [h])
 ```
 
 To use it in loops, an {name}`IteratorLoop` instance will be necessary.

@@ -120,19 +120,6 @@ inductive RTree'' (α : Type u) : Type u where
 ```
 In this case, the function applies equally well to the translated version as it does to the original.
 :::
-
-:::paragraph
-A _palindrome_ is a list that is the same when reversed:
-```lean
-inductive Palindrome (α : Type) : List α → Prop where
-  | nil : Palindrome α []
-  | single : Palindrome α [x]
-  | cons (x : α) (p : Palindrome α xs) : Palindrome α (x :: xs ++ [x])
-```
-In this predicate, the list is an index whose type depends on the parameter, which is explicit for clarity.
-This means it cannot be used
-
-:::
 :::::
 
 The translation from nested inductive types to mutual inductive types proceeds as follows:
