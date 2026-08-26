@@ -26,44 +26,10 @@ jobs:
               run: |
                   ulimit -a
 
-            - name: Install deps for figures (OS packages)
-              run: |
-                  sudo apt update && sudo apt install -y poppler-utils
-
-            - name: Install deps for figures (TeX)
-              uses: zauguin/install-texlive@v4
-              with:
-                  texlive_version: 2026
-                  packages: |
-                      scheme-small
-                      latex-bin
-                      fontspec
-                      standalone
-                      pgf
-                      pdftexcmds
-                      luatex85
-                      lualatex-math
-                      infwarerr
-                      ltxcmds
-                      xcolor
-                      fontawesome
-                      spath3
-                      inter
-                      epstopdf-pkg
-                      tex-gyre
-                      tex-gyre-math
-                      unicode-math
-                      amsmath
-                      sourcecodepro
-
-            - name: Do we have lualatex?
-              run: |
-                  lualatex --version
-
             - name: Install elan
               run: |
                   set -o pipefail
-                  curl -sSfL https://github.com/leanprover/elan/releases/download/v4.1.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+                  curl -sSfL https://github.com/leanprover/elan/releases/download/v4.2.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
                   ./elan-init -y --default-toolchain none
                   echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
@@ -90,10 +56,6 @@ jobs:
                       ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}
                       ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
                       ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-
-
-            - name: Build figures
-              run: |
-                  lake build figures
 
             - name: Build
               id: build
@@ -177,13 +139,33 @@ jobs:
             - name: Verify tutorial project zip files build
               if: github.event_name != 'release'
               run: |
-                  scripts/check-tutorial-zips.sh
+                  # On Linux, some nightly toolchains currently report a version string that
+                  # the zips turn into a toolchain name that elan rejects, so build the
+                  # projects with this repository's toolchain instead. Releases and release
+                  # candidates are unaffected and build with the toolchain from the zip.
+                  # See https://github.com/leanprover/lean4/issues/14702
+                  if grep -q nightly lean-toolchain; then
+                      scripts/check-tutorial-zips.sh "$(cat lean-toolchain)"
+                  else
+                      scripts/check-tutorial-zips.sh
+                  fi
 
             - name: Generate proofreading HTML
               if: github.event_name == 'pull_request'
               id: generate
               run: |
                   ./generate-html.sh --mode preview --draft --output _out/draft-site
+
+            # Drop deploy/netlify-headers as _headers at each possible Netlify
+            # publish-dir root so hashed search-index buckets can be cached
+            # immutably. See deploy/netlify-headers for the rules.
+            - name: Install Netlify cache headers
+              run: |
+                  for dir in _out/site _out/site/reference _out/html-multi _out/draft-site _out/draft/html-multi; do
+                      if [ -d "$dir" ]; then
+                          cp deploy/netlify-headers "$dir/_headers"
+                      fi
+                  done
 
             - name: Report status to Lean PR
               if: always() && github.repository == 'leanprover/reference-manual'
@@ -403,11 +385,14 @@ jobs:
                   name: "html"
                   path: "_out/"
 
-            - name: Install TypeScript
-              run: |
-                  sudo apt update && sudo apt install node-typescript
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "lts/*"
+                  cache: npm
+
+            - run: npm ci
 
             - name: Type check the search bar code
               run: |
                   cd _out/html-multi/-verso-search
-                  tsc --noEmit -p jsconfig.json
+                  npx tsc --noEmit -p jsconfig.json

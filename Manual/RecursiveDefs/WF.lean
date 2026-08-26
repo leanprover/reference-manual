@@ -511,7 +511,6 @@ failed to prove termination, possible solutions:
   - Use `have`-expressions to prove the remaining goals
   - Use `termination_by` to specify a different well-founded relation
   - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
-case h
 m n : Nat
 ⊢ m / 2 + 1 < m + 1
 ```
@@ -663,7 +662,6 @@ failed to prove termination, possible solutions:
   - Use `have`-expressions to prove the remaining goals
   - Use `termination_by` to specify a different well-founded relation
   - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
-case h
 m n : Nat
 ⊢ m / 2 + 1 < m + 1
 ```
@@ -851,7 +849,7 @@ The definition of {name}`WellFounded` builds on the notion of _accessible elemen
 The definition of division by iterated subtraction can be written explicitly using well-founded recursion.
 ```lean
 noncomputable def div (n k : Nat) : Nat :=
-  (inferInstance : (WellFoundedRelation Nat)).wf.fix
+  (inferInstance : WellFoundedRelation Nat).wf.fix
     (fun n r =>
       if h : k = 0 then 0
       else if h : k > n then 0

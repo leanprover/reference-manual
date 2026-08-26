@@ -113,6 +113,7 @@ Because {lean}`Sum` is a type, it is possible to check _which_ constructor was u
 In other words, because {lean}`Or` is not a {tech}[subsingleton], its proofs cannot be used as part of a computation.
 
 In a {ref "tactics"}[tactic] proof, disjunctions can be proved using either constructor ({name}`Or.inl` or {name}`Or.inr`) explicitly via {tactic}`apply`.
+The {tactic}`left` and {tactic}`right` tactics select the left and right disjuncts.
 Assumptions of disjunctions in the context can be simplified using {tactic}`cases`, pattern matching with {tactic (show := "match")}`Lean.Parser.Tactic.match`, or {tactic}`rcases`.
 
 {docstring Or}
@@ -340,7 +341,7 @@ Propositional equality is typically denoted by the infix `=` operator.
 $_ ▸ $_
 ```
 When a term's type includes one side of an equality as a sub-term, it can be rewritten using the `▸` operator.
-If the both sides of the equality occur in the term's type, then the left side is rewritten to the right.
+If both sides of the equality occur in the term's type, then the left side is rewritten to the right.
 :::
 
 ## Uniqueness of Equality Proofs
@@ -372,8 +373,7 @@ def K {α : Sort u}
 
 example {α : Sort u} {a : α}
     {motive : {x : α} → x = x → Sort u}
-    {d : {x : α} → motive (Eq.refl x)}
-    {v : motive (Eq.refl a)} :
+    {d : {x : α} → motive (Eq.refl x)} :
     K (motive := motive) d a rfl = d := by
   rfl
 ```

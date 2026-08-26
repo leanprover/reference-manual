@@ -36,7 +36,7 @@ In particular, we use {deftech}_honest_ when the goal is to create a valid proof
 This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the {option}`debug.skipKernelTC`).
 Note that the {keyword}`unsafe` marker on API functions is unrelated to whether this API can be used in an dishonest way.
 
-In contrast, we use {deftech}_malicious_ to describe code to go out of its way to trick or mislead the user, exploit bugs or compromise the system.
+In contrast, we use {deftech}_malicious_ to describe code that goes out of its way to trick or mislead the user, exploit bugs or compromise the system.
 This includes un-reviewed AI-generated proofs and programs.
 
 Furthermore it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.
@@ -64,7 +64,7 @@ The blue ticks indicate that the theorem statement has been successfully elabora
 
 ## Trust
 
-This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and trusts the authors of the imported libraries to be {tech}[honest], that they performed this check, and that no unsound axioms have been declared and used.
+This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and trusts the authors of the imported libraries to be {tech}[honest], that they checked that the theorems in their libraries express their intended informal meanings, and that no unsound axioms have been declared and used.
 
 ## Protection
 
@@ -127,21 +127,6 @@ This check is meaningful if one believes the formal theorem statement correspond
 * Custom axioms
 :::
 
-## Comments
-
-At the time of writing, the {keywordOf Lean.Parser.Command.printAxioms}`#print axioms` command does not work in a {tech}[module].
-To work around this, create a non-module file, import your module, and use {keywordOf Lean.Parser.Command.printAxioms}`#print axioms` there.
-
-```leanModule -show
--- This module validates the claim in the preceding paragraph that #print axioms doesn't work here
-module
-/--
-error: cannot use `#print axioms` in a `module`; consider temporarily removing the `module` header or placing the command in a separate file
--/
-#guard_msgs in
-#print axioms sorryAx
-```
-
 # Re-Checking Proofs with `lean4checker`
 %%%
 tag := "validating-lean4checker"
@@ -183,23 +168,23 @@ The [lean-action](https://github.com/leanprover/lean-action) GitHub Action provi
 
 Without the `--fresh` flag the tool can be instructed to only check some modules, and assume others to be correct (e.g. trusted libraries), for faster processing.
 
-# Gold Standard: `comparator`
+# Gold Standard: `comparator` and external checkers
 %%%
 tag := "validating-comparator"
 %%%
 
 To protect against a seriously {tech}[malicious] proof compromising how Lean interprets a theorem statement or the user's system, additional steps are necessary.
-This should only be necessary for high risk scenarios (proof marketplaces, high-reward proof competitions).
+This should only be necessary for high risk scenarios (proof marketplaces, high-reward proof competitions, unaligned AI).
 
 ## Instructions
 
-In a trusted environment, write the theorem *statement* (the ”challenge”), and then feed the challenge as well as the proposed proof to the [`comparator`](https://github.com/leanprover/comparator) tool, as documented there.
+In a trusted environment, write the theorem *statement* (the “challenge”), and then feed the challenge as well as the proposed proof to the [`comparator`](https://github.com/leanprover/comparator) tool, with external checkers enabled, as documented there.
 
 ## Significance
 
 Comparator will build the proof in a sandboxed environment, to protect against {tech}[malicious] code in the build step.
 The proof term is exported to a serialized format.
-Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, loads the proofs, replays them using Lean's kernel, and checks that the proved theorem statement matches the one in the challenge file.
+Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, replays the proofs using both Lean's kernel and/or an external checker and also ensures that the proved theorem statements match those in the trusted challenge file.
 
 ## Trust
 
@@ -211,24 +196,27 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 (In addition to the list above)
 
 * Actively {tech}[malicious] proofs
+* Implementation bugs present in some (but not simulatenously in all) of the used checkers.
 :::
 
 ## Comments
 
-At the time of writing, `comparator` uses only the official Lean kernel.
-In the future it will be easy to use multiple, independent kernel implementations; then this will also protect against implementation bugs in the official Lean kernel.
+At the time of writing, `comparator` supports using the official Lean kernel and the external checker [`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust. The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
 
 # Remaining Issues
 
 When following the gold standard of checking proofs using comparator, some assumptions remain:
 
 * The soundness of Lean’s logic.
-* The implementation of that logic in Lean’s kernel (for now; see comment above).
-* The plumbing provided by the `comparator` tool.
-* The safety of the sandbox used by `comparator`
+* The plumbing provided by the `comparator` tool is correct.
+* The sandbox used by `comparator` is secure.
+* There is no implementation bug affecting all of the used checkers simultaneously.
 * No human error or misleading presentation of the theorem statement in the trusted challenge file.
 
-# On `Lean.trustCompiler`
+  If there are doubts that the theorem means what it appears to mean, its statement and all referenced definitions must be investigated carefully, in particular with regard to custom notation and type classes.
+  Some external checkers offer raw pretty-printing capabilities that are not affected by changes to parser or notation in the source file.
+
+# On `Lean.trustCompiler` (up to Lean 4.28.0)
 %%%
 tag := "validating-trustCompiler"
 %%%
@@ -245,3 +233,5 @@ In particular, for every {attr}`implemented_by`/{attr}`extern` attribute in libr
 All these uses show up as an axiom {name}`Lean.trustCompiler` in {keywordOf Lean.Parser.Command.printAxioms}`#print axioms`.
 External checkers (`lean4checker`, `comparator`) cannot check such proofs, as they do not have access to the Lean compiler.
 When that level of checking is needed, proofs have to avoid using native evaluation.
+
+Since Lean 4.29.0, the {tactic}`decide`{keywordOf Lean.Parser.Tactic.decide}` +native` and {tactic}`bv_decide` tactics no longer use {name}`Lean.trustCompiler`, but instead introduce one dedicated axiom for each computation that is asserted by native computation. The {name}`Lean.trustCompiler` machinery is deprecated and will eventually be removed.

@@ -132,11 +132,9 @@ tag := "conv-goals"
 :::conv focus (show := "focus")
 :::
 
-:::conv «conv·._» (show := ". ...")
+:::conv «conv·_» (show := "· ...")
 :::
 
-:::conv «conv·._» (show := "· ...")
-:::
 
 :::conv failIfSuccess (show := "fail_if_success")
 :::

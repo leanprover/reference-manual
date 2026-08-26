@@ -216,7 +216,8 @@ def nodup (l : List Int) : Bool := Id.run do
 ```
 :::
 
-:::paragraph
+::::paragraph
+
 This function is correct if it returns {name}`true` for every list that satisfies {name}`List.Nodup` and {name}`false` for every list that does not.
 Just as it was in {name}`mySum`, the use of {keywordOf Lean.Parser.Term.do}`do`-notation and the {name}`Id` monad is an internal implementation detail of {name}`nodup`.
 Thus, the proof begins by using {name}`Id.of_wp_run_eq` to make the proof state amenable to {tactic}`mvcgen`:
@@ -226,13 +227,13 @@ theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
   apply Id.of_wp_run_eq h
   mvcgen
   invariants
-  · Invariant.withEarlyReturn
+  · Invariant.withEarlyReturnNewDo
       (onReturn := fun ret seen => ⌜ret = false ∧ ¬l.Nodup⌝)
       (onContinue := fun xs seen =>
         ⌜(∀ x, x ∈ seen ↔ x ∈ xs.prefix) ∧ xs.prefix.Nodup⌝)
   with grind
 ```
-:::
+::::
 
 
 :::paragraph
@@ -245,7 +246,7 @@ axiom onExcept : ExceptConds PostShape.pure
 ```
 The proof has the same succinct structure as for the initial {name}`mySum` example, because we again offload all proofs to {tactic}`grind` and its existing automation around {name}`List.Nodup`.
 Therefore, the only difference is in the {tech (remote := "reference")}[loop invariant].
-Since our loop has an {ref "early-return" (remote := "reference")}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturn`.
+Since our loop has an {ref "early-return" (remote := "reference")}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturnNewDo`, which supports the {ref "do-elab" (remote := "reference")}[extensible `do`-notation elaborator].
 This function allows us to specify the invariant in three parts:
 
 * {lean}`onReturn ret seen` holds after the loop was left through an early return with value {lean}`ret`.
@@ -262,7 +263,7 @@ end
 :::
 
 :::paragraph
-Note that the form `mvcgen invariants?` will suggest an initial invariant using {name}`Invariant.withEarlyReturn`, so there is no need to memorize the exact syntax for specifying invariants:
+Note that the form `mvcgen invariants?` will suggest an initial invariant, so there is no need to memorize the exact syntax for specifying invariants:
 ```lean (name := invariants?)
 example (l : List Int) : nodup l ↔ l.Nodup := by
   generalize h : nodup l = r
@@ -275,7 +276,7 @@ This starting point will not allow the proof to succeed—after all, if the inva
 Try this:
   [apply] invariants
   ·
-    Invariant.withEarlyReturn (onReturn := fun r letMuts => ⌜l.Nodup ∧ (r = true ↔ l.Nodup)⌝) (onContinue :=
+    Invariant.withEarlyReturnNewDo (onReturn := fun r letMuts => ⌜(r = true ↔ l.Nodup) ∧ l.Nodup⌝) (onContinue :=
       fun xs letMuts => ⌜xs.prefix = [] ∧ letMuts = ∅ ∨ xs.suffix = [] ∧ l.Nodup⌝)
 ```
 :::
@@ -849,7 +850,7 @@ instance Result.instMonad : Monad Result where
 
 instance Result.instLawfulMonad : LawfulMonad Result := by
   apply LawfulMonad.mk' _
-  all_goals (dsimp [Functor.map, bind]; grind)
+  all_goals (dsimp [Functor.map, bind, pure]; grind)
 ```
 :::
 ::::
@@ -863,8 +864,9 @@ Supporting this monad in {tactic}`mvcgen` is a matter of:
 2. Registering specification lemmas for the translation of basic Rust primitives such as addition etc.
 :::
 
-::::paragraph
-:::leanSection
+:::::paragraph
+::::leanSection
+
 ```lean -show
 universe u v
 variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
@@ -872,56 +874,57 @@ variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion p
 The {name}`WP` instance for {name}`Result` specifies a postcondition shape {lean (type := "PostShape.{0}")}`.except Error .pure` because there are no state-like effects, but there is a single exception of type {lean}`Error`.
 The {name}`WP` instance translates programs in {lean}`Result α` to predicate transformers in {lean}`PredTrans ps α`.
 That is, a function in {lean}`PostCond α ps → Assertion ps`, mapping a postcondition to its weakest precondition.
-The implementation of {name}`WP.wp` uses library implementations for two of its cases, and maps diverging programs to {lean}`False`.
-These library implementations {name}`PredTrans.pure` and {name}`PredTrans.throw` are the canonical way of specifying that a value in the monad is to be understood, respectively, as a pure computation or as an exception.
-Using these operators enables automation such as {tactic}`grind` and {tactic}`simp` lemmas from the library.
-The instance is named so that it can be more easily unfolded in proofs about it.
-:::
+The implementation of {name}`WP.wp` is similar to that of {lean}`Except Error`.
+Each case of {name}`Result` is implemented by an existing predicate transformer:
+* {name}`PredTrans.pure` for {lean}`Result.ok`
+* {name}`PredTrans.throw` for {lean}`Result.fail`
+* {lean}`PredTrans.const ⌜False⌝` for {lean}`Result.div`, meaning that all specifications assert that the program never diverges.
+::::
 ```lean
-instance Result.instWP : WP Result (.except Error .pure) where
+instance : WP Result (.except Error .pure) where
   wp
     | .ok v => PredTrans.pure v
     | .fail e => PredTrans.throw e
     | .div => PredTrans.const ⌜False⌝
 ```
-::::
+:::::
 
 :::paragraph
-The implementation of {name}`WP.wp` should distribute over the basic monad operators:
+The implementation of {name}`WP.wp` should distribute over the basic monad operators.
+We prove this as separate theorems for {name}`pure` and {name}`bind`.
+For {name}`bind`, both the definition of {name}`wp` and the definition of {name}`bind` need to be
+unfolded to expose the nested {keyword}`match` structure that {tactic}`grind` makes short process of.
+The {tactic}`simp` and {tactic}`grind` theory for predicate transformers triggers whenever a predicate transformer
+is applied to a postcondition.
+To bring the goals of {name}`WPMonad.wp_pure` and {name}`WPMonad.wp_bind` into this form, we use {tactic}`ext`.
 ```lean
-theorem Result.apply_wp_pure {α} {a : α}
-    {Q : PostCond α (.except Error .pure)} :
-    wp⟦pure (f := Result) a⟧ Q = Q.1 a := by
-  rfl
+theorem Result.apply_wp_pure {α} {a : α} {Q} :
+  wp⟦pure (f := Result) a⟧ Q = Q.1 a := by rfl
 
-theorem Result.apply_wp_bind {α β} {x : Result α}
-    {f : α → Result β} {Q : PostCond β (.except Error .pure)} :
-    wp⟦do let a ← x; f a⟧ Q = wp⟦x⟧ (fun a => wp⟦f a⟧ Q, Q.2) := by
+theorem Result.apply_wp_bind {α β} {x} {f : α → Result β} {Q} :
+  wp⟦do let a ← x; f a⟧ Q = wp⟦x⟧ (fun a => wp⟦f a⟧ Q, Q.2) := by
   simp only [wp, bind]
   grind
 
 instance Result.instWPMonad : WPMonad Result (.except Error .pure) where
-  wp_pure _ := by
-    ext : 1; apply Result.apply_wp_pure
-  wp_bind x f := by
-    ext : 1; apply Result.apply_wp_bind
+  wp_pure _ := by ext Q : 1; apply Result.apply_wp_pure
+  wp_bind x f := by ext Q : 1; apply Result.apply_wp_bind
 ```
 :::
 
-
-:::paragraph
-The adequacy lemma connects proofs about weakest preconditions to proofs in the monad.
-It states that if the weakest precondition of some program entails that a proposition holds for both successes and failures, then it holds for the original program.
-Because the weakest precondition of a diverging program is {name}`False`, there's no need to consider it.
+::: paragraph
+Finally, we also prove an adequacy lemma similar to {name}`Except.of_wp_eq` for {lean}`Result`.
 ```lean
-theorem Result.of_wp {α} {x : Result α} (P : Result α → Prop) :
-    (⊢ₛ wp⟦x⟧ post⟨fun a => ⌜P (.ok a)⌝, fun e => ⌜P (.fail e)⌝⟩) →
-    P x := by
-  intro hspec
-  match x with
-  | .ok a => simpa [wp] using hspec
+theorem Result.of_wp_eq {α} {x prog : Result α}
+    (h : prog = x) (P : Result α → Prop)
+    (hspec : ⊢ₛ wp⟦prog⟧ post⟨fun a => ⌜P (.ok a)⌝,
+                              fun e => ⌜P (.fail e)⌝⟩) :
+      P x := by
+  subst h
+  match prog with
+  | .ok a   => simpa [wp] using hspec
   | .fail e => simpa [wp] using hspec
-  | .div => simp [wp] at hspec
+  | .div    => simp [wp] at hspec
 ```
 :::
 
@@ -931,7 +934,7 @@ universe u v
 variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
 ```
 
-The definition of the {name}`WP` instance determines what properties can be derived from proved specifications via {lean}`Result.of_wp`.
+The definition of the {name}`WP` instance determines what properties can be derived from proved specifications via {lean}`Result.of_wp_eq`.
 This lemma defines what “weakest precondition” means.
 :::
 

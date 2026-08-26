@@ -8,6 +8,7 @@ import VersoManual
 import Manual.Meta.ErrorExplanation.Domain
 
 open Lean
+open Verso (reportError)
 open Verso.Genre.Manual
 
 set_option doc.verso true
@@ -30,7 +31,7 @@ block_extension Block.errorExplanationHeader (metadata : ErrorExplanationExtende
 
   traverse id info _ := do
     let .ok errorMetadata := FromJson.fromJson? (α := ErrorExplanationExtendedMetadata) info
-      | logError s!"Invalid JSON for error explanation:\n{info}"; pure none
+      | reportError s!"Invalid JSON for error explanation:\n{info}"; pure none
     modify (·.saveDomainObject Manual.errorExplanationDomain errorMetadata.name.toString id)
 
     discard <| Verso.Genre.Manual.externalTag id (← read).path errorMetadata.name.toString
@@ -57,7 +58,7 @@ block_extension Block.errorExplanationHeader (metadata : ErrorExplanationExtende
     open Verso.Doc.Html in
     open Verso.Output Html in do
     let .ok metadata := FromJson.fromJson? (α := ErrorExplanationExtendedMetadata) info
-      | HtmlT.logError "Failed to parse info for error explanation metadata block:\n{metadata}"
+      | reportError "Failed to parse info for error explanation metadata block:\n{metadata}"
         pure .empty
     let deprecatedWarning :=
       if metadata.removedVersion?.isSome then

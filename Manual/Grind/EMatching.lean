@@ -305,6 +305,8 @@ grindExt
 grindFunCC
 grindFwd
 grindGen
+grindHom
+grindHomPred
 grindInj
 grindIntro
 grindLR
@@ -643,6 +645,26 @@ norm
 {includeDocstring Lean.Parser.Attr.grindNorm}
 :::
 
+The {tactic}`grind` tactic can work with a source algebra that doesn't have a great deal of solving infrastructure (e.g. bitvectors) by “injecting” it into another algebra that has more solving infrastructure (like natural numbers or integers).
+Homomorphism rules describe the injection from source to target, and how the injection commutes with other operations (like addition or multiplication in the case of bitvectors).
+Homomorphism predicates present additional facts that {tactic}`grind` can use about the injection (like that a bitvector of length $`n` corresponds to a natural number less than $`2^n`).
+
+:::syntax Lean.Parser.Attr.grindMod (title := "Homomorphism Rules")
+```grammar
+hom
+```
+{includeDocstring Lean.Parser.Attr.grindHom}
+:::
+
+:::syntax Lean.Parser.Attr.grindMod (title := "Homomorphism Predicates")
+```grammar
+hom_pred
+```
+{includeDocstring Lean.Parser.Attr.grindHomPred}
+:::
+
+{TODO}[Grind's hom infrastructure could use an example]
+
 {TODO}[Document `gen` modifier for `grind` patterns]
 
 # Inspecting Patterns
@@ -685,7 +707,7 @@ axiom q : Nat → Nat
 ```
 
 ```lean (name := h1)
-@[grind!? →] theorem h₁ (w : 7 = p (q x)) : p (x + 1) = q x := sorry
+@[grind!? →] theorem h₁ (w : p (q x) = 7) : p (x + 1) = q x := sorry
 ```
 ```leanOutput h1
 h₁: [q #1]
@@ -693,10 +715,10 @@ h₁: [q #1]
 The pattern is `q x`.
 Counting from the right, parameter `#0` is the premise `w` and parameter `#1` is the implicit parameter `x`.
 
-Why did `@[grind →]`? select `q #1`?
-The attribute `@[grind →]` finds patterns by traversing the hypotheses (that is, parameters whose types are propositions) from left to right.
-In this case, there's only a single hypothesis: `7 = p (q x)`.
-The heuristic described above says that {attr}`grind` will search for a minimal {tech}[indexable] subexpression which {tech}[covers] a previously uncovered parameter.
+Why did `@[grind! →]`? select `q #1`?
+The attribute `@[grind! →]` finds patterns by traversing the hypotheses (that is, parameters whose types are propositions) from left to right.
+In this case, there's only a single hypothesis: `p (q x) = 7`.
+The heuristic described above says that {attr}`grind!` will search for a minimal {tech}[indexable] subexpression which {tech}[covers] a previously uncovered parameter.
 There's just one uncovered parameter, namely `x`.
 The whole hypothesis `p (q x) = 7` can't be used because {tactic}`grind` will not index on equality.
 The right-hand side `7` is not helpful, because it doesn't determine the value of `x`.

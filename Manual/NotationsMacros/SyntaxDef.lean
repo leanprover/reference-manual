@@ -292,7 +292,7 @@ In the second example, {tech}[macro scopes] inserted by quotation are visible on
 ```
 ```leanOutput toStringStx2 (allowDiff := 2)
 (Term.app
- `List.length._@.Manual.NotationsMacros.SyntaxDef.316878510._hygCtx._hyg.2
+ `List.length._@.Manual.NotationsMacros.SyntaxDef.3168789510._hygCtx._hyg.2
  [(«term[_]» "[" [(str "\"Rose\"") "," (str "\"Daffodil\"") "," (str "\"Lily\"")] "]")])
 ```
 :::

@@ -95,7 +95,7 @@ Clicking a `▶` symbol expands that branch of the trace, and clicking the `▼`
 
 ```lean -show
 -- Hide Lake details that are intruding here
-attribute [-instance] Lake.inhabitedOfNilTrace
+attribute [-instance] Lake.inhabitedOfNilTrace Lake.inhabitedOfMonadCycle
 ```
 
 ```lean (name := trace)
@@ -107,18 +107,35 @@ set_option trace.Meta.synthInstance true in
 ```comment
 IF THE LEAN OUTPUT BELOW CHANGES, IT MAY ALSO BE NECESSARY TO UPDATE THE NARRATIVE VERSION OF THIS STORY THAT FOLLOWS
 ```
-```leanOutput trace (expandTrace := Meta.synthInstance) (expandTrace := Meta.synthInstance.resume)
+```leanOutput trace (expandTrace := Meta.synthInstance) (expandTrace := Meta.synthInstance.apply) (expandTrace := Meta.synthInstance.resume)
 [Meta.synthInstance] ✅️ Nonempty (Sum Nat Empty)
   [Meta.synthInstance] ✅️ new goal Nonempty (Sum Nat Empty)
     [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad, @Sum.nonemptyLeft, @Sum.nonemptyRight]
   [Meta.synthInstance.apply] ✅️ apply @Sum.nonemptyRight to Nonempty (Sum Nat Empty)
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
+    [Meta.synthInstance] ✅️ new goal Nonempty Empty
+      [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
   [Meta.synthInstance.apply] ❌️ apply @instNonemptyOfMonad to Nonempty Empty
+    [Meta.synthInstance.tryResolve] ❌️ Nonempty Empty ≟ Nonempty (?m.5 ?m.6)
   [Meta.synthInstance.apply] ✅️ apply @instNonemptyOfInhabited to Nonempty Empty
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty Empty ≟ Nonempty Empty
+    [Meta.synthInstance] ✅️ new goal Inhabited Empty
+      [Meta.synthInstance.instances] #[@instInhabitedOfMonad]
   [Meta.synthInstance.apply] ❌️ apply @instInhabitedOfMonad to Inhabited Empty
+    [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
   [Meta.synthInstance.apply] ✅️ apply @Sum.nonemptyLeft to Nonempty (Sum Nat Empty)
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
+    [Meta.synthInstance] ✅️ new goal Nonempty Nat
+      [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
   [Meta.synthInstance.apply] ❌️ apply @instNonemptyOfMonad to Nonempty Nat
+    [Meta.synthInstance.tryResolve] ❌️ Nonempty Nat ≟ Nonempty (?m.5 ?m.6)
   [Meta.synthInstance.apply] ✅️ apply @instNonemptyOfInhabited to Nonempty Nat
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty Nat ≟ Nonempty Nat
+    [Meta.synthInstance] ✅️ new goal Inhabited Nat
+      [Meta.synthInstance.instances] #[@instInhabitedOfMonad, instInhabitedNat]
   [Meta.synthInstance.apply] ✅️ apply instInhabitedNat to Inhabited Nat
+    [Meta.synthInstance.tryResolve] ✅️ Inhabited Nat ≟ Inhabited Nat
+    [Meta.synthInstance.answer] ✅️ Inhabited Nat
   [Meta.synthInstance.resume] ✅️ propagating Inhabited Nat to subgoal Inhabited Nat of Nonempty Nat
     [Meta.synthInstance.resume] size: 1
     [Meta.synthInstance.answer] ✅️ Nonempty Nat
@@ -139,7 +156,7 @@ In the example above, Lean follows these steps:
   - The {name}`Sum.nonemptyLeft` instance, which would create a sub-goal {lean}`Nonempty Nat`.
   - The {name}`instNonemptyOfMonad` instance, which would create two sub-goals {lean}`Monad (Sum Nat)` and {lean}`Nonempty Nat`.
   - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited (Sum Nat Empty)`.
-* It applies {name}`Sum.nonemptyRight`, which succeeds, leaving an new goal: {lean}`Nonempty Empty`.
+* It applies {name}`Sum.nonemptyRight`, which succeeds, leaving a new goal: {lean}`Nonempty Empty`.
 * The first sub-goal, {lean}`Nonempty Empty`, is considered. Lean sees two ways of possibly satisfying this goal:
   - The {name}`instNonemptyOfMonad` instance, which is rejected.
     It can't be used because the type {lean}`Empty` is not the application of a monad to a type.

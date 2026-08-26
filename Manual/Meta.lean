@@ -25,7 +25,9 @@ import Manual.Meta.Example
 import Manual.Meta.Figure
 import Manual.Meta.LakeCheck
 import Manual.Meta.LakeCmd
+import Manual.Meta.LakeLean
 import Manual.Meta.LakeManifest
+import Manual.Meta.LakeSession
 import Manual.Meta.LakeOpt
 import Manual.Meta.LakeToml
 import Manual.Meta.Lean
@@ -39,6 +41,7 @@ import Manual.Meta.Markdown
 import Manual.Meta.Namespace
 import Manual.Meta.SectionNotes
 import Manual.Meta.ConfigFile
+import Manual.Meta.Diagram
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
@@ -161,6 +164,37 @@ span.TODO {
     some <| fun go _ _ content => do
       pure {{<span class="TODO">{{← content.mapM go}}</span>}}
 
+def Block.warn : Block where
+  name := `Manual.warn
+
+@[directive_expander warn]
+def warn : DirectiveExpander
+  | args, blocks => do
+    ArgParse.done.run args
+    let content ← blocks.mapM elabBlock
+    pure #[← `(Block.other Block.warn #[$content,*])]
+
+@[block_extension warn]
+def warn.descr : BlockDescr where
+  traverse _ _ _ := pure none
+  toTeX := none
+  extraCss := [r#"
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+"#]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ goB _ _ content => do
+      pure {{
+        <div class="namedocs warn">
+          <span class="label">"Warning"</span>
+          <div class="text">
+            {{← content.mapM goB}}
+          </div>
+        </div>
+      }}
+
 def Inline.noVale : Inline where
   name := `Manual.noVale
 
@@ -216,18 +250,18 @@ def planned.descr : BlockDescr where
     | .ok (none, loc?) | .ok (some 0, loc?) =>
        -- TODO add source locations to Verso ASTs upstream, then report here
       if let some (line, file) := loc? then
-        logError s!"Missing issue number for planned content indicator at {file} line {line}"
+        reportError s!"Missing issue number for planned content indicator at {file} line {line}"
       else
-        logError s!"Missing issue number for planned content indicator"
+        reportError s!"Missing issue number for planned content indicator"
     | .ok (some n, loc?) =>
       if !(← isDraft) then
         let loc := loc?.map (fun (l, f) => s!" at {f} line {l}") |>.getD ""
-        logError s!"Planned content {n} in final rendering{loc}"
+        reportError s!"Planned content {n} in final rendering{loc}"
       else
         pure ()
 
     | .error e =>
-      logError s!"Failed to deserialize issue number from {data} during traversal: {e}"
+      reportError s!"Failed to deserialize issue number from {data} during traversal: {e}"
     pure none
   toTeX := none
   extraCss := [r#"
@@ -247,7 +281,7 @@ div.planned .label {
         match FromJson.fromJson? (α := Option Nat × Option (Nat × String)) data with
         | .ok v => pure v.1
         | .error e =>
-          HtmlT.logError s!"Failed to deserialize issue number from {data}: {e}"
+          reportError s!"Failed to deserialize issue number from {data}: {e}"
           pure none
       pure {{
         <div class="planned">
@@ -367,7 +401,7 @@ def ffi : DirectiveExpander
 def ffi.descr : BlockDescr where
   traverse id info _ := do
     let .ok (name, _declType, _signature) := FromJson.fromJson? (α := String × FFIDocType × String) info
-      | do logError "Failed to deserialize FFI doc data"; pure none
+      | do reportError "Failed to deserialize FFI doc data"; pure none
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path name
     Index.addEntry id {term := .code name}
@@ -376,7 +410,7 @@ def ffi.descr : BlockDescr where
     open Verso.Doc.Html in
     open Verso.Output Html in do
       let .ok (_name, ffiType, signature) := FromJson.fromJson? (α := String × FFIDocType × String) info
-        | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize FFI doc data"; pure .empty
+        | do reportError "Failed to deserialize FFI doc data"; pure .empty
       let sig : Html := {{<pre>{{signature}}</pre>}}
 
       let xref ← HtmlT.state

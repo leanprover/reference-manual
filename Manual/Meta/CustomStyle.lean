@@ -23,7 +23,7 @@ block_extension Block.customCSS (css : String) where
     some <| fun _ _ _ data _ => do
       match FromJson.fromJson? data with
       | .error err =>
-        HtmlT.logError <| "Couldn't deserialize CSS while rendering HTML: " ++ err
+        reportError <| "Couldn't deserialize CSS while rendering HTML: " ++ err
         pure .empty
       | .ok (css : String) =>
         pure {{

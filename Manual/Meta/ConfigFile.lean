@@ -16,7 +16,7 @@ import Verso.Code
 import SubVerso.Highlighting
 import SubVerso.Examples
 
-
+open Verso
 open Verso.Genre.Manual
 
 namespace Manual
@@ -44,7 +44,7 @@ inline_extension Inline.configFile (filename : String) where
   data := .str filename
   traverse id data _ := do
     let .str filename := data
-      | logError s!"Failed to deserialize {data} as a string for the filename"
+      | reportError s!"Failed to deserialize {data} as a string for the filename"
         pure none
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path filename
@@ -56,7 +56,7 @@ inline_extension Inline.configFile (filename : String) where
     open Verso.Doc.Html in
     some fun _ id data _ => do
       let .str filename := data
-        | HtmlT.logError s!"Failed to deserialize {data} as a string for the filename"
+        | reportError s!"Failed to deserialize {data} as a string for the filename"
           pure .empty
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
