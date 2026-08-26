@@ -148,6 +148,6 @@ grind_pattern sin_sq_add_cos_sq => sin x, cos x
 ```
 which will instantiate the theorem as soon as *both* {lean}`sin x` and {lean}`cos x` (with the same {lean}`x`) are encountered.
 This theorem will then automatically enter the Gröbner basis module, and be used to reason about polynomial expressions involving both {lean}`sin x` and {lean}`cos x`.
-One both alternatively, more aggressively, write two separate grind patterns so that this theorem instantiated when either {lean}`sin x` or {lean}`cos x` is encountered.
+Alternatively, one could more aggressively write two separate grind patterns so that this theorem will be instantiated when either {lean}`sin x` or {lean}`cos x` is encountered.
 :::
 ::::
