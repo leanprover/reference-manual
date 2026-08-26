@@ -71,7 +71,8 @@ They can therefore be used in long-running asynchronous applications such as ser
 
 Each of these monads has a corresponding type of asynchronous tasks that it can coordinate.
 These tasks can be thought of as handles to an in-flight computation.
-Calling {name}`async` on a monadic action creates a task that runs in the current thread until it suspends, and calling {name}`await` on a task results in a monadic action that waits for the task to complete.
+Calling {name}`async` on a monadic action creates a task that runs in a thread from the thread pool, and calling {name}`await` on a task results in a monadic action that waits for the task to complete.
+Passing {name}`Task.Priority.dedicated` as the `prio` parameter to {name}`async` causes the task to run on a dedicated thread instead.
 
 {docstring ETask}
 
