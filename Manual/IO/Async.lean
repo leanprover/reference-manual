@@ -538,8 +538,7 @@ some 2
 :::
 
 
-{name}`Selectable.one` throws an exception when passed an empty array of selectables, because it's impossible to get a value from nothing.
-{name}`Selectable.tryOne` always returns {name}`none` when passed an empty array.
+Both {name}`Selectable.one` and {name}`Selectable.tryOne` throw an exception when passed an empty array of selectables, because it's impossible to get a value from nothing.
 
 Event selection is {deftech}_fair_.
 This means that there is an equal probability that any of the selectables with currently-resolved selectors have an equal chance of winning and having their associated code invoked.
@@ -584,38 +583,50 @@ This section is primarily intended for authors of new selectors.
 :::
 
 Event selection begins by randomizing the order of the selectables.
-It consults each selector's non-blocking poll {name}`Selector.tryFn` until one of them returns {name}`some`.
+Each selector's non-blocking poll {name}`Selector.tryFn` is consulted until one of them returns {name}`some`.
 This is the winning selectable; its code is invoked and no further work is needed.
 On this fast path, only one selector is ever consumed, so there is no risk of data loss or double delivery.
+No cleanup is needed because a {name Selector.tryFn}`tryFn` should not require cleanup when returning {name}`none`.
 
 If no selector was resolved in the first iteration (that is, each {name Selector.tryFn}`tryFn` returned {name}`none`), then it is necessary to wait until one of the selectors is resolved.
-Waiting consists of first registering a waiter with each selector; the first selector that has data wins the race via the waiters.
-The winning selector consumes its event, invokes code to clean up the other waiting selectors, computes the selectable's value, and resolves an overall promise that {name}`Selectable.one` is blocked on.
+The process of waiting has three phases: {ref "selector-protocol-registration"}[registration], {ref "selector-protocol-race"}[racing], and {ref "selector-protocol-cleanup"}[cleanup].
+Racing is concurrent with registration: the race begins before all selectors have been registered, and it may even terminate before all selectors have been registered.
 
-More specifically, this is done by creating an atomic flag (indicating that a winner has been selected) and a promise for the result of {name}`Selectable.one`.
-A _registration loop_ processes each selectable in the array:
-1. The system checks whether the flag is now set, indicating that a prior selector has won the race. If so, the loop terminates.
-2. A {tech}[waiter] is registered with the selector using {name}`Selector.registerFn`.
-  This registration process may not consume data; it merely registers interest in data should it become available. The waiter includes a reference to the atomic flag along with a promise that can be resolved with the selector's data.
-  The selector must call {name Waiter.race}`race` on the waiter when the event has occurred, but it may only consume data if it wins the race.
-3. A task is created that observes the waiter's promise.
-  When the promise is resolved, indicating that it has won the race, this _completion callback_ is invoked with {name}`none` if the promise was dropped (e.g. due to cancellation or unregistering); in this case, it should do nothing. If it is invoked with {name}`some` around the result, then it must run an {name}`Async` computation that:
-  a. propagates any error indicated by the data source's result,
-  b. blocks until the entire registration loop is complete,
-  c. unregisters the waiter from every selectable in the array using its {name}`Selector.unregisterFn`, and
-  d. runs the winning selectable's code, resolving the result promise.
+The winning selectable's data is passed to the selectable's {name}`Selectable.cont` continuation.
+This continuation asynchronously computes the result that is returned from {name}`Selectable.one`.
 
-When the registration loop is complete, an internal promise is resolved that unblocks the winning waiter's callback.
-This block ensures that all registration occurs before all cleanup.
+### Registration
+%%%
+tag := "selector-protocol-registration"
+%%%
 
-Finally, {name}`Selectable.one` awaits the overall result promise, which will be resolved as soon as there is a winning callback.
+Prior to registration, the order of the selectables is randomized again.
+During registration, a {tech}[waiter] is registered with each selector in turn using {name}`Selector.registerFn`.
+Selectors must consider registration to be merely an expression of interest in the selector's data, so a {name Selector.registerFn}`registerFn` should not itself consume data.
 
-### Waiters
+Racing begins as soon as the first {name Selector.registerFn}`registerFn` has been called.
+The first selector that has data wins the race via the waiters.
+Selectors may win the race during their {name Selector.registerFn}`registerFn` calls.
+If the data becomes available between the initial {name Selector.tryFn}`tryFn` loop and the registration phase, then there's no reason to wait until later to win the race.
+
+All the waiters involved in a selection share a single atomic flag that indicates whether a winner has already been chosen, while each waiter has its own promise by which the selector can deliver its data if it wins the race.
+The registration process stops early if the flag is already set, because that indicates that a selector has already won, so further registration is pointless.
+Likewise, if a {name Selector.registerFn}`registerFn` throws an exception, then the process stops.
+If a selector has already won, then its result is returned and the exception is discarded; otherwise, the exception becomes the result of the selection.
+
+### Racing
+%%%
+tag := "selector-protocol-race"
+%%%
+
+Racing begins as soon as a single selectable is registered, and it continues until a selectable wins the race or registration fails due to an exception.
+When a selectable's event is ready, it calls {name}`Waiter.race` on its waiter; the waiter determines whether it has won.
 
 A {deftech}_waiter_ is a means of atomically selecting a single offered value.
 Internally, it contains an atomic flag that indicates that a winner has been selected.
 When a client has a value, it calls {name}`Waiter.race` with two callbacks: one is used when the offered value was not accepted (it did not win the race), the other is used when it is accepted.
-The callback that wins the race should resolve the waiter's promise, which is provided to the winning callback.
+The callback that is invoked upon winning the race should resolve the waiter's promise, which is provided to the winning callback.
+The callback that is invoked upon losing the race must leave all data in place.
 This two-phase protocol ensures that there is no data loss, because selectors only consume events once they've already won the race.
 
 {docstring Waiter +allowMissing}
@@ -625,6 +636,19 @@ This two-phase protocol ensures that there is no data loss, because selectors on
 {docstring Waiter.withPromise}
 
 {docstring Waiter.checkFinished}
+
+### Cleanup
+%%%
+tag := "selector-protocol-cleanup"
+%%%
+
+When the {ref "selector-protocol-race"}[race] is completed, selectors are offered the opportunity to clean up.
+This occurs no matter whether the race has been won or a  {name}`Selector.registerFn` threw an exception, but not when the initial {name Selector.tryFn}`tryFn` loop returned a value.
+In this phase, {name}`Selector.unregisterFn` is called on every selector in the array, regardless of whether it was registered in the {ref "selector-protocol-registration"}[registration phase] or whether it threw an exception during registration.
+
+Cleanup always occurs, regardless of whether an error occurred during registration, racing, or in prior selectors' {name Selector.unregisterFn}`unregisterFn` implementations.
+Selectors must therefore be written so that {name Selector.unregisterFn}`unregisterFn` is safe to use even when their {name Selector.registerFn}`registerFn` lost the race, was never called, or threw an exception.
+
 
 :::example "Natural Number Ticker"
 ```imports -show
@@ -853,7 +877,8 @@ def raceSlowOk : Async Nat := do sleep 100; return 42
 
 During selection, errors might occur at any stage of {ref "async-select"}[the protocol].
 Errors thrown by a selector during the initial {name Selector.tryFn}`tryFn` loop terminate the selection immediately.
-An error thrown from a {name Selector.registerFn}`registerFn` or {name Selector.unregisterFn}`unregisterFn`, by contrast, can leave selectors that were already registered without a matching call to {name Selector.unregisterFn}`unregisterFn`.
+An error thrown from a {name Selector.registerFn}`registerFn` becomes the selection's result unless the race is already won; in that case, the winner's result takes priority.
+Errors thrown in an {name Selector.unregisterFn}`unregisterFn` are suppressed and discarded.
 A selector that wins the race may resolve the promise with either {name}`Except.ok` or {name}`Except.error`; in the latter case, the result of the call to {name}`Selectable.one` is itself an error.
 
 ```lean -show
@@ -871,41 +896,52 @@ def selErrorPropagates : Async String := do
 ```
 
 ```lean -show
--- This test ensures that the documented error handling in selectors is still the case, as we have
--- discussed changing it. If this test fails, then the text almost certainly needs updating.
-def selectionErrorThrower : Selector Nat := {
+-- This test ensures that the documented error handling in selectors is still the case.
+-- If this test fails, then the text almost certainly needs updating.
+def registerErrorThrower : Selector Nat := {
   tryFn := return none
   registerFn := fun _ => throw (IO.userError "boom")
   unregisterFn := pure ()
 }
-def selectionLeaks : IO Bool := do
+-- When a sibling's registerFn throws, the selection fails with that error and the
+-- other selectors are still unregistered, so a later send is not consumed by a stale waiter.
+def registerErrorCleansUp : Async Bool := do
   for _ in [0:50] do
     let ch ← CloseableChannel.new (α := Nat)
-    try
-      discard <| (Selectable.one #[
-        .case ch.recvSelector (fun _ => return 0),
-        .case selectionErrorThrower (fun _ => return 1)]).block
-    catch _ => pure ()
+    let unregistered ← IO.mkRef false
+    let victim : Selector Nat := {
+      tryFn := return none
+      registerFn := fun _ => pure ()
+      unregisterFn := unregistered.set true
+    }
+    let err ← try
+        discard <| Selectable.one #[
+          .case ch.recvSelector (fun _ => return 0),
+          .case victim (fun _ => return 1),
+          .case registerErrorThrower (fun _ => return 2)]
+        pure ""
+      catch e => pure (toString e)
+    unless err == "boom" do return false
+    unless (← unregistered.get) do return false
     discard <| ch.send 7
-    IO.sleep 5
-    match ← ch.tryRecv with
-    | some _ => pure ()        -- value survived: no leak this run, retry
-    | none   => return true    -- value vanished: a leaked waiter consumed it
-  return false
+    unless (← ch.tryRecv) == some 7 do return false
+  return true
 #eval do
-  unless (← selectionLeaks) do
-    throw (IO.userError "a selector is no longer leaked when a sibling's registerFn throws; the selection error-safety behavior may have changed, so update this section")
+  unless (← registerErrorCleansUp.block) do
+    throw (IO.userError "the selection error-safety behavior for registerFn may have changed, so update this section")
 ```
 
 ```lean -show
--- This test ensures that the documented error handling in selectors is still the case, as we have
--- discussed changing it. If this test fails, then the text almost certainly needs updating.
+-- This test ensures that the documented error handling in selectors is still the case.
+-- If this test fails, then the text almost certainly needs updating.
 def unregisterErrorThrower : Selector Nat := {
   tryFn := return none
   registerFn := fun _ => pure ()
   unregisterFn := throw (IO.userError "boom")
 }
-def unregisterSkipsCleanup : IO Bool := do
+-- When a sibling's unregisterFn throws, every other selector is still unregistered and the
+-- winning selectable's value is returned.
+def unregisterErrorCleansUp : Async Bool := do
   for _ in [0:50] do
     let cleaned ← IO.mkRef false
     let chB ← CloseableChannel.new (α := Nat)
@@ -914,21 +950,19 @@ def unregisterSkipsCleanup : IO Bool := do
       registerFn := fun _ => pure ()
       unregisterFn := cleaned.set true
     }
-    -- send to chB after registration completes, so chB wins and the cleanup loop runs
+    -- send to chB after registration completes, so chB wins and cleanup runs
     discard <| IO.asTask (prio := .dedicated) do
       IO.sleep 15; discard <| chB.send 0
-    try
-      discard <| (Selectable.one #[
-        .case victim (fun _ => return 0),
-        .case chB.recvSelector (fun _ => return 1),
-        .case unregisterErrorThrower (fun _ => return 2)]).block
-    catch _ => pure ()
-    IO.sleep 50              -- the cleanup loop runs after `block` returns
-    unless (← cleaned.get) do return true   -- the thrower aborted cleanup before the victim
-  return false
+    let r ← Selectable.one #[
+      .case victim (fun _ => return 0),
+      .case chB.recvSelector (fun _ => return 1),
+      .case unregisterErrorThrower (fun _ => return 2)]
+    unless r == 1 do return false
+    unless (← cleaned.get) do return false
+  return true
 #eval do
-  unless (← unregisterSkipsCleanup) do
-    throw (IO.userError "a selector's unregisterFn is no longer skipped when a sibling's unregisterFn throws; the selection error-safety behavior may have changed, so update this section")
+  unless (← unregisterErrorCleansUp.block) do
+    throw (IO.userError "the selection error-safety behavior for unregisterFn may have changed, so update this section")
 ```
 
 # Timers
