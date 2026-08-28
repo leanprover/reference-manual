@@ -69,6 +69,7 @@ BASIC OPTIONS:
   --keep-toolchain      do not update toolchain on workspace update
   --allow-empty         accept bare builds with no default targets configured
   --no-build            exit immediately if a build target is not up-to-date
+  --fail-fast           stop scheduling new build jobs after the first required failure
   --no-cache            build packages locally; do not download build caches
   --try-cache           attempt to download build caches for supported packages
   --json, -J            output JSON-formatted results (in `lake query`)
@@ -326,6 +327,11 @@ Single-character flags cannot be combined; `-HR` is not equivalent to `-H -R`.
 : {lakeOptDef flag}`--no-build`
 
   Lake exits immediately if a build target is not up-to-date, returning a non-zero exit code.
+
+: {lakeOptDef flag}`--fail-fast`
+
+  After the first required build job fails, Lake stops scheduling new build jobs.
+  Jobs that are already running are allowed to finish.
 
 : {lakeOptDef flag}`--no-cache`
 
@@ -895,6 +901,9 @@ OPTIONS:
   --code-quality        records each linter warning as a code quality check result
                         and runs the registered code quality checks.
                         Setting this flag will skip lint driver.
+  --checks <mods>       comma-separated list of workspace modules providing
+                        package code quality checks; they are imported
+                        alongside each linted module (implies --code-quality)
 
 A lint driver can be configured by either setting the `lintDriver` package
 configuration option or by tagging a script or executable `@[lint_driver]`.
