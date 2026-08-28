@@ -66,7 +66,7 @@ There are three monads for writing asynchronous programs, each corresponding to 
 
 {docstring BaseAsync}
 
-Infinite loops in {name}`EAsync` and {name}`Async` use a special instance of {name}`ForIn` that ensures that they don't consume stack frames.
+Infinite loops in {name}`EAsync` and {name}`Async` use a special instance of {name}`ForIn` that ensures that they don't consume stack frames when used in {keywordOf Lean.Parser.Term.doRepeat}`repeat` and {keywordOf Lean.Parser.Term.doWhile}`while` loops.
 They can therefore be used in long-running asynchronous applications such as servers without the stack overflowing.
 
 Each of these monads has a corresponding type of asynchronous tasks that it can coordinate.
@@ -82,7 +82,8 @@ Passing {name}`Task.Priority.dedicated` as the `prio` parameter to {name}`async`
 
 Crucially, calling {name}`await` on a task never blocks an OS-level thread.
 Threads are only blocked at the {ref "async-run"}[boundary] between the {name}`IO` and the {name}`Async` monads.
-Under the hood, asynchronous tasks are invoked when needed by the `libuv` event loop.
+When an asynchronous task {name}`await`s a value, the code that will handle the value is attached to the task.
+When the task is resolved, this code is scheduled in the thread pool like any other task.
 
 Asynchronous tasks use the same system of {tech (key := "task priority")}[priorities] as {ref "concurrency"}[other Lean tasks], and are run by the same scheduler.
 
@@ -92,8 +93,9 @@ tag := "async-run"
 %%%
 
 Asynchronous computations can be run from {name}`IO` by either waiting or blocking.
-When a thread waits on an asynchronous computation, the asynchronous computation is run on the thread that is waiting.
-When a thread blocks on an asynchronous computation or task, the computation is run on a worker thread in an ordinary {tech}[task] with the specified priority, and the calling thread calls {name}`Task.get` to block on the result.
+When a thread waits on an asynchronous computation, the asynchronous computation is run on the thread that is waiting until its first suspension.
+After suspension, it may be scheduled in any thread in the thread pool, and the waiting thread blocks until the result is available.
+When a thread blocks on an asynchronous computation, the computation is run on a worker thread in an ordinary {tech}[task] with the specified priority, and the calling thread calls {name}`Task.get` to block on the result.
 Because {name}`Async` is a defined alias for {name}`EAsync`, {tech}[generalized field notation] can be used to call {name}`EAsync.wait` on a term with type {name}`Async`.
 
 {docstring EAsync.wait}
@@ -121,7 +123,7 @@ Asynchronous computations can also be run as ordinary {name}`Task`s in {name}`IO
 {docstring BaseAsync.asTask}
 
 Compared to {name}`IO.asTask`, {name}`EAsync.asTask` schedules an _asynchronous task_.
-While tasks from {name}`IO.asTask` are synchronous, occupying their worker thread until completed, tasks from {name}`EAsync.asTask` release their worker threads at suspension points and are reinvoked as needed by the `libuv` event loop.
+While tasks from {name}`IO.asTask` are synchronous, occupying their worker thread until completed, tasks from {name}`EAsync.asTask` release their worker threads at suspension points and resume as tasks when the awaited value becomes available.
 
 ::::example "Running an Asynchronous Computation"
 {name}`Async.block` runs an asynchronous computation and returns its result in {name}`IO`.
@@ -163,7 +165,16 @@ To launch an asynchronous task whose value will never be needed, use {name}`back
 
 {docstring background}
 
-In addition to instances for the {name}`Async` monads and tasks, the library includes instances that allow reader and state monad transformers to be used with {name}`async` and {name}`await`.
+In addition to instances for the {name}`Async` monads and tasks, the library includes instances that allow reader and state monad transformers to be used with {name}`async` and {name}`await`, and exception monad transformers to be used with {name}`await`.
+
+```lean -show
+-- The transformer instances for `await` and `async`.
+example : MonadAwait AsyncTask (StateT Nat Async) := inferInstance
+example : MonadAwait AsyncTask (ReaderT Nat Async) := inferInstance
+example : MonadAwait AsyncTask (ExceptT String Async) := inferInstance
+example : MonadAsync AsyncTask (StateT Nat Async) := inferInstance
+example : MonadAsync AsyncTask (ReaderT Nat Async) := inferInstance
+```
 
 :::example "Spawning and Awaiting Tasks"
 ```imports -show
@@ -351,6 +362,20 @@ To start a computation concurrently without awaiting its result, use {name}`back
   IO.sleep 80
   unless (← ranToEnd.get) do throw (IO.userError "race: loser was canceled")
 
+-- `ContextAsync.race` cancels the loser.
+def ctxRaceCancelsLoser : Async Bool := ContextAsync.run do
+  let cancelledP ← IO.Promise.new (α := Bool)
+  let loser : ContextAsync Nat := do
+    let c ← Selector.cancelled
+    discard <| Selectable.one #[.case c (fun _ => pure ())]
+    cancelledP.resolve true
+    return 2
+  let r ← ContextAsync.race (do sleep 5; return 1) loser
+  unless r == 1 do throw (IO.userError "ctxRace: winner")
+  Async.race (await cancelledP) (do sleep 500; return false)
+#eval do
+  unless (← ctxRaceCancelsLoser.block) do throw (IO.userError "ctxRace: loser was not cancelled")
+
 -- `concurrentlyAll` returns results in array order, not completion order.
 #eval do
   let r ← (Async.concurrentlyAll #[
@@ -469,18 +494,24 @@ def recv (ch : CloseableChannel Nat) : Async (Option Nat) := do
 ```
 
 If the channel contains a value, then the {name CloseableChannel.recvSelector}`recvSelector` wins:
-```lean
+```lean (name := recvWin)
 #eval show IO _ from do
   let ch ← CloseableChannel.new (α := Nat)
   discard <| ch.send 42
   (recv ch).block
 ```
+```leanOutput recvWin
+some 42
+```
 If not, the timer wins:
-```lean
+```lean (name := timerWin)
 #eval show IO _ from do
   let ch ← CloseableChannel.new (α := Nat)
   -- nothing sent: the timeout wins
   (recv ch).block
+```
+```leanOutput timerWin
+none
 ```
 :::
 
@@ -503,20 +534,26 @@ def recv2 (ch1 ch2 : CloseableChannel Nat) : Async (Option Nat) := do
 ```
 
 If only one channel contains a value, then it is returned:
-```lean
+```lean (name := chan1)
 #eval show IO _ from do
   let ch1 ← CloseableChannel.new (α := Nat)
   let ch2 ← CloseableChannel.new (α := Nat)
   discard <| ch1.send 1
   (recv2 ch1 ch2).block
 ```
+```leanOutput chan1
+some 1
+```
 
-```lean
+```lean (name := chan2)
 #eval show IO _ from do
   let ch1 ← CloseableChannel.new (α := Nat)
   let ch2 ← CloseableChannel.new (α := Nat)
   discard <| ch2.send 2
   (recv2 ch1 ch2).block
+```
+```leanOutput chan2
+some 2
 ```
 
 If neither channel contains a value, then {name}`recv2` blocks until one does; the first one to have a value wins:
@@ -541,9 +578,34 @@ some 2
 Both {name}`Selectable.one` and {name}`Selectable.tryOne` throw an exception when passed an empty array of selectables, because it's impossible to get a value from nothing.
 
 Event selection is {deftech}_fair_.
-This means that there is an equal probability that any of the selectables with currently-resolved selectors have an equal chance of winning and having their associated code invoked.
+This means that there is an equal probability that any of the selectables with currently-resolved selectors win and have their associated code invoked.
 This is important because a bias in event selection can lead to one of the selectables _never_ being called, which can in turn cause data to accumulate without bound in the source it would have handled.
 Behind the scenes, fairness is ensured by randomizing the order of selectables each time.
+
+```lean -show
+-- Both selection operators reject an empty array.
+#eval do
+  let e ← try discard <| (Selectable.one (α := Nat) #[]).block; pure "" catch e => pure (toString e)
+  unless e == "Selectable.one requires at least one Selectable" do throw (IO.userError s!"one: {e}")
+  let e ← try discard <| (Selectable.tryOne (α := Nat) #[]).block; pure "" catch e => pure (toString e)
+  unless e == "Selectable.tryOne requires at least one Selectable" do throw (IO.userError s!"tryOne: {e}")
+
+-- Fairness: over many selections between two ready channels, each wins at least once.
+def fairness : Async Unit := do
+  let a ← CloseableChannel.new (α := Nat)
+  let b ← CloseableChannel.new (α := Nat)
+  let mut aWins := 0
+  let mut bWins := 0
+  for _ in [0:200] do
+    discard <| a.send 0
+    discard <| b.send 0
+    let w ← Selectable.one #[.case a.recvSelector (fun _ => return 0), .case b.recvSelector (fun _ => return 1)]
+    if w == 0 then aWins := aWins + 1 else bWins := bWins + 1
+    -- drain the loser so both channels start each round with exactly one value
+    discard <| (if w == 0 then b else a).recv
+  unless aWins > 0 && bWins > 0 do throw (IO.userError s!"fairness: {aWins} vs {bWins}")
+#eval fairness.block
+```
 
 Furthermore, event selection never results in data being lost in the losing selectables.
 The implementation ensures that data is never removed from a selector without being passed to the selectable's code, and that resolving a selector calls the associated selectable's code at most once.
@@ -586,7 +648,7 @@ Event selection begins by randomizing the order of the selectables.
 Each selector's non-blocking poll {name}`Selector.tryFn` is consulted until one of them returns {name}`some`.
 This is the winning selectable; its code is invoked and no further work is needed.
 On this fast path, only one selector is ever consumed, so there is no risk of data loss or double delivery.
-No cleanup is needed because a {name Selector.tryFn}`tryFn` should not require cleanup when returning {name}`none`.
+No cleanup is needed because a {name Selector.tryFn}`tryFn` that returns {name}`none` must leave its data source unchanged.
 
 If no selector was resolved in the first iteration (that is, each {name Selector.tryFn}`tryFn` returned {name}`none`), then it is necessary to wait until one of the selectors is resolved.
 The process of waiting has three phases: {ref "selector-protocol-registration"}[registration], {ref "selector-protocol-race"}[racing], and {ref "selector-protocol-cleanup"}[cleanup].
@@ -677,17 +739,18 @@ def tickerTryFn (counter : IO.Ref Nat) (startMs : Nat) := do
 ```
 
 If the race was not immediately run, a waiter is registered.
-After sleeping until the next {name}`Nat` is ready, the waiter's {name Waiter.race}`race` is invoked; if the race is won, then the counter is incremented:
+A background task is launched that sleeps until the next {name}`Nat` is ready, and the waiter's {name Waiter.race}`race` is invoked; if the race is won, then the counter is incremented:
 ```lean
 def tickerRegisterFn (counter : IO.Ref Nat) (startMs : Nat)
     (waiter : Waiter Nat) : Async Unit := do
   let n ← counter.get
   let delay := startMs + n * 100 - (← IO.monoMsNow)
   let sleep ← Sleep.mk <| .ofNat delay
-  sleep.wait
-  waiter.race (pure ()) fun promise => do
-    counter.set (n + 1)
-    promise.resolve (.ok n)
+  discard <| background do
+    sleep.wait
+    waiter.race (pure ()) fun promise => do
+      counter.set (n + 1)
+      promise.resolve (.ok n)
 ```
 These components can be combined into a selector:
 ```lean
@@ -795,6 +858,15 @@ def swallowedError : Async String := do
   let r ← swallowedError.block
   unless r == "no error observed" do throw (IO.userError "swallowedError")
 
+-- An error in a `ContextAsync.disown` task is silently swallowed:
+def disownSwallows : Async String := ContextAsync.run do
+  ContextAsync.disown (throw (IO.userError "lost") : ContextAsync Unit)
+  sleep 30
+  return "no error observed"
+#eval do
+  let r ← disownSwallows.block
+  unless r == "no error observed" do throw (IO.userError "disownSwallows")
+
 -- `bind` short-circuits: statements after a throw don't run (like `ExceptT`):
 def bindShortCircuits : Async (List Nat) := do
   let log ← IO.mkRef ([] : List Nat)
@@ -882,6 +954,45 @@ Errors thrown in an {name Selector.unregisterFn}`unregisterFn` are suppressed an
 A selector that wins the race may resolve the promise with either {name}`Except.ok` or {name}`Except.error`; in the latter case, the result of the call to {name}`Selectable.one` is itself an error.
 
 ```lean -show
+-- A tryFn error terminates the selection, even when a sibling is ready.
+def tryFnThrower : Selector Nat := {
+  tryFn := throw (IO.userError "poll failed")
+  registerFn := fun _ => pure ()
+  unregisterFn := pure ()
+}
+def tryFnErrorTerminates : Async Unit := do
+  let mut sawError := 0
+  for _ in [0:20] do
+    let ch ← CloseableChannel.new (α := Nat)
+    discard <| ch.send 1
+    let r ← try discard <| Selectable.one #[.case ch.recvSelector (fun _ => return 0), .case tryFnThrower (fun _ => return 1)]; pure "" catch e => pure (toString e)
+    if r == "poll failed" then sawError := sawError + 1
+    else if r != "" then throw (IO.userError s!"tryFnErrorTerminates: {r}")
+  -- with random order, the throwing selector is sometimes polled first
+  unless sawError > 0 do throw (IO.userError "tryFnErrorTerminates: error never surfaced")
+#eval tryFnErrorTerminates.block
+
+-- A registerFn error is discarded when a winner already exists.
+def registerErrorAfterWin : Async Unit := do
+  let mut valueWon := 0
+  for _ in [0:20] do
+    let ch ← CloseableChannel.new (α := Nat)
+    -- Makes the channel ready, then fails. If the channel was registered first, it wins and the
+    -- error is discarded; otherwise registration stops and the error is the result.
+    let sendThenThrow : Selector Nat := {
+      tryFn := return none
+      registerFn := fun _ => do discard <| ch.send 5; throw (IO.userError "ignored")
+      unregisterFn := pure ()
+    }
+    let r ← try Selectable.one #[.case ch.recvSelector (fun n? => return n?.getD 0), .case sendThenThrow (fun n => return n)]
+      catch e => if toString e == "ignored" then pure 0 else throw e
+    if r == 5 then valueWon := valueWon + 1
+    else if r != 0 then throw (IO.userError s!"registerErrorAfterWin: {r}")
+  unless valueWon > 0 do throw (IO.userError "registerErrorAfterWin: value never won")
+#eval registerErrorAfterWin.block
+```
+
+```lean -show
 -- An error thrown by the winning continuation propagates out of `Selectable.one`.
 def selErrorPropagates : Async String := do
   let ch ← CloseableChannel.new (α := Nat)
@@ -896,76 +1007,109 @@ def selErrorPropagates : Async String := do
 ```
 
 ```lean -show
--- This test ensures that the documented error handling in selectors is still the case.
--- If this test fails, then the text almost certainly needs updating.
+-- When a sibling's registerFn throws, the selection fails with that error, the other
+-- selectors are unregistered, and a later send is received rather than consumed by a stale waiter.
 def registerErrorThrower : Selector Nat := {
   tryFn := return none
   registerFn := fun _ => throw (IO.userError "boom")
   unregisterFn := pure ()
 }
--- When a sibling's registerFn throws, the selection fails with that error and the
--- other selectors are still unregistered, so a later send is not consumed by a stale waiter.
-def registerErrorCleansUp : Async Bool := do
-  for _ in [0:50] do
-    let ch ← CloseableChannel.new (α := Nat)
-    let unregistered ← IO.mkRef false
-    let victim : Selector Nat := {
-      tryFn := return none
-      registerFn := fun _ => pure ()
-      unregisterFn := unregistered.set true
-    }
-    let err ← try
-        discard <| Selectable.one #[
-          .case ch.recvSelector (fun _ => return 0),
-          .case victim (fun _ => return 1),
-          .case registerErrorThrower (fun _ => return 2)]
-        pure ""
-      catch e => pure (toString e)
-    unless err == "boom" do return false
-    unless (← unregistered.get) do return false
-    discard <| ch.send 7
-    unless (← ch.tryRecv) == some 7 do return false
-  return true
-#eval do
-  unless (← registerErrorCleansUp.block) do
-    throw (IO.userError "the selection error-safety behavior for registerFn may have changed, so update this section")
+def registerErrorCleansUp : Async Unit := do
+  let ch ← CloseableChannel.new (α := Nat)
+  let unregistered ← IO.mkRef false
+  let victim : Selector Nat := {
+    tryFn := return none
+    registerFn := fun _ => pure ()
+    unregisterFn := unregistered.set true
+  }
+  let err ← try
+      discard <| Selectable.one #[
+        .case ch.recvSelector (fun _ => return 0),
+        .case victim (fun _ => return 1),
+        .case registerErrorThrower (fun _ => return 2)]
+      pure ""
+    catch e => pure (toString e)
+  unless err == "boom" do throw (IO.userError s!"registerErrorCleansUp: got '{err}'")
+  unless (← unregistered.get) do throw (IO.userError "registerErrorCleansUp: victim was not unregistered")
+  discard <| ch.send 7
+  unless (← ch.tryRecv) == some 7 do throw (IO.userError "registerErrorCleansUp: value was consumed by a stale waiter")
+#eval registerErrorCleansUp.block
 ```
 
 ```lean -show
--- This test ensures that the documented error handling in selectors is still the case.
--- If this test fails, then the text almost certainly needs updating.
+-- When a sibling's unregisterFn throws, every other selector is still unregistered and the
+-- winning selectable's value is returned.
 def unregisterErrorThrower : Selector Nat := {
   tryFn := return none
   registerFn := fun _ => pure ()
   unregisterFn := throw (IO.userError "boom")
 }
--- When a sibling's unregisterFn throws, every other selector is still unregistered and the
--- winning selectable's value is returned.
-def unregisterErrorCleansUp : Async Bool := do
-  for _ in [0:50] do
-    let cleaned ← IO.mkRef false
-    let chB ← CloseableChannel.new (α := Nat)
-    let victim : Selector Nat := {
-      tryFn := return none
-      registerFn := fun _ => pure ()
-      unregisterFn := cleaned.set true
-    }
-    -- send to chB after registration completes, so chB wins and cleanup runs
-    discard <| IO.asTask (prio := .dedicated) do
-      IO.sleep 15; discard <| chB.send 0
-    let r ← Selectable.one #[
-      .case victim (fun _ => return 0),
-      .case chB.recvSelector (fun _ => return 1),
-      .case unregisterErrorThrower (fun _ => return 2)]
-    unless r == 1 do return false
-    unless (← cleaned.get) do return false
-  return true
-#eval do
-  unless (← unregisterErrorCleansUp.block) do
-    throw (IO.userError "the selection error-safety behavior for unregisterFn may have changed, so update this section")
+def unregisterErrorCleansUp : Async Unit := do
+  let cleaned ← IO.mkRef false
+  let ch ← CloseableChannel.new (α := Nat)
+  let victim : Selector Nat := {
+    tryFn := return none
+    registerFn := fun _ => pure ()
+    unregisterFn := cleaned.set true
+  }
+  -- Sends on the channel during registration, so the channel wins the race rather than the initial poll.
+  let sender : Selector Nat := {
+    tryFn := return none
+    registerFn := fun _ => discard <| ch.send 0
+    unregisterFn := pure ()
+  }
+  let r ← Selectable.one #[
+    .case victim (fun _ => return 0),
+    .case ch.recvSelector (fun _ => return 1),
+    .case unregisterErrorThrower (fun _ => return 2),
+    .case sender (fun _ => return 3)]
+  unless r == 1 do throw (IO.userError s!"unregisterErrorCleansUp: winner was {r}")
+  unless (← cleaned.get) do throw (IO.userError "unregisterErrorCleansUp: victim was not unregistered")
+#eval unregisterErrorCleansUp.block
 ```
 
 # Timers
+
+There are two varieties of timer: _sleep timers_ allow a computation to wait one time for a given duration, while _interval timers_ provide an event repeatedly, separated by the duration.
+Creating a timer does not start the countdown.
+Timers begin running at the first call to {name}`Sleep.wait`, call to {name}`Interval.tick`, or the first selection in which they take part.
+When a sleep timer loses a {ref "selection-protocol-race"}[race], it restarts in its next selection.
+Stopping a timer with {name}`Sleep.stop` or {name}`Interval.stop` leaves any task that's awaiting the timer hanging forever.
+
+```lean -show
+def timeIt (act : Async α) : Async Nat := do
+  let t0 ← IO.monoMsNow
+  discard act
+  return (← IO.monoMsNow) - t0
+
+-- The countdown of a `Selector.sleep` begins at its first selection, not at creation.
+def sleepSelectorStartsLazily : Async Unit := do
+  let s ← Selector.sleep 100
+  sleep 150
+  let ch ← CloseableChannel.new (α := Nat)
+  let ms ← timeIt (Selectable.one #[.case ch.recvSelector (fun _ => pure ()), .case s (fun _ => pure ())])
+  unless ms ≥ 80 do throw (IO.userError s!"Selector.sleep started before its first selection ({ms} ms)")
+#eval sleepSelectorStartsLazily.block
+
+-- A `Selector.sleep` that has fired resolves immediately in later selections.
+def sleepSelectorIsSingleShot : Async Unit := do
+  let s ← Selector.sleep 100
+  let ch ← CloseableChannel.new (α := Nat)
+  discard <| Selectable.one #[.case ch.recvSelector (fun _ => pure ()), .case s (fun _ => pure ())]
+  let ms ← timeIt (Selectable.one #[.case ch.recvSelector (fun _ => pure ()), .case s (fun _ => pure ())])
+  unless ms < 50 do throw (IO.userError s!"Selector.sleep fired again after {ms} ms")
+#eval sleepSelectorIsSingleShot.block
+
+-- A `Selector.sleep` that loses a selection restarts its countdown at the next selection.
+def sleepSelectorRestartsAfterLoss : Async Unit := do
+  let s ← Selector.sleep 100
+  let ch ← CloseableChannel.new (α := Nat)
+  discard <| background (do sleep 30; discard <| ch.send 1)
+  discard <| Selectable.one #[.case ch.recvSelector (fun _ => pure ()), .case s (fun _ => pure ())]
+  let ms ← timeIt (Selectable.one #[.case ch.recvSelector (fun _ => pure ()), .case s (fun _ => pure ())])
+  unless ms ≥ 80 do throw (IO.userError s!"Selector.sleep kept its countdown after losing ({ms} ms)")
+#eval sleepSelectorRestartsAfterLoss.block
+```
 
 {docstring sleep}
 
@@ -991,7 +1135,7 @@ def unregisterErrorCleansUp : Async Bool := do
 
 {docstring Selector.sleep}
 
-Sleep.stop/Interval.stop leave pending waits hanging forever, and Selector.sleep's timer only starts once it's used inside a Selectable.
+
 
 ::::example "Selectors and Timers"
 This program runs a loop.
@@ -1191,9 +1335,16 @@ On Unix-like operating systems, `SIGKILL` and `SIGSTOP` can't be caught.
 Finally, the Lean run-time system ignores `SIGPIPE`.
 On Windows, waiters can be created for `SIGTERM` and `SIGABRT`, but they never fire. `SIGHUP` fires when the console is closed, with approximately ten seconds provided for cleanup. `SIGINT` is not delivered in terminal raw mode, and `SIGWINCH` is emulated and may be untimely.
 
-To install a signal handler, use {name}`Signal.Waiter.mk` to register a signal itself.
+To install a signal handler, first use {name}`Signal.Waiter.mk` to create a signal waiter.
+The handler is installed when the waiter is first used.
 The waiter can be used via {name}`Signal.Waiter.wait`, which allows it to be waited for using {name}`await`, but most use cases probably want to use {name}`Signal.Waiter.selector` together with {ref "async-select"}[event selection] to handle arriving signals by canceling ongoing work and cleaning up.
 This pattern, and the {name}`Signal.Waiter` API, mirror those of timers; unlike timers, the arrival of a signal is unpredictable.
+
+The `repeating` parameter to {name}`Signal.Waiter.mk` determines whether the waiter awaits a single signal or repeated signals.
+If it is {name}`false`, then as soon as a matching signal arrives, the waiter moves into a finished state.
+Subsequent selections or calls to {name Signal.Waiter.wait}`wait` immediately return the same data.
+If `repeating` is {name}`true`, then subsequent calls to {name Signal.Waiter.wait}`wait` or subsequent selections will block until another signal arrives.
+A repeating waiter keeps listening for signals until {name}`Signal.Waiter.stop` is called.
 
 {docstring Signal.Waiter +allowMissing}
 
@@ -1266,8 +1417,8 @@ In other words, cancellation is an event that tasks may opt into observing, rath
 :::paragraph
 There are two primary ways to cancel a tree of {name}`ContextAsync` computations:
 
- * {name}`ContextAsync.run` executes a cancellable tree of tasks as an ordinary {name}`Async` task.
-  When the root task is completed, the entire tree is canceled.
+ * {name}`ContextAsync.run` executes a cancelable tree of tasks as an ordinary {name}`Async` task.
+  When the root task returns normally, the entire tree is canceled.
  * {name}`ContextAsync.cancel` cancels the current task and all of its children.
 
 For cancellation to work as expected, concurrent tasks should be started with the helpers that are specifically designed for {name}`ContextAsync`.
@@ -1276,17 +1427,23 @@ When this is not possible, use {name}`ContextAsync.runIn` to associate the curre
 
 {docstring ContextAsync}
 
+{docstring ContextAsync.async}
+
 {docstring ContextAsync.cancel}
 
 {docstring ContextAsync.run}
 
 {docstring ContextAsync.runIn}
 
+{docstring ContextAsync.getContext}
+
 {docstring ContextAsync.background}
 
 {docstring ContextAsync.disown}
 
 {docstring ContextAsync.concurrently}
+
+{docstring ContextAsync.concurrentlyAll}
 
 {docstring ContextAsync.race}
 
@@ -1387,7 +1544,7 @@ none
 ## Cancellation Contexts
 
 {name}`ContextAsync` is a {ref "reader-monad"}[reader] on top of {name}`Async` that provides access to a cancellation context.
-This context contains an ID along with a mutex-guarded mutable state that encodes a tree of IDs, each with a cancellation token, and a source of unique ID values.
+This context contains an ID and a cancellation token along with a mutex-guarded mutable state that encodes a tree of IDs, each with a cancellation token, and a source of unique ID values.
 When child tasks are created, they are assigned new IDs and associated with the current task.
 When tasks are canceled, the tree in the state is used to cancel their children.
 
@@ -1414,7 +1571,7 @@ When tasks are canceled, the tree in the state is used to cancel their children.
 ## Cancellation Tokens
 
 A cancellation token is a mutex-guarded piece of shared mutable state that tracks whether the token has been canceled along with a set of consumers that have requested notification when cancellation occurs.
-Behind the scenes, {name}`ContextAsync.isCancelled` checks the current context to get the token for the current task's ID, then checks whether the cancellation reason is {name}`some` or {name}`none`.
+Behind the scenes, {name}`ContextAsync.isCancelled` checks the current context's cancellation token, then checks whether the cancellation reason is {name}`some` or {name}`none`.
 
 {docstring Std.CancellationToken +allowMissing}
 
