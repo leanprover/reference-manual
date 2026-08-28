@@ -44,10 +44,10 @@ Similarly, {name}`BaseIO.asTask` and {name}`EIO.asTask` create tasks in other {n
 These tasks may have side effects, and can communicate with other tasks.
 :::
 
-When the last reference to a task is dropped it is {deftech (key := "cancel")}_cancelled_.
+When the last reference to a task is dropped it is {deftech (key := "cancel")}_canceled_.
 Pure tasks created with {name}`Task.spawn` are terminated upon cancellation.
 Tasks spawned with {name}`IO.asTask`, {name}`EIO.asTask`, or {name}`BaseIO.asTask` continue executing and must explicitly check for cancellation using {name}`IO.checkCanceled`.
-Tasks may be explicitly cancelled using {name}`IO.cancel`.
+Tasks may be explicitly canceled using {name}`IO.cancel`.
 
 The Lean runtime maintains a thread pool for running tasks.
 The size of the thread pool is determined by the environment variable {envVar +def}`LEAN_NUM_THREADS` if it is set, or by the number of logical processors on the current machine otherwise.
