@@ -35,6 +35,7 @@ COMMANDS:
   build <targets>...    build targets
   query <targets>...    build targets and output results
   exe <exe> <args>...   build an exe and run it in Lake's environment
+  samply <exe>          profile an exe with samply and demangle Lean names
   check-build           check if any default build targets are configured
   test                  test the package using the configured test driver
   check-test            check if there is a properly configured test driver
@@ -640,6 +641,66 @@ Looks for the executable target {lakeMeta}`exe-target` in the workspace, builds 
 it with the given {lakeMeta}`args` in Lake's environment.
 
 See {lake}`build` for the syntax of target specifications and {lake}`env` for a description of how the environment is set up.
+
+:::
+
+```lakeHelp "samply"
+Profile an executable target with samply and demangle Lean names
+
+USAGE:
+  lake samply [OPTIONS] <exe-target> [-- [<samply-args>...] [-- <exe-args>...]]
+
+Builds the executable target, records a CPU profile using samply, symbolicates
+the raw addresses, demangles Lean compiler names, and writes a Firefox Profiler
+JSON file.
+
+OPTIONS:
+  -o FILE               output path (default: ./profile-demangled.json.gz)
+  --raw                 skip symbolication and demangling
+  --no-serve            write output file and exit (don't start server)
+
+Anything after `--` is forwarded verbatim to `samply record`. An inner `--`
+separates samply's own flags from the profiled executable's arguments, e.g.:
+
+  lake samply mergeSort                          # no samply or exe args
+  lake samply mergeSort -- --rate 2000           # only samply args
+  lake samply mergeSort -- -- 10                 # only exe args
+  lake samply mergeSort -- --rate 2000 -- 10     # both
+
+Run `samply record --help` to see samply's flags.
+
+REQUIREMENTS:
+  samply                cargo install samply
+  curl, gzip            standard on most systems
+
+Open the output file in Firefox Profiler at https://profiler.firefox.com/from-file/
+```
+
+:::lake samply "[\"-o\" file] [\"--raw\"] [\"--no-serve\"] «exe-target» [\"--\" [«samply-args»...] [\"--\" «exe-args»...]]"
+
+Builds the executable target {lakeMeta}`exe-target`, records a CPU profile of it using [samply](https://github.com/mstange/samply), symbolicates the raw addresses, and demangles Lean's compiled names into their source-level form (so `l_Lean_Meta_foo` is reported as `Lean.Meta.foo`).
+The result is a gzipped [Firefox Profiler](https://profiler.firefox.com) JSON file.
+
+By default the profile is served on a local HTTP server and a Firefox Profiler URL is printed; `--no-serve` writes the file and exits instead.
+
+Options:
+* `-o` writes the profile to {lakeMeta}`file` instead of `./profile-demangled.json.gz`.
+* `--raw` skips symbolication and demangling, emitting samply's own profile unchanged.
+* `--no-serve` writes the output file and exits without starting the server.
+
+Everything after `--` is forwarded verbatim to `samply record`.
+A second `--` separates samply's own flags ({lakeMeta}`samply-args`) from the arguments passed to the profiled executable ({lakeMeta}`exe-args`):
+
+```
+lake samply mergeSort                          # no samply or exe args
+lake samply mergeSort -- --rate 2000           # only samply args
+lake samply mergeSort -- -- 10                 # only exe args
+lake samply mergeSort -- --rate 2000 -- 10     # both
+```
+
+Run `samply record --help` for samply's flags.
+
+Requires [samply](https://github.com/mstange/samply) (`cargo install samply`), along with `curl` and `gzip`.
 
 :::
 
