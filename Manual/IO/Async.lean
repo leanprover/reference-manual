@@ -1073,7 +1073,7 @@ def unregisterErrorCleansUp : Async Unit := do
 There are two varieties of timer: _sleep timers_ allow a computation to wait one time for a given duration, while _interval timers_ provide an event repeatedly, separated by the duration.
 Creating a timer does not start the countdown.
 Timers begin running at the first call to {name}`Sleep.wait`, call to {name}`Interval.tick`, or the first selection in which they take part.
-When a sleep timer loses a {ref "selection-protocol-race"}[race], it restarts in its next selection.
+When a sleep timer loses a {ref "selector-protocol-race"}[race], it restarts in its next selection.
 Stopping a timer with {name}`Sleep.stop` or {name}`Interval.stop` leaves any task that's awaiting the timer hanging forever.
 
 ```lean -show
