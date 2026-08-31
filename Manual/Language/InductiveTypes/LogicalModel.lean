@@ -149,7 +149,7 @@ A proposition that has at most one inhabitant is called a {deftech}_subsingleton
 Rather than obligating users to _prove_ that there's only one possible proof, a conservative syntactic approximation is used to check whether a proposition is a subsingleton.
 Propositions that fulfill both of the following requirements are considered to be subsingletons:
  * There is at most one constructor.
- * Each of the constructor's parameter types is either a {lean}`Prop`, a parameter, or an index.
+ * Each of the constructor's parameters is either of sort {lean}`Prop`, recursive, or an argument of the type constructor.
 
 :::example "{lean}`True` is a subsingleton"
 {lean}`True` is a subsingleton because it has one constructor, and this constructor has no parameters.
@@ -210,6 +210,17 @@ Eq.rec.{u, v} {α : Sort v} {x : α}
   {y : α} (t : x = y) : motive y t
 ```
 This means that proofs of equality can be used to rewrite the types of non-propositions.
+:::
+
+:::example "{name}`Acc` is a subsingleton"
+{lean}`Acc` is a subsingleton because it has just one constructor, {name}`Acc.intro`.
+This constructor has parameters that are respectively the parameter of `Acc`, the index of `Acc`, and recursive:
+```signature
+Acc.intro.{u} {α : Sort u} {r : α → α → Prop} (x : α) (h : ∀ (y : α), r y x → Acc r y) : Acc r x
+```
+
+Its recursor has a motive of type `(a : α) → Acc r a → Sort v`.
+This means that proofs of accessibility can be used to define well-founded recursive functions with a codomain that is not restricted to propositions.
 :::
 
 ## Reduction
