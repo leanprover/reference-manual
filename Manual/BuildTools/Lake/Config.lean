@@ -103,7 +103,7 @@ Libraries, executables, and other {tech}[targets] within a package can further a
 
 :::
 
-:::tomlFieldCategory "Testing and Linting" testDriver testDriverArgs lintDriver lintDriverArgs builtinLint
+:::tomlFieldCategory "Testing and Linting" testDriver testDriverArgs lintDriver lintDriverArgs builtinLint checks
 
 The CLI commands {lake}`test` and {lake}`lint` use definitions configured by the {tech}[workspace]'s {tech}[root package] to perform testing and linting.
 The code that is run to perform tests and linting is referred to as the test or lint driver.
@@ -193,6 +193,7 @@ name = "example-package"
       libPrefixOnWindows := false,
       allowImportAll := false,
       builtinLint? := none,
+      checks := #[],
       fixedToolchain := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
@@ -284,6 +285,7 @@ name = "Sorting"
       libPrefixOnWindows := false,
       allowImportAll := false,
       builtinLint? := none,
+      checks := #[],
       fixedToolchain := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
