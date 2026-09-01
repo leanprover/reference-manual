@@ -29,19 +29,30 @@ htmlSplit := .never
 
 This section discusses how to validate a proof expressed in Lean.
 
-Depending on the circumstances, additional steps may be recommended to rule out misleading proofs.
-In particular, it matters a lot whether one is dealing with an {tech}[honest] proof attempt, and needs protection against only benign mistakes, or a possibly-{tech}[malicious] proof attempt that actively tries to mislead.
+The steps needed to rule out a misleading proof depend on the author's {deftech}[trust] assumptions towards the _proof author_ (including authors that proved depended-upon theorems), the _verification software_, and the _correctness of the statement_.
+Each of these is explained in detail below.
 
-In particular, we use {deftech}_honest_ when the goal is to create a valid proof.
-This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the {option}`debug.skipKernelTC`).
-Note that the {keyword}`unsafe` marker on API functions is unrelated to whether this API can be used in an dishonest way.
+* Regarding the _proof author_, we distinguish whether one is dealing with an {tech}[honest] proof author, and needs protection against only benign mistakes, or a possibly-{tech}[malicious] proof author that actively tries to mislead.
 
-In contrast, we use {deftech}_malicious_ to describe code that goes out of its way to trick or mislead the user, exploit bugs or compromise the system.
-This includes un-reviewed AI-generated proofs and programs.
+    In particular, we use {deftech}_honest_ when the goal is to create a valid proof.
+    This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for proof code that clearly only serves to circumvent the system (such as using the {option}`debug.skipKernelTC`).
+    Note that the {keyword}`unsafe` marker on API functions is unrelated to whether this API can be used in an dishonest way.
 
-Furthermore it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.
+    In contrast, we use {deftech}_malicious_ to describe proof code that goes out of its way to trick or mislead the user, exploit bugs or compromise the system.
+    This includes un-reviewed AI-generated proofs and programs.
+
+* Regarding the verification software, Lean takes {ref "elaboration-compilation"}[a number of steps] to process a theorem and its proof. Some of these steps are part of the {deftech}[trusted computing base] (TCB), which typically comprises at least the Lean {tech}[kernel] or an alternative kernel such as [`nanoda`](https://github.com/ammkrn/nanoda_lib).
+
+* Regarding the correctness of the statement, it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.
+No matter what software is used and how trusted the environment is, a theorem is meaningful only if its author(s) and user(s) are certain that its statement mathematically expresses its intended informal meaning.
+
+    As written, the statement is {tech (key := "Lean elaborator")}[elaborated] before being passed to the {tech}[kernel].
+    As such, the {tech (key := "Lean elaborator")}[elaborator] is also part of the {tech (key := "trusted computing base")}[TCB].
+    To avoid trusting the {tech (key := "Lean elaborator")}[elaborator], one has to {keywordOf Lean.Parser.Command.print}`#print` the statement with the {keywordOf Lean.Util.PPExt.pp.raw}`pp.raw` option set to `true` to get the elaborated type and manually verify that it indeed expresses the desired statement.
+    Unfortunately the raw output is not user-friendly, so including the {tech (key := "Lean elaborator")}[elaborator] in the {tech (key := "trusted computing base")}[TCB] is currently the most reasonable approach.
 
 Below, an escalating sequence of checks are presented, with instructions on how to perform them, an explanation of what they entail and the mistakes or attacks they guard against.
+To avoid repetition, we will not discuss trust towards the correctness of the statement every time.
 
 # The Blue Double Check Marks
 %%%
@@ -60,11 +71,11 @@ While working interactively with Lean, once the theorem is proved, blue double c
 
 ## Significance
 
-The blue ticks indicate that the theorem statement has been successfully elaborated, according to the syntax and type class instances defined in the current file and its imports, and that the Lean kernel has accepted a proof of that theorem statement that follows from the definitions, theorems and axioms declared in the current file and its imports.
+The blue ticks indicate that the theorem statement has been successfully elaborated, according to the syntax and type class instances defined in the current file and its imports, and that the Lean {tech}[kernel] has accepted a proof of that theorem statement that follows from the definitions, theorems and axioms declared in the current file and its imports.
 
 ## Trust
 
-This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and trusts the authors of the imported libraries to be {tech}[honest], that they checked that the theorems in their libraries express their intended informal meanings, and that no unsound axioms have been declared and used.
+This check is meaningful if one trusts the authors of the imported libraries to be {tech}[honest], that they checked that the theorems in their libraries express their intended informal meanings, and that no unsound axioms have been declared and used.
 
 ## Protection
 
@@ -115,7 +126,7 @@ The three axioms above are standard axioms of Lean's logic, and benign.
 
 ## Trust
 
-This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and one trusts the authors of the imported libraries to be {tech}[honest].
+This check is meaningful if one trusts the authors of the imported libraries to be {tech}[honest].
 
 ## Protection
 
@@ -140,19 +151,19 @@ Build your project using {lake}`build`, run `lean4checker --fresh` on the module
 
 ## Significance
 
-The `lean4checker` tool reads the declarations and proofs as they are stored by `lean` during building (the {tech}[`.olean` files]), and replays them through the kernel.
+The `lean4checker` tool reads the declarations and proofs as they are stored by `lean` during building (the {tech}[`.olean` files]), and replays them through the {tech}[kernel].
 It trusts that the {tech}[`.olean` files] are structurally correct.
 
 ## Trust
 
-This check is meaningful if one believes the formal theorem statement corresponds to its intended informal meanings and believes the authors of the imported libraries to not be very cunningly {tech}[malicious], and to neither compromise the user’s system nor use Lean’s extensibility to change the interpretation of the theorem statement.
+This check is meaningful if one believes the authors of the imported libraries to not be very cunningly {tech}[malicious], and to neither compromise the user’s system nor use Lean’s extensibility to change the interpretation of the theorem statement.
 
 ## Protection
 
 :::listBullet "🛡️"
 (In addition to the list above)
 
-* Bugs in Lean’s core handling of the kernel’s state (e.g. due to parallel proof processing, or import handling)
+* Bugs in Lean’s core handling of the {tech}[kernel]’s state (e.g. due to parallel proof processing, or import handling)
 * Meta-programs or tactics intentionally bypassing that state (e.g. using low-level functionality to add unchecked theorems)
 :::
 
@@ -184,7 +195,7 @@ In a trusted environment, write the theorem *statement* (the “challenge”), a
 
 Comparator will build the proof in a sandboxed environment, to protect against {tech}[malicious] code in the build step.
 The proof term is exported to a serialized format.
-Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, replays the proofs using both Lean's kernel and/or an external checker and also ensures that the proved theorem statements match those in the trusted challenge file.
+Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, replays the proofs using both Lean's {tech}[kernel] and/or an external checker and also ensures that the proved theorem statements match those in the trusted challenge file.
 
 ## Trust
 
@@ -201,7 +212,7 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 
 ## Comments
 
-At the time of writing, `comparator` supports using the official Lean kernel and the external checker [`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust. The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
+At the time of writing, `comparator` supports using the official Lean {tech}[kernel] and the external checker [`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust. The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
 
 # Remaining Issues
 
@@ -222,12 +233,12 @@ tag := "validating-trustCompiler"
 %%%
 
 Lean supports proofs by native evaluation.
-This is used by the {tactic}`decide`{keywordOf Lean.Parser.Tactic.decide}` +native` tactic or internally by specific tactics ({tactic}`bv_decide` in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the kernel.
+This is used by the {tactic}`decide`{keywordOf Lean.Parser.Tactic.decide}` +native` tactic or internally by specific tactics ({tactic}`bv_decide` in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the {tech}[kernel].
 
 Specific uses wrapped in {tech}[honest] tactics (e.g. {tactic}`bv_decide`) are generally trustworthy.
 The trusted code base is larger (it includes Lean's compilation toolchain and library annotations in the standard library), but still fixed and vetted.
 
-General use ({tactic}`decide`{keywordOf Lean.Parser.Tactic.decide}` +native` or direct use of {name}`Lean.ofReduceBool`) can be used to create invalid proofs whenever the native evaluation of a term disagrees with the kernel's evaluation.
+General use ({tactic}`decide`{keywordOf Lean.Parser.Tactic.decide}` +native` or direct use of {name}`Lean.ofReduceBool`) can be used to create invalid proofs whenever the native evaluation of a term disagrees with the {tech}[kernel]'s evaluation.
 In particular, for every {attr}`implemented_by`/{attr}`extern` attribute in libraries it becomes part of the trusted code base that the replacement is semantically equivalent.
 
 All these uses show up as an axiom {name}`Lean.trustCompiler` in {keywordOf Lean.Parser.Command.printAxioms}`#print axioms`.
