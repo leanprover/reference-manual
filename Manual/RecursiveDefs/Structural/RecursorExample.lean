@@ -76,7 +76,7 @@ noncomputable def half'' (n : Nat) : Nat :=
       | 0, _ | 1, _ => 0
       | _ + 2, ⟨_, ⟨h, _⟩⟩ => h + 1
 ```
-The function is marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` because the compiler doesn't support generating code for course-of-values recursion, which is intended for reasoning rather that efficient code.
+The function is marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` because the compiler doesn't support generating code for course-of-values recursion, which is intended for reasoning rather than efficient code.
 The kernel can still be used to test the function, however:
 ```lean (name := halfTest2)
 #reduce [0,1,2,3,4,5,6,7,8].map half''
