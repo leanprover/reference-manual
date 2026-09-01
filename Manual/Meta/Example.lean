@@ -107,6 +107,40 @@ def renderExampleContent (exampleBlocks : List String) : String :=
 /-- A domain for named examples -/
 def examples : Domain := {}
 
+open Verso.Search in
+def examplesDomainMapper : DomainMapper := {
+  displayName := "Example",
+  className := "example-domain",
+  dataToSearchables :=
+    "(domainData) =>
+  Object.entries(domainData.contents).map(([key, value]) => ({
+    searchKey: value[0].data?.title ?? key,
+    address: `${value[0].address}#${value[0].id}`,
+    domainId: 'Manual.examples',
+    ref: value,
+  }))",
+  customRender := "(searchable, matchedParts, document) => {
+    const result = document.createElement('p');
+    for (const { t, v } of matchedParts) {
+      if (t === 'text') {
+        result.append(v);
+      } else {
+        const emEl = document.createElement('em');
+        emEl.textContent = v;
+        result.append(emEl);
+      }
+    }
+    const context = searchable.ref?.[0]?.data?.context ?? [];
+    if (context.length > 0) {
+      result.append(document.createElement('br'));
+      const contextEl = document.createElement('small');
+      contextEl.textContent = context.join(' › ');
+      result.append(contextEl);
+    }
+    return result;
+  }"
+  : DomainMapper }.setFont { family := .structure }
+
 @[directive]
 def «example» : DirectiveExpanderOf ExampleConfig
   | cfg, contents => do
@@ -137,23 +171,51 @@ def «example» : DirectiveExpanderOf ExampleConfig
     ``(Block.other (Block.example $(quote descriptionString) $(quote cfg.tag) (opened := $(quote cfg.opened)) $(quote liveLinkContent))
          #[Block.para #[$description,*], $blocks,*])
 
+/--
+The name under which an example is registered in the {name}`examples` domain. This is the
+external tag assigned to it, so that cross-references use the same name as the generated
+HTML anchor.
+-/
+def exampleKey [Monad m] [MonadStateOf TraverseState m]
+    (id : InternalId) (descrString : String) : m String := do
+  match (← get).externalTags[id]? with
+  | some l => pure (toString l.htmlId)
+  | none => pure descrString
+
 @[block_extension «example»]
 def example.descr : BlockDescr where
+  init st := st
+    |>.setDomainTitle ``examples "Examples"
+    |>.setDomainDescription ``examples "Worked examples of Lean features"
+    |>.addQuickJumpMapper ``examples examplesDomainMapper
+
   traverse id data contents := do
     match FromJson.fromJson? data (α := ExampleBlockJson) with
     | .error e => reportError s!"Error deserializing example tag: {e}"; pure none
-    | .ok (descrString, none, _, _, _) => do
-      modify (·.saveDomainObject ``examples descrString id)
-      pure none
-    | .ok (descrString, some x, opened, none, liveText) =>
-      modify (·.saveDomainObject ``examples descrString id)
+    | .ok (descrString, tag?, opened, none, liveText) => do
       let path ← (·.path) <$> read
-      let tag ← Verso.Genre.Manual.externalTag id path x
-      pure <| some <| Block.other {Block.example descrString none false liveText with
+      -- Examples are tagged using the same steps as sections: a user-provided
+      -- tag is respected as written once sluggified, and otherwise a tag is
+      -- derived from the description and uniquified.
+      let tag ←
+        match tag? with
+        | some x =>
+          match ← Verso.Genre.Manual.providedTag id path x with
+          | some t => pure t
+          | none => Verso.Genre.Manual.externalTag id path descrString
+        | none => Verso.Genre.Manual.externalTag id path descrString
+      let key ← exampleKey id descrString
+      -- The document root is in the header stack during traversal; drop it so that
+      -- context starts at the chapter level, as in section search results.
+      let context := ((← read).headers.map (·.titleString))[1:].toArray
+      modify (·.saveDomainObject ``examples key id |>.saveDomainObjectData ``examples key (json%{"title": $descrString, "context": $context}))
+      pure <| some <| Block.other {Block.example descrString tag? opened liveText with
         id := some id,
-        data := toJson (some x, opened, some tag)} contents -- Is this line reachable?
-    | .ok (descrString, some _, _, some _, liveText) =>
-      modify (·.saveDomainObject ``examples descrString id)
+        data := toJson (descrString, tag?, opened, some tag, liveText)} contents
+    | .ok (descrString, _, _, some _, _) =>
+      let key ← exampleKey id descrString
+      let context := ((← read).headers.map (·.titleString))[1:].toArray
+      modify (·.saveDomainObject ``examples key id |>.saveDomainObjectData ``examples key (json%{"title": $descrString, "context": $context}))
       pure none
   toTeX :=
     some <| fun _ go _ _ content => do

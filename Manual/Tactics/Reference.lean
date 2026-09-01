@@ -302,7 +302,7 @@ tag := "tactic-ref-rw"
 :::tactic "erw"
 :::
 
-:::tactic Lean.Parser.Tactic.tacticRwa__
+:::tactic Lean.Parser.Tactic.rwa
 :::
 
 {docstring Lean.Meta.Rewrite.Config +allowMissing}
@@ -570,7 +570,7 @@ tag := "tactic-ref-sat"
 :::tactic "bv_check"
 :::
 
-:::tactic Lean.Parser.Tactic.bvTraceMacro
+:::tactic Lean.Parser.Tactic.bvTrace
 :::
 
 # Call-by-Value Evaluation

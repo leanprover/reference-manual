@@ -169,19 +169,21 @@ tag := "ref-locks"
 %%%
 
 Mutable references can be used as a locking mechanism.
-_Taking_ the contents of the reference causes attempts to take it or to read from it to block until it is {name ST.Ref.set}`set` again.
+_Taking_ the contents of the reference causes attempts to take it, to {name ST.Ref.set}`set` it, or to read from it to block until it is {name ST.Ref.put}`put` again.
 This is a low-level feature that can be used to implement other synchronization mechanisms; it's usually better to rely on higher-level abstractions when possible.
 
 {docstring ST.Ref.take}
+
+{docstring ST.Ref.put}
 
 
 ::::example "Reference Cells as Locks"
 This program launches 100 threads.
 Each thread simulates a purchase attempt: it generates a random price, and if the account balance is sufficient, it decrements it by the price.
 If the balance is not sufficient, then it is not decremented.
-Because each thread {name ST.Ref.take}`take`s the balance cell prior to checking it and only returns it when it is finished, the cell acts as a lock.
-Unlike using {name}`ST.Ref.modify`, which atomically modifies the contents of the cell using a pure function, other {name}`IO` actions may occur in the critical section
-This program's `main` function is marked {keywordOf Lean.Parser.Command.declaration}`unsafe` because {name ST.Ref.take}`take` itself is unsafe.
+Because each thread {name ST.Ref.take}`take`s the balance cell prior to checking it and only {name ST.Ref.put}`put`s it back when it is finished, the cell acts as a lock.
+Unlike using {name}`ST.Ref.modify`, which atomically modifies the contents of the cell using a pure function, other {name}`IO` actions may occur in the critical section.
+This program's `main` function is marked {keywordOf Lean.Parser.Command.declaration}`unsafe` because {name ST.Ref.take}`take` and {name ST.Ref.put}`put` are themselves unsafe.
 
 :::ioExample
 ```ioLean
@@ -198,9 +200,9 @@ unsafe def main : IO Unit := do
       IO.sleep (← IO.rand 10 100).toUInt32
       let b ← balance.take
       if cost ≤ b then
-        balance.set (b - cost)
+        balance.put (b - cost)
       else
-        balance.set b
+        balance.put b
         validationUsed.set true
     orders := orders.push o
 

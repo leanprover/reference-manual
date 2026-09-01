@@ -139,7 +139,16 @@ jobs:
             - name: Verify tutorial project zip files build
               if: github.event_name != 'release'
               run: |
-                  scripts/check-tutorial-zips.sh
+                  # On Linux, some nightly toolchains currently report a version string that
+                  # the zips turn into a toolchain name that elan rejects, so build the
+                  # projects with this repository's toolchain instead. Releases and release
+                  # candidates are unaffected and build with the toolchain from the zip.
+                  # See https://github.com/leanprover/lean4/issues/14702
+                  if grep -q nightly lean-toolchain; then
+                      scripts/check-tutorial-zips.sh "$(cat lean-toolchain)"
+                  else
+                      scripts/check-tutorial-zips.sh
+                  fi
 
             - name: Generate proofreading HTML
               if: github.event_name == 'pull_request'

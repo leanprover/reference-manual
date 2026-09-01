@@ -266,7 +266,7 @@ inductive GrammarTag where
   | bnf
   | comment
   | localName (name : Name) (which : Nat) (category : Name) (docstring? : Option String)
-deriving Repr, FromJson, ToJson, Inhabited
+deriving Repr, FromJson, ToJson, Inhabited, BEq
 
 open Lean.Syntax in
 open GrammarTag in
@@ -396,7 +396,7 @@ where
   beginsWithBnfParen : Format → TagFormatT GrammarTag m Bool
     | .nil => pure false
     | .tag k (.text s) => do
-      if (← get).tags.find? k matches some .bnf then
+      if (← get).tags[k]?.isEqSome .bnf then
         return "(".isPrefixOf s
       else pure false
     | .tag _ f => beginsWithBnfParen f
@@ -411,7 +411,7 @@ where
   endsWithBnfParen : Format → TagFormatT GrammarTag m Bool
     | .nil => pure false
     | .tag k (.text s) => do
-      if (← get).tags.find? k matches some .bnf then
+      if (← get).tags[k]?.isEqSome .bnf then
         return ")".isPrefixOf s
       else pure false
     | .tag _ f => endsWithBnfParen f
@@ -1040,7 +1040,7 @@ where
           simp_all +zetaDelta
           omega
         let curr := st[st.size - (i + 1)]
-        if curr.1 matches .ws then continue
+        if curr.1 == .ws then continue
         if p curr then
           suffix := suffix.pop
         else throw ()
