@@ -719,30 +719,31 @@ right_2 : a_2 ∈ m.indices.erase a
         [_] ↑(m.keys.size - 1) + -1 * ↑(m.size - 1) = 0
         [_] ↑(m.size - 1) + -1 * ↑((m.keys.set i (m.keys.back ⋯) ⋯).size - 1) = 0
 [grind] Diagnostics
-  [thm] E-Matching instances
-    [thm] WF ↦ 16
-    [thm] getElem?_neg ↦ 9
-    [thm] getElem?_pos ↦ 9
-    [thm] HashMap.contains_iff_mem ↦ 5
-    [thm] mem_indices ↦ 3
-    [thm] Array.getElem?_pop ↦ 2
-    [thm] Array.getElem?_set ↦ 2
-    [thm] Array.getElem_pop ↦ 2
-    [thm] Array.getElem_set ↦ 2
-    [thm] Array.set_pop ↦ 2
-    [thm] Array.size_pop ↦ 2
-    [thm] Array.size_set ↦ 2
-    [thm] getElem_indices_lt ↦ 2
-    [thm] Array.back_eq_getElem ↦ 1
-    [thm] size_keys ↦ 1
-    [thm] size_values ↦ 1
-    [thm] size.eq_1 ↦ 1
-    [thm] HashMap.contains_erase ↦ 1
-    [thm] HashMap.contains_insert ↦ 1
-    [thm] HashMap.getElem?_insert ↦ 1
-    [thm] HashMap.getElem_insert ↦ 1
-    [thm] HashMap.mem_erase ↦ 1
-    [thm] HashMap.mem_insert ↦ 1
+  [ematch] E-matching Diagnostics
+    [thm] Theorem Instance Count
+      [thm] WF ↦ 16
+      [thm] getElem?_neg ↦ 9
+      [thm] getElem?_pos ↦ 9
+      [thm] HashMap.contains_iff_mem ↦ 5
+      [thm] mem_indices ↦ 3
+      [thm] Array.getElem?_pop ↦ 2
+      [thm] Array.getElem?_set ↦ 2
+      [thm] Array.getElem_pop ↦ 2
+      [thm] Array.getElem_set ↦ 2
+      [thm] Array.set_pop ↦ 2
+      [thm] Array.size_pop ↦ 2
+      [thm] Array.size_set ↦ 2
+      [thm] getElem_indices_lt ↦ 2
+      [thm] Array.back_eq_getElem ↦ 1
+      [thm] size_keys ↦ 1
+      [thm] size_values ↦ 1
+      [thm] size.eq_1 ↦ 1
+      [thm] HashMap.contains_erase ↦ 1
+      [thm] HashMap.contains_insert ↦ 1
+      [thm] HashMap.getElem?_insert ↦ 1
+      [thm] HashMap.getElem_insert ↦ 1
+      [thm] HashMap.mem_erase ↦ 1
+      [thm] HashMap.mem_insert ↦ 1
 -/
 #check_msgs in
 -- ANCHOR: eraseSwap_init

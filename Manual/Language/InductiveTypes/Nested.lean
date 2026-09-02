@@ -106,9 +106,9 @@ The resulting error message shows that the function was not translated, but was 
 (kernel) application type mismatch
   List.length children
 argument has type
-  @_nested.List_1 branches α
+  _nested.List_1
 but function has type
-  List (@BRTree branches α) → Nat
+  List (BRTree branches α) → Nat
 ```
 It is acceptable to use the parameter with the nested occurrence with fully polymorphic functions, such as {name}`id`:
 ```lean (name := nondep)

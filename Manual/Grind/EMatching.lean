@@ -645,8 +645,8 @@ norm
 {includeDocstring Lean.Parser.Attr.grindNorm}
 :::
 
-The {tactic}`grind` tactic can work with a source algebra that doesn't have a great deal of solving infrastructure (e.g. bitvectors) by “̲injecting”̲ it into another algebra that has more solving infrastructure (like natural numbers or integers).
-Homomorphism rules describe the injection from source to target, and how the injection commutes with other operations (like addition or multiplication in the case of bitvectors).
+The {tactic}`grind` tactic can work with a source algebra that doesn't have a great deal of solving infrastructure (e.g. bitvectors) by “injecting” it into another algebra that has more solving infrastructure (like natural numbers or integers).
+{ref "grind-hom"}[Homomorphism rules] describe the injection from source to target, and how the injection commutes with other operations (like addition or multiplication in the case of bitvectors).
 Homomorphism predicates present additional facts that {tactic}`grind` can use about the injection (like that a bitvector of length $`n` corresponds to a natural number less than $`2^n`).
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Homomorphism Rules")
@@ -663,7 +663,6 @@ hom_pred
 {includeDocstring Lean.Parser.Attr.grindHomPred}
 :::
 
-{TODO}[Grind's hom infrastructure could use an example]
 
 {TODO}[Document `gen` modifier for `grind` patterns]
 
@@ -984,11 +983,12 @@ set_option diagnostics.threshold 10 in
 example : (iota 20).length > 10 := by
   grind (gen := 20) (ematch := 20)
 ```
-```leanOutput grindDiagnostics (expandTrace := grind) (expandTrace := thm)
+```leanOutput grindDiagnostics (expandTrace := grind) (expandTrace := thm) (expandTrace := ematch)
 [grind] Diagnostics
-  [thm] E-Matching instances
-    [thm] iota_succ ↦ 12
-    [thm] List.length_cons ↦ 11
+  [ematch] E-matching Diagnostics
+    [thm] Theorem Instance Count
+      [thm] iota_succ ↦ 12
+      [thm] List.length_cons ↦ 11
   [app] Applications
   [grind] Simplifier
     [simp] used theorems (max: 15, num: 2):
@@ -1012,10 +1012,11 @@ theorem gt1 (x y : Nat) :
   set_option diagnostics true in
   grind
 ```
-```leanOutput gt1diag (expandTrace := grind) (expandTrace := thm)
+```leanOutput gt1diag (expandTrace := grind) (expandTrace := thm) (expandTrace := ematch)
 [grind] Diagnostics
-  [thm] E-Matching instances
-    [thm] gt1.match_1.congr_eq_2 ↦ 1
+  [ematch] E-matching Diagnostics
+    [thm] Theorem Instance Count
+      [thm] gt1.match_1.congr_eq_2 ↦ 1
   [app] Applications
 ```
 The theorem has this type:

@@ -59,10 +59,13 @@ arrange for them to target the correct versions of Lean. To test these
 links locally, follow the instructions in a comment in the definition
 of `staticJs` in `Main.lean`.
 
-To build the manual, run the following command:
+The manual and tutorials site contain circular cross-references, so
+building them requires first discovering the valid targets for both
+and then generating both sites' HTML. To build the HTML, run the
+following shell script:
 
 ```
-lake exe generate-manual --depth 2
+./generate-html.sh
 ```
 
 Then run a local web server on its output:

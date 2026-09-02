@@ -44,8 +44,9 @@ The solver can process four categories of linear polynomial constraints (where `
 
   `p ≠ 0`
 
-It is complete for linear integer arithmetic, and natural numbers are supported by converting them to integers with {name}`Int.ofNat`.
-Support for additional types that can be embedded into {lean}`Int` can be added via instances of {name}`Lean.Grind.ToInt`.
+It is complete for linear integer arithmetic, and it additionally supports {name}`Nat`, {name}`Fin`, {name}`BitVec`, {name}`UInt8`–{name}`UInt64`, {name}`USize`, {name}`Int8`–{name}`Int64`, and {name}`ISize` by rewriting them to integers.
+While this mechanism is not directly extensible, {ref "grind-hom"}[homomorphism rules] can be used to map additional types to a supported domain.
+
 Nonlinear terms (e.g. `x * x`) are allowed, and are represented as variables.
 The solver is additionally capable of propagating information back to the metaphorical {tactic}`grind` whiteboard, which can trigger further progress from the other subsystems.
 By default, it is enabled; it can be disabled using the flag {lit}`-lia`
@@ -297,8 +298,8 @@ h_4 : ¬f (x + y) = 0
 tag := "cutsat-ToInt"
 %%%
 
-The LIA solver can also process linear constraints that contain natural numbers.
-It converts them into integer constraints using `Int.ofNat`.
+The LIA solver can also process linear constraints that contain {name}`Nat`, {name}`Fin`, {name}`BitVec`, {name}`UInt8`–{name}`UInt64`, {name}`USize`, {name}`Int8`–{name}`Int64`, and {name}`ISize`.
+Internally, it converts them into integer constraints using {ref "grind-hom"}[homomorphism rewrites].
 
 :::example "Natural Numbers as Linear Integer Arithmetic"
 ```lean
@@ -310,9 +311,8 @@ example (x y z : Nat) :
 ```
 :::
 
-There is an extensible mechanism via the {lean}`Lean.Grind.ToInt` type class to tell the solver that a type embeds in the integers.
-Using this, we can solve goals such as:
-
+:::example "Embedding Fixed-Size Types Into Integer Arithmetic"
+These examples embed fixed-size types into integer arithmetic.
 ```lean
 example (a b c : Fin 11) : a ≤ 2 → b ≤ 3 → c = a + b → c ≤ 5 := by
   grind
@@ -323,10 +323,7 @@ example (a : Fin 2) : a ≠ 0 → a ≠ 1 → False := by
 example (a b c : UInt64) : a ≤ 2 → b ≤ 3 → c - a - b = 0 → c ≤ 5 := by
   grind
 ```
-
-{docstring Lean.Grind.ToInt}
-
-{docstring Lean.Grind.IntInterval}
+:::
 
 # Implementation Notes
 
