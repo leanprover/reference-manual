@@ -37,11 +37,9 @@ and 22 other changes.
 
 # Highlights
 
-The kernel is the headline of this release: three routes to a proof of `False`, all surfaced by adversarial testing with AI systems, are closed, and a round of defensive checks and resource bounds follows them.
-In the automation, {tactic}`bv_decide` gets a preprocessor that is up to six times faster and can now be run inside {tactic}`grind`'s interactive mode, where it inherits everything {tactic}`grind` has already learned.
-Linters can carry state across commands and attach code actions to their warnings, and Lake improves its linting, caching, and error reporting.
+Lean 4.34.0 focuses on the kernel: three soundness issues, found with AI adversarial testing, have been analyzed and fixed, and a series of additional defensive checks have been implemented for further reinforcement. In the automation side, {tactic}`bv_decide` gets integrated with `sym` and `grind` interactive modes, while being ported to the `SymM` preprocessor that makes it up to six times faster. Work has continued on the floating-point API after `Float` and `Float32` models being introduced in 4.33.0; linters can now carry state across commands and attach code actions to their warnings, and Lake improves its linting, caching, and error reporting.
 
-`vcgen` also saw substantial work and is slated for release in v4.35.0, with the new *intrinsic verification* feature it underpins, where a `def` carries its own contract, following in some future release.
+`vcgen` has also undergone significant development as part of a major release scheduled for v4.35.0.
 
 _This highlights section was contributed by Juanjo Madrigal._
 
