@@ -302,7 +302,7 @@ tag := "tactic-ref-rw"
 :::tactic "erw"
 :::
 
-:::tactic Lean.Parser.Tactic.tacticRwa__
+:::tactic Lean.Parser.Tactic.rwa
 :::
 
 {docstring Lean.Meta.Rewrite.Config +allowMissing}
