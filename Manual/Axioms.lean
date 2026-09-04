@@ -181,7 +181,7 @@ Because they occur only in a proof, the compiler has no problem generating code:
 tag := "standard-axioms"
 %%%
 
-There are seven standard axioms in Lean. The first three axioms are important parts of how mathematics is done in Lean:
+There are four standard axioms in Lean. The first three axioms are important parts of how mathematics is done in Lean:
  * ```signature
    Classical.choice.{u} {α : Sort u} : Nonempty α → α
    ```
@@ -202,40 +202,11 @@ Uses of this axiom are not intended to occur in finished proofs, as it can be us
    sorryAx {α : Sort u} (synthetic := true) : α
    ```
 
-Three final axioms do not truly exist for their _mathematical_ content; from a mathematical perspective they prove trivial statements:
-
- * ```signature
-    Lean.trustCompiler : True
-   ```
-
- * ```signature
-    Lean.ofReduceBool (a b : Bool) : Lean.reduceBool a = b → a = b
-   ```
- * ```signature
-    Lean.ofReduceNat (a b : Nat) : Lean.reduceNat a = b → a = b
-   ```
-
-These axioms instead track proofs that depend on the correctness of the entire compiler, and not just on the much smaller {tech}`kernel`.
-
-:::example "Creating and Tracking Proofs That Trust the Compiler"
-The functions {name}`Lean.reduceBool` and {name}`Lean.reduceNat` can be invoked to have the compiler perform a calculation; this can greatly improve performance of implementations of proof by reflection.
-
-```lean
-def largeNumber : Nat := Lean.reduceNat (230_000 + 4_500 + 1_000_067)
-```
-
-The resulting term depends on the axiom {name}`Lean.trustCompiler` in order to track the fact that this calculation depends on the correctness of the compiler.
-
-```lean (name := printAxExC1)
-#print axioms largeNumber
-```
-```leanOutput printAxExC1
-'largeNumber' depends on axioms: [Lean.trustCompiler]
-```
-:::
+In addition to the standard axioms, proofs by native evaluation introduce a dedicated axiom for each computation that is asserted by the compiled code.
+These axioms track proofs that depend on the correctness of the entire compiler, and not just on the much smaller {tech}`kernel`.
 
 :::example "Axioms and the `native_decide` Tactic"
-Instead of appealing to {name}`Lean.trustCompiler`, the {tactic}`native_decide` tactic creates a bespoke axiom for each invocation.
+The {tactic}`native_decide` tactic creates a bespoke axiom for each invocation.
 This allows each axiom to be audited for the precise statement that it proves.
 
 ```lean (name := printAxExC2)
