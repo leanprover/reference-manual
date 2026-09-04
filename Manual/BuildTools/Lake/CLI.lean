@@ -42,6 +42,7 @@ COMMANDS:
   check-lint            check if there is a properly configured lint driver
   clean                 remove build outputs
   shake                 minimize imports in source files
+  challenge             judge a solution against a challenge
   env <cmd> <args>...   execute a command in Lake's environment
   lean <file>           elaborate a Lean file in Lake's context
   update                update dependencies and save them to the manifest
@@ -820,6 +821,176 @@ The {lakeMeta}`options` may be:
 :::
 
 ::::
+
+# Challenges and External Checkers
+%%%
+tag := "lake-challenge"
+%%%
+
+Lake supports invoking {ref "validating-comparator"}[`comparator`] to validate a proof against a challenge, including the use of external checkers.
+This should only be necessary in high-risk scenarios, such as proof marketplaces, high-reward competitions, or when dealing with potentially unaligned AI systems.
+
+```lakeHelp challenge
+Judge a solution against a challenge
+
+USAGE:
+  lake challenge --config <FILE>
+
+Establishes that every named theorem in the solution proves the same statement
+as the challenge, uses no axiom outside the permitted list, and is accepted by
+the kernel.
+
+The project is untrusted input: its configuration is evaluated, and its code
+built and exported, inside a `landrun` sandbox, and none of its `.olean` files
+is ever loaded into Lake's own address space. `landrun` is required; there is
+no unsandboxed mode, so this command is available on Linux only.
+
+The project has to carry a `lake-manifest.json`, because dependencies are
+resolved inside the sandbox and it cannot write to the project directory.
+Building the project once, before distributing it, is enough to write one.
+
+OPTIONS:
+  --config=<file>       JSON file describing the challenge (see below)
+
+CONFIGURATION:
+  The challenge author writes the file and distributes it with the project, so
+  that a solver need only point `lake challenge` at it:
+
+  {
+    "challenge_module": "Challenge",
+    "solution_module": "Solution",
+    "theorem_names": ["imo2024_p1"],
+    "definition_names": [],
+    "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+    "external_kernels": {"nanoda": ["nanoda_bin"]}
+  }
+
+  `challenge_module`, `solution_module`, `theorem_names` and
+  `permitted_axioms` are required; the rest may be omitted.
+  `definition_names` lists the challenge's definition holes.
+  `permitted_axioms` is deliberately not defaulted: it is what the verdict
+  means, so the challenge author states it. The three above are the ones
+  `#print axioms` treats as a clean proof.
+
+  `external_kernels` names additional checkers to run over the export, each as
+  the command to execute; the solution must satisfy every one of them as well
+  as Lean's own kernel. `enable_nanoda: true` is still accepted and is
+  equivalent to a "nanoda" entry of ["nanoda_bin"]; name the command in
+  `external_kernels` instead to run it from elsewhere.
+
+EXIT CODES:
+  0                     accepted
+  1                     rejected: statement mismatch, forbidden axiom, kernel
+                        rejection, or a build that did not succeed
+  2                     could not start: `landrun` or the manifest is missing,
+                        or the configuration is missing, unreadable or
+                        malformed
+
+ENVIRONMENT:
+  COMPARATOR_LANDRUN    sandbox executable (default: `landrun` on PATH)
+
+  The exporter is always the `leanexport` of this toolchain, and deliberately
+  not configurable: the export format has to match the compiler that produced
+  the `.olean` files being exported.
+
+HARDENING:
+  The sandbox bounds writes and TCP connections: only `.lake` is writable, and
+  only dependency resolution may connect, on the ports git's transports use.
+  It does not bound reads, execution, or non-TCP traffic.
+
+  Until the Landlock fix released in Linux 7.1 is widely available, `landrun`
+  can be escaped through an `AF_UNIX` socket. Where that matters, run the
+  command under a wrapper that removes the capability:
+
+    systemd-run --user --pty --property=RestrictAddressFamilies=~AF_UNIX \
+      lake challenge --config challenge.json
+```
+
+::::lake challenge "\"--config\" file"
+
+Judges a solution against a {deftech}_challenge_: a trusted configuration that states which theorems must be proved and which axioms are permitted.
+{lake}`challenge` establishes that every named theorem in the solution proves the same statement as the challenge, that the solution uses only permitted axioms, and that it is accepted by Lean's kernel as well as by every configured external kernel.
+
+The current Lake workspace is considered to be the {deftech}_solution_ project: it should satisfy the specification provided by the challenge.
+The solution is considered untrusted input.
+Its configuration is evaluated, and its code built and exported, inside a [`landrun`](https://github.com/Zouuup/landrun) sandbox, and its {tech}[`.olean` files] are kept out of Lake's own address space.
+Because `landrun` is required, the command is only available on Linux.
+The `landrun` executable name is determined by the {envVar +def}`COMPARATOR_LANDRUN` environment variable, defaulting to `landrun` if this is not set.
+The executable is resolved via the {envVar}`PATH`.
+The export is produced by the toolchain's own `leanexport` executable, so the export format matches the compiler that produced the {tech}[`.olean` files].
+
+The challenge author writes the {ref "lake-challenge-config"}[configuration file] in JSON format and distributes it with the challenge.
+Solutions are checked by using {lake}`challenge` with {lakeOptDef option}`--config=FILE`.
+
+The exit code distinguishes an accepted solution (`0`) and a rejected one (`1`) from an environment in which the judgment could not run at all (`2`).
+
+This command is a frontend to the [`comparator`](https://github.com/leanprover/comparator) proof-checking pipeline; {ref "validating-comparator"}[the section on validating proofs] describes the security model and the assumptions that remain.
+::::
+
+## Configuration
+%%%
+tag := "lake-challenge-config"
+%%%
+
+:::paragraph
+The challenge configuration is a JSON file that contains an object with the following keys:
+
+: `challenge_module` (required)
+
+  The name of the {tech}[challenge] module.
+
+: `solution_module` (required)
+
+  The name of the {tech}[solution] module to be checked.
+
+: `theorem_names` (required)
+
+  An array of theorem names.
+  These theorems should be complete in the solution, but {lean}`sorry` in the challenge.
+
+: `permitted_axioms` (required)
+
+  An array of axiom names that are permitted in the solution.
+
+: `definition_names`
+
+  An array of names of definitions that should be filled out in the solution.
+
+: `external_kernels`
+
+  An object in which each key names an external checker.
+  The value associated with the key is the command to be run, and must be a non-empty array of strings.
+  The first element in the array is the executable (found via {envVar}`PATH`), and the remaining elements are its arguments.
+
+  Each checker runs in the sandbox with one further argument appended to its command.
+  A checker whose name contains `noda` receives the path to a generated `nanoda`-style configuration file that specifies the export file and the permitted axioms, while every other checker receives the path to a file that contains the {tech}[solution]'s export.
+  A checker signals acceptance by exiting successfully, and the solution must be accepted by every configured checker in addition to Lean's kernel.
+
+: `enable_nanoda`
+
+  A Boolean for which `true` is equivalent to an `external_kernels` entry that maps `"nanoda"` to `["nanoda_bin"]`.
+  It may be `true` only when `external_kernels` is empty or omitted.
+
+:::
+
+## Sandbox
+
+:::paragraph
+The sandbox restricts only filesystem writes and outbound TCP connections:
+
+* Writes are confined to the project's `.lake` directory.
+* Only dependency resolution may open connections, on ports 443 and 22, the ports used by git's `https` and `ssh` transports.
+
+Reads, execution, and network traffic other than TCP are unrestricted.
+:::
+
+On Linux kernels that predate the Landlock fix released in Linux 7.1, `landrun` can be escaped through an `AF_UNIX` socket.
+Where that matters, run the command under a wrapper that removes the capability:
+
+```
+systemd-run --user --pty --property=RestrictAddressFamilies=~AF_UNIX \
+  lake challenge --config challenge.json
+```
 
 # Development Tools
 
