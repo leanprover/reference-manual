@@ -106,9 +106,9 @@ The resulting error message shows that the function was not translated, but was 
 (kernel) application type mismatch
   List.length children
 argument has type
-  @_nested.List_1 branches α
+  _nested.List_1
 but function has type
-  List (@BRTree branches α) → Nat
+  List (BRTree branches α) → Nat
 ```
 It is acceptable to use the parameter with the nested occurrence with fully polymorphic functions, such as {name}`id`:
 ```lean (name := nondep)
@@ -119,19 +119,6 @@ inductive RTree'' (α : Type u) : Type u where
     BRTree branches α
 ```
 In this case, the function applies equally well to the translated version as it does to the original.
-:::
-
-:::paragraph
-A _palindrome_ is a list that is the same when reversed:
-```lean
-inductive Palindrome (α : Type) : List α → Prop where
-  | nil : Palindrome α []
-  | single : Palindrome α [x]
-  | cons (x : α) (p : Palindrome α xs) : Palindrome α (x :: xs ++ [x])
-```
-In this predicate, the list is an index whose type depends on the parameter, which is explicit for clarity.
-This means it cannot be used
-
 :::
 :::::
 

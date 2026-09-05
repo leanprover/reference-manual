@@ -390,7 +390,7 @@ DISCUSSION:
         $ elan toolchain link master <path/to/lean/root>
         $ elan override set master
 
-    If you now compile a crate in the current directory, the custom
+    If you now compile a package in the current directory, the custom
     toolchain 'master' will be used.
 ```
 
