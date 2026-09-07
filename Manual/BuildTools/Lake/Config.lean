@@ -96,7 +96,7 @@ These options control the top-level directory layout of the package and its buil
 Further paths specified by libraries, executables, and targets within the package are relative to these directories.
 :::
 
-:::tomlFieldCategory "Building and Running" defaultTargets leanLibDir platformIndependent precompileModules moreServerOptions moreGlobalServerArgs buildType leanOptions moreLeanArgs weakLeanArgs moreLeancArgs weakLeancArgs moreLinkArgs weakLinkArgs extraDepTargets
+:::tomlFieldCategory "Building and Running" defaultTargets leanLibDir platformIndependent precompileModules precompileImports moreServerOptions moreGlobalServerArgs buildType leanOptions moreLeanArgs weakLeanArgs moreLeancArgs weakLeancArgs moreLinkArgs weakLinkArgs extraDepTargets
 
 These options configure how code is built and run in the package.
 Libraries, executables, and other {tech}[targets] within a package can further add to parts of this configuration.
@@ -158,6 +158,7 @@ name = "example-package"
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
           platformIndependent := none,
+          precompileImports := false,
           dynlibs := #[],
           plugins := #[],
           requiresModuleSystem := false,
@@ -250,6 +251,7 @@ name = "Sorting"
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
           platformIndependent := none,
+          precompileImports := false,
           dynlibs := #[],
           plugins := #[],
           requiresModuleSystem := false,
@@ -315,6 +317,7 @@ name = "Sorting"
                     weakLinkArgs := #[],
                     backend := Lake.Backend.default,
                     platformIndependent := none,
+                    precompileImports := false,
                     dynlibs := #[],
                     plugins := #[],
                     requiresModuleSystem := false,
@@ -326,6 +329,7 @@ name = "Sorting"
                 libPrefixOnWindows := false,
                 needs := #[],
                 extraDepTargets := #[],
+                precompileLibrary := false,
                 precompileModules := false,
                 defaultFacets := #[`lean_lib.leanArts],
                 nativeFacets := #<fun>,
@@ -354,6 +358,7 @@ name = "Sorting"
                           weakLinkArgs := #[],
                           backend := Lake.Backend.default,
                           platformIndependent := none,
+                          precompileImports := false,
                           dynlibs := #[],
                           plugins := #[],
                           requiresModuleSystem := false,
@@ -365,6 +370,7 @@ name = "Sorting"
                       libPrefixOnWindows := false,
                       needs := #[],
                       extraDepTargets := #[],
+                      precompileLibrary := false,
                       precompileModules := false,
                       defaultFacets := #[`lean_lib.leanArts],
                       nativeFacets := #<fun>,
@@ -589,6 +595,7 @@ name = "TacticTools"
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
           platformIndependent := none,
+          precompileImports := false,
           dynlibs := #[],
           plugins := #[],
           requiresModuleSystem := false,
@@ -600,6 +607,7 @@ name = "TacticTools"
       libPrefixOnWindows := false,
       needs := #[],
       extraDepTargets := #[],
+      precompileLibrary := false,
       precompileModules := false,
       defaultFacets := #[`lean_lib.leanArts],
       nativeFacets := #<fun>,
@@ -634,6 +642,7 @@ precompileModules = true
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
           platformIndependent := none,
+          precompileImports := false,
           dynlibs := #[],
           plugins := #[],
           requiresModuleSystem := false,
@@ -645,6 +654,7 @@ precompileModules = true
       libPrefixOnWindows := false,
       needs := #[],
       extraDepTargets := #[],
+      precompileLibrary := false,
       precompileModules := true,
       defaultFacets := #[`lean_lib.leanArts],
       nativeFacets := #<fun>,
@@ -687,6 +697,7 @@ name = "trustworthytool"
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
           platformIndependent := none,
+          precompileImports := false,
           dynlibs := #[],
           plugins := #[],
           requiresModuleSystem := false,
@@ -737,6 +748,7 @@ exeName = "tt"
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
           platformIndependent := none,
+          precompileImports := false,
           dynlibs := #[],
           plugins := #[],
           requiresModuleSystem := false,
@@ -958,7 +970,7 @@ The fields of {keywordOf Lake.DSL.leanExeCommand}`lean_exe` are those of the {na
 
 Because external libraries may be written in any language and require arbitrary build steps, they are defined as programs written in the {name Lake.FetchM}`FetchM` monad that produce a {name Lake.Job}`Job`.
 External library targets should produce a build job that carries out the build and then returns the location of the resulting static library.
-For the external library to link properly when {name Lake.PackageConfig.precompileModules}`precompileModules` is on, the static library produced by an {keyword}`extern_lib` target must follow the platform's naming conventions for libraries (i.e., be named foo.a on Windows or libfoo.a on Unix-like systems).
+For the external library to link properly when {name Lake.LeanConfig.precompileImports}`precompileImports` or {name Lake.PackageConfig.precompileModules}`precompileModules` is on, the static library produced by an {keyword}`extern_lib` target must follow the platform's naming conventions for libraries (i.e., be named `foo.a` on Windows or `libfoo.a` on Unix-like systems).
 The utility function {name}`Lake.nameToStaticLib` converts a library name into its proper file name for current platform.
 
 :::syntax command (title := "External Library Targets")
