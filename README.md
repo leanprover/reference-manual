@@ -326,4 +326,3 @@ It's almost always desirable to maintain the invariant that
 `main`, but new Lean releases can violate this property. In these
 cases, it's helpful to update the toolchain for `nightly-testing`
 _before_ trying to merge `main` into `nightly-testing`.
-
