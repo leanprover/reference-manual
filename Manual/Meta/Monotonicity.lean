@@ -11,7 +11,6 @@ import Manual.Meta.Basic
 import Manual.Meta.CustomStyle
 import Manual.Meta.Instances
 
-open scoped Lean.Doc.Syntax
 
 open Verso Doc Elab Manual
 open Verso.Genre.Manual

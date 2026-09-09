@@ -43,8 +43,8 @@ open Verso ArgParse Doc Elab Genre.Manual
 open Verso.Doc.Elab
 open Verso.Log
 open Lean Elab
-open scoped Lean.Doc.Syntax
 open SubVerso.Highlighting (Highlighted)
+open Lean.Doc (CodeBlockView VersoCodeBlock)
 
 namespace Manual
 
@@ -91,29 +91,31 @@ private def isBlank (s : String) : Bool := s.all Char.isWhitespace
 /-- The classification of a block inside a `lakeSession` directive. -/
 inductive SessionItem where
   /-- A `toml` block, becoming `lakefile.toml`. The syntax is kept for rendering. -/
-  | tomlConfig (contents : StrLit) (block : Syntax)
+  | tomlConfig (contents : VersoCodeBlock) (block : Syntax)
   /-- A `lean +lakefile` block, becoming `lakefile.lean`. The syntax is kept for rendering. -/
-  | leanConfig (contents : StrLit) (block : Syntax)
+  | leanConfig (contents : VersoCodeBlock) (block : Syntax)
   /-- A `lean (file := …)` source-file block. -/
-  | source (cfg : SourceFileConfig) (contents : StrLit)
+  | source (cfg : SourceFileConfig) (contents : VersoCodeBlock)
   /-- A `lakeCmd "…"` block, with its expected output and the block syntax (for error reporting). -/
-  | command (cfg : LakeCmdConfig) (output : StrLit) (blame : Syntax)
+  | command (cfg : LakeCmdConfig) (output : VersoCodeBlock) (blame : Syntax)
   /-- Any other block, rendered unchanged. -/
   | passthrough (block : Syntax)
 
 /-- Classify a block within a `lakeSession`. -/
-def classifySessionBlock (block : Syntax) : DocElabM SessionItem := do
-  match block with
-  | `(block| ``` toml $_* | $contents ```) => return .tomlConfig contents block
-  | `(block| ``` lakeCmd $args* | $output ```) =>
+def classifySessionBlock (block : TSyntax ``Lean.Doc.Parser.block) : DocElabM SessionItem := do
+  let some { name? := some name, args, content, .. } := CodeBlockView.of block
+    | return .passthrough block
+  match name.getId with
+  | `toml => return .tomlConfig content block
+  | `lakeCmd =>
     let cfg ← LakeCmdConfig.parse.run (← parseArgs args)
-    return .command cfg output block
-  | `(block| ``` lean $args* | $contents ```) =>
+    return .command cfg content block
+  | `lean =>
     -- A `lean` block is the Lean-format configuration when marked `+lakefile`, a project source
     -- file when it carries a `file` argument, and otherwise an ordinary rendered example.
     match ← (try some <$> leanBlockArgs.run (← parseArgs args) catch _ => pure none) with
-    | some (_, true) => return .leanConfig contents block
-    | some (some file, false) => return .source ⟨file⟩ contents
+    | some (_, true) => return .leanConfig content block
+    | some (some file, false) => return .source ⟨file⟩ content
     | _ => return .passthrough block
   | _ => return .passthrough block
 
@@ -280,7 +282,7 @@ def lakeSession : DirectiveExpander
       return #[← ``(Verso.Doc.Block.empty)]
 where
   /-- Run a single command in `dir` and check its exit code and output. -/
-  runCommand (dir : System.FilePath) (cfg : LakeCmdConfig) (output : StrLit) (blame : Syntax) :
+  runCommand (dir : System.FilePath) (cfg : LakeCmdConfig) (output : VersoCodeBlock) (blame : Syntax) :
       DocElabM Unit := do
     let parts := cfg.command.splitOn " " |>.filter (!·.isEmpty)
     let some cmd := parts.head?

@@ -18,7 +18,6 @@ import Manual.Meta.Basic
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab Term Parser Tactic Doc
 open SubVerso.Highlighting Highlighted
-open scoped Lean.Doc.Syntax
 
 namespace Manual
 
@@ -205,14 +204,15 @@ def grindTacticInline : RoleExpanderOf GrindTacticInlineArgs
   | {kind?}, inlines => do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $tac:str )) := arg
+    let some { content := code, .. } := Lean.Doc.CodeView.of arg
       | throwErrorAt arg "Expected code literal with the grind tactic name"
+    let tac := code.getVersoCode
     let name : StrLit ⊕ Ident := match kind? with
       | some k => .inr k
-      | none => .inl tac
+      | none => .inl (Syntax.mkStrLit tac (SourceInfo.fromRef code))
     let tacDoc ← getGrindTactic name none
-    let hl : Highlighted := .token ⟨.keyword (some tacDoc.name) none tacDoc.docs?, tac.getString⟩
-    `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.grindTactic with data := $(quote (ToJson.toJson hl))} #[Verso.Doc.Inline.code $(quote tac.getString)])
+    let hl : Highlighted := .token ⟨.keyword (some tacDoc.name) none tacDoc.docs?, tac⟩
+    `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.grindTactic with data := $(quote (ToJson.toJson hl))} #[Verso.Doc.Inline.code $(quote tac)])
 
 @[inline_extension Inline.grindTactic]
 def grindTacticInline.descr : InlineDescr := withHighlighting {

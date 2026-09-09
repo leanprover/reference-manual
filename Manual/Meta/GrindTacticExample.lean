@@ -22,6 +22,7 @@ open Lean Elab Term Tactic
 open SubVerso.Highlighting
 open Lean.Meta.Grind (Filter)
 open Lean.Elab.Tactic.Grind (GrindTacticM evalGrindTactic getUnsolvedGoalMVarIds showState withMainContext)
+open Lean.Doc (CodeView VersoCodeBlock)
 
 namespace Manual
 
@@ -150,7 +151,6 @@ def checkGrindExample
 
 /-! ## The `grindTacticExample` directive -/
 
-open Lean.Doc.Syntax in
 open Manual (TacticOutputConfig)
 
 structure GrindExampleContext where
@@ -160,10 +160,10 @@ structure GrindExampleContext where
   grindPrefix : Option Syntax := none
   step : Option Syntax := none
   seenStep : Bool := false
-  prePS : Option (TSyntax `str) := none
-  postPS : Option (TSyntax `str) := none
-  preGS : Option (TSyntax `str × TacticOutputConfig) := none
-  postGS : Option (TSyntax `str × TacticOutputConfig) := none
+  prePS : Option VersoCodeBlock := none
+  postPS : Option VersoCodeBlock := none
+  preGS : Option (VersoCodeBlock × TacticOutputConfig) := none
+  postGS : Option (VersoCodeBlock × TacticOutputConfig) := none
   preGoalsName : Ident
   postGoalsName : Ident
   stepName : Ident
@@ -216,7 +216,7 @@ def saveGrindStep (step : Syntax) : m Ident := do
   return st.stepName
 
 /-- Saves a proof state, before or after the step depending on position, returning its goals ident. -/
-def saveGrindProofState (str : TSyntax `str) : m Ident := do
+def saveGrindProofState (str : VersoCodeBlock) : m Ident := do
   let st ← getCtx
   if st.seenStep then
     if st.postPS.isSome then throwError "Final proof state already specified"
@@ -228,7 +228,7 @@ def saveGrindProofState (str : TSyntax `str) : m Ident := do
     return st.preGoalsName
 
 /-- Saves a grind state, before or after the step depending on position, returning its message ident. -/
-def saveGrindState (str : TSyntax `str) (opts : TacticOutputConfig) : m Ident := do
+def saveGrindState (str : VersoCodeBlock) (opts : TacticOutputConfig) : m Ident := do
   let st ← getCtx
   if st.seenStep then
     if st.postGS.isSome then throwError "Final grind state already specified"
@@ -239,12 +239,11 @@ def saveGrindState (str : TSyntax `str) (opts : TacticOutputConfig) : m Ident :=
     setCtx { st with preGS := some (str, opts) }
     return st.preStateName
 
-open scoped Lean.Doc.Syntax
 open Verso.Genre.Manual.InlineLean.Scopes (runWithOpenDecls runWithVariables)
 
 open Lean.Parser in
 /-- Parses `str` as a sequence in the syntax category `cat` (e.g. `tacticSeq` or `grindSeq`). -/
-private def parseSeq (cat : Name) (str : TSyntax `str) : DocElabM Syntax := do
+private def parseSeq (cat : Name) (str : VersoCodeBlock) : DocElabM Syntax := do
   let altStr ← parserInputString str
   let p := andthen ⟨{}, whitespace⟩ <|
     andthen {fn := (fun _ => (·.pushSyntax (mkIdent cat)))} (parserOfStack 0)
@@ -260,7 +259,7 @@ def grindGoal : RoleExpander
   | args, inlines => do
     let config ← TacticGoalConfig.parse.run args
     let #[arg] := inlines | throwError "Expected exactly one argument"
-    let `(inline|code( $term:str )) := arg
+    let some { content := term, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the goal"
     let altStr ← parserInputString term
     match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
@@ -270,7 +269,7 @@ def grindGoal : RoleExpander
       saveGrindGoal goalExpr
       if config.show then
         let hls ← highlight stx #[] {}
-        pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hls)) #[Inline.code $(quote term.getString)])]
+        pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hls)) #[Inline.code $(quote term.getVersoCode)])]
       else pure #[]
 
 @[code_block_expander grindSetup]
@@ -285,7 +284,7 @@ def grindPrefix : CodeBlockExpander
   | args, str => do
     ArgParse.done.run args
     saveGrindPrefix (← parseSeq `Lean.Parser.Tactic.Grind.grindSeq str)
-    pure #[← `(Block.code $(quote str.getString))]
+    pure #[← `(Block.code $(quote str.getVersoCodeBlock))]
 
 @[code_block_expander grindStep]
 def grindStep : CodeBlockExpander
@@ -293,7 +292,7 @@ def grindStep : CodeBlockExpander
     ArgParse.done.run args
     let stepStx ← parseSeq `Lean.Parser.Tactic.Grind.grindSeq str
     let stepName ← saveGrindStep stepStx
-    pure #[← ``(Block.other (Verso.Genre.Manual.InlineLean.Block.lean $stepName) #[Block.code $(quote str.getString)])]
+    pure #[← ``(Block.other (Verso.Genre.Manual.InlineLean.Block.lean $stepName) #[Block.code $(quote str.getVersoCodeBlock)])]
 
 @[code_block_expander grindProofState]
 def grindProofState : CodeBlockExpander
@@ -301,7 +300,7 @@ def grindProofState : CodeBlockExpander
     let opts ← StateConfig.parse.run args
     let goalsName ← saveGrindProofState str
     if opts.show then
-      pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $goalsName)} #[Block.code $(quote str.getString)])]
+      pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $goalsName)} #[Block.code $(quote str.getVersoCodeBlock)])]
     else pure #[]
 
 @[code_block_expander grindState]
@@ -310,7 +309,7 @@ def grindState : CodeBlockExpander
     let opts ← TacticOutputConfig.parser.run args
     let stateName ← saveGrindState str opts
     if opts.show then
-      pure #[← `(Block.other {Verso.Genre.Manual.InlineLean.Block.leanOutput with data := ToJson.toJson ($stateName, $(quote opts.summarize), ($(quote opts.expandTraces) : List Name))} #[Block.code $(quote str.getString)])]
+      pure #[← `(Block.other {Verso.Genre.Manual.InlineLean.Block.leanOutput with data := ToJson.toJson ($stateName, $(quote opts.summarize), ($(quote opts.expandTraces) : List Name))} #[Block.code $(quote str.getVersoCodeBlock)])]
     else pure #[]
 
 def endGrindExample (body : TSyntax `term) : DocElabM (TSyntax `term) := do
@@ -337,14 +336,14 @@ def endGrindExample (body : TSyntax `term) : DocElabM (TSyntax `term) := do
     let $postStateName : Highlighted.Message := $(quote r.postStateMsg)
     $body)
 where
-  checkText (expected : TSyntax `str) (actual : String) (what : String) : DocElabM Unit := do
-    if expected.getString.trimAscii != actual.trimAscii then
+  checkText (expected : VersoCodeBlock) (actual : String) (what : String) : DocElabM Unit := do
+    if expected.getVersoCodeBlock.trimAscii != actual.trimAscii then
       Verso.Doc.Suggestion.saveSuggestion expected ((actual.take 30).copy ++ "…") (actual ++ "\n")
-      logErrorAt expected m!"Mismatch in {what}. Expected:{indentD actual}\nGot:{indentD expected.getString}"
-  checkWs (expected : TSyntax `str) (actual : String) (opts : TacticOutputConfig) : DocElabM Unit := do
-    if opts.whitespace.apply expected.getString.trimAscii.copy != opts.whitespace.apply actual.trimAscii.copy then
+      logErrorAt expected m!"Mismatch in {what}. Expected:{indentD actual}\nGot:{indentD expected.getVersoCodeBlock}"
+  checkWs (expected : VersoCodeBlock) (actual : String) (opts : TacticOutputConfig) : DocElabM Unit := do
+    if opts.whitespace.apply expected.getVersoCodeBlock.trimAscii.copy != opts.whitespace.apply actual.trimAscii.copy then
       Verso.Doc.Suggestion.saveSuggestion expected ((actual.take 30).copy ++ "…") (actual ++ "\n")
-      logErrorAt expected m!"Grind state mismatch. Expected:{indentD actual}\nGot:{indentD expected.getString}"
+      logErrorAt expected m!"Grind state mismatch. Expected:{indentD actual}\nGot:{indentD expected.getVersoCodeBlock}"
 
 structure GrindExampleConfig where
   sym : Bool := false

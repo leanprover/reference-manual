@@ -8,7 +8,7 @@ import VersoManual
 import Lean.Elab.InfoTree.Types
 import SubVerso.Highlighting.Code
 
-open scoped Lean.Doc.Syntax
+open Lean.Doc (CodeView RoleView)
 
 open Verso Doc Elab
 open Lean Elab
@@ -26,7 +26,7 @@ def typed : RoleExpander
     let config ← LeanInlineConfig.parse.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $term:str )) := arg
+    let some { content := term, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the example name"
     let altStr ← parserInputString term
 
@@ -85,9 +85,9 @@ def typed : RoleExpander
 
       pushInfoTree tree
 
-      if let `(inline|role{%$s $f $_*}%$e[$_*]) ← getRef then
-        Hover.addCustomHover (mkNullNode #[s, e]) type
-        Hover.addCustomHover f type
+      if let some { braceOpen, name, braceClose, .. } := RoleView.of ⟨← getRef⟩ then
+        Hover.addCustomHover (mkNullNode #[braceOpen, braceClose]) type
+        Hover.addCustomHover name type
 
       if config.error then
         if newMsgs.hasErrors then
@@ -107,7 +107,7 @@ def typed : RoleExpander
 
 
       if config.show then
-        pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hls)) #[Inline.code $(quote term.getString)])]
+        pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hls)) #[Inline.code $(quote term.getVersoCode)])]
       else
         pure #[]
 where

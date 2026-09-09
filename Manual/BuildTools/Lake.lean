@@ -198,7 +198,7 @@ That tool's {tech}[manifest] thus looks something like this:
 
 ```lakeManifest
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "packagesDir": ".lake/packages",
   "packages": [{
     "url": "https://github.com/leanprover/lean4-cli",
@@ -224,7 +224,7 @@ This can be done with the following {tech}[package overrides] file:
 
 ```lakePackageOverrides
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "packages": [{
     "type": "path",
     "dir": "/etc/lean-packages/Cli",
@@ -328,13 +328,15 @@ The `@` and `+` markers can be used to disambiguate packages and modules
 from file paths or other kinds of targets (e.g., executables or libraries).
 
 LIBRARY FACETS:         build the library's ...
-  leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
+  elabArts              elaboration artifacts (*.olean, *.ilean files)
+  irArts (default)      compilation artifacts (*.ir, *.ir.sig, *.c files)
   static                static artifact (*.a file)
   shared                shared artifact (*.so, *.dll, or *.dylib file)
 
 MODULE FACETS:          build the module's ...
   deps                  dependencies (e.g., imports, shared libraries, etc.)
-  leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
+  elabArts              elaboration artifacts (*.olean, *.ilean files)
+  irArts (default)      compilation artifacts (*.ir, *.ir.sig, *.c files)
   olean                 OLean (binary blob of Lean data for importers)
   ilean                 ILean (binary blob of metadata for the Lean LSP server)
   c                     compiled C file
@@ -433,8 +435,8 @@ info: #[`package.barrel, `package.cache, `package.defaultModules, `package.deps,
 ```lean -show
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: [`lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.static.export, `lean_lib.shared, `lean_lib.modules, `lean_lib.static,
-  `lean_lib.default]
+info: [`lean_lib.elabArts, `lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.irArts, `lean_lib.static.export,
+  `lean_lib.shared, `lean_lib.modules, `lean_lib.static, `lean_lib.default]
 -/
 #guard_msgs in
 #eval Lake.initLibraryFacetConfigs.toList.map (·.1)
@@ -443,6 +445,14 @@ info: [`lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.static.export, `lean_li
 :::paragraph
 
 The facets available for libraries are:
+
+: `elabArts`
+
+  The library's elaboration artifacts (`*.olean` and `*.ilean` files).
+
+: `irArts` (default)
+
+  The library's code-generation artifacts (`*.ir`, `*.ir.sig`, and `*.c` files).
 
 : `leanArts`
 
@@ -485,6 +495,7 @@ module.depHash
 module.depTrace
 module.deps
 module.dynlib
+module.elabArts
 module.exportInfo
 module.header
 module.ilean
@@ -495,11 +506,13 @@ module.imports
 module.input
 module.ir
 module.ir.sig
+module.irArts
 module.lean
 module.leanArts
 module.linkInfoExport
 module.linkInfoNoExport
 module.ltar
+module.metaExportInfo
 module.o
 module.o.export
 module.o.noexport
@@ -522,9 +535,17 @@ The facets available for modules are:
 
   The module's Lean source file.
 
-: `leanArts` (default)
+: `elabArts`
 
- The module's Lean artifacts (`*.olean`, `*.ilean`, `*.c` files).
+ The module's elaboration artifacts (`*.olean` and `*.ilean` files).
+
+: `irArts` (default)
+
+ The module's code-generation artifacts (`*.ir`, `*.ir.sig`, and `*.c` files).
+
+: `leanArts`
+
+ All artifacts produced by elaboration and code generation.
 
 : `deps`
 

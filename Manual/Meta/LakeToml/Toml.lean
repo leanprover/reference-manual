@@ -16,9 +16,9 @@ open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets Multi
 open SubVerso.Highlighting Highlighted
 open Lean Elab
 
-open scoped Lean.Doc.Syntax
 
 open Lean.Elab.Tactic.GuardMsgs
+open Lean.Doc (CodeView)
 
 namespace Manual
 
@@ -388,7 +388,7 @@ def Toml.tableLink (xref : Genre.Manual.TraverseState) (table : Name) : Option S
   return dest.link
 
 open Lean.Parser in
-def tomlContent (str : StrLit) : DocElabM Toml.Highlighted := do
+def tomlContent [Verso.Literal k] (str : TSyntax k) : DocElabM Toml.Highlighted := do
   let scope : Command.Scope := {header := ""}
   let inputCtx := Parser.mkInputContext (← parserInputString str) (← getFileName)
   let pmctx : Parser.ParserModuleContext :=
@@ -453,7 +453,7 @@ open Lean.Parser in
 def toml : CodeBlockExpanderOf TomlParams
   | { link }, str => do
     let hl ← tomlContent str
-    ``(Block.other (Block.toml $(quote hl) $(quote link)) #[Block.code $(quote str.getString)])
+    ``(Block.other (Block.toml $(quote hl) $(quote link)) #[Block.code $(quote str.getVersoCodeBlock)])
 
 open Lean.Parser in
 @[role_expander toml]
@@ -463,12 +463,12 @@ def tomlInline : RoleExpander
 
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $str:str )) := arg
+    let some { content := str, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with TOML code"
 
     let hl ← tomlContent str
 
-    pure #[← ``(Inline.other (Inline.toml $(quote hl)) #[Inline.code $(quote str.getString)])]
+    pure #[← ``(Inline.other (Inline.toml $(quote hl)) #[Inline.code $(quote str.getVersoCode)])]
 
 
 @[block_extension Block.toml]

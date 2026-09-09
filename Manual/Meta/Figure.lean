@@ -24,7 +24,7 @@ def Block.figure (captionString : String) (name : Option String) : Block where
   data := ToJson.toJson (captionString, name, (none : Option Tag))
 
 structure FigureConfig where
-  caption : TSyntaxArray `inline
+  caption : TSyntaxArray ``Lean.Doc.Parser.inline
   /-- Name for refs -/
   tag : Option String := none
 

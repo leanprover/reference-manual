@@ -9,8 +9,10 @@ public import Lean.Syntax
 public import Lean.Environment
 public import Lean.Parser.Types
 public import Lean.Elab.Command
+public import Lean.DocString.View
 import Lean.Parser
 
+public import Verso.Literal
 import Verso.Parser
 import Verso.Doc.ArgParse
 import SubVerso.Highlighting
@@ -19,8 +21,9 @@ open Lean
 
 namespace Manual
 
-public def parserInputString [Monad m] [MonadFileMap m]
-    (str : TSyntax `str) :
+open Verso in
+public def parserInputString [Monad m] [MonadFileMap m] [Literal k]
+    (str : TSyntax k) :
     m String := do
   let text ← getFileMap
   let preString := String.Pos.Raw.extract text.source 0 (str.raw.getPos?.getD 0)
@@ -34,7 +37,7 @@ public def parserInputString [Monad m] [MonadFileMap m]
   let strOriginal? : Option String := do
     let ⟨start, stop⟩ ← str.raw.getRange?
     start.extract text.source stop
-  code := code ++ strOriginal?.getD str.getString
+  code := code ++ strOriginal?.getD (Literal.decode str)
   return code
 
 public structure SyntaxError where
@@ -156,20 +159,30 @@ public def commandWithoutAsync : (act : CommandElabM α) → CommandElabM α :=
 public def withoutAsync [Monad m] [MonadWithOptions m] : (act : m α) → m α :=
   withOptions (Elab.async.set · false)
 
-open scoped Lean.Doc.Syntax in
+open Lean.Doc (CodeBlockView VersoCodeBlock) in
+/--
+The contents of `blk`, if it is a code block that names `name`.
+-/
+public def namedCodeBlock (name : Name) (blk : TSyntax ``Lean.Doc.Parser.block) :
+    Option VersoCodeBlock :=
+  match CodeBlockView.of blk with
+  | some { name? := some n, content, .. } => if n.getId == name then some content else none
+  | _ => none
+
+open Lean.Doc (CodeView VersoCode) in
 /--
 If the array of inlines contains a single code element, it is returned. Otherwise, an error is
 logged and `none` is returned.
 -/
 public def oneCodeStr? [Monad m] [MonadError m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
-    (inlines : Array (TSyntax `inline)) : m (Option StrLit) := do
+    (inlines : TSyntaxArray ``Lean.Doc.Parser.inline) : m (Option VersoCode) := do
   let #[code] := inlines
     | if inlines.size == 0 then
         Lean.logError "Expected a code element"
       else
         logErrorAt (mkNullNode inlines) "Expected one code element"
       return none
-  let `(inline|code($code)) := code
+  let some { content := code, .. } := CodeView.of code
     | logErrorAt code "Expected a code element"
       return none
   return some code

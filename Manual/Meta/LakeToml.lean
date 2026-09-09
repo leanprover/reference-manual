@@ -29,8 +29,8 @@ import Lake.Load.Toml
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab
 open SubVerso.Highlighting Highlighted
-open scoped Lean.Doc.Syntax
 open Lean.Elab.Tactic.GuardMsgs
+open Lean.Doc (CodeView)
 
 set_option guard_msgs.diff true
 
@@ -791,22 +791,18 @@ def LakeTomlOpts.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEn
 def lakeToml : DirectiveExpander
   | args, contents => do
     let opts ← LakeTomlOpts.parse.run args
-    let (expected, contents) := contents.partition fun
-      | `(block| ``` expected | $_ ```) => true
-      | _ => false
-    let toml := contents.filterMap fun
-      | `(block| ``` toml $_* | $tomlStr ```) => some tomlStr
-      | _ => none
+    let (expected, contents) := contents.partition (namedCodeBlock `expected · |>.isSome)
+    let toml := contents.filterMap (namedCodeBlock `toml ·)
     if h : expected.size ≠ 1 then
       throwError "Expected exactly 1 'expected' code block, got {expected.size}"
     else
-      let `(block| ```expected | $expectedStr ```) := expected[0]
+      let some expectedStr := namedCodeBlock `expected expected[0]
         | throwErrorAt expected[0] "Expected an 'expected' code block with no arguments"
       if h : toml.size ≠ 1 then
         throwError "Expected exactly 1 toml code block, got {toml.size}"
       else
         let tomlStr := toml[0]
-        let tomlInput := tomlStr.getString ++ "\n"
+        let tomlInput := tomlStr.getVersoCodeBlock ++ "\n"
         let v ← match opts.field, opts.type with
         | `_root_, ``Lake.PackageConfig =>
           match (← checkTomlPackage ((← parserInputString tomlStr) ++ "\n")) with
@@ -839,9 +835,9 @@ def tomlFieldInline : RoleExpander
     let table ← (ArgParse.positional `table .resolvedName).run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $name:str )) := arg
+    let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the field name"
-    let name := name.getString
+    let name := name.getVersoCode
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.tomlField $(quote table) $(quote name.toName)) #[Inline.code $(quote name)])]
 

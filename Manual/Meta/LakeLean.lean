@@ -31,7 +31,6 @@ SubVerso highlighting of the source (for display).
 open Verso ArgParse Doc Elab Genre.Manual
 open Verso.Log
 open Lean Elab
-open scoped Lean.Doc.Syntax
 
 namespace Manual
 
@@ -55,19 +54,15 @@ executable. The configuration is elaborated, the result is checked against the `
 def lakeLean : DirectiveExpander
   | args, contents => do
     let opts ← LakeLeanOpts.parse.run args
-    let (expected, contents) := contents.partition fun
-      | `(block| ``` expected | $_ ```) => true
-      | _ => false
-    let leanBlocks := contents.filterMap fun
-      | `(block| ``` lean $_* | $leanStr ```) => some leanStr
-      | _ => none
+    let (expected, contents) := contents.partition (namedCodeBlock `expected · |>.isSome)
+    let leanBlocks := contents.filterMap (namedCodeBlock `lean ·)
 
     if h : expected.size ≠ 1 then
       throwError "Expected exactly 1 'expected' code block, got {expected.size}"
     else if h : leanBlocks.size ≠ 1 then
       throwError "Expected exactly 1 'lean' code block, got {leanBlocks.size}"
     else
-      let `(block| ```expected | $expectedStr ```) := expected[0]
+      let some expectedStr := namedCodeBlock `expected expected[0]
         | throwErrorAt expected[0] "Expected an 'expected' code block with no arguments"
       let leanStr := leanBlocks[0]
 
