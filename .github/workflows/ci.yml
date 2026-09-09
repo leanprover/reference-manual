@@ -3,7 +3,6 @@ on:
         branches:
             - main
             - nightly-testing
-            - "lean-pr-testing-*"
     pull_request:
         branches:
             - main
@@ -58,7 +57,6 @@ jobs:
                       ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-
 
             - name: Build
-              id: build
               run: |
                   lake --no-ansi build 2>&1 | tee build.log
             - name: Generate build time summary
@@ -152,7 +150,6 @@ jobs:
 
             - name: Generate proofreading HTML
               if: github.event_name == 'pull_request'
-              id: generate
               run: |
                   ./generate-html.sh --mode preview --draft --output _out/draft-site
 
@@ -166,20 +163,6 @@ jobs:
                           cp deploy/netlify-headers "$dir/_headers"
                       fi
                   done
-
-            - name: Report status to Lean PR
-              if: always() && github.repository == 'leanprover/reference-manual'
-              shell: bash
-              env:
-                  TOKEN: ${{ secrets.LEAN_PR_TESTING }}
-                  GITHUB_CONTEXT: ${{ toJson(github) }}
-                  WORKFLOW_URL:
-                      https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                  BUILD_OUTCOME: ${{ steps.build.outcome }}
-                  GENERATE_OUTCOME: ${{ steps.generate.outcome }}
-                  NIGHTLY_TESTING_REPO: leanprover/reference-manual
-              run: |
-                  scripts/lean-pr-testing-comments.sh lean
 
             - name: Save generated HTML to artifact storage
               uses: actions/upload-artifact@v4
