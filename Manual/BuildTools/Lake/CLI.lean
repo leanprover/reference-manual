@@ -656,8 +656,8 @@ JSON file.
 
 OPTIONS:
   -o FILE               output path (default: ./profile-demangled.json.gz)
-  --raw                 skip symbolication and demangling
-  --no-serve            write output file and exit (don't start server)
+  --raw                 save the raw profile without serving (default: ./profile-raw.json.gz)
+  --no-serve            write output file and exit without serving it
 
 Anything after `--` is forwarded verbatim to `samply record`. An inner `--`
 separates samply's own flags from the profiled executable's arguments, e.g.:
@@ -685,7 +685,7 @@ By default the profile is served on a local HTTP server and a Firefox Profiler U
 
 Options:
 * `-o` writes the profile to {lakeMeta}`file` instead of `./profile-demangled.json.gz`.
-* `--raw` skips symbolication and demangling, emitting samply's own profile unchanged.
+* `--raw` skips symbolication and demangling, emitting samply's own profile unchanged and without serving it; the default output path becomes `./profile-raw.json.gz`.
 * `--no-serve` writes the output file and exits without starting the server.
 
 Everything after `--` is forwarded verbatim to `samply record`.
