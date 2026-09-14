@@ -637,6 +637,8 @@ Use the standard elaboration helpers {name}`Lean.Meta.getFVarFromUserName` and {
 
 When a mutable variable is established with {keywordOf Lean.Parser.Term.doLet}`let mut`, a {keywordOf Lean.Parser.Term.«let»}`let`-binding is created to represent it, and the initial variable's binding identifier and {name}`Expr.fvar` are added to the context that is used around the continuation, which is invoked under {name}`withReader` to add the new variable.
 After establishing the {keywordOf Lean.Parser.Term.«let»}`let`-binding, use {name Lean.Elab.Do.declareMutVar}`declareMutVar` to register one mutable variable or an array of them.
+Their `erased` parameter marks the variables as verification-only, as with {keywordOf Lean.Parser.Term.doErased}`erased mut`: specifications and proofs can read them, while compiled code carries a placeholder in their place.
+Ordinary mutable variables use `false`.
 
 {docstring Lean.Elab.Do.declareMutVar}
 
@@ -917,7 +919,7 @@ def openMutBody (x : Ident) (seq : TSyntax ``doSeq)
       resultName := ← mkFreshUserName `__r, resultType := ← mkPUnit
       k := mkClose p outerDecl.type base
     }
-    mkLetFVars #[innerX] (← declareMutVar x do elabDoSeq seq bodyCont)
+    mkLetFVars #[innerX] (← declareMutVar x (erased := false) do elabDoSeq seq bodyCont)
 ```
 
 The call to {name}`addLocalVarInfo` informs the language server about the connection between the elaborated {keywordOf Lean.Parser.Term.«let»}`let`-bound variable and the identifier in the source code, enabling features such as type information on hover.

@@ -987,6 +987,9 @@ $[where $_*]?
 :::
 
 ### Custom Targets
+%%%
+tag := "lake-config-custom-target"
+%%%
 
 Custom targets may be used to define any incrementally-built artifact whatsoever, using the Lake API.
 

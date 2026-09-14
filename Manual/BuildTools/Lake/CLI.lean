@@ -43,6 +43,7 @@ COMMANDS:
   clean                 remove build outputs
   shake                 minimize imports in source files
   challenge             judge a solution against a challenge
+  check                 check this project against external checker(s)
   env <cmd> <args>...   execute a command in Lake's environment
   lean <file>           elaborate a Lean file in Lake's context
   update                update dependencies and save them to the manifest
@@ -827,7 +828,7 @@ The {lakeMeta}`options` may be:
 tag := "lake-challenge"
 %%%
 
-Lake supports invoking {ref "validating-comparator"}[`comparator`] to validate a proof against a challenge, including the use of external checkers.
+Lake supports invoking {ref "validating-comparator"}[`comparator`] and {ref "validating-lean4checker"}[`lean4checker`] as part of {ref "validating-proofs"}[performing extra validation on proofs].
 This should only be necessary in high-risk scenarios, such as proof marketplaces, high-reward competitions, or when dealing with potentially unaligned AI systems.
 
 ```lakeHelp challenge
@@ -841,9 +842,10 @@ as the challenge, uses no axiom outside the permitted list, and is accepted by
 the kernel.
 
 The project is untrusted input: its configuration is evaluated, and its code
-built and exported, inside a `landrun` sandbox, and none of its `.olean` files
-is ever loaded into Lake's own address space. `landrun` is required; there is
-no unsandboxed mode, so this command is available on Linux only.
+built and exported, inside a `bwrap` sandbox, and none of its `.olean` files
+is ever loaded into Lake's own address space. `bubblewrap` is required, and
+needs either unprivileged user namespaces or to be installed setuid root;
+there is no unsandboxed mode, so this command is available on Linux only.
 
 The project has to carry a `lake-manifest.json`, because dependencies are
 resolved inside the sandbox and it cannot write to the project directory.
@@ -882,28 +884,23 @@ EXIT CODES:
   0                     accepted
   1                     rejected: statement mismatch, forbidden axiom, kernel
                         rejection, or a build that did not succeed
-  2                     could not start: `landrun` or the manifest is missing,
+  2                     could not start: `bwrap` or the manifest is missing,
                         or the configuration is missing, unreadable or
                         malformed
 
 ENVIRONMENT:
-  COMPARATOR_LANDRUN    sandbox executable (default: `landrun` on PATH)
+  COMPARATOR_BWRAP      sandbox executable (default: `bwrap` on PATH)
 
   The exporter is always the `leanexport` of this toolchain, and deliberately
   not configurable: the export format has to match the compiler that produced
   the `.olean` files being exported.
 
 HARDENING:
-  The sandbox bounds writes and TCP connections: only `.lake` is writable, and
-  only dependency resolution may connect, on the ports git's transports use.
-  It does not bound reads, execution, or non-TCP traffic.
-
-  Until the Landlock fix released in Linux 7.1 is widely available, `landrun`
-  can be escaped through an `AF_UNIX` socket. Where that matters, run the
-  command under a wrapper that removes the capability:
-
-    systemd-run --user --pty --property=RestrictAddressFamilies=~AF_UNIX \
-      lake challenge --config challenge.json
+  `challenge` uses `bwrap` for sandboxing. `/` is bound read-only and the home directories are then
+  covered, so the code being judged builds against the system it expects and reads none of the
+  invoking user's files. Only `.lake` is writable. Only dependency resolution has a network, because
+  it has to fetch git dependencies; the build, the export and any external kernels run in an empty
+  network namespace.
 ```
 
 ::::lake challenge "\"--config\" file"
@@ -913,9 +910,9 @@ Judges a solution against a {deftech}_challenge_: a trusted configuration that s
 
 The current Lake workspace is considered to be the {deftech}_solution_ project: it should satisfy the specification provided by the challenge.
 The solution is considered untrusted input.
-Its configuration is evaluated, and its code built and exported, inside a [`landrun`](https://github.com/Zouuup/landrun) sandbox, and its {tech}[`.olean` files] are kept out of Lake's own address space.
-Because `landrun` is required, the command is only available on Linux.
-The `landrun` executable name is determined by the {envVar +def}`COMPARATOR_LANDRUN` environment variable, defaulting to `landrun` if this is not set.
+Its configuration is evaluated, and its code built and exported, inside a [`bubblewrap`](https://github.com/containers/bubblewrap) sandbox, and its {tech}[`.olean` files] are kept out of Lake's own address space.
+Because `bubblewrap` is required, the command is only available on Linux.
+The sandbox executable name is determined by the {envVar +def}`COMPARATOR_BWRAP` environment variable, defaulting to `bwrap` if this is not set.
 The executable is resolved via the {envVar}`PATH`.
 The export is produced by the toolchain's own `leanexport` executable, so the export format matches the compiler that produced the {tech}[`.olean` files].
 
@@ -925,6 +922,58 @@ Solutions are checked by using {lake}`challenge` with {lakeOptDef option}`--conf
 The exit code distinguishes an accepted solution (`0`) and a rejected one (`1`) from an environment in which the judgment could not run at all (`2`).
 
 This command is a frontend to the [`comparator`](https://github.com/leanprover/comparator) proof-checking pipeline; {ref "validating-comparator"}[the section on validating proofs] describes the security model and the assumptions that remain.
+::::
+
+```lakeHelp check
+Check this project against external checker(s)
+
+USAGE:
+  lake check
+
+Builds the default build targets, exports them, and replays the result through
+the kernel, erroring on any use of non-standard axioms.
+
+The project is untrusted input: its configuration is evaluated, and its code
+built and exported, inside a `bwrap` sandbox, and none of its `.olean` files
+is ever loaded into Lake's own address space. `bwrap` is required; there is
+no unsandboxed mode, so this command is available on Linux only.
+
+The project has to carry a `lake-manifest.json`, because dependencies are
+resolved inside the sandbox and it cannot write to the project directory.
+Building the project once is enough to write one.
+
+EXIT CODES:
+  0                     the kernel accepts the project and it rests only on the
+                        permitted axioms
+  1                     the kernel rejects it, an axiom is not permitted, or a
+                        build did not succeed
+  2                     could not start: `bwrap` is missing, the project has
+                        no `lake-manifest.json`, or it has no default targets
+
+ENVIRONMENT:
+  COMPARATOR_BWRAP      sandbox executable (default: `bwrap` on PATH)
+
+  The exporter is always the `leanexport` of this toolchain, and deliberately
+  not configurable: the export format has to match the compiler that produced
+  the `.olean` files being exported.
+
+HARDENING:
+  The sandbox bounds writes and the network exactly as `lake challenge`'s
+  does, and its limits apply here too. See the HARDENING section of
+  `lake help challenge`.
+
+See `lake help challenge` to judge a solution against a challenge instead.
+```
+
+::::lake check
+
+{lake}`check` builds the {tech}[root package]'s {tech}[default targets], exports them, and replays the result through Lean's kernel.
+It then reports the axioms that the checked code uses, and fails if any of them is not one of the {ref "standard-axioms"}[standard axioms].
+
+Like {lake}`challenge`, it treats the workspace as untrusted input: it runs in the same {ref "lake-challenge-sandbox"}[sandbox], requires the project to have a manifest, and is only available on Linux.
+Unlike {lake}`challenge`, it does not use a special {ref "lake-challenge-config"}[configuration file].
+
+The exit code is `0` when the kernel accepts the project and only standard axioms are used, `1` when the kernel rejects it, a non-standard axiom is used, or a build fails, and `2` when the check could not run at all.
 ::::
 
 ## Configuration
@@ -974,23 +1023,21 @@ The challenge configuration is a JSON file that contains an object with the foll
 :::
 
 ## Sandbox
+%%%
+tag := "lake-challenge-sandbox"
+%%%
 
 :::paragraph
-The sandbox restricts only filesystem writes and outbound TCP connections:
+Both {lake}`challenge` and {lake}`check` use `bubblewrap` to restrict the untrusted code's access to files and the network:
 
+* The root filesystem is read-only, so the code may use tools and libraries as usual but not modify the system.
+* Home directories are hidden, so none of the invoking user's files, credentials, or caches are readable.
 * Writes are confined to the project's `.lake` directory.
-* Only dependency resolution may open connections, on ports 443 and 22, the ports used by git's `https` and `ssh` transports.
-
-Reads, execution, and network traffic other than TCP are unrestricted.
+* Only dependency resolution has network access, which it needs to fetch `git` dependencies.
+  The build, the export, and any external checkers run without a network.
 :::
 
-On Linux kernels that predate the Landlock fix released in Linux 7.1, `landrun` can be escaped through an `AF_UNIX` socket.
-Where that matters, run the command under a wrapper that removes the capability:
-
-```
-systemd-run --user --pty --property=RestrictAddressFamilies=~AF_UNIX \
-  lake challenge --config challenge.json
-```
+Because home directories are hidden, dependencies that can be fetched only with the user's own credentials are unavailable inside the sandbox.
 
 # Development Tools
 
