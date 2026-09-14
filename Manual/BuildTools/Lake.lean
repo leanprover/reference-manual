@@ -371,8 +371,8 @@ The facets available for packages are:
 ```lean -show
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `package.optBarrel, `package.optCache,
-  `package.optRelease, `package.release, `package.transDeps]
+info: #[`package.barrel, `package.cache, `package.defaultModules, `package.deps, `package.extraDep, `package.optBarrel,
+  `package.optCache, `package.optRelease, `package.release, `package.transDeps]
 -/
 #guard_msgs in
 #eval Lake.initPackageFacetConfigs.toList.map (·.1) |>.toArray |>.qsort (·.toString < ·.toString)
@@ -388,6 +388,11 @@ info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `pack
 : `transDeps`
 
   The package's {tech}[transitive dependencies], topologically sorted.
+
+: `defaultModules`
+
+  The Lean modules of the package's {tech}[default targets]: every module of each default library, and the root module of each default executable together with the modules it transitively imports from the workspace.
+  Other default targets, such as {ref "lake-config-custom-target"}[custom targets], are not included.
 
 
 : `optCache`
