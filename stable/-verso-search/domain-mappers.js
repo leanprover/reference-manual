@@ -278,6 +278,22 @@ const Verso_DOT_Genre_DOT_Manual_DOT_doc = {
 /**
  * @type {DomainMapper}
  */
+const Manual_DOT_tactic_DOT_grind = {
+    dataToSearchables:
+      (domainData) =>
+        Object.entries(domainData.contents).map(([key, value]) => ({
+          searchKey: value[0].data.userName,
+          address: `${value[0].address}#${value[0].id}`,
+          domainId: 'Manual.tactic.grind',
+          ref: value,
+        })),
+    className: "grind-tactic-domain",
+    displayName: "Grind Tactic",
+    };
+
+/**
+ * @type {DomainMapper}
+ */
 const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_option = {
     dataToSearchables:
       (domainData) =>
@@ -390,6 +406,7 @@ export const domainMappers = {"Verso.Genre.Manual.doc.suggestion":
   "Manual.lakeCommand": Manual_DOT_lakeCommand,
   "Manual.elanOpt": Manual_DOT_elanOpt,
   "Verso.Genre.Manual.doc": Verso_DOT_Genre_DOT_Manual_DOT_doc,
+  "Manual.tactic.grind": Manual_DOT_tactic_DOT_grind,
   "Verso.Genre.Manual.doc.option":
     Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_option,
   "Manual.Syntax.production": Manual_DOT_Syntax_DOT_production,

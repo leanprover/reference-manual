@@ -1,4 +1,4 @@
-<!-- Generated from commit eb208a5045e6e310d023b5b6360f04d9cdde25f0 at 2026-08-21T13:16:20Z -->
+<!-- Generated from commit a6451f0647eb4dc46fce2dd0532331c59351f87c at 2026-09-14T18:22:44Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -37,7 +37,7 @@
 </script>
     <base href="./../../"><meta charset="utf-8">
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
-    <title>Lean 4.34.0-rc1 (2026-08-10)</title><link rel="stylesheet" href="book.css">
+    <title>Lean 4.34.0 (2026-09-14)</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script defer="defer" src="-verso-search/elasticlunr.min.js"></script>
@@ -285,6 +285,105 @@ pre.json {
   color: #3030c0;
 }
 
+</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/*
+The margin-note layout responds to the width of <main>, not the viewport, because the
+ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
+query container (see Html/Style.lean), so the container queries below track the actual
+content width.
+
+There are two "in the margin" regimes, split at the same width where the content stops
+being left-aligned and becomes centered (1112px and 1212px of content width; at the
+default ToC width these are the old 1400px and 1500px viewport breakpoints):
+
+  * While the content is left-aligned there is a large area to its right, so a fixed
+    13rem note with a fixed 16rem overhang fits comfortably.
+  * Once the content is centered the note must fit the symmetric right gap, whose width
+    is (content - text column) / 2. A fixed overhang would overflow the page for content
+    widths just above the centering threshold, so the note and its overhang are sized in
+    container units, which always fit that gap.
+*/
+
+/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+/* Wider than a phone: by default float the note at the right of the text column,
+   overlapping the content. The container queries below lift it into the true margin
+   once there is room. */
+@media screen and (min-width: 701px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Left-aligned content: a fixed-size note in the wide area to its right. */
+@container main (width >= 1112px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 1rem -16rem 0 0;
+  }
+}
+
+/* Centered content: size the note in container units so it always fits the symmetric
+   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
+   so the fixed-overhang note above is only ever used while the content is left-aligned.
+   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
+   content width at which the content is centered. */
+@container main (width >= 1212px) {
+  .marginalia .note {
+    width: 15cqi;
+    margin-right: -18cqi;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+/* The counter must be established inside <main>, whose container declaration (see
+   Html/Style.lean) applies style containment: a counter established outside the
+   containment boundary cannot be incremented by the notes within it. */
+.content-wrapper {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
 </style><style>
 .namedocs {
   position: relative;
@@ -1052,103 +1151,7 @@ pre.json {
   background-color: #eee;
   border-radius: 2px;
 }
-</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/*
-The margin-note layout responds to the width of <main>, not the viewport, because the
-ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
-query container (see Html/Style.lean), so the container queries below track the actual
-content width.
-
-There are two "in the margin" regimes, split at the same width where the content stops
-being left-aligned and becomes centered (1112px and 1212px of content width; at the
-default ToC width these are the old 1400px and 1500px viewport breakpoints):
-
-  * While the content is left-aligned there is a large area to its right, so a fixed
-    13rem note with a fixed 16rem overhang fits comfortably.
-  * Once the content is centered the note must fit the symmetric right gap, whose width
-    is (content - text column) / 2. A fixed overhang would overflow the page for content
-    widths just above the centering threshold, so the note and its overhang are sized in
-    container units, which always fit that gap.
-*/
-
-/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-/* Wider than a phone: by default float the note at the right of the text column,
-   overlapping the content. The container queries below lift it into the true margin
-   once there is room. */
-@media screen and (min-width: 701px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Left-aligned content: a fixed-size note in the wide area to its right. */
-@container main (width >= 1112px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 13rem;
-    margin: 1rem -16rem 0 0;
-  }
-}
-
-/* Centered content: size the note in container units so it always fits the symmetric
-   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
-   so the fixed-overhang note above is only ever used while the content is left-aligned.
-   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
-   content width at which the content is centered. */
-@container main (width >= 1212px) {
-  .marginalia .note {
-    width: 15cqi;
-    margin-right: -18cqi;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
-</style><style>.example {
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
   border: 1px solid #98B2C0;
   border-radius: 0.5rem;
   margin-bottom: var(--verso--box-vertical-margin);
@@ -2294,10 +2297,6 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><style>
-.namedocs.warn { border-color: #cc3333; }
-.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
-.namedocs.warn > .text { border-top: none; }
 </style><script>
       
 window.onload = async () => {
@@ -2796,7 +2795,12 @@ window.addEventListener("load", () => {
   });
 });
 </script>
-    <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script async="" src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script>
+    <script>
+      
+      window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+      plausible.init()
+    </script>
     <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
@@ -2830,11 +2834,11 @@ window.addEventListener("load", () => {
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-release-notes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-notes" checked="checked"></label><span class="unnumbered"></span><span class=""><a href="releases/#release-notes">Release Notes</a></span></div>
-              <table><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.34.0/#release-v4___34___0">Lean 4.34.0-rc1 (2026-08-10)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.33.1/#release-v4___33___1">Lean 4.33.1 (2026-08-21)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.33.0/#release-v4___33___0">Lean 4.33.0 (2026-08-10)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.32.2/#release-v4___32___2">Lean 4.32.2 (2026-07-28)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.32.1/#release-v4___32___1">Lean 4.32.1 (2026-07-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.32.0/#release-v4___32___0">Lean 4.32.0 (2026-07-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.31.0/#release-v4___31___0">Lean 4.31.0 (2026-06-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.30.0/#release-v4___30___0">Lean 4.30.0 (2026-05-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.29.1/#release-v4___29___1">Lean 4.29.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.29.0/#release-v4___29___0">Lean 4.29.0 (2026-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.28.1/#release-v4___28___1">Lean 4.28.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.28.0/#release-v4___28___0">Lean 4.28.0 (2026-02-17)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.27.0/#release-v4___27___0">Lean 4.27.0 (2026-01-24)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.26.0/#release-v4___26___0">Lean 4.26.0 (2025-12-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.1/#release-v4___25___1">Lean 4.25.1 (2025-11-18)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
+              <table><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.34.0/#release-v4___34___0">Lean 4.34.0 (2026-09-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.33.1/#release-v4___33___1">Lean 4.33.1 (2026-08-21)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.33.0/#release-v4___33___0">Lean 4.33.0 (2026-08-10)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.32.2/#release-v4___32___2">Lean 4.32.2 (2026-07-28)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.32.1/#release-v4___32___1">Lean 4.32.1 (2026-07-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.32.0/#release-v4___32___0">Lean 4.32.0 (2026-07-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.31.0/#release-v4___31___0">Lean 4.31.0 (2026-06-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.30.0/#release-v4___30___0">Lean 4.30.0 (2026-05-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.29.1/#release-v4___29___1">Lean 4.29.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.29.0/#release-v4___29___0">Lean 4.29.0 (2026-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.28.1/#release-v4___28___1">Lean 4.28.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.28.0/#release-v4___28___0">Lean 4.28.0 (2026-02-17)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.27.0/#release-v4___27___0">Lean 4.27.0 (2026-01-24)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.26.0/#release-v4___26___0">Lean 4.26.0 (2025-12-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.1/#release-v4___25___1">Lean 4.25.1 (2025-11-18)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-release-v4___34___0" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-v4___34___0" checked="checked"></label><span class="unnumbered"></span><span class="current"><a href="releases/v4.34.0/#release-v4___34___0">Lean 4.34.0-rc1 (2026-08-10)</a></span></div>
-              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Language">Language</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Library">Library</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Tactics">Tactics</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Compiler">Compiler</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Pretty-Printing">Pretty Printing</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Documentation">Documentation</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Lake">Lake</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Other">Other</a></td></tr></table></div>
+                <label for="--verso-manual-toc-release-v4___34___0" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-v4___34___0" checked="checked"></label><span class="unnumbered"></span><span class="current"><a href="releases/v4.34.0/#release-v4___34___0">Lean 4.34.0 (2026-09-14)</a></span></div>
+              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights">Highlights</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Language">Language</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Library">Library</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Tactics">Tactics</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Compiler">Compiler</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Pretty-Printing">Pretty Printing</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Documentation">Documentation</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Server">Server</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Lake">Lake</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.34.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Other">Other</a></td></tr></table></div>
             </div>
           </div>
         <div class="last">
@@ -2852,27 +2856,304 @@ window.addEventListener("load", () => {
             <a class="local-button active" href="releases/#release-notes" rel="prev" title="Release Notes"><span class="arrow">←</span><span class="where">Release Notes</span></a><a class="local-button active" href="releases/v4.33.1/#release-v4___33___1" rel="next" title="Lean 4.33.1 (2026-08-21)"><span class="where">Lean 4.33.1 (2026-08-21)</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              Lean 4.34.0-rc1 (2026-08-10)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4___34___0" title="Permalink">🔗</a></span></h1>
-            <div class="namedocs warn">
-              <span class="label">Warning</span><div class="text">
-                <p>
-                  These release notes describe a <em>release candidate</em>, not the final release.
-They may be incomplete and are subject to change.</p>
-                </div>
-              </div>
+              Lean 4.34.0 (2026-09-14)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4.34.0" title="Permalink">🔗</a></span></h1>
             <p>
-              For this release, 144 changes landed.
-In addition to the 52 feature additions
-and 53 fixes listed below,
+              For this release, 159 changes landed.
+In addition to the 55 feature additions
+and 63 fixes listed below,
 there were 5 refactoring changes,
 5 documentation improvements,
 6 performance improvements,
-1 improvement to the test suite,
-and 22 other changes.</p>
+2 improvements to the test suite,
+and 23 other changes.</p>
             <section>
-              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Language">
-                Language<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Language" title="Permalink">🔗</a></span></h2>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights">
+                Highlights<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights" title="Permalink">🔗</a></span></h2>
+              <p>
+                Lean 4.34.0 focuses on the kernel: three soundness issues, found with AI adversarial testing, have been analyzed and fixed, and a series of additional defensive checks have been implemented for further reinforcement. In the automation side, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code> gets integrated with <code>sym</code> and <code>grind</code> interactive modes, while being ported to the <code>SymM</code> preprocessor that makes it up to six times faster. Work has continued on the floating-point API after <code>Float</code> and <code>Float32</code> models being introduced in 4.33.0; linters can now carry state across commands and attach code actions to their warnings, and Lake improves its linting, caching, and error reporting.</p>
+              <p>
+                <code>vcgen</code> has also undergone significant development as part of a major release scheduled for v4.35.0.</p>
+              <p>
+                <em>This highlights section was contributed by Juanjo Madrigal.</em></p>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Kernel-Soundness-and-Hardening">
+                  Kernel Soundness and Hardening<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Kernel-Soundness-and-Hardening" title="Permalink">🔗</a></span></h3>
+                <p>
+                  Continuing the kernel work of v4.33.0, this release closes three routes to a proof of <code>False</code> — two in the kernel proper and one in the runtime's reference counting — and adds a round of defensive checks on top.
+All three were reported by Daniel Selsam (OpenAI) using their internal models, and all three need a deliberately constructed input rather than ordinary source code: they matter when checking proofs that arrive from an untrusted source, not for a development that only elaborates its own code.</p>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14806">#14806</a> makes <code>is_def_eq</code> caching order-independent.
+  The kernel cached successful queries in a union-find structure; since the implemented test is sound but incomplete, and therefore not transitive, the transitive closure that union-find computes made a query's answer depend on which queries had been asked before.
+  A crafted input used this to build a recursor whose type and computation rule disagreed, and derive <code>False</code>.
+  The union-find is replaced by a plain cache keyed on the query pair, so the answer is again a function of the two arguments.
+  An OpenAI agent went on to produce two distinct exploits from the issue; both are caught by <code>nanoda</code> and by the new <code>lean-inductive-models</code>.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14807">#14807</a> makes the kernel's <code>is_prop</code> require a sort.
+  When a term's inferred type was stuck rather than reducible to a sort, <code>is_prop</code> answered <code>false</code> instead of rejecting the term, which skipped the proof-irrelevance guard on projections and allowed a data field to be projected out of a value used as a <code>Prop</code>.
+  The bogus proof was also accepted by <code>nanoda</code>; <code>lean4lean</code> is believed not to have the bug.
+  <a href="https://github.com/leanprover/lean4/pull/14843">#14843</a> applies the same fix to a copy of the old check inlined in <code>inductive.h</code>.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14838">#14838</a> freezes objects whose 32-bit reference count overflows, following the sticky-counter approach used by Koka.
+  Forcing the counter to wrap corrupted the object's state, and on machines with at least 18GB of free RAM this could be turned into a use-after-free in the official kernel and extended into a proof of <code>False</code>.
+  Kernels not built on the Lean runtime were unaffected.</p>
+                    </li>
+                  </ul>
+                <p>
+                  The rest of the section is hardening rather than bug fixing:</p>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14808">#14808</a> type-checks the recursors the kernel generates for an inductive type, and checks that each computation rule is type-preserving rather than merely well-typed.
+  A minor premise that expects an induction hypothesis the rule does not supply reduces to an under-applied function, which is still well-typed but no longer has the recursor's result type — so checking that the right-hand side has <strong>some</strong> type would not catch it.
+  This is defense in depth: it rejects only declarations that were already malformed.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14582">#14582</a> makes the kernel reject inductive declarations in which a datatype being declared occurs applied to anything other than the declaration's parameters and universe levels.
+  The frontend already enforced this, so only declarations built with <code>addDecl</code> directly are affected.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14849">#14849</a> bounds the size of <code>Nat</code> numerals the kernel computes at 128 MB, so a compact proof can no longer direct it to evaluate a numeral of many gigabytes.
+  Workloads that legitimately need larger numerals can raise the limit with the <code>LEAN_NAT_MAX_SIZE</code> environment variable.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14833">#14833</a> makes Lean require GMP 6.3.0 or newer, since earlier versions contain bugs that can make Lean produce unsound results in corner cases.
+  Building against an older GMP now fails at configuration time; <code>-DUSE_GMP=OFF</code> (Lean's own bignum implementation) and <code>-DFORCE_GMP=ON</code> are the two escape hatches.</p>
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--bv_decide--Is-Faster-and-Cooperates-with--grind">
+                  <code>bv_decide</code> Is Faster and Cooperates with <code>grind</code><span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--bv_decide--Is-Faster-and-Cooperates-with--grind" title="Permalink">🔗</a></span></h3>
+                <section>
+                  <h4 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--bv_decide--Is-Faster-and-Cooperates-with--grind--Bit-blasting-Inside--grind-____GT_">
+                    Bit-blasting Inside <code>grind =&gt;</code><span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--bv_decide--Is-Faster-and-Cooperates-with--grind--Bit-blasting-Inside--grind-____GT_" title="Permalink">🔗</a></span></h4>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14672">#14672</a> makes <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code> available from within <code>sym =&gt;</code> mode, and <a href="https://github.com/leanprover/lean4/pull/14713">#14713</a> connects it to the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="3">grind</span></a></code> state: the relevant equivalence classes are encoded into the SAT problem alongside the goal, as are facts learned by theory solvers and by E-matching.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.opaque-6023">opaque</span><span class="inter-text"> </span><span class="const token" data-binding="const-g" data-verso-hover="10439" id="g">g</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6032">:</span><span class="inter-text"> </span><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="289">UInt8</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-6034">→</span><span class="inter-text"> </span><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="289">UInt8</span></a><span class="inter-text">
+
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-6051">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6059">(</span><span class="var token" data-binding="var-_uniq.89" data-verso-hover="2869">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.91" data-verso-hover="2869">b</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="2869">d</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6059">:</span><span class="inter-text"> </span><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="289">UInt8</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6059">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6075">(</span><span class="var token" data-binding="var-_uniq.128" data-verso-hover="10440">h0</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6075">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="2869">d</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-6081">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.89" data-verso-hover="2869">a</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_|||_»-6085">|||</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.91" data-verso-hover="2869">b</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6075">)</span><span class="inter-text">
+    </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6098">(</span><span class="var token" data-binding="var-_uniq.224" data-verso-hover="10441">h1</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6098">:</span><span class="inter-text"> </span><a href="releases/v4.34.0/#g" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="10439">g</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="2869">d</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_&amp;&amp;&amp;_»-6104">&amp;&amp;&amp;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="2869">0xC0</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-6104">=</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="2869">0</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6098">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6122">:</span><span class="inter-text">
+    </span><a href="releases/v4.34.0/#g" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="10439">g</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6130">(</span><span class="var token" data-binding="var-_uniq.89" data-verso-hover="2869">a</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_|||_»-6131">|||</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.91" data-verso-hover="2869">b</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-6130">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_&amp;&amp;&amp;_»-6128">&amp;&amp;&amp;</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="2869">0x40</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-6128">=</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="2869">0</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-6153">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-16098481249292910723-6156-6158-3152"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-6156" data-verso-hover="14">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-16098481249292910723-6156-6158-3152"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.89" data-verso-hover="2869">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="289">UInt8</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.91" data-verso-hover="2869">b</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="289">UInt8</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.93" data-verso-hover="2869">d</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="289">UInt8</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.128" data-verso-hover="10440">h0</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="2869">d</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.89" data-verso-hover="2869">a</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HOr___mk" title="Documentation for HOr.hOr"><span class="const token" data-binding="const-HOr.hOr" data-verso-hover="2976">|||</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.91" data-verso-hover="2869">b</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.224" data-verso-hover="10441">h1</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="releases/v4.34.0/#g" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="10439">g</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="2869">d</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAnd___mk" title="Documentation for HAnd.hAnd"><span class="const token" data-binding="const-HAnd.hAnd" data-verso-hover="2975">&amp;&amp;&amp;</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">192</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="releases/v4.34.0/#g" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="10439">g</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HOr___mk" title="Documentation for HOr.hOr"><span class="const token" data-binding="const-HOr.hOr" data-verso-hover="2976">(</span></a><span class="var token" data-binding="var-_uniq.89" data-verso-hover="2869">a</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HOr___mk" title="Documentation for HOr.hOr"><span class="const token" data-binding="const-HOr.hOr" data-verso-hover="2976">|||</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.91" data-verso-hover="2869">b</span><a href="Type-Classes/Basic-Classes/#HOr___mk" title="Documentation for HOr.hOr"><span class="const token" data-binding="const-HOr.hOr" data-verso-hover="2976">)</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAnd___mk" title="Documentation for HAnd.hAnd"><span class="const token" data-binding="const-HAnd.hAnd" data-verso-hover="2975">&amp;&amp;&amp;</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">64</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span></span></span></span></span></span><span class="inter-text">
+  </span><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.grind-6161" data-verso-hover="3">grind</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Tactic.grind-6161">=&gt;</span><span class="inter-text">
+    </span><span class="tactic"><label for="tactic-state-7-6174-6183-3154"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.Grind.bvDecide-6174" data-verso-hover="130">bv_decide</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-6174-6183-3154"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                    On its own, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code> abstracts <code>g d</code> and <code>g (a ||| b)</code> as two unrelated opaque variables and reports a spurious counterexample.
+Inside <code>grind =&gt;</code>, congruence closure has already merged them using <code>h0</code>, so the SAT problem it hands to the solver is the one that actually needs solving.</p>
+                  </section>
+                <section>
+                  <h4 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--bv_decide--Is-Faster-and-Cooperates-with--grind--Choosing-Which-Types-Get-Analyzed">
+                    Choosing Which Types Get Analyzed<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--bv_decide--Is-Faster-and-Cooperates-with--grind--Choosing-Which-Types-Get-Analyzed" title="Permalink">🔗</a></span></h4>
+                  <p>
+                    By default <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code> guesses which structures and enum inductives in the context might matter and tries to incorporate them.
+<a href="https://github.com/leanprover/lean4/pull/14681">#14681</a> adds a <code>types [...]</code> clause that names them explicitly and turns the automatic discovery off, which keeps preprocessing tractable on goals mentioning many types of which only a few are relevant:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6920" data-verso-hover="26">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color" data-verso-hover="3747" id="Color">Color</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6920" data-verso-hover="26">where</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-6944">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.red" data-verso-hover="3748" id="Color___red">red</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-6950">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.green" data-verso-hover="3749" id="Color___green">green</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-6958">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Color.blue" data-verso-hover="10442" id="Color___blue">blue</span><span class="inter-text">
+
+</span><span class="unknown token" data-binding="">@[</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Attr.ext-6968" data-verso-hover="2848">ext</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.attributes-6966">]</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6973">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Pair" data-verso-hover="10443" id="Pair">Pair</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-6973">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Pair.x" data-verso-hover="10444" id="Pair___x">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6998">:</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">8</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Pair.y" data-verso-hover="10445" id="Pair___y">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-7013">:</span><span class="inter-text"> </span><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="11">8</span><span class="inter-text">
+
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-7025">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7033">(</span><span class="var token" data-binding="var-_uniq.1418" data-verso-hover="10446">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1420" data-verso-hover="10446">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7033">:</span><span class="inter-text"> </span><a href="releases/v4.34.0/#Pair" title="Definition of example"><span class="const token" data-binding="const-Pair" data-verso-hover="10443">Pair</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7033">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7046">(</span><span class="var token" data-binding="var-_uniq.1422" data-verso-hover="10447">c</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1424" data-verso-hover="10447">d</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7046">:</span><span class="inter-text"> </span><a href="releases/v4.34.0/#Color" title="Definition of example"><span class="const token" data-binding="const-Color" data-verso-hover="3747">Color</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7046">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7060">(</span><span class="var token" data-binding="var-_uniq.1428" data-verso-hover="2802">h1</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7060">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1418" data-verso-hover="10446">a</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-7066">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1420" data-verso-hover="10446">b</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7060">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7073">(</span><span class="var token" data-binding="var-_uniq.1432" data-verso-hover="4544">h2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7073">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1422" data-verso-hover="10447">c</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-7079">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1424" data-verso-hover="10447">d</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7073">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-7086">:</span><span class="inter-text">
+    </span><span class="var token" data-binding="var-_uniq.1418" data-verso-hover="10446">a</span><span class="built-in delim token" data-binding="">.</span><a href="releases/v4.34.0/#Pair___x" title="Definition of example"><span class="const token" data-binding="const-Pair.x" data-verso-hover="10444">x</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-7092">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1420" data-verso-hover="10446">b</span><span class="built-in delim token" data-binding="">.</span><a href="releases/v4.34.0/#Pair___x" title="Definition of example"><span class="const token" data-binding="const-Pair.x" data-verso-hover="10444">x</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_∧_»-7092">∧</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1424" data-verso-hover="10447">d</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-7106">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1422" data-verso-hover="10447">c</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-7112">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7453367324072129349-7115-7117-3155"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-7115" data-verso-hover="14">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7453367324072129349-7115-7117-3155"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1418" data-verso-hover="10446">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="releases/v4.34.0/#Pair" title="Definition of example"><span class="const token" data-binding="const-Pair" data-verso-hover="10443">Pair</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1420" data-verso-hover="10446">b</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="releases/v4.34.0/#Pair" title="Definition of example"><span class="const token" data-binding="const-Pair" data-verso-hover="10443">Pair</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1422" data-verso-hover="10447">c</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="releases/v4.34.0/#Color" title="Definition of example"><span class="const token" data-binding="const-Color" data-verso-hover="3747">Color</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1424" data-verso-hover="10447">d</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="releases/v4.34.0/#Color" title="Definition of example"><span class="const token" data-binding="const-Color" data-verso-hover="3747">Color</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1428" data-verso-hover="2802">h1</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.1418" data-verso-hover="10446">a</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1420" data-verso-hover="10446">b</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1432" data-verso-hover="4544">h2</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.1422" data-verso-hover="10447">c</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1424" data-verso-hover="10447">d</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.1418" data-verso-hover="10446">a</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="releases/v4.34.0/#Pair___x" title="Definition of example"><span class="const token" data-binding="const-Pair.x" data-verso-hover="10444">x</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1420" data-verso-hover="10446">b</span><span class="unknown token" data-binding="">.</span><a href="releases/v4.34.0/#Pair___x" title="Definition of example"><span class="const token" data-binding="const-Pair.x" data-verso-hover="10444">x</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#And___intro" title="Documentation for And"><span class="const token" data-binding="const-And" data-verso-hover="135">∧</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1424" data-verso-hover="10447">d</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="22">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1422" data-verso-hover="10447">c</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-7120-7149-3157"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.bvDecide-7120" data-verso-hover="130">bv_decide</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.bvTypes-7130" data-verso-hover="10448">types</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.bvTypes-7130">[</span><a href="releases/v4.34.0/#Pair" title="Definition of example"><span class="const token" data-binding="const-Pair" data-verso-hover="10443">Pair</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Tactic.bvTypes-7130">,</span><span class="inter-text"> </span><a href="releases/v4.34.0/#Color" title="Definition of example"><span class="const token" data-binding="const-Color" data-verso-hover="3747">Color</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.bvTypes-7130">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-7120-7149-3157"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                    Pinning is a restriction rather than a hint: everything not listed is treated as an opaque variable, so naming the wrong type leaves the goal outside the supported fragment.
+A type that is neither a non-recursive structure nor an enum inductive is rejected outright.
+The clause is accepted by <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_normalize" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2978">bv_normalize</span></a></code>, <code>bv_decide?</code>, and <code>bv_check</code> as well, and inside <code>sym =&gt;</code>.</p>
+                  <p>
+                    Note the <code>@[ext]</code> above: <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code> takes a structure equality apart through the structure's extensionality lemma, so a structure without one stays opaque whether or not it is listed.</p>
+                  </section>
+                <section>
+                  <h4 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--bv_decide--Is-Faster-and-Cooperates-with--grind--A-Faster-Preprocessor">
+                    A Faster Preprocessor<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--bv_decide--Is-Faster-and-Cooperates-with--grind--A-Faster-Preprocessor" title="Permalink">🔗</a></span></h4>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14215">#14215</a> ports <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code>'s preprocessor to <code>SymM</code>, the rewriting engine shared with <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="3">grind</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#cbv" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#cbv&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#Lean___Parser___Tactic___cbv&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="" data-verso-hover="1">cbv</span></a></code>.
+On large, rewriting-heavy problems this is a speedup of up to 6x, and substitution of embedded constraints becomes linear in the total size of the hypotheses.
+<strong>Breaking change:</strong> <code>@[bv_normalize]</code> is now a <code>Sym.simp</code> set, which differs in pattern-matching power and in the shape it requires of a theorem, and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_normalize" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2978">bv_normalize</span></a></code>'s proving power shifts slightly in both directions.</p>
+                  <p>
+                    Smaller improvements round this out: <a href="https://github.com/leanprover/lean4/pull/14683">#14683</a> teaches the embedded-constraints pass to read both <code>a = true</code> and <code>(!a) = true</code>, and <a href="https://github.com/leanprover/lean4/pull/14460">#14460</a> extends ground evaluation to more <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Bitvectors/#BitVec___ofFin" title="Documentation for BitVec"><span class="const token" data-binding="const-BitVec" data-verso-hover="127">BitVec</span></a></code> operations.
+Elsewhere in the same engine, <a href="https://github.com/leanprover/lean4/pull/14425">#14425</a> lets <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="3">grind</span></a></code> discharge the side conditions of conditional <code>Sym.simp</code> theorems, and <a href="https://github.com/leanprover/lean4/pull/14459">#14459</a> adds an option for <code>Sym.dsimp</code> to rewrite inside instances, which can make more ground terms syntactically equal.</p>
+                  <p>
+                    <code>SymM</code> also collects a batch of correctness fixes: the matcher no longer unifies metavariables unsoundly when matching nonlinear patterns (<a href="https://github.com/leanprover/lean4/pull/14404">#14404</a>), <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="3">grind</span></a></code> no longer drops E-matching theorems from custom attributes (<a href="https://github.com/leanprover/lean4/pull/14426">#14426</a>) or misses a valid contradiction because the canonicalizer resynthesized an instance inside a skipped binder (<a href="https://github.com/leanprover/lean4/pull/14439">#14439</a>), and <code>lia</code>/<code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="3">grind</span></a></code> no longer emit a proof the kernel rejects when an integer expression's structure differs from that of its polynomial representation (<a href="https://github.com/leanprover/lean4/pull/13587">#13587</a>).
+Further fixes: <a href="https://github.com/leanprover/lean4/pull/14401">#14401</a>, <a href="https://github.com/leanprover/lean4/pull/14405">#14405</a>, <a href="https://github.com/leanprover/lean4/pull/14424">#14424</a>, <a href="https://github.com/leanprover/lean4/pull/14428">#14428</a>, <a href="https://github.com/leanprover/lean4/pull/14444">#14444</a>, <a href="https://github.com/leanprover/lean4/pull/14664">#14664</a>, <a href="https://github.com/leanprover/lean4/pull/14691">#14691</a>, <a href="https://github.com/leanprover/lean4/pull/14694">#14694</a>, <a href="https://github.com/leanprover/lean4/pull/14709">#14709</a>.</p>
+                  </section>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Linters-and-Deprecation-Warnings">
+                  Linters and Deprecation Warnings<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Linters-and-Deprecation-Warnings" title="Permalink">🔗</a></span></h3>
+                <p>
+                  Two changes extend what a linter can do.
+<a href="https://github.com/leanprover/lean4/pull/14357">#14357</a> introduces <strong>stateful</strong> linters, which persist state across command elaboration and can read the state of other linters, in an early/late two-phase architecture registered from an <code>initialize</code> block.
+<a href="https://github.com/leanprover/lean4/pull/14402">#14402</a> lets linters produce code actions, so a linter warning can now carry a fix that is one click away in the editor.</p>
+                <p>
+                  Deprecation reporting, introduced in v4.31.0, got a round of polish.
+<a href="https://github.com/leanprover/lean4/pull/14478">#14478</a> moves option deprecation onto the <code>@[deprecated]</code> attribute, so a deprecated option warns both when it is used with <code>set_option</code> and when it is read from meta code:</p>
+                <code class="hl lean block" data-lean-context="examples"><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-11021" data-verso-hover="146">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">Lean</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-11021">in</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding="">@[</span><span class="keyword token" data-binding="kw-occ-Lean.deprecated-11036" data-verso-hover="10449">deprecated</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="10450">"use `demo.newOpt` instead"</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.deprecated-11036">(</span><span class="keyword token" data-binding="kw-occ-Lean.deprecated-11036" data-verso-hover="10449">since</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.deprecated-11036">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="10451">"2026-08-21"</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.deprecated-11036">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.attributes-11034">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Option.registerOption-11034">register_option</span><span class="inter-text"> </span><span class="const token" data-binding="const-demo.oldOpt" data-verso-hover="10452" id="demo___oldOpt">demo.oldOpt</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Option.registerOption-11034">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Option.registerOption-11034">:=</span><span class="inter-text">
+  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.structInst-11140">{</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Option.Decl.defValue" data-verso-hover="2000">defValue</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-11151">:=</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="45">true</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.structInstFields-11142">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Option.Decl.descr" data-verso-hover="509">descr</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-11166">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="10453">"an old option"</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.structInst-11140">}</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-11217" data-verso-hover="146">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">Lean</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-11217">in</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-11230">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-readsOldOpt" data-verso-hover="10454" id="readsOldOpt">readsOldOpt</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-11246">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="10455">o</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-11246">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Options" data-verso-hover="10456">Options</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-11246">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-11260">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-11267">:=</span><span class="inter-text"> </span><span class="has-info warning" data-verso-hover="10452"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">`</span><span class="highlighted"><span class="inter-text"></span><a href="releases/v4.34.0/#demo___oldOpt" title="Definition of example"><span class="const token" data-binding="const-demo.oldOpt" data-verso-hover="10452">demo.oldOpt</span></a><span class="inter-text"></span></span><span class="text">` has been deprecated</span><span class="text">: </span><span class="text">use `demo.newOpt` instead</span></code></span></span><a href="releases/v4.34.0/#demo___oldOpt" title="Definition of example"><span class="const token" data-binding="const-demo.oldOpt">demo.oldOpt</span></a></span><span class="built-in delim token" data-binding="">.</span><span class="const token" data-binding="const-Lean.Option.get" data-verso-hover="10457">get</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="10455">o</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output warning"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">`</span><span class="highlighted"><a href="releases/v4.34.0/#demo___oldOpt" title="Definition of example"><span class="const token" data-binding="const-demo.oldOpt" data-verso-hover="10452">demo.oldOpt</span></a></span><span class="text">` has been deprecated</span><span class="text">: </span><span class="text">use `demo.newOpt` instead</span></span></pre><p>
+                  <a href="https://github.com/leanprover/lean4/pull/14564">#14564</a> re-parses the header so that each deprecated-module warning points at the <code>import</code> that actually pulls that module in, instead of collapsing every one of them onto the start of the header, and <a href="https://github.com/leanprover/lean4/pull/14533">#14533</a> silences deprecated-syntax warnings inside definitions that are themselves deprecated — the same rule that already applied to deprecated constants:</p>
+                <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-11867">syntax</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="10458">"oldThing"</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.syntax-11867">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="9652">term</span><span class="inter-text">
+</span><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-11892">macro_rules</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-11904">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="keyword token" data-binding="kw-occ-termOldThing-11908">oldThing</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.quot-11906">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-11904">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="literal number token" data-binding="">42</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.quot-11921">)</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.deprecatedSyntax-11927" data-verso-hover="10459">deprecated_syntax</span><span class="inter-text"> </span><span class="unknown token" data-binding="">termOldThing</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="10460">"use `42` instead"</span><span class="inter-text">
+  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.deprecatedSyntax-11927">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.deprecatedSyntax-11927" data-verso-hover="10459">since</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.deprecatedSyntax-11927">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="10451">"2026-08-21"</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.deprecatedSyntax-11927">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-12033">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-fresh" data-verso-hover="10461" id="fresh">fresh</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12043">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-12049">:=</span><span class="inter-text"> </span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">syntax '</span><span class="text">termOldThing</span><span class="text">' has been deprecated</span><span class="text">: </span><span class="text">use `42` instead</span><span class="text">
+</span><span class="text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.deprecated.syntax</span><span class="text"> false`</span></code></span></span><span class="keyword token" data-binding="kw-occ-termOldThing-12052">oldThing</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output warning"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">syntax '</span><span class="text">termOldThing</span><span class="text">' has been deprecated</span><span class="text">: </span><span class="text">use `42` instead</span><span class="text">
+</span><span class="text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.deprecated.syntax</span><span class="text"> false`</span></span></pre><p>
+                  A definition that is on its way out, though, is allowed to keep using the syntax that is on its way out with it, and stays quiet:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><span class="keyword token" data-binding="kw-occ-Lean.deprecated-12398" data-verso-hover="10449">deprecated</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="10462">"use `fresh` instead"</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.deprecated-12398">(</span><span class="keyword token" data-binding="kw-occ-Lean.deprecated-12398" data-verso-hover="10449">since</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.deprecated-12398">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="10451">"2026-08-21"</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.deprecated-12398">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.attributes-12396">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-12456">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-stale" data-verso-hover="10463" id="stale">stale</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12466">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="19">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-12472">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-termOldThing-12475">oldThing</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code></section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Lake">
+                  Lake<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Lake" title="Permalink">🔗</a></span></h3>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/14622">#14622</a> adds a <code>--code-quality</code> mode to <code>lake lint</code> that emits builtin linter results as machine-readable JSON entries instead of human-readable diagnostics, each keyed by the linter's option name.
+Text-linter warnings are aggregated per module and linter into a single entry holding the count; environment-linter findings are reported per flagged declaration.
+The entries are data rather than failures, so <code>lake lint --code-quality</code> succeeds even when violations are found.
+Two entries — one aggregated from a text linter, one from an environment linter (a fixture from Lake's own test suite) — look like this:</p>
+                <pre>{"value":{"scalar":{"value":2}},
+ "source":{"module":{"name":"Violations"}},
+ "name":"linter.unusedVariables"}
+
+{"value":{"scalar":{"value":1}},
+ "source":{"declaration":{"name":"fooDummyMarker",
+                          "module":"Violations"}},
+ "name":"linter.dummyMarker"}
+</pre><p>
+                  On the caching side, <a href="https://github.com/leanprover/lean4/pull/14720">#14720</a> demotes cache failures during a build to <code>trace</code>-level messages, so a build run with <code>--wfail</code> or <code>--iofail</code> no longer fails because of the cache alone, and <a href="https://github.com/leanprover/lean4/pull/14651">#14651</a> fixes several ways a failed artifact transfer could go unrecorded, abort a whole transfer batch, or leave a corrupted artifact behind.
+<a href="https://github.com/leanprover/lean4/pull/14724">#14724</a> adds <code>lake cache get --package</code>, which fetches the outputs of a specific package in the workspace rather than only the root.</p>
+                <p>
+                  Error reporting improves in three places: <code>error: Lean exited with code 1</code> is elided when <code>lean</code> has already printed the real diagnostics (<a href="https://github.com/leanprover/lean4/pull/14629">#14629</a>), a <code>lean_lib</code> root module with no source file reports the underlying file error instead of a vague bad-imports message (<a href="https://github.com/leanprover/lean4/pull/14625">#14625</a>), and <code>lake update &lt;pkg&gt;</code> now fails on a package name the manifest does not know instead of silently ignoring it (<a href="https://github.com/leanprover/lean4/pull/14630">#14630</a>).
+Finally, <a href="https://github.com/leanprover/lean4/pull/14723">#14723</a> makes <code>MACOSX_DEPLOYMENT_TARGET</code> configurable through the Lake API and includes it in build traces.</p>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Performance-and-Robustness">
+                  Performance and Robustness<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Performance-and-Robustness" title="Permalink">🔗</a></span></h3>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/14520">#14520</a> fixes an exponential blowup in <code>instantiateMVars</code> on proof terms that repeatedly reference hypotheses introduced by <code>MVarId.assert</code>/<code>intro</code> — as <code>MVarId.note</code>, <code>replaceLocalDecl</code>, and <code>simp at h</code> do.
+Lifting substituted values is now memoized and canonicalized across a whole pass, restoring linear behavior: the reproduction from <a href="https://github.com/leanprover/lean4/issues/14329">#14329</a> went from exceeding 41GB to elaborating in about 1.2 seconds, and one Mathlib module dropped 26G instructions (-55%).</p>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/14397">#14397</a> makes the <code>set_option ... in</code> tactic elaborate incrementally, so editing inside such a block reuses the results of the unchanged leading tactics instead of re-running the whole block.
+For diagnosing where the time goes, <a href="https://github.com/leanprover/lean4/pull/14386">#14386</a> adds <code>store_traces_as name in cmd</code>, which runs <code>cmd</code>, reports its trace as usual, and additionally keeps the trace tree in memory under <code>name</code>, together with <code>#postprocess_traces name post</code> for re-viewing that tree through any postprocessor.
+Where <code>postprocess_traces</code> from v4.33.0 transformed a trace as it was produced, this separates producing from viewing — which matters when the command took a minute to run.</p>
+                <p>
+                  Two robustness fixes are worth knowing about: <a href="https://github.com/leanprover/lean4/pull/14204">#14204</a> detects failures when flushing a module's <code>.olean</code>, so an exhausted disk no longer leaves a silently truncated file behind, and <a href="https://github.com/leanprover/lean4/pull/14687">#14687</a> fixes a use-after-free in <code>String.Pos.Raw.extract</code> when it is called with gigantic slice limits.
+<a href="https://github.com/leanprover/lean4/pull/14717">#14717</a> fixes the same function's model/runtime mismatch and adds a fast path for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___extract" title="Documentation for String.extract"><span class="const token" data-binding="const-String.extract" data-verso-hover="5632">String.extract</span></a></code> when the positions are known to be valid.</p>
+                <p>
+                  On the FFI side, <a href="https://github.com/leanprover/lean4/pull/14505">#14505</a> fixes segfaults caused by private imports of the <code>Lean</code> library by making each module's initializer call <code>lean_initialize</code> when it needs to.
+The call to <code>lean_initialize_runtime_module</code> became implicit in the same cleanup, so users of Lean as an FFI library no longer need to call either function themselves.</p>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Library-Highlights">
+                  Library Highlights<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Library-Highlights" title="Permalink">🔗</a></span></h3>
+                <p>
+                  The floating-point work that landed in v4.33.0 continues.
+<a href="https://github.com/leanprover/lean4/pull/14481">#14481</a> upstreams <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Float.nan" data-verso-hover="5416">Float.nan</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Float.inf" data-verso-hover="10464">Float.inf</span></code> (with their <code>Float32</code> and model counterparts), adds <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Int.toFloat" data-verso-hover="10465">Int.toFloat</span></code> and <code>Int.toFloat32</code> alongside the existing <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___toFloat" title="Documentation for Nat.toFloat"><span class="const token" data-binding="const-Nat.toFloat" data-verso-hover="4677">Nat.toFloat</span></a></code>, and exposes <code>Float.ofNat</code>/<code>Float.ofInt</code>; <a href="https://github.com/leanprover/lean4/pull/14495">#14495</a> redefines the conversions between <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Floating-Point-Numbers/#Float___ofModel" title="Documentation for Float"><span class="const token" data-binding="const-Float" data-verso-hover="516">Float</span></a></code> and the fixed-width signed integers in terms of the logical model, which had been written but not connected.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="doc-comment token" data-binding="">/-- info: 42.000000 -/</span><span class="inter-text">
+</span><a href="Interacting-with-Lean/#Lean___guardMsgsCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.guardMsgsCmd-17679" data-verso-hover="95">#guard_msgs</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___guardMsgsCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.guardMsgsCmd-17679" data-verso-hover="95">in</span></a><span class="inter-text">
+</span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-17717" data-verso-hover="9">#eval</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-17723">(</span><span class="literal number token" data-binding="" data-verso-hover="182">42</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-17723">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="121">Int</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-17723">)</span><span class="built-in delim token" data-binding="">.</span><span class="const token" data-binding="const-Int.toFloat" data-verso-hover="10465">toFloat</span><span class="inter-text">
+
+</span><span class="doc-comment token" data-binding="">/-- info: true -/</span><span class="inter-text">
+</span><a href="Interacting-with-Lean/#Lean___guardMsgsCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.guardMsgsCmd-17743" data-verso-hover="95">#guard_msgs</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___guardMsgsCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.guardMsgsCmd-17743" data-verso-hover="95">in</span></a><span class="inter-text">
+</span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-17776" data-verso-hover="9">#eval</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-17782">(</span><span class="literal number token" data-binding="" data-verso-hover="517">1.0</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_/_»-17783">/</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="517">0.0</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-17782">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_==_»-17782">==</span><span class="inter-text"> </span><span class="const token" data-binding="const-Float.inf" data-verso-hover="10464">Float.inf</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                  <a href="https://github.com/leanprover/lean4/pull/14788">#14788</a> redefines <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___and" title="Documentation for Bool.and"><span class="const token" data-binding="const-Bool.and" data-verso-hover="2236">Bool.and</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___or" title="Documentation for Bool.or"><span class="const token" data-binding="const-Bool.or" data-verso-hover="2243">Bool.or</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___not" title="Documentation for Bool.not"><span class="const token" data-binding="const-Bool.not" data-verso-hover="454">Bool.not</span></a></code> directly in terms of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Bool.rec" data-verso-hover="598">Bool.rec</span></code>, which the kernel reduces much faster than a <code>match</code>; the compiler, which does not support <code>Bool.rec</code>, is pointed back at the old definitions with <code>@[csimp]</code>, so generated code is unchanged.
+The new shape is visible if you print one of them:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="text">@[</span><span class="text">implicit_reducible</span><span class="text">] </span><span class="text">def</span><span class="text"> </span><span class="text">Bool.and</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a></span><span class="text"> :=</span><span class="text">
+</span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="209">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.5" data-verso-hover="209">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bool.rec" data-verso-hover="598">Bool.rec</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.5" data-verso-hover="209">y</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="209">x</span></span></code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.print-18242">#print</span></span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___and" title="Documentation for Bool.and"><span class="const token" data-binding="const-Bool.and" data-verso-hover="2236">Bool.and</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="text">@[</span><span class="text">implicit_reducible</span><span class="text">] </span><span class="text">def</span><span class="text"> </span><span class="text">Bool.and</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a></span><span class="text"> :=</span><span class="text">
+</span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="209">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.5" data-verso-hover="209">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bool.rec" data-verso-hover="598">Bool.rec</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="44">false</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.5" data-verso-hover="209">y</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="209">x</span></span></span></pre><p>
+                  It also retires the kernel-friendly duplicates <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="3">grind</span></a></code> had been carrying for exactly this reason: <code>Bool.and'</code>, <code>Bool.or'</code>, and <code>Bool.not'</code> are now deprecated abbreviations for the real operations.</p>
+                <p>
+                  The HTTP client gains redirect support: <a href="https://github.com/leanprover/lean4/pull/13901">#13901</a> adds <code>Std.Http.Protocol.H1.RedirectPlan</code>, which validates redirect responses following RFC 9110 and follows them automatically, and <a href="https://github.com/leanprover/lean4/pull/13900">#13900</a> adds <code>Std.Http.Body.Replayable</code> for deciding whether a body can be replayed in the redirected request.
+<a href="https://github.com/leanprover/lean4/pull/14062">#14062</a> makes the HTTP/1.1 client finish reading responses that carry no body, and <a href="https://github.com/leanprover/lean4/pull/14059">#14059</a> adds <code>closeWithError</code> so a body stream can fail.</p>
+                <p>
+                  Beyond that, the release is mostly incremental lemma work and naming cleanups; the naming changes are collected below.</p>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Breaking-Changes">
+                  Breaking Changes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Highlights--Breaking-Changes" title="Permalink">🔗</a></span></h3>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14501">#14501</a> establishes <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-ite" data-verso-hover="814">ite</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-dite" data-verso-hover="1563">dite</span></code> as the spelling for the <code>if</code> and <code>dif</code> syntax in identifiers, and <code>left</code>/<code>right</code> as the markers for the two branches.
+  Many lemmas are renamed accordingly; most visibly, <code>if_pos</code> and <code>if_neg</code> are now <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-ite_eq_left" data-verso-hover="10466">ite_eq_left</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-ite_eq_right" data-verso-hover="10467">ite_eq_right</span></code>, and <code>dif_pos</code>/<code>dif_neg</code> are <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-dite_eq_left" data-verso-hover="10468">dite_eq_left</span></code>/<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-dite_eq_right" data-verso-hover="10469">dite_eq_right</span></code>.
+  <strong>Migration:</strong> the old names remain as deprecated aliases, so existing proofs keep working and the warnings point at the replacement.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14462">#14462</a> renames <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Nat.div_eq" data-verso-hover="10470">Nat.div_eq</span></code> to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Nat.div_eq_ite" data-verso-hover="10471">Nat.div_eq_ite</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Nat.mod_eq" data-verso-hover="10472">Nat.mod_eq</span></code> to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Nat.mod_eq_ite" data-verso-hover="10473">Nat.mod_eq_ite</span></code>, freeing <code>Nat.div_eq</code> for a lemma analogous to <code>Nat.add_eq</code>.
+  Deprecated aliases are in place here too.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14215">#14215</a> turns <code>@[bv_normalize]</code> into a <code>Sym.simp</code> set, as described above.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14391">#14391</a> moves <code>Lean.Environment.replay</code> to <code>Lean.Kernel.Environment.replay</code>, so that replaying an environment produces a <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Kernel.Environment" data-verso-hover="10474">Lean.Kernel.Environment</span></code> and no longer goes through the unstable <code>Environment.ofKernelEnv</code>.
+  Tools that replay environments — proof checkers and similar — need to follow the rename.
+  <strong>Migration:</strong> the old name survives as a deprecated alias, and its warning spells out both the changed type and the fact that dot notation has to become <code>Kernel.Environment.replay x</code>.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14523">#14523</a> deprecates <code>letFun</code>, which went out of use a year ago; use <code>have</code> instead.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14479">#14479</a> changes the meaning of <code>osCode</code> in <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists" title="Documentation for IO.Error"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1744">IO.Error</span></a></code> so that it emulates POSIX <code>errno</code> rather than forwarding libuv error codes cast to unsigned integers, while fixing a thread-safety bug in <code>lean_decode_io_error</code>.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14538">#14538</a> moves <code>eq_false_of_ne_true</code> into the <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="94">Bool</span></a></code> namespace as <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Bool.eq_false_of_ne_true" data-verso-hover="10475">Bool.eq_false_of_ne_true</span></code>, leaving a deprecated alias behind.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14412">#14412</a> removes the unused <code>s : ε</code> parameter from <code>ExceptCpsT.runK</code>.
+  There is no alias for this one: call sites that passed the argument have to drop it.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14294">#14294</a> drops <code>@[implicit_reducible]</code> from <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-String.toList" data-verso-hover="158">String.toList</span></code>, making it semireducible, since unfolding it dragged the definitional equality checker deep into its internal implementation.
+  Code that relied on <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-String.toList" data-verso-hover="158">String.toList</span></code> unfolding at implicit or reducible transparency — a defeq check, an instance, a <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="" data-verso-hover="40">simp</span></a></code> lemma whose statement is only well-typed after unfolding — now has to go through an explicit rewrite instead.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/14833">#14833</a> and <a href="https://github.com/leanprover/lean4/pull/14849">#14849</a>, described above, affect anyone building Lean from source or computing very large numerals in the kernel.</p>
+                    </li>
+                  </ul>
+                </section>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Language">
+                Language<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Language" title="Permalink">🔗</a></span></h2>
               <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14582">#14582</a>
+makes the kernel reject inductive declarations in which a datatype being declared occurs applied to anything other than the parameters and universe levels of the declaration. Such non-uniform occurrences could previously hide in positions that escape the kernel's checks: behind a reduction that erases them, or in the parametric arguments of a nested occurrence, which are dropped from the auxiliary declaration the kernel generates and were therefore only checked for well-typedness.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14830">#14830</a>
+backports #14826, which warns that the intrinsic verification syntax is experimental and adds <code>set_option experimental.intrinsic true</code> to silence the warning.</p>
+                  </li>
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/14701">#14701</a>
@@ -3027,9 +3308,14 @@ changes the level at which <code>logLintExt</code> data is persisted to <code>se
                 </ul>
               </section>
             <section>
-              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Library">
-                Library<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Library" title="Permalink">🔗</a></span></h2>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Library">
+                Library<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Library" title="Permalink">🔗</a></span></h2>
               <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14788">#14788</a>
+changes <code>Bool.and</code>, <code>Bool.or</code>, <code>Bool.not</code> so that they are defined directly in terms of <code>Bool.rec</code> for better kernel performance.</p>
+                  </li>
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/14728">#14728</a>
@@ -3203,8 +3489,8 @@ makes <code>String.toList</code> semireducible because unfolding it throws the d
                 </ul>
               </section>
             <section>
-              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Tactics">
-                Tactics<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Tactics" title="Permalink">🔗</a></span></h2>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Tactics">
+                Tactics<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Tactics" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -3435,9 +3721,19 @@ fixes <code>preprocessType</code> in <code>SymM</code>. It must not perform <cod
                 </ul>
               </section>
             <section>
-              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Compiler">
-                Compiler<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Compiler" title="Permalink">🔗</a></span></h2>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Compiler">
+                Compiler<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Compiler" title="Permalink">🔗</a></span></h2>
               <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14838">#14838</a>
+prevents memory corruption when an object's 32-bit reference count overflows. On machines with at least 18GB of free RAM, it could be used to trigger use-after-free in the official kernel, which could be extended into a proof of False. Other kernels such as nanoda not based on the Lean runtime were not affected.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14791">#14791</a>
+makes the compiler <code>macro_inline</code> results of <code>csimp</code> lemmas.</p>
+                  </li>
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/14717">#14717</a>
@@ -3481,8 +3777,8 @@ prevents silent olean truncation when disk space is exhausted.</p>
                 </ul>
               </section>
             <section>
-              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Pretty-Printing">
-                Pretty Printing<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Pretty-Printing" title="Permalink">🔗</a></span></h2>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Pretty-Printing">
+                Pretty Printing<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Pretty-Printing" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -3497,8 +3793,8 @@ fixes an issue where the <code>@[simp ←]</code> attribute would pretty-print a
                 </ul>
               </section>
             <section>
-              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Documentation">
-                Documentation<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Documentation" title="Permalink">🔗</a></span></h2>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Documentation">
+                Documentation<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Documentation" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -3508,8 +3804,24 @@ removes references to the unfolding lemma from the <code>repeatM</code> docstrin
                 </ul>
               </section>
             <section>
-              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Lake">
-                Lake<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Lake" title="Permalink">🔗</a></span></h2>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Server">
+                Server<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Server" title="Permalink">🔗</a></span></h2>
+              <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/15093">#15093</a>
+fixes the goal view showing the state after the enclosing tactic instead of the nested block's goal on the line after the last tactic of a nested <code>have ... := by</code> block or <code>·</code> bullet, e.g. after an empty <code>·</code> where the next tactic is about to be typed (#15053).</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/15095">#15095</a>
+fixes the goal view showing the state after <code>have</code> instead of the goal of an empty nested <code>have ... := by</code> block on the following line, where the next tactic is about to be typed (#15053, regression of #1927 from #13229).</p>
+                  </li>
+                </ul>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Lake">
+                Lake<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Lake" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -3559,9 +3871,45 @@ makes <code>lake update &lt;pkg&gt;...</code> fail with a clear error when a spe
                 </ul>
               </section>
             <section>
-              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Other">
-                Other<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-rc1-_LPAR_2026-08-10_RPAR_--Other" title="Permalink">🔗</a></span></h2>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Other">
+                Other<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___34___0-_LPAR_2026-09-14_RPAR_--Other" title="Permalink">🔗</a></span></h2>
               <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14833">#14833</a>
+makes Lean require GMP 6.3.0 or newer and builds the official releases against GMP 6.3.0. Earlier GMP versions contain bugs that can cause Lean to produce unsound (i.e., incorrect) results in corner cases; independent kernels that do not depend on GMP will catch such unsoundness. The portable Linux releases were previously linked against GMP 6.1.2 (inherited from the old glibc nixpkgs used for portability).</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14849">#14849</a>
+makes the kernel reject <code>Nat</code> literals and computations whose representation would exceed a configurable size limit (128 MB by default). This prevents pathological or adversarial inputs from driving the kernel to spend unbounded memory and time constructing enormous numerals, and keeps the kernel's arithmetic comfortably within the range where its arbitrary-precision integer backend is well exercised. The limit can be raised with the <code>LEAN_NAT_MAX_SIZE</code> environment variable for the rare workloads that legitimately compute very large numerals in the kernel.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14847">#14847</a>
+adds another test for the <code>is_prop</code> bug in the kernel.
+The exploit was submitted by Daniel Selsam (OpenAI) and was generated using OpenAI's internal models.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14843">#14843</a>
+applies the fix from #14807 to <code>inductive.h</code>. As the comment in <code>inductive.h</code> points out, the code should check whether <code>e_type</code> is a proposition using <code>is_prop</code>, but it was still inlining the old, buggy version of <code>is_prop</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14808">#14808</a>
+adds a new defensive check to the kernel.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14807">#14807</a>
+fixes a soundness issue.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/14806">#14806</a>
+fixes a soundness issue in the kernel.</p>
+                  </li>
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/14161">#14161</a>

@@ -1,4 +1,4 @@
-<!-- Generated from commit eb208a5045e6e310d023b5b6360f04d9cdde25f0 at 2026-08-21T13:16:20Z -->
+<!-- Generated from commit a6451f0647eb4dc46fce2dd0532331c59351f87c at 2026-09-14T18:22:44Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -285,6 +285,105 @@ pre.json {
   color: #3030c0;
 }
 
+</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/*
+The margin-note layout responds to the width of <main>, not the viewport, because the
+ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
+query container (see Html/Style.lean), so the container queries below track the actual
+content width.
+
+There are two "in the margin" regimes, split at the same width where the content stops
+being left-aligned and becomes centered (1112px and 1212px of content width; at the
+default ToC width these are the old 1400px and 1500px viewport breakpoints):
+
+  * While the content is left-aligned there is a large area to its right, so a fixed
+    13rem note with a fixed 16rem overhang fits comfortably.
+  * Once the content is centered the note must fit the symmetric right gap, whose width
+    is (content - text column) / 2. A fixed overhang would overflow the page for content
+    widths just above the centering threshold, so the note and its overhang are sized in
+    container units, which always fit that gap.
+*/
+
+/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+/* Wider than a phone: by default float the note at the right of the text column,
+   overlapping the content. The container queries below lift it into the true margin
+   once there is room. */
+@media screen and (min-width: 701px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Left-aligned content: a fixed-size note in the wide area to its right. */
+@container main (width >= 1112px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 1rem -16rem 0 0;
+  }
+}
+
+/* Centered content: size the note in container units so it always fits the symmetric
+   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
+   so the fixed-overhang note above is only ever used while the content is left-aligned.
+   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
+   content width at which the content is centered. */
+@container main (width >= 1212px) {
+  .marginalia .note {
+    width: 15cqi;
+    margin-right: -18cqi;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+/* The counter must be established inside <main>, whose container declaration (see
+   Html/Style.lean) applies style containment: a counter established outside the
+   containment boundary cannot be incremented by the notes within it. */
+.content-wrapper {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
 </style><style>
 .namedocs {
   position: relative;
@@ -1052,103 +1151,7 @@ pre.json {
   background-color: #eee;
   border-radius: 2px;
 }
-</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/*
-The margin-note layout responds to the width of <main>, not the viewport, because the
-ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
-query container (see Html/Style.lean), so the container queries below track the actual
-content width.
-
-There are two "in the margin" regimes, split at the same width where the content stops
-being left-aligned and becomes centered (1112px and 1212px of content width; at the
-default ToC width these are the old 1400px and 1500px viewport breakpoints):
-
-  * While the content is left-aligned there is a large area to its right, so a fixed
-    13rem note with a fixed 16rem overhang fits comfortably.
-  * Once the content is centered the note must fit the symmetric right gap, whose width
-    is (content - text column) / 2. A fixed overhang would overflow the page for content
-    widths just above the centering threshold, so the note and its overhang are sized in
-    container units, which always fit that gap.
-*/
-
-/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-/* Wider than a phone: by default float the note at the right of the text column,
-   overlapping the content. The container queries below lift it into the true margin
-   once there is room. */
-@media screen and (min-width: 701px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Left-aligned content: a fixed-size note in the wide area to its right. */
-@container main (width >= 1112px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 13rem;
-    margin: 1rem -16rem 0 0;
-  }
-}
-
-/* Centered content: size the note in container units so it always fits the symmetric
-   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
-   so the fixed-overhang note above is only ever used while the content is left-aligned.
-   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
-   content width at which the content is centered. */
-@container main (width >= 1212px) {
-  .marginalia .note {
-    width: 15cqi;
-    margin-right: -18cqi;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
-</style><style>.example {
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
   border: 1px solid #98B2C0;
   border-radius: 0.5rem;
   margin-bottom: var(--verso--box-vertical-margin);
@@ -2294,10 +2297,6 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><style>
-.namedocs.warn { border-color: #cc3333; }
-.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
-.namedocs.warn > .text { border-top: none; }
 </style><script>
       
 window.onload = async () => {
@@ -2796,7 +2795,12 @@ window.addEventListener("load", () => {
   });
 });
 </script>
-    <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script async="" src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script>
+    <script>
+      
+      window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+      plausible.init()
+    </script>
     <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
@@ -2830,7 +2834,7 @@ window.addEventListener("load", () => {
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-io" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-io" checked="checked"></label><span class="number">21.</span> <span class="current"><a href="IO/#io">IO</a></span></div>
-              <table><tr class="numbered"><td class="num">21.1.</td><td><a href="IO/Logical-Model/#The-Lean-Language-Reference--IO--Logical-Model">Logical Model</a></td></tr><tr class="numbered"><td class="num">21.2.</td><td><a href="IO/Control-Structures/#io-monad-control">Control Structures</a></td></tr><tr class="numbered"><td class="num">21.3.</td><td><a href="IO/Console-Output/#The-Lean-Language-Reference--IO--Console-Output">Console Output</a></td></tr><tr class="numbered"><td class="num">21.4.</td><td><a href="IO/Mutable-References/#The-Lean-Language-Reference--IO--Mutable-References">Mutable References</a></td></tr><tr class="numbered"><td class="num">21.5.</td><td><a href="IO/Files___-File-Handles___-and-Streams/#The-Lean-Language-Reference--IO--Files___-File-Handles___-and-Streams">Files, File Handles, and Streams</a></td></tr><tr class="numbered"><td class="num">21.6.</td><td><a href="IO/System-and-Platform-Information/#platform-info">System and Platform Information</a></td></tr><tr class="numbered"><td class="num">21.7.</td><td><a href="IO/Environment-Variables/#io-monad-getenv">Environment Variables</a></td></tr><tr class="numbered"><td class="num">21.8.</td><td><a href="IO/Timing/#io-timing">Timing</a></td></tr><tr class="numbered"><td class="num">21.9.</td><td><a href="IO/Processes/#io-processes">Processes</a></td></tr><tr class="numbered"><td class="num">21.10.</td><td><a href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers">Random Numbers</a></td></tr><tr class="numbered"><td class="num">21.11.</td><td><a href="IO/Tasks-and-Threads/#concurrency">Tasks and Threads</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">21.1.</td><td><a href="IO/Logical-Model/#The-Lean-Language-Reference--IO--Logical-Model">Logical Model</a></td></tr><tr class="numbered"><td class="num">21.2.</td><td><a href="IO/Control-Structures/#io-monad-control">Control Structures</a></td></tr><tr class="numbered"><td class="num">21.3.</td><td><a href="IO/Console-Output/#The-Lean-Language-Reference--IO--Console-Output">Console Output</a></td></tr><tr class="numbered"><td class="num">21.4.</td><td><a href="IO/Mutable-References/#The-Lean-Language-Reference--IO--Mutable-References">Mutable References</a></td></tr><tr class="numbered"><td class="num">21.5.</td><td><a href="IO/Files___-File-Handles___-and-Streams/#The-Lean-Language-Reference--IO--Files___-File-Handles___-and-Streams">Files, File Handles, and Streams</a></td></tr><tr class="numbered"><td class="num">21.6.</td><td><a href="IO/System-and-Platform-Information/#platform-info">System and Platform Information</a></td></tr><tr class="numbered"><td class="num">21.7.</td><td><a href="IO/Environment-Variables/#io-monad-getenv">Environment Variables</a></td></tr><tr class="numbered"><td class="num">21.8.</td><td><a href="IO/Timing/#io-timing">Timing</a></td></tr><tr class="numbered"><td class="num">21.9.</td><td><a href="IO/Processes/#io-processes">Processes</a></td></tr><tr class="numbered"><td class="num">21.10.</td><td><a href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers">Random Numbers</a></td></tr><tr class="numbered"><td class="num">21.11.</td><td><a href="IO/Tasks-and-Threads/#concurrency">Tasks and Threads</a></td></tr><tr class="numbered"><td class="num">21.12.</td><td><a href="IO/Async/#The-Lean-Language-Reference--IO--Asynchronous-Programming">Asynchronous Programming</a></td></tr></table></div>
             </div>
           </div>
         <div class="last">
@@ -2857,7 +2861,7 @@ During type checking, even terms with free variables are reduced; this would mak
 Finally, a basic principle of Lean's logic is that functions are <em>functions</em> that map each element of the domain to a unique element of the range.
 Including side effects such as console I/O, arbitrary mutable state, or random number generation would violate this principle.</p>
             <p>
-              Programs that may have side effects have a type (typically <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="4">IO</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-α" data-verso-hover="8177">α</span></code>) that distinguishes them from pure functions.
+              Programs that may have side effects have a type (typically <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="4">IO</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-α" data-verso-hover="8280">α</span></code>) that distinguishes them from pure functions.
 Logically speaking, <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="4">IO</span></a></code> describes the sequencing and data dependencies of side effects.
 Many of the basic side effects, such as reading from files, are opaque constants from the perspective of Lean's logic.
 Others are specified by code that is logically equivalent to the run-time version.
@@ -2885,6 +2889,8 @@ At run time, the compiler produces ordinary code.</p>
                 <a href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers"><span class="number">21.10.</span> Random Numbers</a></li>
               <li>
                 <a href="IO/Tasks-and-Threads/#concurrency"><span class="number">21.11.</span> Tasks and Threads</a></li>
+              <li>
+                <a href="IO/Async/#The-Lean-Language-Reference--IO--Asynchronous-Programming"><span class="number">21.12.</span> Asynchronous Programming</a></li>
               </ol>
             </section>
           <nav class="prev-next-buttons">

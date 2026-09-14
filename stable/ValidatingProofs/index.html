@@ -1,4 +1,4 @@
-<!-- Generated from commit eb208a5045e6e310d023b5b6360f04d9cdde25f0 at 2026-08-21T13:16:20Z -->
+<!-- Generated from commit a6451f0647eb4dc46fce2dd0532331c59351f87c at 2026-09-14T18:22:44Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -285,6 +285,105 @@ pre.json {
   color: #3030c0;
 }
 
+</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/*
+The margin-note layout responds to the width of <main>, not the viewport, because the
+ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
+query container (see Html/Style.lean), so the container queries below track the actual
+content width.
+
+There are two "in the margin" regimes, split at the same width where the content stops
+being left-aligned and becomes centered (1112px and 1212px of content width; at the
+default ToC width these are the old 1400px and 1500px viewport breakpoints):
+
+  * While the content is left-aligned there is a large area to its right, so a fixed
+    13rem note with a fixed 16rem overhang fits comfortably.
+  * Once the content is centered the note must fit the symmetric right gap, whose width
+    is (content - text column) / 2. A fixed overhang would overflow the page for content
+    widths just above the centering threshold, so the note and its overhang are sized in
+    container units, which always fit that gap.
+*/
+
+/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+/* Wider than a phone: by default float the note at the right of the text column,
+   overlapping the content. The container queries below lift it into the true margin
+   once there is room. */
+@media screen and (min-width: 701px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Left-aligned content: a fixed-size note in the wide area to its right. */
+@container main (width >= 1112px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 13rem;
+    margin: 1rem -16rem 0 0;
+  }
+}
+
+/* Centered content: size the note in container units so it always fits the symmetric
+   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
+   so the fixed-overhang note above is only ever used while the content is left-aligned.
+   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
+   content width at which the content is centered. */
+@container main (width >= 1212px) {
+  .marginalia .note {
+    width: 15cqi;
+    margin-right: -18cqi;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+/* The counter must be established inside <main>, whose container declaration (see
+   Html/Style.lean) applies style containment: a counter established outside the
+   containment boundary cannot be incremented by the notes within it. */
+.content-wrapper {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
 </style><style>
 .namedocs {
   position: relative;
@@ -1052,103 +1151,7 @@ pre.json {
   background-color: #eee;
   border-radius: 2px;
 }
-</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/*
-The margin-note layout responds to the width of <main>, not the viewport, because the
-ToC is resizable: a wider ToC leaves less room beside the text for notes. <main> is a
-query container (see Html/Style.lean), so the container queries below track the actual
-content width.
-
-There are two "in the margin" regimes, split at the same width where the content stops
-being left-aligned and becomes centered (1112px and 1212px of content width; at the
-default ToC width these are the old 1400px and 1500px viewport breakpoints):
-
-  * While the content is left-aligned there is a large area to its right, so a fixed
-    13rem note with a fixed 16rem overhang fits comfortably.
-  * Once the content is centered the note must fit the symmetric right gap, whose width
-    is (content - text column) / 2. A fixed overhang would overflow the page for content
-    widths just above the centering threshold, so the note and its overhang are sized in
-    container units, which always fit that gap.
-*/
-
-/* Narrow viewport (e.g. phone): the ToC is hidden and the note spans the text column. */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-/* Wider than a phone: by default float the note at the right of the text column,
-   overlapping the content. The container queries below lift it into the true margin
-   once there is room. */
-@media screen and (min-width: 701px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Left-aligned content: a fixed-size note in the wide area to its right. */
-@container main (width >= 1112px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 13rem;
-    margin: 1rem -16rem 0 0;
-  }
-}
-
-/* Centered content: size the note in container units so it always fits the symmetric
-   right gap. The threshold matches the content-centering threshold in Html/Style.lean,
-   so the fixed-overhang note above is only ever used while the content is left-aligned.
-   The overhang (18cqi) stays below the gap, (100cqi - text column) / 2, for every
-   content width at which the content is centered. */
-@container main (width >= 1212px) {
-  .marginalia .note {
-    width: 15cqi;
-    margin-right: -18cqi;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
-</style><style>.example {
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
   border: 1px solid #98B2C0;
   border-radius: 0.5rem;
   margin-bottom: var(--verso--box-vertical-margin);
@@ -2294,10 +2297,6 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><style>
-.namedocs.warn { border-color: #cc3333; }
-.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
-.namedocs.warn > .text { border-top: none; }
 </style><script>
       
 window.onload = async () => {
@@ -2796,7 +2795,12 @@ window.addEventListener("load", () => {
   });
 });
 </script>
-    <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script async="" src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script>
+    <script>
+      
+      window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+      plausible.init()
+    </script>
     <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
@@ -2856,7 +2860,7 @@ window.addEventListener("load", () => {
 In particular, it matters a lot whether one is dealing with an <a class="technical-term" href="ValidatingProofs/#--tech-term-honest">honest</a> proof attempt, and needs protection against only benign mistakes, or a possibly-<a class="technical-term" href="ValidatingProofs/#--tech-term-malicious">malicious</a> proof attempt that actively tries to mislead.</p>
             <p>
               In particular, we use <span id="--tech-term-honest" class="def-technical-term"><em>honest</em></span> when the goal is to create a valid proof.
-This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the <code class="hl lean inline" data-lean-context="examples"><span class="option token" data-binding="option-debug.skipKernelTC" data-verso-hover="9869">debug.skipKernelTC</span></code>).
+This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the <code class="hl lean inline" data-lean-context="examples"><span class="option token" data-binding="option-debug.skipKernelTC" data-verso-hover="10334">debug.skipKernelTC</span></code>).
 Note that the <code class="plain-keyword">unsafe</code> marker on API functions is unrelated to whether this API can be used in an dishonest way.</p>
             <p>
               In contrast, we use <span id="--tech-term-malicious" class="def-technical-term"><em>malicious</em></span> to describe code that goes out of its way to trick or mislead the user, exploit bugs or compromise the system.
@@ -2936,7 +2940,7 @@ Because both <code class="hl lean inline" data-lean-context="examples"><span cla
                 <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Printing-Axioms--Instructions">
                   Instructions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Validating-a-Lean-Proof--Printing-Axioms--Instructions" title="Permalink">🔗</a></span></h3>
                 <p>
-                  Write <code class="hl lean inline" data-lean-context="examples"><span class="has-info information" data-verso-hover="136"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">thmName</span><span class="text">' does not depend on any axioms</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-4321">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-4321" data-verso-hover="136">axioms</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-thmName" data-verso-hover="9870">thmName</span><span class="unknown token" data-binding=""></span></code> after the theorem declaration, with <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-thmName" data-verso-hover="9870">thmName</span></code> replaced by the name of the theorem and check that it reports only the built-in axioms <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Propositions/#propext" title="Documentation for propext"><span class="const token" data-binding="const-propext" data-verso-hover="137">propext</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Classical.choice" data-verso-hover="138">Classical.choice</span></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Quotients/#Quot___sound" title="Documentation for Quot.sound"><span class="const token" data-binding="const-Quot.sound" data-verso-hover="139">Quot.sound</span></a></code>.</p>
+                  Write <code class="hl lean inline" data-lean-context="examples"><span class="has-info information" data-verso-hover="136"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">thmName</span><span class="text">' does not depend on any axioms</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-4321">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-4321" data-verso-hover="136">axioms</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-thmName" data-verso-hover="10335">thmName</span><span class="unknown token" data-binding=""></span></code> after the theorem declaration, with <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-thmName" data-verso-hover="10335">thmName</span></code> replaced by the name of the theorem and check that it reports only the built-in axioms <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Propositions/#propext" title="Documentation for propext"><span class="const token" data-binding="const-propext" data-verso-hover="137">propext</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Classical.choice" data-verso-hover="138">Classical.choice</span></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Quotients/#Quot___sound" title="Documentation for Quot.sound"><span class="const token" data-binding="const-Quot.sound" data-verso-hover="139">Quot.sound</span></a></code>.</p>
                 </section>
               <section>
                 <h3 id="The-Lean-Language-Reference--Validating-a-Lean-Proof--Printing-Axioms--Significance">
@@ -2947,11 +2951,11 @@ The three axioms above are standard axioms of Lean's logic, and benign.</p>
                 <ul>
                   <li>
                     <p>
-                      If <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-sorryAx" data-verso-hover="1814">sorryAx</span></code> is reported, then this theorem or one of its dependencies uses <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-4827" data-verso-hover="79">sorry</span></code> or is otherwise incomplete.</p>
+                      If <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-sorryAx" data-verso-hover="1817">sorryAx</span></code> is reported, then this theorem or one of its dependencies uses <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-4827" data-verso-hover="79">sorry</span></code> or is otherwise incomplete.</p>
                     </li>
                   <li>
                     <p>
-                      If <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1816">Lean.trustCompiler</span></code> is reported, then native evaluation is used; see below for a discussion.</p>
+                      If <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1819">Lean.trustCompiler</span></code> is reported, then native evaluation is used; see below for a discussion.</p>
                     </li>
                   <li>
                     <p>
@@ -3273,11 +3277,11 @@ For equality goals for types with decidable equality, usually `rfl` can be used 
 example : 1 + 1 = 2 := by decide
 example : 1 + 1 = 2 := by rfl
 ```
-</code></code><a href="Tactic-Proofs/Tactic-Reference/#decide"><code class="kw"> +native</code></a></span> or direct use of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.ofReduceBool" data-verso-hover="1817">Lean.ofReduceBool</span></code>) can be used to create invalid proofs whenever the native evaluation of a term disagrees with the kernel's evaluation.
-In particular, for every <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1128">implemented_by</span></code>/<code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2558">extern</span></code> attribute in libraries it becomes part of the trusted code base that the replacement is semantically equivalent.</p>
+</code></code><a href="Tactic-Proofs/Tactic-Reference/#decide"><code class="kw"> +native</code></a></span> or direct use of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.ofReduceBool" data-verso-hover="1820">Lean.ofReduceBool</span></code>) can be used to create invalid proofs whenever the native evaluation of a term disagrees with the kernel's evaluation.
+In particular, for every <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1130">implemented_by</span></code>/<code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2561">extern</span></code> attribute in libraries it becomes part of the trusted code base that the replacement is semantically equivalent.</p>
               <p>
-                All these uses show up as an axiom <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1816">Lean.trustCompiler</span></code> in <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.printAxioms : command</code><span class="sep"></span><code class="docstring">Prints the axioms used by a declaration, directly or indirectly.
-Please consult [the reference manual](https://lean-lang.org/doc/reference/4.34.0-rc1/find/?domain=Verso.Genre.Manual.section&amp;name=validating-proofs) to understand the significance of the output. </code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms"><code class="kw">#print axioms</code></a></span>.
+                All these uses show up as an axiom <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1819">Lean.trustCompiler</span></code> in <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.printAxioms : command</code><span class="sep"></span><code class="docstring">Prints the axioms used by a declaration, directly or indirectly.
+Please consult [the reference manual](https://lean-lang.org/doc/reference/4.34.0/find/?domain=Verso.Genre.Manual.section&amp;name=validating-proofs) to understand the significance of the output. </code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms"><code class="kw">#print axioms</code></a></span>.
 External checkers (<code>lean4checker</code>, <code>comparator</code>) cannot check such proofs, as they do not have access to the Lean compiler.
 When that level of checking is needed, proofs have to avoid using native evaluation.</p>
               <p>
@@ -3349,7 +3353,7 @@ For equality goals for types with decidable equality, usually `rfl` can be used 
 example : 1 + 1 = 2 := by decide
 example : 1 + 1 = 2 := by rfl
 ```
-</code></code><a href="Tactic-Proofs/Tactic-Reference/#decide"><code class="kw"> +native</code></a></span> and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code> tactics no longer use <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1816">Lean.trustCompiler</span></code>, but instead introduce one dedicated axiom for each computation that is asserted by native computation. The <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1816">Lean.trustCompiler</span></code> machinery is deprecated and will eventually be removed.
+</code></code><a href="Tactic-Proofs/Tactic-Reference/#decide"><code class="kw"> +native</code></a></span> and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#bv_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="130">bv_decide</span></a></code> tactics no longer use <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1819">Lean.trustCompiler</span></code>, but instead introduce one dedicated axiom for each computation that is asserted by native computation. The <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.trustCompiler" data-verso-hover="1819">Lean.trustCompiler</span></code> machinery is deprecated and will eventually be removed.
 </p>
               </section>
             </section>
