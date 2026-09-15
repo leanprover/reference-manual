@@ -252,7 +252,7 @@ It chooses the most recent suitable variable, as desired:
 #eval
   let x := "x"
   let y := "y"
-  "It was " ++ y
+  "It was " ++ anything!
 ```
 ```leanOutput lets
 "It was y"

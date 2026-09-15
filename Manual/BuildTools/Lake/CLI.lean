@@ -466,7 +466,7 @@ The {lakeMeta}`template` may be:
 
   Creates a package that contains a library that depends on [Mathlib](https://github.com/leanprover-community/mathlib4).
 
-The {lakeMeta}`language` selects the file format used for the {tech}[package configuration] file and may be `lean` (the default) or `toml`.
+The {lakeMeta}`language` selects the file format used for the {tech}[package configuration] file and may be `lean` or `toml` (the default).
 :::
 
 :::TODO
@@ -535,7 +535,7 @@ from the covered targets. Other targets in the package will not be tracked.
 
 ::::lake build "[targets...] [\"-o\" mappings] [\"--package\" name]"
 
-Builds the specified facts of the specified targets.
+Builds the specified facets of the specified targets.
 
 Each of the {lakeMeta}`targets` is specified by a string of the form:
 
