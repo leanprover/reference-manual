@@ -311,7 +311,7 @@ Lake's internal API may be used to write custom facets.
 Build targets
 
 USAGE:
-  lake build [<targets>...] [-o <mappings>]
+  lake build [<targets>...] [-o <mappings>] [--package <name>]
 
 A target is specified with a string of the form:
 
@@ -356,11 +356,13 @@ TARGET EXAMPLES:        build the ...
 A bare `lake build` command will build the default target(s) of the root
 package. Package dependencies are not updated during a build.
 
-With the Lake cache enabled, the `-o` option will cause Lake to track the
-input-to-outputs mappings of targets in the root package touched during the
-build and write them to the specified file at the end of the build. These
-mappings can then be used to upload build artifacts to a remote cache with
-`lake cache put`.
+With the Lake cache enabled, Lake can track the targets the build covers
+(both those up-to-date and those newly built) and write the input-to-outputs
+mappings of each to a file specified by the `-o` option. By default, with `-o`,
+Lake will track the targets of the root package, use `--package` to select a
+different one. These mappings can then be used to upload the build artifacts
+to a remote cache with `lake cache put`. This will only include the artifacts
+from the covered targets. Other targets in the package will not be tracked.
 ```
 
 
@@ -1503,9 +1505,12 @@ It tracks build products at the level of individual source files, {tech}[`.olean
 
 When passed the `-o` option, {lake}`build` tracks the inputs used to generate each build product.
 These are stored to a {deftech}_mappings file_ in JSON lines format, where each line of the file must be a valid JSON object.
-A mappings file tracks a single build, and includes all intermediate and final build products for the workspace's {tech}[root package], but not for its dependencies.
-This includes build products that were already up to date and not regenerated.
-The {lake}`cache put` command uploads the build products in the mappings file to the remote from the local cache to the remote cache.
+A mappings file tracks a single package within a build, and includes all intermediate and final build products from the package that are part of the build.
+
+By default, {lake}`build` saves the workspace's {tech}[root package]'s mappings.
+The {lakeOpt}`--package` option selects a different package in the workspace, such as a dependency, saving its mappings instead.
+The tracked build products include those that were already up to date and not regenerated, but not the package's targets that the build did not cover.
+The {lake}`cache put` command uploads the build products in the mappings file from the local cache to the remote cache.
 
 ### Configuration
 
