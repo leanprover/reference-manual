@@ -274,25 +274,14 @@ In addition to using the default strategy, the attribute checks which other stra
 open Lean Parser Attr
 open Lean Elab Command
 
-deriving instance Repr for ParserDescr
-
-def getName : ParserDescr → CommandElabM String
-  | .nodeWithAntiquot name .. => pure name
-  | other => throwError m!"Expected a {.ofConstName ``nodeWithAntiquot}, got {repr other}"
-
-def getOrElse (descr : ParserDescr) : CommandElabM (Array ParserDescr) := do
-  match descr with
-  | .binary `orelse x y => return (← getOrElse x) ++ (← getOrElse y)
-  | other => return #[other]
-
-def getGrindAlts (descr : ParserDescr) : CommandElabM (Array String) := do
-  if let .nodeWithAntiquot "grindMod" ``grindMod d' := descr then
-    let cases ← getOrElse d'
-    return (← cases.mapM getName).qsort
-  else throwError "Expected a {.ofConstName ``nodeWithAntiquot}, got {repr descr}"
+def getGrindAlts : CommandElabM (Array String) := do
+  let some cat := (parserExtension.getState (← getEnv)).categories.find? `grind_mod
+    | throwError "Syntax category `grind_mod` not found"
+  let kinds := cat.kinds.foldl (init := #[]) fun acc k _ => acc.push k.getString!
+  return kinds.qsort (· < ·)
 
 /--
-info: `grindMod` can be these:
+info: `grind_mod` can be these:
 grindBwd
 grindCases
 grindCasesEager
@@ -318,8 +307,8 @@ grindUsr
 -/
 #guard_msgs in
 #eval show CommandElabM Unit from do
-  let allMods ← getGrindAlts grindMod
-  IO.println "`grindMod` can be these:"
+  let allMods ← getGrindAlts
+  IO.println "`grind_mod` can be these:"
   for gmod in allMods do
     IO.println gmod
 
