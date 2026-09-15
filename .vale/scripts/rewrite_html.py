@@ -31,7 +31,7 @@ def process_html_file(filepath, output_filepath):
                 header_tag.contents[0].replace_with(no_num)
         for other in header_tag.find_all(['span'], class_="permalink-widget"):
             other.decompose()
-        header_tag.replace_with(header_tag.get_text())
+        header_tag.unwrap()
 
     # Simplify ordinal idiom
     for code_tag in soup.find_all('code'):
