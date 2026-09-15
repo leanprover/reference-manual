@@ -337,8 +337,19 @@ jobs:
                   path: "_out/"
 
             - name: Install prose linter
+              env:
+                  VALE_VERSION: "3.21.0"
+                  VALE_SHA256: "96997d19a4ca6981673b0d4c5ca7f3ede4a9f97964a96edc29fba9e28a328336"
               run: |
-                  sudo snap install vale
+                  set -euo pipefail
+                  tarball="vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
+                  curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
+                      -o "$RUNNER_TEMP/$tarball" \
+                      "https://github.com/vale-cli/vale/releases/download/v${VALE_VERSION}/$tarball"
+                  echo "$VALE_SHA256  $RUNNER_TEMP/$tarball" | sha256sum --check
+                  mkdir -p "$RUNNER_TEMP/vale"
+                  tar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP/vale" vale
+                  echo "$RUNNER_TEMP/vale" >> "$GITHUB_PATH"
 
             - name: Preprocess HTML for prose linter
               run: |
