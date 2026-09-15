@@ -1,0 +1,48 @@
+name: Check dependency pins
+
+# Merges from `nightly-testing` into `main` can bring along dependency
+# revisions that track `nightly-testing`. Released versions of the manual must
+# not depend on them.
+
+on:
+    pull_request:
+        branches: [main]
+    merge_group:
+
+jobs:
+    check-dependency-pins:
+        name: "Check dependency pins"
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Determine target branch
+              id: target
+              run: |
+                  if [ "${{ github.event_name }}" = "merge_group" ]; then
+                      base="${{ github.event.merge_group.base_ref }}"
+                  else
+                      base="${{ github.base_ref }}"
+                  fi
+                  echo "branch=${base#refs/heads/}" >> "$GITHUB_OUTPUT"
+
+            - name: Check that no dependency tracks nightly-testing
+              if: steps.target.outputs.branch == 'main'
+              run: |
+                  bad=$(jq -r '
+                      .packages[]
+                      | select(.type == "git")
+                      | select(.inputRev // "" | test("^nightly-testing"))
+                      | "\(.name): \(.inputRev)"
+                  ' lake-manifest.json)
+                  if [ -n "$bad" ]; then
+                      echo "::error::These dependencies in lake-manifest.json track nightly-testing:"
+                      echo "$bad"
+                      echo "Run 'lake update <package>' with the requirement pointing at a release-appropriate revision."
+                      exit 1
+                  fi
+
+                  if grep -n -E 'require .*@"nightly-testing' lakefile.lean; then
+                      echo "::error::The requirements above in lakefile.lean track nightly-testing."
+                      exit 1
+                  fi

@@ -178,7 +178,7 @@ This should only be necessary for high risk scenarios (proof marketplaces, high-
 
 ## Instructions
 
-In a trusted environment, write the theorem *statement* (the “challenge”), and then judge the proposed proof against it with {ref "lake-challenge"}[`lake challenge`], with external checkers enabled.
+In a trusted environment, write the theorem *statement* (the “challenge”), and then judge the proposed proof against it with {ref "lake-comparator"}[`lake comparator`], with external checkers enabled.
 This command is a frontend to the [`comparator`](https://github.com/leanprover/comparator) tool.
 
 ## Significance
