@@ -274,25 +274,14 @@ In addition to using the default strategy, the attribute checks which other stra
 open Lean Parser Attr
 open Lean Elab Command
 
-deriving instance Repr for ParserDescr
-
-def getName : ParserDescr → CommandElabM String
-  | .nodeWithAntiquot name .. => pure name
-  | other => throwError m!"Expected a {.ofConstName ``nodeWithAntiquot}, got {repr other}"
-
-def getOrElse (descr : ParserDescr) : CommandElabM (Array ParserDescr) := do
-  match descr with
-  | .binary `orelse x y => return (← getOrElse x) ++ (← getOrElse y)
-  | other => return #[other]
-
-def getGrindAlts (descr : ParserDescr) : CommandElabM (Array String) := do
-  if let .nodeWithAntiquot "grindMod" ``grindMod d' := descr then
-    let cases ← getOrElse d'
-    return (← cases.mapM getName).qsort
-  else throwError "Expected a {.ofConstName ``nodeWithAntiquot}, got {repr descr}"
+def getGrindAlts : CommandElabM (Array String) := do
+  let some cat := (parserExtension.getState (← getEnv)).categories.find? `grind_mod
+    | throwError "Syntax category `grind_mod` not found"
+  let kinds := cat.kinds.foldl (init := #[]) fun acc k _ => acc.push k.getString!
+  return kinds.qsort (· < ·)
 
 /--
-info: `grindMod` can be these:
+info: `grind_mod` can be these:
 grindBwd
 grindCases
 grindCasesEager
@@ -318,8 +307,8 @@ grindUsr
 -/
 #guard_msgs in
 #eval show CommandElabM Unit from do
-  let allMods ← getGrindAlts grindMod
-  IO.println "`grindMod` can be these:"
+  let allMods ← getGrindAlts
+  IO.println "`grind_mod` can be these:"
   for gmod in allMods do
     IO.println gmod
 
@@ -646,7 +635,7 @@ norm
 :::
 
 The {tactic}`grind` tactic can work with a source algebra that doesn't have a great deal of solving infrastructure (e.g. bitvectors) by “injecting” it into another algebra that has more solving infrastructure (like natural numbers or integers).
-Homomorphism rules describe the injection from source to target, and how the injection commutes with other operations (like addition or multiplication in the case of bitvectors).
+{ref "grind-hom"}[Homomorphism rules] describe the injection from source to target, and how the injection commutes with other operations (like addition or multiplication in the case of bitvectors).
 Homomorphism predicates present additional facts that {tactic}`grind` can use about the injection (like that a bitvector of length $`n` corresponds to a natural number less than $`2^n`).
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Homomorphism Rules")
@@ -663,7 +652,6 @@ hom_pred
 {includeDocstring Lean.Parser.Attr.grindHomPred}
 :::
 
-{TODO}[Grind's hom infrastructure could use an example]
 
 {TODO}[Document `gen` modifier for `grind` patterns]
 
@@ -984,11 +972,12 @@ set_option diagnostics.threshold 10 in
 example : (iota 20).length > 10 := by
   grind (gen := 20) (ematch := 20)
 ```
-```leanOutput grindDiagnostics (expandTrace := grind) (expandTrace := thm)
+```leanOutput grindDiagnostics (expandTrace := grind) (expandTrace := thm) (expandTrace := ematch)
 [grind] Diagnostics
-  [thm] E-Matching instances
-    [thm] iota_succ ↦ 12
-    [thm] List.length_cons ↦ 11
+  [ematch] E-matching Diagnostics
+    [thm] Theorem Instance Count
+      [thm] iota_succ ↦ 12
+      [thm] List.length_cons ↦ 11
   [app] Applications
   [grind] Simplifier
     [simp] used theorems (max: 15, num: 2):
@@ -1012,10 +1001,11 @@ theorem gt1 (x y : Nat) :
   set_option diagnostics true in
   grind
 ```
-```leanOutput gt1diag (expandTrace := grind) (expandTrace := thm)
+```leanOutput gt1diag (expandTrace := grind) (expandTrace := thm) (expandTrace := ematch)
 [grind] Diagnostics
-  [thm] E-Matching instances
-    [thm] gt1.match_1.congr_eq_2 ↦ 1
+  [ematch] E-matching Diagnostics
+    [thm] Theorem Instance Count
+      [thm] gt1.match_1.congr_eq_2 ↦ 1
   [app] Applications
 ```
 The theorem has this type:

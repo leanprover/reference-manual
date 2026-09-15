@@ -114,15 +114,16 @@ set_option diagnostics.threshold 1 in
 example {x : α} {f : α → β} : (both x).map f = both (f x) := by
   grind
 ```
-```leanOutput mapBothDiag (expandTrace := grind) (expandTrace := thm)
+```leanOutput mapBothDiag (expandTrace := grind) (expandTrace := thm) (expandTrace := ematch)
 [grind] Diagnostics
-  [thm] E-Matching instances
-    [thm] both_snd ↦ 3
-    [thm] both_fst ↦ 2
-    [thm] both_fst_eq_snd ↦ 2
-    [thm] get_def ↦ 2
-    [thm] map_fst ↦ 1
-    [thm] map_snd ↦ 1
+  [ematch] E-matching Diagnostics
+    [thm] Theorem Instance Count
+      [thm] both_snd ↦ 3
+      [thm] both_fst ↦ 2
+      [thm] both_fst_eq_snd ↦ 2
+      [thm] get_def ↦ 2
+      [thm] map_fst ↦ 1
+      [thm] map_snd ↦ 1
   [split] Case splits
   [app] Applications
   [grind] Simplifier
@@ -145,14 +146,15 @@ example {x : α} {f : α → β} : (both x).map f = both (f x) := by
     · instantiate only [= both_snd, = map_snd]
       instantiate only [= both_snd]
 ```
-```leanOutput mapBothDiag2 (expandTrace := grind) (expandTrace := thm)
+```leanOutput mapBothDiag2 (expandTrace := grind) (expandTrace := thm) (expandTrace := ematch)
 [grind] Diagnostics
-  [thm] E-Matching instances
-    [thm] both_fst ↦ 2
-    [thm] both_snd ↦ 2
-    [thm] get_def ↦ 2
-    [thm] map_fst ↦ 1
-    [thm] map_snd ↦ 1
+  [ematch] E-matching Diagnostics
+    [thm] Theorem Instance Count
+      [thm] both_fst ↦ 2
+      [thm] both_snd ↦ 2
+      [thm] get_def ↦ 2
+      [thm] map_fst ↦ 1
+      [thm] map_snd ↦ 1
   [split] Case splits
   [app] Applications
   [grind] Simplifier

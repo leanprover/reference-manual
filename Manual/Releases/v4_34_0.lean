@@ -505,7 +505,7 @@ Beyond that, the release is mostly incremental lemma work and naming cleanups; t
 
 # Tactics
 
-````markdown
+```markdown
 
 - [#14713](https://github.com/leanprover/lean4/pull/14713)
   adds support for `bv_decide` to make use of the `grind` state when used in `sym`/`grind` interactive mode. `bv_decide` now picks up on the (relevant) equivalence classes, encodes them into the SAT problem and then handles the problem as normally.
@@ -639,11 +639,11 @@ Beyond that, the release is mostly incremental lemma work and naming cleanups; t
 - [#14401](https://github.com/leanprover/lean4/pull/14401)
   fixes `preprocessType` in `SymM`. It must not perform `zetaDelta` by default.
 
-````
+```
 
 # Compiler
 
-````markdown
+```markdown
 
 - [#14838](https://github.com/leanprover/lean4/pull/14838)
   prevents memory corruption when an object's 32-bit reference count overflows. On machines with at least 18GB of free RAM, it could be used to trigger use-after-free in the official kernel, which could be extended into a proof of False. Other kernels such as nanoda not based on the Lean runtime were not affected.
@@ -675,11 +675,11 @@ Beyond that, the release is mostly incremental lemma work and naming cleanups; t
 - [#14204](https://github.com/leanprover/lean4/pull/14204)
   prevents silent olean truncation when disk space is exhausted.
 
-````
+```
 
 # Pretty Printing
 
-````markdown
+```markdown
 
 - [#14512](https://github.com/leanprover/lean4/pull/14512)
   makes a `for` do-element pretty-print with a space before `do`. The do-element `for` parser emitted `"do "` with no leading space, so reformatting a `for … do` block glued the range to the keyword (`for x in xs do` printed as `for x in xsdo`). Every sibling do-keyword (`while`, `unless`, term-level `for`) already emits ` do `; this aligns `for`.
@@ -687,20 +687,20 @@ Beyond that, the release is mostly incremental lemma work and naming cleanups; t
 - [#14367](https://github.com/leanprover/lean4/pull/14367)
   fixes an issue where the `@[simp ←]` attribute would pretty-print as `@[simp← ]`, along with analogous issues with `@[grind norm ←]`, `@[wf_preprocess ←]`, `@[bv_normalize ←]`, etc. See also discussion on [Zulip](https://leanprover.zulipchat.com/#narrow/channel/287929-mathlib4/topic/Whitespace.20linter.20interaction.20with.20reverse.20simp.20attributes/near/590971428).
 
-````
+```
 
 # Documentation
 
-````markdown
+```markdown
 
 - [#14436](https://github.com/leanprover/lean4/pull/14436)
   removes references to the unfolding lemma from the `repeatM` docstrings and moves that lemma into the `repeatM.Internal` namespace.
 
-````
+```
 
 # Server
 
-````markdown
+```markdown
 
 - [#15093](https://github.com/leanprover/lean4/pull/15093)
   fixes the goal view showing the state after the enclosing tactic instead of the nested block's goal on the line after the last tactic of a nested `have ... := by` block or `·` bullet, e.g. after an empty `·` where the next tactic is about to be typed (#15053).
@@ -708,11 +708,11 @@ Beyond that, the release is mostly incremental lemma work and naming cleanups; t
 - [#15095](https://github.com/leanprover/lean4/pull/15095)
   fixes the goal view showing the state after `have` instead of the goal of an empty nested `have ... := by` block on the following line, where the next tactic is about to be typed (#15053, regression of #1927 from #13229).
 
-````
+```
 
 # Lake
 
-````markdown
+```markdown
 
 - [#14723](https://github.com/leanprover/lean4/pull/14723)
   makes the `MACOSX_DEPLOYMENT_TARGET` configurable via the Lake API -- both across a build and for custom builds of shared libraries or executables.  It also includes the target in traces, ensuring a rebuilding if the value changes (e.g., if the environment variable `MACOSX_DEPLOYMENT_TARGET` is set).
@@ -741,11 +741,11 @@ Beyond that, the release is mostly incremental lemma work and naming cleanups; t
 - [#14630](https://github.com/leanprover/lean4/pull/14630)
   makes `lake update <pkg>...` fail with a clear error when a specified package name is not known to the current dependency manifest. Previously, unknown or misspelled names (including case mismatches) were silently ignored, which was confusing.
 
-````
+```
 
 # Other
 
-````markdown
+```markdown
 
 - [#14833](https://github.com/leanprover/lean4/pull/14833)
   makes Lean require GMP 6.3.0 or newer and builds the official releases against GMP 6.3.0. Earlier GMP versions contain bugs that can cause Lean to produce unsound (i.e., incorrect) results in corner cases; independent kernels that do not depend on GMP will catch such unsoundness. The portable Linux releases were previously linked against GMP 6.1.2 (inherited from the old glibc nixpkgs used for portability).
@@ -772,4 +772,4 @@ Beyond that, the release is mostly incremental lemma work and naming cleanups; t
 - [#14161](https://github.com/leanprover/lean4/pull/14161)
   adds support for compiling with thread sanitizer. This both increases memory consumption and slows lean down massively so we only run a very small subset of tests to remain in a reasonable time. Developers need to add additional tests to the set themselves.
 
-````
+```
