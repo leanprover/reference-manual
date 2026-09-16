@@ -13,7 +13,7 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.35.0-rc1 (2026-09-15)" =>
+#doc (Manual) "Lean 4.35.0-rc2 (2026-09-16)" =>
 %%%
 tag := "release-v4.35.0"
 file := "v4.35.0"
@@ -24,18 +24,24 @@ These release notes describe a _release candidate_, not the final release.
 They may be incomplete and are subject to change.
 :::
 
-For this release, 193 changes landed.
-In addition to the 69 feature additions
-and 52 fixes listed below,
-there were 17 refactoring changes,
+For this release, 206 changes landed.
+In addition to the 76 feature additions
+and 53 fixes listed below,
+there were 18 refactoring changes,
 7 documentation improvements,
-19 performance improvements,
+21 performance improvements,
 2 improvements to the test suite,
-and 27 other changes.
+and 29 other changes.
 
 # Language
 
 ````markdown
+
+- [#15020](https://github.com/leanprover/lean4/pull/15020)
+  removes the `Array Syntax` -> `SepArray sep` and `SepArray sep` -> `Array Syntax` coercions and adds a separator-`SourceInfo`-preserving `TSepArray ks sep` -> `SepArray sep` coercion instead. Fixes an issue where coercing from `TSepArray ks sep` to `SepArray sep` would lose the `SourceInfo` of the separators.
+
+- [#15133](https://github.com/leanprover/lean4/pull/15133)
+  moves InfoTree and SnapshotTree utilities from the server domain to the elab domain.
 
 - [#15090](https://github.com/leanprover/lean4/pull/15090)
   adds erased state to `do` notation: `erased x := e`, `erased mut x := e`, and `erased x ← act` declare verification-only variables that loop `invariant` clauses and assertions can read while compiled code carries only a dummy in their place.
@@ -200,6 +206,12 @@ and 27 other changes.
 
 ````markdown
 
+- [#13490](https://github.com/leanprover/lean4/pull/13490)
+  adds `Nat.powMod b e m`, a modular exponentiation function provably equal to `b ^ e % m`, so large powers modulo a nonzero modulus can be evaluated without constructing the full power. It also makes exponentiation on `Fin n` use this operation.
+
+- [#15024](https://github.com/leanprover/lean4/pull/15024)
+  exposes the Fused Multiply-Add operation for `Float` and `Float32`along with a logical model.
+
 - [#15144](https://github.com/leanprover/lean4/pull/15144)
   allows the RUP component of the LRAT checker to accept hint clauses that are themselves redundant.
 
@@ -328,6 +340,12 @@ and 27 other changes.
 # Tactics
 
 ```markdown
+
+- [#15161](https://github.com/leanprover/lean4/pull/15161)
+  reduces module import overhead in Lean’s core builds by sharing the parsers for `grind` modifiers.
+
+- [#15159](https://github.com/leanprover/lean4/pull/15159)
+  avoids preparing and serializing premise-selection indexes during builds. Keep the selectors, but compute and cache their indexes on first use in each process.
 
 - [#15124](https://github.com/leanprover/lean4/pull/15124)
   fixes a non-linearity in LRAT trimming which causes the original and the trimmed proof to stay alive at the same time instead of reusing the memory.
@@ -502,6 +520,26 @@ and 27 other changes.
 # Lake
 
 ```markdown
+
+- [#15153](https://github.com/leanprover/lean4/pull/15153)
+  bundles the `con-ron` external checker with release toolchains, so it can be used as an independent checker without a separate install.
+
+- [#14835](https://github.com/leanprover/lean4/pull/14835)
+  makes job cancellation under `--fail-fast` a first-class notion: canceled jobs are reported as `⊘ Canceled` rather than as successes, and a canceled dependency is no longer misreported as a `bad import`.
+
+- [#15157](https://github.com/leanprover/lean4/pull/15157)
+  introduces the `--from-export` option for `lake check` and the `--solution-from-export` and `--challenge-from-export` flags for `lake comparator`. They allow loading export files from already existing NDJSON files instead of building them on the fly. This is useful for several scenarios:
+    - Using export files built in virtual machines for extra isolation.
+    - Using export files built by third parties, e.g. because they require
+      extensive computational resources to generate.
+    - Using export files generated through means other than a standard
+      `lake build`.
+
+- [#15156](https://github.com/leanprover/lean4/pull/15156)
+  adds an expert user flag to comparator to disable its sandbox, this flag should not be used in usual production environments and is only useful if you do not expect the formalisation to not be maliciously trying to attack the system.
+
+- [#15145](https://github.com/leanprover/lean4/pull/15145)
+  adds a `--paranoid` flag to `lake check` and `lake comparator` that runs every checker bundled with release toolchains (`leanchecker-paranoid`, `lean4lean`, `nanoda` and `con-leche`) over the export in addition to Lean's own kernel, and accepts only if all of them do.
 
 - [#15141](https://github.com/leanprover/lean4/pull/15141)
   adds a `--package` option to `lake build` and `lake cache put`. On `lake build`, `-o` with `--package` will track the specified package's build outputs instead of the root's. The outputs can then be uploaded via `lake cache put --package`.  Also, to minimize incorrect uploads, `lake cache put-staged`  now requires `--rev` to be manually set.
