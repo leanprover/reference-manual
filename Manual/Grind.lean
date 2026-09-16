@@ -20,6 +20,7 @@ import Manual.Grind.Cutsat
 import Manual.Grind.Algebra
 import Manual.Grind.Linarith
 import Manual.Grind.Annotation
+import Manual.Grind.Hom
 import Manual.Grind.Interactive
 import Manual.Grind.ExtendedExamples
 
@@ -351,5 +352,7 @@ Threshold notices, learned equivalence classes, integer assignments, algebraic b
 # Troubleshooting & FAQ
 TBD
 ```
+
+{include 1 Manual.Grind.Hom}
 
 {include 1 Manual.Grind.ExtendedExamples}

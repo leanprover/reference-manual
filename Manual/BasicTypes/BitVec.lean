@@ -166,8 +166,9 @@ tag := "BitVec-automation"
 %%%
 
 In addition to the full suite of automation and tools provided by Lean for every type, the {tactic}`bv_decide` tactic can solve many bitvector-related problems.
-This tactic invokes an external automated theorem prover (`cadical`) and reconstructs the proof that it provides in Lean's own logic.
-The resulting proofs rely only on the axiom {name}`Lean.ofReduceBool`; the external prover is not part of the trusted code base.
+This tactic invokes an external automated theorem prover (`cadical`) and validates the certificate returned by the prover with a checker that's written in Lean and proved sound.
+This verified checker is run as native code because reducing it in the kernel is not feasible for performance reasons.
+Because the kernel does not execute native code, the resulting proof relies on a dedicated axiom that asserts the outcome of the native computation; the external prover is not part of the trusted code base.
 
 :::example "Popcount"
 
