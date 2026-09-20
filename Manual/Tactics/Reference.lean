@@ -331,9 +331,6 @@ tag := "tactic-ref-rw"
 Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::
 
-:::tactic "replace"
-:::
-
 :::tactic "delta"
 :::
 
