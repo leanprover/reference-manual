@@ -276,7 +276,19 @@ tag := "tactic-ref-ext"
 :::tactic "grind"
 :::
 
+:::syntax tactic (title := "Interactive `grind`")
+```grammar
+grind $_:optConfig $[only]? $[ [ $[$p],* ] ]? => $steps
+```
+:::
+
+Following {tactic}`grind` with {keywordOf Lean.Parser.Tactic.grind}`=>` and a sequence of steps enters interactive mode, in which {tactic}`grind`'s engines are driven by hand.
+The {ref "grind-interactive"}[section on interactive mode] describes the available steps.
+
 :::tactic "grind?"
+:::
+
+:::tactic "sym" (show := "sym =>")
 :::
 
 :::tactic "lia"
@@ -302,7 +314,7 @@ tag := "tactic-ref-rw"
 :::tactic "erw"
 :::
 
-:::tactic Lean.Parser.Tactic.tacticRwa__
+:::tactic Lean.Parser.Tactic.rwa
 :::
 
 {docstring Lean.Meta.Rewrite.Config +allowMissing}

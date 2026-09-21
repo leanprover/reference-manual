@@ -15,6 +15,7 @@ import Manual.IO.Console
 import Manual.IO.Files
 import Manual.IO.Threads
 import Manual.IO.Ref
+import Manual.IO.Async
 
 open Manual
 open Verso.Genre
@@ -531,3 +532,5 @@ There are 90 four-digit palindromes.
 {docstring IO.getRandomBytes}
 
 {include 0 Manual.IO.Threads}
+
+{include 0 Manual.IO.Async}

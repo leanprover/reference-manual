@@ -359,7 +359,7 @@ Floating-point numbers fall into one of three categories:
 ### Inequalities
 
 The decision procedures for inequalities are opaque constants in the logic.
-They can only be used via the {name}`Lean.ofReduceBool` axiom, e.g. via the {tactic}`native_decide` tactic.
+They can only be used via native evaluation, e.g. via the {tactic}`native_decide` tactic.
 
 {docstring Float.le}
 
