@@ -44,7 +44,7 @@ open Verso.Doc.Elab
 open Verso.Log
 open Lean Elab
 open SubVerso.Highlighting (Highlighted)
-open Lean.Doc (CodeBlockView VersoCodeBlock)
+open Lean.Doc (CodeBlockView VersoBlock VersoCodeBlock)
 
 namespace Manual
 
@@ -102,7 +102,7 @@ inductive SessionItem where
   | passthrough (block : Syntax)
 
 /-- Classify a block within a `lakeSession`. -/
-def classifySessionBlock (block : TSyntax ``Lean.Doc.Parser.block) : DocElabM SessionItem := do
+def classifySessionBlock (block : VersoBlock) : DocElabM SessionItem := do
   let some { name? := some name, args, content, .. } := CodeBlockView.of block
     | return .passthrough block
   match name.getId with

@@ -21,7 +21,7 @@ open Verso.Code.Highlighted.WebAssets
 open Verso.Genre.Manual.InlineLean.Scopes (getScopes)
 
 open Lean Elab Parser
-open Lean.Doc (CodeView CodeBlockView)
+open Lean.Doc (CodeView CodeBlockView VersoBlock VersoInline)
 open Lean.Widget (TaggedText)
 
 namespace Manual
@@ -81,7 +81,7 @@ structure FreeSyntaxConfig where
   name : Name
   «open» : Bool := true
   label : Option String := none
-  title : TSyntaxArray ``Lean.Doc.Parser.inline
+  title : Array VersoInline
 
 def FreeSyntaxConfig.getLabel (config : FreeSyntaxConfig) : String :=
   config.label.getD <|
@@ -1104,7 +1104,7 @@ def «syntax» : DirectiveExpander
 
     pure #[← `(Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, $(quote config.aliases.toArray))} #[Block.para #[$(title),*], $content,*])]
 where
-  isGrammar? (blk : TSyntax ``Lean.Doc.Parser.block) :
+  isGrammar? (blk : VersoBlock) :
       Option (Syntax × Array Syntax × Lean.Doc.VersoCodeBlock) :=
     match CodeBlockView.of blk with
     | some { name? := some nameStx, args, content, .. } =>
@@ -1176,7 +1176,7 @@ def freeSyntax : DirectiveExpander
         content := content.push <| ← elabBlock b
     pure #[← `(Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, #[])} #[Block.para #[$(title),*], $content,*])]
 where
-  isGrammar? (blk : TSyntax ``Lean.Doc.Parser.block) :
+  isGrammar? (blk : VersoBlock) :
       Option (Syntax × Array Syntax × Lean.Doc.VersoCodeBlock) :=
     match CodeBlockView.of blk with
     | some { name? := some nameStx, args, content, .. } =>

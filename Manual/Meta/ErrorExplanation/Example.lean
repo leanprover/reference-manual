@@ -9,7 +9,7 @@ import Manual.Meta.Example
 
 open Lean
 open Verso (reportError)
-open Lean.Doc (CodeBlockView VersoCodeBlock)
+open Lean.Doc (CodeBlockView VersoBlock VersoCodeBlock)
 open Manual (namedCodeBlock)
 set_option doc.verso true
 
@@ -236,9 +236,9 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
           Doc.Block.other (Manual.Block.tabbedErrorReproduction $(quote tabbedContentHeaders.toArray)) #[$tabbedContentBlocks.toArray,*],
           $narrativeBlocks.toArray,*])
 where
-  partitionFixed (blocks : List (TSyntax ``Lean.Doc.Parser.block)) :
+  partitionFixed (blocks : List VersoBlock) :
       Verso.Doc.Elab.DocElabM
-        (List (Syntax × Option StrLit × VersoCodeBlock) × List (TSyntax ``Lean.Doc.Parser.block)) := do
+        (List (Syntax × Option StrLit × VersoCodeBlock) × List VersoBlock) := do
   match blocks with
   | [] => pure ([], [])
   | block :: rest =>
