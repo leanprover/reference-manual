@@ -43,7 +43,7 @@ private partial def disableUnusedVarLinterInInfoTree : InfoTree → InfoTree
 open Verso.Genre.Manual.InlineLean.Scopes (runWithOpenDecls runWithVariables)
 open SubVerso.Highlighting
 open SubVerso.Examples.Messages
-open Lean.Doc.Syntax
+open Lean.Doc (CodeView VersoCode VersoCodeBlock)
 
 structure TacticOutputConfig where
   «show» : Bool := true
@@ -64,7 +64,7 @@ def TacticOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [
     (many (.named `expandTrace .name false))
 
 
-def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (pre : TSyntax `str) (post : TSyntax `str) : TermElabM Unit := do
+def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (pre post : VersoCodeBlock) : TermElabM Unit := do
   let statement ← elabType goal
   let mv ← Meta.mkFreshExprMVar (some statement)
   let Expr.mvar mvarId := mv
@@ -82,8 +82,8 @@ def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (p
   let st1 := goalsToMessageData remainingGoals
   --logInfoAt proofPrefix st1
   let goodPre ← (← addMessageContext st1).toString
-  if pre.getString != goodPre then
-    logErrorAt pre m!"Mismatch. Expected {indentD goodPre}\n but got {indentD pre.getString}"
+  if pre.getVersoCodeBlock != goodPre then
+    logErrorAt pre m!"Mismatch. Expected {indentD goodPre}\n but got {indentD pre.getVersoCodeBlock}"
   -- Run the example
   let remainingGoals' ← Tactic.run mvarId do
     withoutTacticIncrementality true <|
@@ -93,14 +93,14 @@ def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (p
   let st2 := goalsToMessageData remainingGoals'
   --logInfoAt tactic st2
   let goodPost ← (← addMessageContext st2).toString
-  if post.getString != goodPost then
-    logErrorAt post m!"Mismatch. Expected {indentD goodPost}\n but got {indentD post.getString}"
+  if post.getVersoCodeBlock != goodPost then
+    logErrorAt post m!"Mismatch. Expected {indentD goodPost}\n but got {indentD post.getVersoCodeBlock}"
 
 open Lean.Elab.Tactic.GuardMsgs in
 def checkTacticExample'
     (goal : Expr) (proofPrefix : Syntax) (tactic : Syntax)
-    (pre : TSyntax `str) (post : TSyntax `str)
-    (output : Option (TSyntax `str × TacticOutputConfig)) :
+    (pre post : VersoCodeBlock)
+    (output : Option (VersoCodeBlock × TacticOutputConfig)) :
     TermElabM
       (Array (Highlighted.Goal Highlighted) ×
         Array (Highlighted.Goal Highlighted) ×
@@ -132,9 +132,9 @@ def checkTacticExample'
   let st1 := goalsToMessageData remainingGoals
   --logInfoAt proofPrefix st1
   let goodPre ← (← addMessageContext st1).toString
-  if pre.getString.trimAscii != goodPre.trimAscii then
+  if pre.getVersoCodeBlock.trimAscii != goodPre.trimAscii then
     Verso.Doc.Suggestion.saveSuggestion pre ((goodPre.take 30).copy ++ "…") (goodPre ++ "\n")
-    logErrorAt pre m!"Mismatch. Expected {indentD goodPre}\n but got {indentD pre.getString}"
+    logErrorAt pre m!"Mismatch. Expected {indentD goodPre}\n but got {indentD pre.getVersoCodeBlock}"
 
   let ci : ContextInfo := {
     env := ← getEnv, fileMap := ← getFileMap, ngen := ← getNGen,
@@ -160,9 +160,9 @@ def checkTacticExample'
   --logInfoAt tactic st2
   let goodPost ← (← addMessageContext st2).toString
 
-  if post.getString.trimAscii != goodPost.trimAscii then
+  if post.getVersoCodeBlock.trimAscii != goodPost.trimAscii then
     Verso.Doc.Suggestion.saveSuggestion post ((goodPost.take 30).copy ++ "…") (goodPost ++ "\n")
-    logErrorAt post m!"Mismatch. Expected {indentD goodPost}\n but got {indentD post.getString}"
+    logErrorAt post m!"Mismatch. Expected {indentD goodPost}\n but got {indentD post.getVersoCodeBlock}"
 
   let ci : ContextInfo := { ci with
     mctx := ← getMCtx
@@ -178,14 +178,14 @@ def checkTacticExample'
             let txt := withNewline <| head ++ (← msg.data.toString)
             pure (msg.severity, txt)
       for (sev, txt) in processed do
-        if mostlyEqual config.whitespace wantedOut.getString txt then
+        if mostlyEqual config.whitespace wantedOut.getVersoCodeBlock txt then
           if let some s := config.severity then
             if s != sev then
               throwErrorAt wantedOut s!"Expected severity {sevStr s}, but got {sevStr sev}"
           return sev
       for (_, m) in processed do
         Verso.Doc.Suggestion.saveSuggestion wantedOut ((m.take 30).copy ++ "…") m
-      throwErrorAt wantedOut "Didn't match - expected one of: {indentD (toMessageData <| processed.map (·.2))}\nbut got:{indentD (toMessageData wantedOut.getString)}"
+      throwErrorAt wantedOut "Didn't match - expected one of: {indentD (toMessageData <| processed.map (·.2))}\nbut got:{indentD (toMessageData wantedOut.getVersoCodeBlock)}"
     else pure .information
 
   return (hlPre, hlPost, hlTac, outSev)
@@ -231,13 +231,13 @@ open Command
 structure TacticExampleContext where
   goal : Option Expr := none
   setup : Option Syntax := none
-  pre : Option (TSyntax `str) := none
+  pre : Option VersoCodeBlock := none
   preName : Ident
   tactic : Option Syntax := none
   tacticName : Ident
-  post : Option (TSyntax `str) := none
+  post : Option VersoCodeBlock := none
   postName : Ident
-  output : Option (TSyntax `str × TacticOutputConfig) := none
+  output : Option (VersoCodeBlock × TacticOutputConfig) := none
   outputSeverityName : Ident
 
 initialize tacticExampleCtx : Lean.EnvExtension (Option TacticExampleContext) ←
@@ -280,7 +280,7 @@ def saveTactic [Monad m] [MonadEnv m] [MonadError m] (tactic : Syntax) : m Ident
       modifyEnv fun env => tacticExampleCtx.setState env (some {st with tactic := tactic})
       return st.tacticName
 
-def savePre [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (pre : TSyntax `str) : m Ident := do
+def savePre [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (pre : VersoCodeBlock) : m Ident := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwError "Can't set pre-state - not in a tactic example"
   | some st =>
@@ -291,7 +291,7 @@ def savePre [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [Add
       logErrorAt (← getRef) "Pre-state already specified"
     return st.preName
 
-def saveOutput [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (output : TSyntax `str) (options : TacticOutputConfig) : m Ident := do
+def saveOutput [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (output : VersoCodeBlock) (options : TacticOutputConfig) : m Ident := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwError "Can't set expected output - not in a tactic example"
   | some st =>
@@ -303,7 +303,7 @@ def saveOutput [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [
     return st.outputSeverityName
 
 
-def savePost [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (post : TSyntax `str) : m Ident := do
+def savePost [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (post : VersoCodeBlock) : m Ident := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwError "Can't set post-state - not in a tactic example"
   | some st =>
@@ -362,7 +362,7 @@ def goal : RoleExpander
     let config ← TacticGoalConfig.parse.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $term:str )) := arg
+    let some { content := term, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the example name"
     let altStr ← parserInputString term
 
@@ -388,7 +388,7 @@ def goal : RoleExpander
 
       if config.show then
         -- Just emit a normal Lean node - no need to do anything special with the rendered result
-        pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hls)) #[Inline.code $(quote term.getString)])]
+        pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hls)) #[Inline.code $(quote term.getVersoCode)])]
       else
         pure #[]
 where
@@ -441,7 +441,7 @@ def tacticOutput : CodeBlockExpander
     let outputSeverityName ← saveOutput str opts
 
     if opts.show then
-      return #[← `(Block.other {Verso.Genre.Manual.InlineLean.Block.leanOutput with data := ToJson.toJson (Highlighted.Message.ofSeverityString $outputSeverityName $(quote str.getString), $(quote opts.summarize), ($(quote opts.expandTraces) : List Lean.Name))} #[Block.code $(quote str.getString)])]
+      return #[← `(Block.other {Verso.Genre.Manual.InlineLean.Block.leanOutput with data := ToJson.toJson (Highlighted.Message.ofSeverityString $outputSeverityName $(quote str.getVersoCodeBlock), $(quote opts.summarize), ($(quote opts.expandTraces) : List Lean.Name))} #[Block.code $(quote str.getVersoCodeBlock)])]
     else
       return #[]
 
@@ -462,7 +462,7 @@ def tacticStep : CodeBlockExpander
       throwErrorAt str "Failed to parse tactic step"
     | .ok stx =>
       let hlTac ← saveTactic stx
-      pure #[← ``(Block.other (Verso.Genre.Manual.InlineLean.Block.lean $hlTac) #[Block.code $(quote str.getString)])]
+      pure #[← ``(Block.other (Verso.Genre.Manual.InlineLean.Block.lean $hlTac) #[Block.code $(quote str.getVersoCodeBlock)])]
 
 open Lean.Parser in
 @[role_expander tacticStep]
@@ -471,7 +471,7 @@ def tacticStepInline : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $tacStr:str )) := arg
+    let some { content := tacStr, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the example name"
 
     let altStr ← parserInputString tacStr
@@ -485,7 +485,7 @@ def tacticStepInline : RoleExpander
     | .ok stx =>
       let hlTac ← saveTactic stx
 
-      pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $hlTac) #[Inline.code $(quote tacStr.getString)])]
+      pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $hlTac) #[Inline.code $(quote tacStr.getVersoCode)])]
 
 def Block.proofState : Block where
   name := `Manual.proofState
@@ -660,7 +660,7 @@ def pre : CodeBlockExpander
     -- The quote step here is to prevent the editor from showing document AST internals when the
     -- cursor is on the code block
     if opts.show then
-      pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPre))} #[Block.code $(quote str.getString)])]
+      pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPre))} #[Block.code $(quote str.getVersoCodeBlock)])]
     else
       pure #[]
 
@@ -673,6 +673,6 @@ def post : CodeBlockExpander
     -- The quote step here is to prevent the editor from showing document AST internals when the
     -- cursor is on the code block
     if opts.show then
-      pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPost))} #[Block.code $(quote str.getString)])]
+      pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPost))} #[Block.code $(quote str.getVersoCodeBlock)])]
     else
       pure #[]

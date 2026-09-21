@@ -65,17 +65,17 @@ inline_extension Inline.configFile (filename : String) where
   toTeX := none
 
 open Verso.Doc.Elab
-open Lean.Doc.Syntax
 open Lean
+open Lean.Doc (CodeView)
 
 @[role]
 def configFile : RoleExpanderOf Unit
   | (), inlines => do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $cmdName:str )) := arg
+    let some { content := cmdName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the config file's name"
-    let filename := cmdName.getString
+    let filename := cmdName.getVersoCode
 
     `(show Verso.Doc.Inline Verso.Genre.Manual from
       .other (Manual.Inline.configFile $(quote filename)) #[.code $(quote filename)])

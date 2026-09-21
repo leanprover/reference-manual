@@ -10,7 +10,7 @@ import VersoManual
 -- TODO generalize upstream - this is based on the one in the blog genre.
 namespace Manual
 open Verso
-open Lean.Doc.Syntax
+open Lean.Doc (CodeView)
 
 abbrev LexedText.Highlighted := Array (Option String × String)
 
@@ -137,7 +137,7 @@ def lexedText := ()
 @[code_block]
 def C : CodeBlockExpanderOf Unit
   | (), str => do
-    let codeStr := str.getString
+    let codeStr := str.getVersoCodeBlock
     let toks ← LexedText.highlight hlC codeStr
     ``(Block.other (Block.c $(quote toks)) #[Block.code $(quote codeStr)])
 
@@ -170,8 +170,8 @@ def cInline : RoleExpanderOf Unit
   | (), contents => do
     let #[x] := contents
       | throwError "Expected exactly one parameter"
-    let `(inline|code($str)) := x
+    let some { content := str, .. } := CodeView.of x
       | throwError "Expected exactly one code item"
-    let codeStr := str.getString
+    let codeStr := str.getVersoCode
     let toks ← LexedText.highlight hlC codeStr
     ``(Inline.other (Inline.c $(quote toks)) #[Inline.code $(quote codeStr)])

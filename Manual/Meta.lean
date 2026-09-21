@@ -50,8 +50,8 @@ open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open SubVerso.Highlighting Highlighted
 open Lean Elab
 open Lean.Elab.Tactic.GuardMsgs
+open Lean.Doc (CodeView CodeBlockView)
 
-open scoped Lean.Doc.Syntax
 
 namespace Manual
 
@@ -73,10 +73,15 @@ def commentDirective : DirectiveExpander
 -- These are part commands rather than block expanders so that it can be used in contexts where
 -- block content doesn't fit, like right after an include. However, the blocks are still needed
 -- for contexts where part commands aren't run.
-@[part_command Lean.Doc.Syntax.codeblock, part_command Lean.Doc.Syntax.directive]
+@[part_command Lean.Doc.Parser.Block.codeblock, part_command Lean.Doc.Parser.Block.directive]
 def commentBlock : PartCommand
-  | `(block| ::: $commentId $_* { $_* } )
-  | `(block| ``` $commentId $_* | $_ ``` ) => do
+  | v => do
+    let some commentId :=
+      (match v with
+       | .directive d => some d.name
+       | .codeblock c => c.name?
+       | _ => none)
+      | throwUnsupportedSyntax
     try
       let n ← realizeGlobalConstNoOverloadWithInfo commentId
       if n == ``comment then
@@ -84,7 +89,6 @@ def commentBlock : PartCommand
       else
         throwUnsupportedSyntax
     catch | _ => throwUnsupportedSyntax
-  | _ => throwUnsupportedSyntax
 
 
 
@@ -353,9 +357,9 @@ def ctype : RoleExpander
     ArgParse.done.run args
     let #[x] := contents
       | throwError "Expected exactly one parameter"
-    let `(inline|code($t)) := x
+    let some { content := t, .. } := CodeView.of x
       | throwError "Expected exactly one code item"
-    pure #[← ``(Inline.code $(quote t.getString))]
+    pure #[← ``(Inline.code $(quote t.getVersoCode))]
 
 def Inline.ckw : Inline where
   name := `Manual.ckw
@@ -369,9 +373,9 @@ def ckw : RoleExpander
     ArgParse.done.run args
     let #[x] := contents
       | throwError "Expected exactly one parameter"
-    let `(inline|code($t)) := x
+    let some { content := t, .. } := CodeView.of x
       | throwError "Expected exactly one code item"
-    pure #[← ``(Inline.code $(quote t.getString))]
+    pure #[← ``(Inline.code $(quote t.getVersoCode))]
 
 @[inline_extension ckw]
 def ckw.descr : InlineDescr where
@@ -394,10 +398,10 @@ def ffi : DirectiveExpander
     else
       let firstBlock := blocks[0]
       let moreBlocks := blocks.extract 1 blocks.size
-      let `(block|``` | $contents ```) := firstBlock
+      let some { name? := none, content := contents, .. } := CodeBlockView.of firstBlock
         | throwErrorAt firstBlock "Expected code block"
       let body ← moreBlocks.mapM elabBlock
-      pure #[← `(Block.other {Block.ffi with data := ToJson.toJson ($(quote config.name), $(quote config.kind), $(quote contents.getString))} #[$body,*])]
+      pure #[← `(Block.other {Block.ffi with data := ToJson.toJson ($(quote config.name), $(quote config.kind), $(quote contents.getVersoCodeBlock))} #[$body,*])]
 
 @[block_extension ffi]
 def ffi.descr : BlockDescr where

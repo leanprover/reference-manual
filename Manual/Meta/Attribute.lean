@@ -18,13 +18,13 @@ open Verso.ArgParse
 open Verso.Code (highlightingJs)
 open Verso.Code.Highlighted.WebAssets
 
-open scoped Lean.Doc.Syntax
 
 
 open Lean Elab Parser
 open Lean.Widget (TaggedText)
 open SubVerso.Highlighting
 open Verso.Code
+open Lean.Doc (CodeView)
 
 namespace Manual
 
@@ -64,7 +64,7 @@ def attr : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $a:str )) := arg
+    let some { content := a, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the attribute"
     let altStr ← parserInputString a
 
@@ -72,14 +72,14 @@ def attr : RoleExpander
     | .error e =>
       -- Attributes whose syntax requires arguments (e.g. `export`) don't parse from their bare name.
       -- When the name is a leading token, refer to that syntax and link to its docs.
-      match attrSyntaxKind? (← getEnv) a.getString with
+      match attrSyntaxKind? (← getEnv) a.getVersoCode with
       | some kind =>
         let kindDoc ← findDocString? (← getEnv) kind
         pure #[← `(Verso.Doc.Inline.other { Inline.keywordOf with
           data :=
             ToJson.toJson (α := String × Option Name × Name × Option String)
-              ($(quote a.getString), $(quote (some `attr)), $(quote kind), $(quote kindDoc))
-        } #[Verso.Doc.Inline.code $(quote a.getString)])]
+              ($(quote a.getVersoCode), $(quote (some `attr)), $(quote kind), $(quote kindDoc))
+        } #[Verso.Doc.Inline.code $(quote a.getVersoCode)])]
       | none => throwErrorAt a e
     | .ok stx =>
       let attrName ←
@@ -93,7 +93,7 @@ def attr : RoleExpander
       match getAttributeImpl (← getEnv) attrName with
       | .error e => throwErrorAt a e
       | .ok {descr, name, ref, ..} => do
-        let attrTok := a.getString
+        let attrTok := a.getVersoCode
         let hl : Highlighted := attrToken ref descr attrTok
         try
           -- Attempt to add info to the document source for go-to-def and the like, but this doesn't
@@ -139,7 +139,7 @@ def attrs : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $a:str )) := arg
+    let some { content := a, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the attribute application syntax"
     let altStr ← parserInputString a
 
@@ -183,7 +183,7 @@ def attrs : RoleExpander
         catch _ =>
           pure ()
     hl := .token ⟨.keyword ``Term.attributes none none, "@["⟩ ++ hl ++ .token ⟨.keyword ``Term.attributes none none, "]"⟩
-    pure #[← `(Verso.Doc.Inline.other {Inline.attrs with data := ToJson.toJson $(quote hl)} #[Verso.Doc.Inline.code $(quote a.getString)])]
+    pure #[← `(Verso.Doc.Inline.other {Inline.attrs with data := ToJson.toJson $(quote hl)} #[Verso.Doc.Inline.code $(quote a.getVersoCode)])]
 
 where
   -- TODO: This will eventually generate the right cross-reference, but VersoManual needs to have a

@@ -47,8 +47,8 @@ def jsonHl : Highlighter where
   tokenClass := fun s => some (toString s.getKind)
 
 
-private def parseJson (str : StrLit) : DocElabM (Json × LexedText) := do
-  let s := str.getString
+private def parseJson [Verso.Literal k] (str : TSyntax k) : DocElabM (Json × LexedText) := do
+  let s := Verso.Literal.decode str
   let json ←
     match Json.parse s with
     | .ok json => pure json
@@ -109,7 +109,7 @@ def lakeManifest : CodeBlockExpanderOf Unit
     match Lake.Manifest.decodeEntries json with
     | .ok _ => pure ()
     | .error e => throwError m!"Block is not a valid manifest: {e}"
-    ``(Verso.Doc.Block.other (Block.json $(quote toks)) #[Verso.Doc.Block.code $str])
+    ``(Verso.Doc.Block.other (Block.json $(quote toks)) #[Verso.Doc.Block.code $(quote str.getVersoCodeBlock)])
 
 /--
 Check that contents of the block is a valid package overrides file.
@@ -121,4 +121,4 @@ def lakePackageOverrides : CodeBlockExpanderOf Unit
     match fromJson? json with
     | .ok (_ : Lake.Manifest) => pure ()
     | .error e => throwError m!"Block is not a valid package overrides file: {e}"
-    ``(Verso.Doc.Block.other (Block.json $(quote toks)) #[Verso.Doc.Block.code $str])
+    ``(Verso.Doc.Block.other (Block.json $(quote toks)) #[Verso.Doc.Block.code $(quote str.getVersoCodeBlock)])

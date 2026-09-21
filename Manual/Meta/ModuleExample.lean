@@ -22,6 +22,7 @@ open Verso.Doc.Elab
 open Verso.ArgParse
 open Verso.Log
 open Lean
+open Lean.Doc (CodeBlockView RoleView VersoCode VersoCodeBlock mkVersoCodeBlockFrom)
 
 namespace Manual
 
@@ -93,7 +94,7 @@ def lineStx [Monad m] [MonadFileMap m] (l : Nat) : m Syntax := do
 def leanModule : CodeBlockExpanderOf ModuleConfig
   | { name, moduleName, error, «show» }, str => do
     let line := (← getFileMap).utf8PosToLspPos str.raw.getPos! |>.line
-    let leanCode := line.fold (fun _ _ s => s.push '\n') "" ++ str.getString ++ "\n"
+    let leanCode := line.fold (fun _ _ s => s.push '\n') "" ++ str.getVersoCodeBlock ++ "\n"
     let hl ← IO.FS.withTempDir fun dirname => do
       let u := toString (← IO.monoMsNow)
       let dirname := dirname / u
@@ -187,22 +188,24 @@ instance : FromArgs ModulesConfig m where
   fromArgs := ModulesConfig.mk <$> .flag `server true <*> .many (.named' `moduleRoot false) <*> .flag `error false
 end
 
-open Lean.Doc.Syntax in
-partial def getBlocks (block : Syntax) : StateT (NameMap (ModuleConfig × StrLit × Syntax)) DocElabM Syntax := do
-  if block.getKind == ``Lean.Doc.Syntax.codeblock then
-    if let `(Lean.Doc.Syntax.codeblock|```$x:ident $args* | $s:str ```) := block then
-      try
-        let x' ← Elab.realizeGlobalConstNoOverloadWithInfo x
-        if x' == ``leanModule then
-          let n ← mkFreshUserName `code
-          let blame := mkNullNode <| #[x] ++ args
-          let argVals ← parseArgs args
-          let cfg ← fromArgs.run argVals
-          modify (·.insert n (cfg, s, blame))
-          let x := mkIdentFrom block n
-          return ← `(Lean.Doc.Syntax.codeblock|```identRef $x:ident | $(quote "") ```)
-      catch
-      | _ => pure ()
+partial def getBlocks (block : Syntax) :
+    StateT (NameMap (ModuleConfig × VersoCodeBlock × Syntax)) DocElabM Syntax := do
+  if let some { openFence, name? := some x, args, content := s, closeFence, .. } :=
+      CodeBlockView.of ⟨block⟩ then
+    try
+      let x' ← Elab.realizeGlobalConstNoOverloadWithInfo x
+      if x' == ``leanModule then
+        let n ← mkFreshUserName `code
+        let blame := mkNullNode <| #[x.raw] ++ args.map (·.raw)
+        let argVals ← parseArgs args
+        let cfg ← fromArgs.run argVals
+        modify (·.insert n (cfg, s, blame))
+        let x := mkIdentFrom block n
+        return ← `(Lean.Doc.Parser.Block.codeblock|
+          $openFence:codeBlockFence identRef $x:ident
+          $(mkVersoCodeBlockFrom s ""):versoCodeBlock $closeFence:codeBlockFence)
+    catch
+    | _ => pure ()
 
   match block with
   | .node i k xs => do
@@ -210,23 +213,22 @@ partial def getBlocks (block : Syntax) : StateT (NameMap (ModuleConfig × StrLit
     return Syntax.node i k args
   | _ => return block
 
-open Lean.Doc.Syntax in
-partial def getQuotes (stx : Syntax) : StateT (NameMap StrLit) DocElabM Syntax := do
-  if stx.getKind == ``Lean.Doc.Syntax.role then
-    if let `(Lean.Doc.Syntax.role|role{$x:ident $args*}[$inls*]) := stx then
-      try
-        let x' ← Elab.realizeGlobalConstNoOverloadWithInfo x
-        if x' == ``Verso.Genre.Manual.InlineLean.name then
-          unless args.isEmpty do logErrorAt (mkNullNode args) m!"No arguments expected here"
-          let some code ← oneCodeStr? inls
-            | return ((← `(.empty)) : Syntax)
+partial def getQuotes (stx : Syntax) : StateT (NameMap VersoCode) DocElabM Syntax := do
+  if let some { name := x, args, content := inls, .. } := RoleView.of ⟨stx⟩ then
+    try
+      let x' ← Elab.realizeGlobalConstNoOverloadWithInfo x
+      if x' == ``Verso.Genre.Manual.InlineLean.name then
+        unless args.isEmpty do
+          logErrorAt (mkNullNode (args.map (·.raw))) m!"No arguments expected here"
+        let some code ← oneCodeStr? inls
+          | return ((← `(.empty)) : Syntax)
 
-          let n ← mkFreshUserName `name
-          modify (·.insert n code)
-          let x := mkIdentFrom stx n
-          return ((← `(Lean.Doc.Syntax.role|role{identRef $x:ident}[])) : Syntax)
-      catch
-      | _ => pure ()
+        let n ← mkFreshUserName `name
+        modify (·.insert n code)
+        let x := mkIdentFrom stx n
+        return ((← `(Lean.Doc.Parser.Inline.role|{identRef $x:ident}[])) : Syntax)
+    catch
+    | _ => pure ()
 
   match stx with
   | .node i k xs => do
@@ -367,13 +369,13 @@ def leanModules : DirectiveExpanderOf ModulesConfig
 
       let (blocks, quotes) ← blocks.mapM getQuotes |>.run {}
       for (x, q) in quotes do
-        if let some tok := allHl.matchingName? q.getString then
+        if let some tok := allHl.matchingName? q.getVersoCode then
           addLets := addLets >=> fun stx => do
             let hl : SubVerso.Highlighting.Highlighted := .token tok
             let hl : Term := quote hl
-            let name ← `(Verso.Doc.Inline.other {Verso.Genre.Manual.InlineLean.Inline.name with data := ToJson.toJson $hl} #[Verso.Doc.Inline.code $(quote q.getString)])
+            let name ← `(Verso.Doc.Inline.other {Verso.Genre.Manual.InlineLean.Inline.name with data := ToJson.toJson $hl} #[Verso.Doc.Inline.code $(quote q.getVersoCode)])
             `(let $(mkIdent x) := $name; $stx)
-        else logErrorAt q m!"Not found: {q.getString.quote}"
+        else logErrorAt q m!"Not found: {q.getVersoCode.quote}"
       let body ← blocks.mapM (elabBlock <| ⟨·⟩)
       let body ← `(Verso.Doc.Block.concat #[$body,*])
       addLets body

@@ -20,8 +20,9 @@ import Manual.Meta.Basic
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
-open Lean.Doc.Syntax
 open Lean Elab
+open Lean.Doc (CodeView)
+
 namespace Manual
 
 inductive ElanOptKind where
@@ -84,9 +85,9 @@ def elanOptDef : RoleExpander
     let {kind} ← ElanOptDefOpts.parse.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $name:str )) := arg
+    let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the option or flag"
-    let origName := name.getString
+    let origName := name.getVersoCode
     let name := origName.takeWhile fun c => c == '-' || c.isAlphanum
     let name := name.copy
     let valMeta := origName.drop name.length |>.dropWhile fun (c : Char) => !c.isAlphanum
@@ -143,12 +144,12 @@ def elanOpt : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $name:str )) := arg
+    let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the option or flag"
-    let optName := name.getString.takeWhile fun c => c == '-' || c.isAlphanum
+    let optName := name.getVersoCode.takeWhile fun c => c == '-' || c.isAlphanum
     let optName := optName.copy
 
-    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.elanOpt $(quote optName) $(quote name.getString)) #[Inline.code $(quote name.getString)])]
+    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.elanOpt $(quote optName) $(quote name.getVersoCode)) #[Inline.code $(quote name.getVersoCode)])]
 
 @[inline_extension elanOpt]
 def elanOpt.descr : InlineDescr where

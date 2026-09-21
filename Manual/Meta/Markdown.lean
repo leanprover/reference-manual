@@ -44,15 +44,15 @@ def closeEnclosingSections (headerMapping : Markdown.HeaderMapping) : PartElabM 
   for _ in headerMapping do
     closeEnclosingSection
 
-@[part_command Lean.Doc.Syntax.codeblock]
+@[part_command Lean.Doc.Parser.Block.codeblock]
 def markdown : PartCommand
-  | `(Lean.Doc.Syntax.codeblock| ``` $markdown:ident $args*| $txt ``` ) => do
+  | .codeblock { name? := some markdown, args, content := txt, .. } => do
      let x ← Lean.Elab.realizeGlobalConstNoOverloadWithInfo markdown
      if x != by exact decl_name% then Elab.throwUnsupportedSyntax
      for arg in args do
        let h ← MessageData.hint m!"Remove it" #[""] (ref? := arg)
        logErrorAt arg m!"No arguments expected{h}"
-     let some ast := MD4Lean.parse txt.getString
+     let some ast := MD4Lean.parse txt.getVersoCodeBlock
        | throwError "Failed to parse body of markdown code block"
      let mut currentHeaderLevels : Markdown.HeaderMapping := {}
      for block in ast.blocks do

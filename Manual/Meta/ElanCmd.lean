@@ -9,7 +9,7 @@ import Manual.Meta.LakeCmd -- TODO: generalize the common parts into a library t
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab
 open SubVerso.Highlighting Highlighted
-open scoped Lean.Doc.Syntax
+open Lean.Doc (CodeView)
 
 namespace Manual
 
@@ -204,9 +204,9 @@ def elanMeta : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $mName:str )) := arg
+    let some { content := mName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the metavariable"
-    let mName := mName.getString
+    let mName := mName.getVersoCode
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.elanMeta with data := Json.arr #[$(quote mName), .null]} #[Inline.code $(quote mName)])]
 
@@ -240,9 +240,9 @@ def elanInline : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $cmdName:str )) := arg
+    let some { content := cmdName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the Elan command name"
-    let name := cmdName.getString
+    let name := cmdName.getVersoCode
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.elan with data := $(quote name)} #[Inline.code $(quote name)])]
 
@@ -289,10 +289,10 @@ def elanArgs : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $spec:str )) := arg
+    let some { content := spec, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the Elan command name"
 
-    match Parser.runParserCategory (← getEnv) `lake_cmd_spec spec.getString (← getFileName) with
+    match Parser.runParserCategory (← getEnv) `lake_cmd_spec spec.getVersoCode (← getFileName) with
     | .error e => throwErrorAt spec e
     | .ok stx =>
       match CommandSpec.ofSyntax stx with
