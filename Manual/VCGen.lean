@@ -83,7 +83,7 @@ Logically equivalent assertions are considered to be equal.
 
 The predicates in question can be stateful: they can mention the program's current state.
 Furthermore, postconditions can relate the return value and any exceptions thrown by the program to the final state.
-Each monad that can be used with {tactic}`vcgen` is assigned an assertion type and an exception assertion type by an instance of {name}`WP`.
+Each monad that can be used with {tactic}`vcgen` is assigned an assertion type and an exception postcondition type by an instance of {name}`WP`.
 For a state monad such as {lean}`StateM Nat`, an assertion is a predicate on the state, of type {lean}`Nat → Prop`.
 A postcondition additionally takes the return value as its first argument, and the exception postcondition covers each exception that the monad can throw.
 
@@ -107,7 +107,7 @@ The lattice structure provides the logical vocabulary of assertions:
 
 The difference between entailment and implication is that entailment is a statement in Lean's logic, while implication is internal to the assertion language: for assertions `P` and `Q`, `P ⊑ Q` is a {lean}`Prop` while `P ⇨ Q` is again an assertion.
 
-{module}`Std.WP` comes with {name}`Assertion` instances for {lean}`Prop`, function types and pairs.
+{module}`Std.WP` comes with {name}`Assertion` instances for {lean}`Prop`, {lean}`Unit`, function types, and pairs.
 The lattice operations on {lean}`Prop` coincide with the ordinary logical connectives, with entailment being implication.
 The lattice operations on a function type such as {lean}`Nat → Prop` operate pointwise, so entailment of state predicates is universally-quantified implication.
 The lattice operations on a pair such as {lean}`(Nat → Prop) × (Bool → Prop)` operate componentwise, so entailment of pair predicates is the pair of entailments on the component predicates.
@@ -166,10 +166,11 @@ Programs that can throw exceptions additionally require an {deftech}_exception p
 The exception postcondition type of a given monad is determined by its {name}`WP` instance.
 
 For example, the {name}`WP` instance for {lean}`EStateM String Nat Bool` determines {lean}`Nat → Prop` as the assertion type, hence {lean}`Bool → Nat → Prop` as the postcondition type, and {lean}`String → Nat → Prop` as the exception postcondition type.
-A monad without exceptions uses {name}`Unit`, and each exception layer of e.g., {name}`ExceptT` contributes an additional exception postcondition as `(ε → Pred) × EPred`, where `Pred` is the assertion type and `EPred` the exception assertion type of the wrapped base monad.
+A monad without exceptions uses {name}`Unit`.
+For a base monad with assertion type `Pred` and exception postcondition type `EPred`, an exception layer such as `ExceptT ε` contributes one more exception postcondition, which gives the type `(ε → Pred) × EPred`.
 Since unit and pair types come with {name}`Assertion` instances, such exception postcondition stacks are automatically assertions as well.
 
-The {name}`WP` translation turns monad transformer stacks turn into exception postcondition stacks.
+The {name}`WP` instances of monad transformer stacks produce exception postcondition stacks.
 The notation `EStack⟨e₁, e₂, ...⟩` abbreviates the type of exception postcondition stack `e₁ × (e₂ × (... × Unit))`, and the notation `estack⟨v₁, v₂, ...⟩` builds a value `(v₁, v₂, ..., ())` of such a stack.
 
 :::syntax term (title := "Exception Postcondition Stacks") (namespace := Std.WP)
@@ -210,7 +211,7 @@ A predicate transformer is a function from postconditions into assertions that d
 variable {x y : PredTrans Pred EPred α} {post : α → Pred} {epost : EPred}
 ```
 The partial order on predicate transformers is inherited pointwise from the assertion lattice: {lean}`x ⊑ y` when {lean}`x.apply post epost ⊑ y.apply post epost` for all {lean}`post` and {lean}`epost`.
-A predicate transformer is often {deftech}_monotone_, which means it must preserve entailment: the stronger the postcondition, the stronger the resulting precondition.
+Every predicate transformer that a {name}`WP` instance produces is {deftech}_monotone_: if `post ⊑ post'` and `epost ⊑ epost'`, then `x.apply post epost ⊑ x.apply post' epost'`.
 
 {docstring Lean.Order.PredTrans.monotone}
 :::
@@ -253,7 +254,7 @@ The type class {name}`WPConjunctive` captures this property, which allows for co
 
 {docstring WPConjunctive}
 
-### Monads preserving weakest preconditions
+### Monads Preserving Weakest Preconditions
 
 Most of the built-in specification lemmas for {tactic}`vcgen` rely on the presence of a {name}`WPMonad` instance.
 A {name}`WPMonad` instance carries the {name}`WP` interpretation for every result type and asserts that this interpretation is sound for the monad's implementations of {name Pure.pure}`pure` and {name Bind.bind}`bind`.
@@ -352,7 +353,7 @@ theorem rev_correct {xs : List α} :
 tag := "vcgen-adequacy"
 %%%
 
-Monads that can be invoked from pure code typically provide a invocation operator that takes any required input state as a parameter and returns either a value paired with an output state or some kind of exceptional value.
+Monads that can be invoked from pure code typically provide an invocation operator that takes any required input state as a parameter and returns either a value paired with an output state or some kind of exceptional value.
 Examples include {name}`StateT.run`, {name}`ExceptT.run`, and {name}`Id.run`.
 {deftech}_Adequacy lemmas_ provide a bridge between statements about invocations of monadic programs and those programs' {tech}[weakest precondition] semantics as given by their {name}`WP` instances.
 They show that a property about the invocation is true if its weakest precondition is true.
@@ -458,7 +459,6 @@ The assertion in the precondition is a function because the assertion type of {l
 
 ## Invariant Specifications
 
-These types are used in invariants.
 The {tech}[specification lemmas] for {name}`ForIn.forIn` and {name}`ForIn'.forIn'` take parameters of type {name}`Invariant`, and {tactic}`vcgen` ensures that invariants are not accidentally generated by other automation.
 
 {docstring Invariant}
@@ -491,9 +491,10 @@ The verification conditions for a goal are generated as follows:
    If the spec lemma's precondition or postcondition do not exactly match those of the goal, then new metavariables are created that prove the necessary entailments.
    If these cannot be immediately discharged using simple automation that attempts to use local assumptions and decomposes conjunctions in postconditions, then they remain as verification conditions.
 5. Each remaining goal created by this process is recursively processed for verification conditions if it has the form {lean}`P ⊑ wp e Q E`. If not, it is added to the set of invariants or verification conditions.
-6. The resulting subgoals for invariants and verification conditions are assigned suitable names in the proof state.
-7. An `until` clause stops VC generation at the first program that matches the given pattern.
-   A `with` clause runs the given `grind`-mode step on every remaining verification condition inside the internalized context.
+6. The resulting subgoals receive the names `inv1`, `inv2`, … for invariants and `vc1`, `vc2`, … for verification conditions, in the order of generation.
+
+An `until` clause stops VC generation at the first program that matches the given pattern.
+A `with` clause runs the given `grind`-mode step on every remaining verification condition.
 :::
 
 Verification condition generation can be improved by defining appropriate {tech}[specification lemmas] for a library.
@@ -675,12 +676,13 @@ theorem logUntil_length {n : Nat} : (logUntil n).run.2.size = n := by
 
 # Discharging Verification Conditions
 %%%
-tag := "vcgen-proof-mode"
+tag := "vcgen-discharging"
 %%%
 
 The verification conditions that {tactic}`vcgen` produces are ordinary Lean goals, so any tactic can discharge them.
 The `with` clause runs a single `grind`-mode step, typically `finish`, on every remaining verification condition.
 The step runs inside the goal context that {tactic}`vcgen` internalized into `grind`'s E-graph during generation, so the context is not re-internalized for every verification condition.
+Internalizing the context of a single verification condition takes time linear in the size of that context, so internalizing the context prefix that all verification conditions share only once is cheaper than internalizing each context on its own.
 
 When working with concrete monads, the verification conditions speak directly about result values and states.
 Monad-polymorphic theorems instead lead to goals over an abstract assertion lattice. `grind` discharges such goals when they reduce to entailments between pure assertions, as in the following example. Other goals over an abstract lattice can require a manual proof.
@@ -698,6 +700,7 @@ set_option experimental.vcgen true
 ```
 The function {name}`bump` increments its state by the indicated amount and returns the resulting value.
 The underlying monad {lean}`m` and its assertion types stay abstract.
+Because the assertion type `Pred` is abstract, the specification below embeds its propositions with corner brackets.
 ```lean
 variable {m : Type → Type v} [Monad m]
 variable {Pred EPred : Type}
