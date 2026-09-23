@@ -25,6 +25,7 @@ set_option linter.typography.quotes true
 set_option linter.typography.dashes true
 
 set_option mvcgen.warning false
+set_option linter.deprecated.syntax false
 
 open Manual (comment)
 
@@ -125,6 +126,7 @@ import Std.Tactic.Do
 open Std.Do
 
 set_option mvcgen.warning false
+set_option linter.deprecated.syntax false
 
 ```
 The predicate {name}`ItIsSecret` expresses that a state of type {name}`String` is {lean}`"secret"`:
@@ -441,6 +443,7 @@ import Std.Tactic.Do
 open Std.Do
 
 set_option mvcgen.warning false
+set_option linter.deprecated.syntax false
 
 ```
 
@@ -601,6 +604,7 @@ import Std.Tactic.Do
 open Std.Do
 
 set_option mvcgen.warning false
+set_option linter.deprecated.syntax false
 
 ```
 
@@ -714,6 +718,7 @@ import Std.Tactic.Do
 open Std.Do
 
 set_option mvcgen.warning false
+set_option linter.deprecated.syntax false
 
 ```
 
@@ -751,6 +756,7 @@ import Std.Tactic.Do
 open Std.Do
 
 set_option mvcgen.warning false
+set_option linter.deprecated.syntax false
 
 ```
 
@@ -895,6 +901,7 @@ import Std.Tactic.Do
 open Std.Do
 
 set_option mvcgen.warning false
+set_option linter.deprecated.syntax false
 
 ```
 The function {name}`bump` increments its state by the indicated amount and returns the resulting value.
