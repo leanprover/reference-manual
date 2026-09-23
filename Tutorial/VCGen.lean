@@ -420,15 +420,17 @@ This is good, because specifications may _abstract over_ uninteresting implement
 :::::
 
 
-:::paragraph
+::::paragraph
 Hoare triples are defined in terms of a {tech (remote := "reference")}[weakest precondition] semantics {lean}`wp prog Q epost` that translates programs into assertions.
 A weakest precondition semantics is an interpretation of programs as mappings from postconditions to the weakest precondition that the program would require to ensure the postcondition; in this interpretation, programs are understood as {tech (key := "predicate transformer semantics") (remote := "reference")}_predicate transformers_.
 The Hoare triple syntax is notation for {name}`Std.WP.Triple`:
 
-```lean -show
+:::codeOnly
+```lean
 section
 variable {Prog : Type u} {Value : Type v} {Pred : Type} {EPred : Type} [Assertion Pred] [Assertion EPred]
 ```
+:::
 ```lean
 -- This is the definition of Std.WP.Triple:
 structure Triple (x : Prog) [WP Prog Value Pred EPred]
@@ -436,10 +438,12 @@ structure Triple (x : Prog) [WP Prog Value Pred EPred]
   intro ::
   le_wp : pre ⊑ wp x post epost
 ```
-```lean -show
+:::codeOnly
+```lean
 end
 ```
 :::
+::::
 
 ```lean -show
 variable {σ : Type u}
