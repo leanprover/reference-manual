@@ -38,16 +38,16 @@ tag := "lake"
 
 Lake is the standard Lean build tool.
 It is responsible for:
- * Configuring builds and building Lean code
- * Fetching and building external dependencies
- * Integrating with Reservoir, the Lean package server
- * Running tests, linters, and other development workflows
+ * Configuring {tech}[builds] and building Lean code
+ * Fetching and building external {tech}[dependencies]
+ * Integrating with [Reservoir](https://reservoir.lean-lang.org/){TODO}[xref chapter], the Lean package server
+ * Running tests, linters, and other {tech}[development workflows]
 
 Lake is extensible.
 It provides a rich API that can be used to define incremental build tasks for software artifacts that are not written in Lean, to automate administrative tasks, and to integrate with external workflows.
 For build configurations that do not need these features, Lake provides a declarative configuration language that can be written either in TOML or as a Lean file.
 
-This section describes Lake's {ref "lake-builds"}[builds], {ref "lake-cache"}[cache], {ref "test-lint-drivers"}[workflow drivers], {ref "lake-cli"}[command-line interface], {ref "lake-config"}[configuration files], and {ref "lake-api"}[internal API].
+This section describes Lake's {ref "lake-builds"}[builds], {ref "lake-cache"}[cache], {ref "lake-workflows"}[workflows], {ref "lake-cli"}[command-line interface], {ref "lake-config"}[configuration files], and {ref "lake-api"}[internal API].
 They all share a set of concepts and terminology.
 
 
@@ -59,7 +59,7 @@ tag := "lake-vocab"
 A {deftech}_package_ is the basic unit of Lean code distribution.
 A single package may contain multiple libraries or executable programs.
 A package consist of a directory that contains a {tech}[package configuration] file together with source code.
-Packages may {deftech}_require_ other packages, in which case those packages' code (more specifically, their {tech}[targets]) are made available.
+Packages may {deftech}_require_ other packages as {deftech}_dependencies_, in which case those packages' code (more specifically, their {tech}[targets]) are made available.
 The {deftech}_direct dependencies_ of a package are those that it requires, and the {deftech}_transitive dependencies_ are the direct dependencies of a package together with their transitive dependencies.
 Packages may either be obtained from [Reservoir](https://reservoir.lean-lang.org/){TODO}[xref chapter], the Lean package repository, or from a manually-specified location.
 {deftech}_Git dependencies_ are specified by a Git repository URL along with a revision (branch, tag, or hash) and must be cloned locally prior to build, while local {deftech}_path dependencies_ are specified by a path relative to the package's directory.
@@ -173,13 +173,22 @@ The threshold can be adjusted using the {lakeOpt}`--log-level` option, the {lake
 
 {include 2 Manual.BuildTools.Lake.PackageOverrides}
 
-{include 2 Manual.BuildTools.Lake.Scripts}
-
 {include 0 Manual.BuildTools.Lake.Builds}
 
 {include 0 Manual.BuildTools.Lake.Cache}
 
-{include 0 Manual.BuildTools.Lake.Drivers}
+# Development Workflows
+%%%
+tag := "lake-workflows"
+%%%
+
+Lake provides tools to execute standard {deftech}_development workflows_ for a package through its own CLI.
+For the common cases of testing and linting, Lake provides builtin support through the {lake}`test` and {lake}`lint` commands, which use the {ref "test-lint-drivers"}[test and lint drivers] configured on the package.
+For other workflows, Lake provides {ref "lake-scripts"}[scripts], custom programs with ready access to the {ref "lake-api"}[Lake API], defined in the Lean configuration format and run through the {lake}`scripts` CLI.
+
+{include 2 Manual.BuildTools.Lake.Drivers}
+
+{include 2 Manual.BuildTools.Lake.Scripts}
 
 {include 0 Manual.BuildTools.Lake.CLI}
 
