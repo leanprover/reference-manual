@@ -40,12 +40,12 @@ As with the other strategies for defining recursive functions, compiled code use
 The term {tech}_partial fixpoint_ is specific to Lean.
 Functions declared {keywordOf Lean.Parser.Command.declaration}`partial` do not require termination proofs, so long as the type of their return values is inhabited, but they are completely opaque from the perspective of Lean's logic.
 Partial fixpoints, on the other hand, can be rewritten using their defining equations while writing proofs.
-Logically speaking, partial fixpoints are total functions that don't reduce {tech (key := "definitional equality")}[definitionally] when applied, but for which equational rewrite rule are provided.
+Logically speaking, partial fixpoints are total functions that don't reduce {tech (key := "definitional equality")}[definitionally] when applied, but for which equational rewrite rules are provided.
 They are _partial_ in the sense that the defining equation does not necessarily specify a value for all possible arguments.
 
 
 While partial fixpoints do allow functions to be defined that cannot be expressed using structural or well-founded recursion, the technique is also useful in other cases.
-Even in cases where the defining equation fully describes the function's behavior and a termination proof using {ref "well-founded-recursion"}[well-founded recursion] would be possible, it may simply be more convenient to define the function as a partial fixpoint to avoid a having to write a termination proof.
+Even in cases where the defining equation fully describes the function's behavior and a termination proof using {ref "well-founded-recursion"}[well-founded recursion] would be possible, it may simply be more convenient to define the function as a partial fixpoint to avoid having to write a termination proof.
 
 Defining recursive functions as partial fixpoints only occurs when explicitly requested by annotating the definition with {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint`.
 
@@ -191,7 +191,7 @@ tag := "partial-fixpoint-monadic"
 
 
 Defining a function as a partial fixpoint is more powerful if the function's return type is a monad that is an instance of {name}`Lean.Order.MonoBind`, such as {name}`Option`.
-In this case, recursive call are not restricted to tail-positions, but may also occur inside higher-order monadic functions such as {name}`bind` and {name}`List.mapM`.
+In this case, recursive calls are not restricted to tail-positions, but may also occur inside higher-order monadic functions such as {name}`bind` and {name}`List.mapM`.
 
 The set of higher-order functions for which this works is {ref "partial-fixpoint-theory"}[extensible], so no exhaustive list is given here.
 The aspiration is that a monadic recursive function definition that is built using abstract monadic operations like {name}`bind`, but that does not open the abstraction of the monad (e.g. by matching on the {name}`Option` value), is accepted.
