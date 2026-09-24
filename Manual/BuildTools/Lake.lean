@@ -47,8 +47,8 @@ Lake is extensible.
 It provides a rich API that can be used to define incremental build tasks for software artifacts that are not written in Lean, to automate administrative tasks, and to integrate with external workflows.
 For build configurations that do not need these features, Lake provides a declarative configuration language that can be written either in TOML or as a Lean file.
 
-This section describes Lake's {ref "lake-cli"}[command-line interface], {ref "lake-config"}[configuration files], and {ref "lake-api"}[internal API].
-All three share a set of concepts and terminology.
+This section describes Lake's {ref "lake-builds"}[builds], {ref "lake-cache"}[cache], {ref "test-lint-drivers"}[workflow drivers], {ref "lake-cli"}[command-line interface], {ref "lake-config"}[configuration files], and {ref "lake-api"}[internal API].
+They all share a set of concepts and terminology.
 
 
 # Concepts and Terminology
@@ -173,11 +173,11 @@ The threshold can be adjusted using the {lakeOpt}`--log-level` option, the {lake
 
 {include 2 Manual.BuildTools.Lake.PackageOverrides}
 
+{include 2 Manual.BuildTools.Lake.Scripts}
+
 {include 0 Manual.BuildTools.Lake.Builds}
 
 {include 0 Manual.BuildTools.Lake.Cache}
-
-{include 0 Manual.BuildTools.Lake.Scripts}
 
 {include 0 Manual.BuildTools.Lake.Drivers}
 

@@ -21,6 +21,9 @@ open Verso.Genre.Manual.InlineLean
 set_option guard_msgs.diff true
 
 #doc (Manual) "Builds" =>
+%%%
+tag := "lake-builds"
+%%%
 
 :::paragraph
 Producing a desired {tech}[artifact], such as a {tech}[`.olean` file] or an executable binary, is called a {deftech}_build_.
