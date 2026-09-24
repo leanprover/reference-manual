@@ -553,7 +553,7 @@ Module targets may also be specified by their filename, with an optional facet a
 The available {tech}[facets] depend on whether a package, library, executable, or module is to be built.
 They are listed in {ref "lake-facets"}[the section on facets].
 
-When using the {ref "lake-cache"}[local artifact cache], the {lakeOptDef option}`-o` option saves a {tech}[mappings file] that tracks the inputs and outputs of each step in the build.
+When using the {ref "lake-cache-local"}[local artifact cache], the {lakeOptDef option}`-o` option saves a {tech}[mappings file] that tracks the inputs and outputs of each step in the build.
 The mappings file describes the targets from one package that are included in the build, restricted to the {tech}[root package] by default.
 Targets that were already up to date are included in the mappings file.
 The {lakeOptDef option}`--package` option causes the named package's targets to be written to the mappings file instead of the root package's targets, which makes it possible to upload build outputs for a dependency.
@@ -1563,7 +1563,7 @@ If {lakeMeta}`archive.tgz` is not specified, the package's `buildArchive` settin
 # Local Caches
 
 {lake}`cache get`, {lake}`cache put`, and {lake}`cache add` are used to interact with remote cache servers.
-These commands are *experimental*, and are only useful if the {ref "lake-cache"}[local cache] is enabled.
+These commands are *experimental*, and are only useful if the {ref "lake-cache-local"}[local cache] is enabled.
 
 These commands can be configured to use a {deftech}[cache scope], which is a server-specific identifier for a set of build outputs for a package.
 On Reservoir, scopes are currently identical with GitHub repositories, but may include toolchain and platform information in the future.
