@@ -31,6 +31,7 @@ import Manual.Namespaces
 import Manual.Runtime
 import Manual.SupportedPlatforms
 import Manual.VCGen
+import Manual.MVCGen
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -99,6 +100,8 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 {include 0 Manual.Grind}
 
 {include 0 Manual.VCGen}
+
+{include 0 Manual.MVCGen}
 
 {include 0 Manual.Monads}
 
