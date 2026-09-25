@@ -198,7 +198,7 @@ That tool's {tech}[manifest] thus looks something like this:
 
 ```lakeManifest
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "packagesDir": ".lake/packages",
   "packages": [{
     "url": "https://github.com/leanprover/lean4-cli",
@@ -224,7 +224,7 @@ This can be done with the following {tech}[package overrides] file:
 
 ```lakePackageOverrides
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "packages": [{
     "type": "path",
     "dir": "/etc/lean-packages/Cli",
