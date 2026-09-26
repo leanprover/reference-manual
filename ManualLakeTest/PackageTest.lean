@@ -7,7 +7,7 @@ Author: David Thrane Christiansen
 import Lake.Toml.Decode
 import Lake.Load.Toml
 
-import Manual.Meta.LakeToml.Test
+import ManualLakeTest.Test
 
 /-!
 Shared `Manual.Toml.Test` instances for rendering an elaborated `Lake.Package` (and its constituent
