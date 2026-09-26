@@ -8,6 +8,8 @@ import VersoManual
 
 import Manual.Meta
 
+import Manual.NotationsMacros.SyntaxDef.ParserInvariants
+
 import Lean.Parser.Command
 
 open Manual
@@ -131,6 +133,9 @@ info: Lean.Syntax.node (Lean.SourceInfo.none) `str #[Lean.Syntax.atom (Lean.Sour
 {docstring Lean.fieldIdxKind}
 
 # Internal Kinds
+%%%
+tag := "syntax-kinds-internal"
+%%%
 
 {docstring Lean.groupKind}
 
@@ -860,7 +865,7 @@ Internally, the parser maintains a saved source position.
 Syntax rules may include instructions that interact with these saved positions, causing parsing to fail when a condition is not met.
 Indentation-sensitive constructs, such as {keywordOf Lean.Parser.Term.do}`do`, save a source position, parse their constituent parts while taking this saved position into account, and then restore the original position.
 
-In particular, Indentation-sensitvity is specified by combining {name Lean.Parser.withPosition}`withPosition` or {name Lean.Parser.withPositionAfterLinebreak}`withPositionAfterLinebreak`, which save the source position at the start of parsing some other syntax, with {name Lean.Parser.checkColGt}`colGt`, {name Lean.Parser.checkColGe}`colGe`, and {name Lean.Parser.checkColEq}`colEq`, which compare the current column with the column from the most recently-saved position.
+In particular, indentation sensitivity is specified by combining {name Lean.Parser.withPosition}`withPosition` or {name Lean.Parser.withPositionAfterLinebreak}`withPositionAfterLinebreak`, which save the source position at the start of parsing some other syntax, with {name Lean.Parser.checkColGt}`colGt`, {name Lean.Parser.checkColGe}`colGe`, and {name Lean.Parser.checkColEq}`colEq`, which compare the current column with the column from the most recently-saved position.
 {name Lean.Parser.checkLineEq}`lineEq` can also be used to ensure that two positions are on the same line in the source file.
 
 :::parserAlias withPosition
@@ -945,3 +950,5 @@ The following examples are not syntactically valid because the columns of the bu
 ```
 :::
 ::::
+
+{include 0 Manual.NotationsMacros.SyntaxDef.ParserInvariants}
