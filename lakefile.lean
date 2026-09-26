@@ -58,6 +58,11 @@ lean_lib IndexMapGrind where
 @[default_target]
 lean_lib Manual where
   weakLeanArgs := lakePluginArgs%
+  -- These executables run during elaboration
+  needs := #[`@/subversoExtractMod, `@/«extract-lakefile»]
+
+/-- Rendering of elaborated Lake configurations, shared by `Manual` and `extract-lakefile`. -/
+lean_lib ManualLakeTest where
 
 /--
 Elaborates Lean-format `lakefile.lean` examples for the manual, emitting both the elaborated
