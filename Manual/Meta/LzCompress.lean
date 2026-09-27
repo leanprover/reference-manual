@@ -3,11 +3,14 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jason Reed
 -/
-import Std.Data.HashMap
+module
+import Std.Data.HashMap.Basic
 
 def keyStrBase64 := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
 
 def getCharFromInt (n : Nat) : Char := String.Pos.Raw.get keyStrBase64 ⟨n⟩
+
+public section
 
 open Std
 

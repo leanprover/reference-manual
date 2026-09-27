@@ -4,46 +4,69 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
+module -- shake: keep-all
+public import Lean.Elab.Command
+public import Lean.Elab.InfoTree
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
+public import Verso
+public import Verso.Doc.ArgParse
+public import Verso.Doc.Elab.Monad
+public import VersoManual
+public import Verso.Code
 
-import SubVerso.Highlighting
-import SubVerso.Examples
+public import SubVerso.Highlighting
+public import SubVerso.Examples
 
-import Manual.Meta.Attribute
-import Manual.Meta.Basic
-import Manual.Meta.CheckMessages
-import Manual.Meta.CustomStyle
-import Manual.Meta.Env
-import Manual.Meta.Example
-import Manual.Meta.Figure
-import Manual.Meta.GrindTactic
-import Manual.Meta.GrindTacticExample
-import Manual.Meta.LakeCheck
-import Manual.Meta.LakeCmd
-import Manual.Meta.LakeLean
-import Manual.Meta.LakeManifest
-import Manual.Meta.LakeSession
-import Manual.Meta.LakeOpt
-import Manual.Meta.LakeToml
-import Manual.Meta.Lean
-import Manual.Meta.ListBullet
-import Manual.Meta.ModuleExample
-import Manual.Meta.ParserAlias
-import Manual.Meta.Syntax
-import Manual.Meta.Tactics
-import Manual.Meta.SpliceContents
-import Manual.Meta.Markdown
-import Manual.Meta.Namespace
-import Manual.Meta.SectionNotes
-import Manual.Meta.ConfigFile
-import Manual.Meta.Diagram
+public import Manual.Meta.Attribute
+public import Manual.Meta.Basic
+public import Manual.Meta.CheckMessages
+public import Manual.Meta.CommandSpec
+public import Manual.Meta.ConfigFile
+public import Manual.Meta.CustomStyle
+public import Manual.Meta.Diagram
+public import Manual.Meta.ElanCheck
+public import Manual.Meta.ElanCmd
+public import Manual.Meta.ElanOpt
+public import Manual.Meta.Env
+public import Manual.Meta.ErrorExplanation
+public import Manual.Meta.ErrorExplanation.Domain
+public import Manual.Meta.ErrorExplanation.Example
+public import Manual.Meta.ErrorExplanation.Header
+public import Manual.Meta.Example
+public import Manual.Meta.ExpectString
+public import Manual.Meta.Figure
+public import Manual.Meta.GrindTactic
+public import Manual.Meta.GrindTacticExample
+public import Manual.Meta.Instances
+public import Manual.Meta.LakeCheck
+public import Manual.Meta.LakeCmd
+public import Manual.Meta.LakeLean
+public import Manual.Meta.LakeManifest
+public import Manual.Meta.LakeOpt
+public import Manual.Meta.LakeSession
+public import Manual.Meta.LakeToml
+public import Manual.Meta.LakeToml.Check
+public import Manual.Meta.LakeToml.Highlight
+public import Manual.Meta.LakeToml.Table
+public import Manual.Meta.LakeToml.Toml
+public import Manual.Meta.Lean
+public import Manual.Meta.LexedText
+public import Manual.Meta.LexedText.Basic
+public import Manual.Meta.ListBullet
+public import Manual.Meta.LzCompress
+public import Manual.Meta.Markdown
+public import Manual.Meta.ModuleExample
+public import Manual.Meta.Monotonicity
+public import Manual.Meta.Namespace
+public import Manual.Meta.PPrint
+public import Manual.Meta.ParserAlias
+public import Manual.Meta.SectionNotes
+public import Manual.Meta.SpliceContents
+public import Manual.Meta.Syntax
+public import Manual.Meta.Syntax.Grammar
+public import Manual.Meta.Tactics
+
+public section
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
@@ -54,6 +77,8 @@ open Lean.Elab.Tactic.GuardMsgs
 open scoped Lean.Doc.Syntax
 
 namespace Manual
+
+meta section
 
 /--
 Comments out some content.
@@ -86,6 +111,8 @@ def commentBlock : PartCommand
     catch | _ => throwUnsupportedSyntax
   | _ => throwUnsupportedSyntax
 
+end
+
 
 
 def Block.TODO : Block where
@@ -95,7 +122,7 @@ def Inline.TODO : Inline where
   name := `Manual.TODO
 
 @[directive_expander TODO]
-def TODO : DirectiveExpander
+meta def TODO : DirectiveExpander
   | args, blocks => do
     ArgParse.done.run args
     PointOfInterest.save (← getRef) "TODO"
@@ -105,7 +132,7 @@ def TODO : DirectiveExpander
     pure #[← `(Block.other Block.TODO #[$content,*])]
 
 @[role_expander TODO]
-def TODOinline : RoleExpander
+meta def TODOinline : RoleExpander
   | args, inlines => do
     ArgParse.done.run args
     PointOfInterest.save (← getRef) "TODO"
@@ -170,7 +197,7 @@ def Block.warn : Block where
   name := `Manual.warn
 
 @[directive_expander warn]
-def warn : DirectiveExpander
+meta def warn : DirectiveExpander
   | args, blocks => do
     ArgParse.done.run args
     let content ← blocks.mapM elabBlock
@@ -203,7 +230,7 @@ def Inline.noVale : Inline where
 structure NoValeConfig where
   why : String
 
-def NoValeConfig.parse [Monad m] [MonadError m] : ArgParse m NoValeConfig :=
+meta def NoValeConfig.parse [Monad m] [MonadError m] : ArgParse m NoValeConfig :=
   NoValeConfig.mk <$> .positional `why .string
 
 /--
@@ -212,7 +239,7 @@ Skip the grammar and style check of this text.
 The string parameter should contain an explanation of why the text should be skipped.
 -/
 @[role_expander noVale]
-def noVale : RoleExpander
+meta def noVale : RoleExpander
   | args, contents => do
     let {why := _} ← NoValeConfig.parse.run args
     return #[← ``(Inline.other Inline.noVale #[$(← contents.mapM elabInline),*])]
@@ -227,14 +254,14 @@ def noVale.descr : InlineDescr where
 structure PlannedConfig where
   issue : Option Nat
 
-def PlannedConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m PlannedConfig :=
+meta def PlannedConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m PlannedConfig :=
   PlannedConfig.mk <$> ((some <$> .positional `issue .nat) <|> pure none)
 
 def Block.planned : Block where
   name := `Manual.planned
 
 @[directive_expander planned]
-def planned : DirectiveExpander
+meta def planned : DirectiveExpander
   | args, blocks => do
     let {issue} ← PlannedConfig.parse.run args
     PointOfInterest.save (← getRef) s!"Planned content ({issue})" (kind := .event)
@@ -302,7 +329,7 @@ div.planned .label {
       }}
 
 @[role_expander versionString]
-def versionString : RoleExpander
+meta def versionString : RoleExpander
   | #[], #[] => do pure #[← ``(Verso.Doc.Inline.code $(quote Lean.versionString))]
   | _, _ => throwError "Unexpected arguments"
 
@@ -313,7 +340,7 @@ deriving DecidableEq, Repr, ToJson, FromJson
 
 open Syntax in
 open FFIDocType in
-instance : Quote FFIDocType where
+meta instance : Quote FFIDocType where
   quote
     | .function => mkCApp ``function #[]
     | .type => mkCApp ``type #[]
@@ -327,7 +354,7 @@ structure FFIConfig where
   kind : FFIDocType := .function
 
 open FFIDocType in
-def FFIConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m FFIConfig :=
+meta def FFIConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m FFIConfig :=
   FFIConfig.mk <$> .positional `name .string <*> ((·.getD .function) <$> .named `kind kind true)
 where
   kind : ValDesc m FFIDocType := {
@@ -348,7 +375,7 @@ Indicates that an element is a C type.
 Currently does nothing other than indicate this fact for future use.
 -/
 @[role_expander ctype]
-def ctype : RoleExpander
+meta def ctype : RoleExpander
   | args, contents => do
     ArgParse.done.run args
     let #[x] := contents
@@ -364,7 +391,7 @@ def Inline.ckw : Inline where
 Indicates that an element is a C keyword.
 -/
 @[role_expander ckw]
-def ckw : RoleExpander
+meta def ckw : RoleExpander
   | args, contents => do
     ArgParse.done.run args
     let #[x] := contents
@@ -386,7 +413,7 @@ def Block.ffi : Block where
   name := `Manual.ffi
 
 @[directive_expander ffi]
-def ffi : DirectiveExpander
+meta def ffi : DirectiveExpander
   | args, blocks => do
     let config : FFIConfig ← FFIConfig.parse.run args
     if h : blocks.size = 0 then
@@ -437,7 +464,7 @@ inline_extension Inline.multiCode where
   toTeX := none
 
 @[role]
-def multiCode : RoleExpanderOf Unit
+meta def multiCode : RoleExpanderOf Unit
   | (), contents => do ``(Inline.other Inline.multiCode #[$(← contents.mapM elabInline),*])
 
 
@@ -448,7 +475,7 @@ section
 
 variable [Monad m] [MonadError m] [MonadLiftT CoreM m]
 
-instance : FromArgs LeanSectionConfig m where
+meta instance : FromArgs LeanSectionConfig m where
   fromArgs :=
     LeanSectionConfig.mk <$> .named `variables .string true
 end

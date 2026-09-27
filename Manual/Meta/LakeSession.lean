@@ -4,18 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
+module
+public import Manual.Meta.ModuleExample
+import VersoManual.InlineLean -- shake: keep
+public meta import Manual.Meta.ExpectString
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-
-import SubVerso.Module
-
-import Manual.Meta.Basic
-import Manual.Meta.ExpectString
-import Manual.Meta.ModuleExample
+public section
 
 /-!
 The `lakeSession` directive runs a sequence of commands against a project that is assembled in a
@@ -53,11 +47,11 @@ structure LakeSessionConfig where
   /-- Whether to render the session, or only run it for its side effects (validation). -/
   «show» : Bool
 
-def LakeSessionConfig.parse [Monad m] [MonadError m] : ArgParse m LakeSessionConfig :=
+meta def LakeSessionConfig.parse [Monad m] [MonadError m] : ArgParse m LakeSessionConfig :=
   LakeSessionConfig.mk <$> .flag `show true
 
 /-- A source file to be written into the project. -/
-structure SourceFileConfig where
+private structure SourceFileConfig where
   file : String
 
 /-- A single command to run, together with its expectations. -/
@@ -78,18 +72,18 @@ variable [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadErr
 Parse the arguments of a `lean` block inside a `lakeSession`: an optional `file` (marking it as a
 source file) and the `+lakefile` flag (marking it as the Lean-format configuration).
 -/
-def leanBlockArgs : ArgParse m (Option String × Bool) :=
+private meta def leanBlockArgs : ArgParse m (Option String × Bool) :=
   (·, ·) <$> .named `file .string true <*> .flag `lakefile false
 
-def LakeCmdConfig.parse : ArgParse m LakeCmdConfig :=
+meta def LakeCmdConfig.parse : ArgParse m LakeCmdConfig :=
   LakeCmdConfig.mk <$> .positional `command .string <*>
     .flag `error false <*> .flag `exact false <*> .flag `ignoreOutput false
 end
 
-private def isBlank (s : String) : Bool := s.all Char.isWhitespace
+private meta def isBlank (s : String) : Bool := s.all Char.isWhitespace
 
 /-- The classification of a block inside a `lakeSession` directive. -/
-inductive SessionItem where
+private inductive SessionItem where
   /-- A `toml` block, becoming `lakefile.toml`. The syntax is kept for rendering. -/
   | tomlConfig (contents : StrLit) (block : Syntax)
   /-- A `lean +lakefile` block, becoming `lakefile.lean`. The syntax is kept for rendering. -/
@@ -102,7 +96,7 @@ inductive SessionItem where
   | passthrough (block : Syntax)
 
 /-- Classify a block within a `lakeSession`. -/
-def classifySessionBlock (block : Syntax) : DocElabM SessionItem := do
+private meta def classifySessionBlock (block : Syntax) : DocElabM SessionItem := do
   match block with
   | `(block| ``` toml $_* | $contents ```) => return .tomlConfig contents block
   | `(block| ``` lakeCmd $args* | $output ```) =>
@@ -118,7 +112,7 @@ def classifySessionBlock (block : Syntax) : DocElabM SessionItem := do
   | _ => return .passthrough block
 
 /-- Drop a trailing build-timing annotation such as ` (1.3s)` or ` (320ms)` from a line. -/
-private def stripTiming (line : String) : String :=
+private meta def stripTiming (line : String) : String :=
   match line.splitOn " (" with
   | [] | [_] => line
   | parts =>
@@ -130,6 +124,8 @@ where
     seg.endsWith "s)" &&
     (let inner := (seg.dropEnd 2).copy
      !inner.isEmpty && inner.all (fun c => c.isDigit || c == '.' || c == 'm'))
+
+meta section
 
 /-- Normalize a line of command output: elide the project directory and build timings. -/
 private def normalizeLine (projectDir : String) (line : String) : String :=
@@ -258,7 +254,12 @@ def lakeSession : DirectiveExpander
       let mut highlights : Std.HashMap String Highlighted := {}
       if let some subverso := subverso? then
         -- Source files must be built before their highlighting can be extracted.
-        let out ← IO.Process.output {cmd := "lake", args := #["build"], cwd := some dir}
+        let out ← IO.Process.output {
+          cmd := "lake", args := #["build"], cwd := some dir
+          -- `subverso-extract-mod` reads `.olean` files from the build directory, which the local artifact
+          -- cache leaves empty unless artifacts are restored
+          env := #[("LAKE_RESTORE_ARTIFACTS", "true")]
+        }
         logBuild "lake build (for highlighting)" out
         for item in items do
           if let .source cfg _ := item then
@@ -278,6 +279,7 @@ def lakeSession : DirectiveExpander
       return rendered
     else
       return #[← ``(Verso.Doc.Block.empty)]
+
 where
   /-- Run a single command in `dir` and check its exit code and output. -/
   runCommand (dir : System.FilePath) (cfg : LakeCmdConfig) (output : StrLit) (blame : Syntax) :
@@ -287,6 +289,9 @@ where
       | throwErrorAt blame "Empty command"
     let out ← IO.Process.output {
       cmd, args := parts.tail.toArray, cwd := some dir
+      -- Later commands and highlighting extraction read build products from the build directory,
+      -- which the local artifact cache leaves empty unless artifacts are restored
+      env := #[("LAKE_RESTORE_ARTIFACTS", "true")]
     }
     logBuild cfg.command out (some blame)
 

@@ -4,16 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 module
-public import Lean.Data.Position
-public import Lean.Syntax
-public import Lean.Environment
-public import Lean.Parser.Types
 public import Lean.Elab.Command
-import Lean.Parser
 
-import Verso.Parser
-import Verso.Doc.ArgParse
-import SubVerso.Highlighting
 
 open Lean
 

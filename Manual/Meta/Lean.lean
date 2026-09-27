@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import VersoManual
-import Lean.Elab.InfoTree.Types
-import SubVerso.Highlighting.Code
+module
+public meta import VersoManual.InlineLean
+public import VersoManual.InlineLean
+import VersoManual.Docstring
+
+public section
 
 open scoped Lean.Doc.Syntax
 
@@ -20,7 +23,7 @@ open SubVerso.Highlighting
 Elaborates the provided Lean term with a type annotation in the context of the current Verso module.
 -/
 @[role_expander typed]
-def typed : RoleExpander
+meta def typed : RoleExpander
   -- Async elab is turned off to make sure that info trees and messages are available when highlighting
   | args, inlines => withoutAsync do
     let config ← LeanInlineConfig.parse.run args

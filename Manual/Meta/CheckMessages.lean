@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
+module
+public meta import SubVerso.Examples.Messages
+public meta import Lean.Elab.GuardMsgs
 import Lean.Elab.GuardMsgs
-import SubVerso.Examples.Messages
+
+public section
 open Lean Elab Command
 
 open SubVerso.Examples.Messages (messagesMatch)
@@ -15,6 +19,8 @@ A version of `#guard_msgs` that compares messages modulo metavariable and line n
 -/
 syntax (name := checkMsgsCmd)
   (docComment)? "#check_msgs" (ppSpace guardMsgsSpec)? " in" ppLine command : command
+
+meta section
 
 /-- Gives a string representation of a message without source position information.
 Ensures the message ends with a '\n'. -/
@@ -77,4 +83,8 @@ def elabCheckMsgs : CommandElab
   | _ => throwUnsupportedSyntax
 
 
-attribute [command_code_action checkMsgsCmd] Tactic.GuardMsgs.guardMsgsCodeAction
+@[command_code_action checkMsgsCmd]
+def checkMsgsCodeAction : CodeAction.CommandCodeAction :=
+  Tactic.GuardMsgs.guardMsgsCodeAction
+
+end
