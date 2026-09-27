@@ -36,7 +36,7 @@ and 0 other changes.
 ```markdown
 
 - [#15289](https://github.com/leanprover/lean4/pull/15289)
-  makes maximal sharing, including the kernel's sharing of every theorem it checks, panic when a shared subterm gains more than `INT_MAX` references, instead of eventually freeing the subterm while it is still referenced. On inputs north of 100GB, the possibility of triggering undefined behavior this way, which could be extended into a proof of False, could be excluded. Other kernels such as nanoda or con-leche not based on the Lean runtime or not making use of this specific function were not affected.
+  makes maximal sharing, including the kernel's sharing of every theorem it checks, panic when a shared subterm gains more than `INT_MAX` references, instead of eventually freeing the subterm while it is still referenced. On inputs north of 100GB, the possibility of triggering undefined behavior in the official kernel this way, which could be extended into a proof of False, could not be excluded. Other kernels such as nanoda or con-leche not based on the Lean runtime or not making use of this specific function were not affected.
 
 - [#15288](https://github.com/leanprover/lean4/pull/15288)
   fixes potential undefined behavior when an object with a huge number of incoming references is shared between threads. The official kernel does not use multithreading in its default configuration (as used by comparator and `lake check/compare`), but other Lean-based checkers such as con-leche might be affected.

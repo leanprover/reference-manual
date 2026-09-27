@@ -536,7 +536,7 @@ path = "../example"
 #[{name := `example,
     scope := "",
     version := Lake.InputVer.none,
-    src? := some (Lake.DependencySrc.path (FilePath.mk "../example")),
+    src? := some (Lake.DependencySrc.path (FilePath.mk "../example") false),
     opts := {}}]
 ```
 ::::
