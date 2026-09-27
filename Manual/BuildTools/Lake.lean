@@ -59,7 +59,8 @@ tag := "lake-vocab"
 A {deftech}_package_ is the basic unit of Lean code distribution.
 A single package may contain multiple libraries or executable programs.
 A package consist of a directory that contains a {tech}[package configuration] file together with source code.
-Packages may {deftech}_require_ other packages as {deftech}_dependencies_, in which case those packages' code (more specifically, their {tech}[targets]) are made available.
+Packages may {deftech}_require_ other packages, in which case those packages' code (more specifically, their {tech}[targets]) are made available.
+Required packages are referred to as {deftech}_dependencies_.
 The {deftech}_direct dependencies_ of a package are those that it requires, and the {deftech}_transitive dependencies_ are the direct dependencies of a package together with their transitive dependencies.
 Packages may either be obtained from [Reservoir](https://reservoir.lean-lang.org/){TODO}[xref chapter], the Lean package repository, or from a manually-specified location.
 {deftech}_Git dependencies_ are specified by a Git repository URL along with a revision (branch, tag, or hash) and must be cloned locally prior to build, while local {deftech}_path dependencies_ are specified by a path relative to the package's directory.
@@ -182,9 +183,11 @@ The threshold can be adjusted using the {lakeOpt}`--log-level` option, the {lake
 tag := "lake-workflows"
 %%%
 
-Lake provides tools to execute standard {deftech}_development workflows_ for a package through its own CLI.
-For the common cases of testing and linting, Lake provides builtin support through the {lake}`test` and {lake}`lint` commands, which use the {ref "test-lint-drivers"}[test and lint drivers] configured on the package.
-For other workflows, Lake provides {ref "lake-scripts"}[scripts], custom programs with ready access to the {ref "lake-api"}[Lake API], defined in the Lean configuration format and run through the {lake}`scripts` CLI.
+The process of developing formalized mathematics or software involves more than just writing code and building it.
+Testing, {tech (key:="lint driver")}[linting], and other fixed procedures that are carried out regularly are referred to as {deftech}_development workflows_.
+Lake provides direct support for testing and linting, through the {lake}`test` and {lake}`lint` commands, which use the {ref "test-lint-drivers"}[test and lint drivers] configured on the package.
+For other workflows, Lake provides {ref "lake-scripts"}[scripts], which are programs that can use the {ref "lake-api"}[Lake API] to perform arbitrary tasks.
+Scripts are defined in the {ref "lake-config-lean"}[Lean configuration format] and run through the {lake}`script run` CLI.
 
 {include 2 Manual.BuildTools.Lake.Drivers}
 

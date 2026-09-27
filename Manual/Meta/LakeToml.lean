@@ -19,8 +19,8 @@ import SubVerso.Examples
 import Manual.Meta.Basic
 import Manual.Meta.ExpectString
 import Manual.Meta.LakeToml.Toml
-import Manual.Meta.LakeToml.Test
-import Manual.Meta.LakeToml.PackageTest
+import ManualLakeTest.Test
+import ManualLakeTest.PackageTest
 
 import Lake.Toml.Decode
 import Lake.Load.Toml

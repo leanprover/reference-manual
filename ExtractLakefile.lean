@@ -11,7 +11,7 @@ import SubVerso.Compat
 import SubVerso.Highlighting.Code
 import SubVerso.Module
 
-import Manual.Meta.LakeToml.PackageTest
+import ManualLakeTest.PackageTest
 
 /-!
 # Lean-format Lakefile Extractor

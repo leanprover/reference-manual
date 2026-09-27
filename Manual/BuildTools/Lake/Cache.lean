@@ -39,13 +39,13 @@ tag := "lake-cache-local"
 
 *This is an experimental feature that is still undergoing development.*
 
-Lake supports a {deftech (key := "local cache")}_local artifact cache_ that stores individual build products, tracking the complete set of inputs that gave rise to them.
+Lake supports a {deftech (key := "local cache")}_local artifact cache_ that stores individual build products, tracking the complete set of inputs that contributed to their final value.
 Each {tech}[toolchain] has its own cache because intermediate build products are not compatible between toolchain versions.
 However, a toolchain's cache is shared between all local {tech}[workspaces] that use it, so common dependencies don't need to be rebuilt.
 If two separate workspaces with the same toolchain depend on the same package, then they can share each others' build products.
 
 Because it is an experimental feature, the local cache is disabled by default.
-It is only enabled when the {envVar}`LAKE_ARTIFACT_CACHE` environment variable is set to `true` or when the {TODO}[ref] `enableArtifactCache` field is set to `true` in the {ref "lake-config"}[configuration file].
+It is only enabled when the {envVar}`LAKE_ARTIFACT_CACHE` environment variable is set to `true` or when the {tomlField Lake.PackageConfig}`enableArtifactCache` field is set to `true` in the {ref "lake-config"}[configuration file].
 
 
 # Remote Artifact Caches
