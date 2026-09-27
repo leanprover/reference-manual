@@ -4,18 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Term
-import Lean.Elab.Tactic
+module
+public import Verso.Doc.ArgParse
 
-import Verso.Code.Highlighted
-import Verso.Doc.ArgParse
-import Verso.Doc.Suggestion
-import SubVerso.Highlighting.Code
-import SubVerso.Examples.Messages
-import VersoManual
+public import Lean.Elab.GuardMsgs
+public meta import Manual.Meta.Basic
+public meta import SubVerso.Examples.Env
+public meta import SubVerso.Examples.Messages.NormalizeMetavars
+public meta import Verso.Doc.Elab.Block
+public meta import Verso.Doc.Suggestion.Basic
+public import VersoManual.Basic
+public meta import VersoManual.InlineLean.Scopes
+import VersoManual.HighlightedCode
+import VersoManual.InlineLean -- shake: keep
 
-import Manual.Meta.Basic
-import Manual.Meta.PPrint
+public section
 
 namespace Manual
 
@@ -30,7 +33,7 @@ This prevents the outer unused variable linter from re-processing variables in p
 and generating spurious warnings. Mirrors `disableUnusedVarLinterInInfoTree` in Verso's
 `InlineLean.lean`.
 -/
-private partial def disableUnusedVarLinterInInfoTree : InfoTree → InfoTree
+private meta partial def disableUnusedVarLinterInInfoTree : InfoTree → InfoTree
   | .context (.commandCtx ci) child =>
     .context (.commandCtx { ci with options := Lean.Linter.linter.unusedVariables.set ci.options false })
       (disableUnusedVarLinterInInfoTree child)
@@ -52,10 +55,10 @@ structure TacticOutputConfig where
   whitespace : GuardMsgs.WhitespaceMode
   expandTraces : List Name
 
-private partial def many (p : ArgParse m α) : ArgParse m (List α) :=
+private meta partial def many (p : ArgParse m α) : ArgParse m (List α) :=
   (· :: ·) <$> p <*> many p <|> pure []
 
-def TacticOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m TacticOutputConfig :=
+meta def TacticOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m TacticOutputConfig :=
   TacticOutputConfig.mk <$>
     .flag `show true <*>
     .named `severity .messageSeverity true <*>
@@ -64,7 +67,7 @@ def TacticOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [
     (many (.named `expandTrace .name false))
 
 
-def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (pre : TSyntax `str) (post : TSyntax `str) : TermElabM Unit := do
+private def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (pre : TSyntax `str) (post : TSyntax `str) : TermElabM Unit := do
   let statement ← elabType goal
   let mv ← Meta.mkFreshExprMVar (some statement)
   let Expr.mvar mvarId := mv
@@ -97,7 +100,7 @@ def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (p
     logErrorAt post m!"Mismatch. Expected {indentD goodPost}\n but got {indentD post.getString}"
 
 open Lean.Elab.Tactic.GuardMsgs in
-def checkTacticExample'
+private meta def checkTacticExample'
     (goal : Expr) (proofPrefix : Syntax) (tactic : Syntax)
     (pre : TSyntax `str) (post : TSyntax `str)
     (output : Option (TSyntax `str × TacticOutputConfig)) :
@@ -240,6 +243,8 @@ structure TacticExampleContext where
   output : Option (TSyntax `str × TacticOutputConfig) := none
   outputSeverityName : Ident
 
+meta section
+
 initialize tacticExampleCtx : Lean.EnvExtension (Option TacticExampleContext) ←
   Lean.registerEnvExtension (pure none)
 
@@ -254,7 +259,7 @@ def startExample [Monad m] [MonadEnv m] [MonadError m] [MonadQuotation m] [Monad
     modifyEnv fun env =>
       tacticExampleCtx.setState env (some {preName, tacticName, postName, outputSeverityName})
 
-def saveGoal [Monad m] [MonadEnv m] [MonadError m] (goal : Expr) : m Unit := do
+private def saveGoal [Monad m] [MonadEnv m] [MonadError m] (goal : Expr) : m Unit := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwError "Can't set goal - not in a tactic example"
   | some st =>
@@ -262,7 +267,7 @@ def saveGoal [Monad m] [MonadEnv m] [MonadError m] (goal : Expr) : m Unit := do
     | none => modifyEnv fun env => tacticExampleCtx.setState env (some {st with goal := goal})
     | some _ => throwError "Goal already specified"
 
-def saveSetup [Monad m] [MonadEnv m] [MonadError m] (setup : Syntax) : m Unit := do
+private def saveSetup [Monad m] [MonadEnv m] [MonadError m] (setup : Syntax) : m Unit := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwError "Can't set setup - not in a tactic example"
   | some st =>
@@ -270,7 +275,7 @@ def saveSetup [Monad m] [MonadEnv m] [MonadError m] (setup : Syntax) : m Unit :=
     | none => modifyEnv fun env => tacticExampleCtx.setState env (some {st with setup := setup})
     | some _ => throwError "Setup already specified"
 
-def saveTactic [Monad m] [MonadEnv m] [MonadError m] (tactic : Syntax) : m Ident := do
+private def saveTactic [Monad m] [MonadEnv m] [MonadError m] (tactic : Syntax) : m Ident := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwError "Can't set tactic step - not in a tactic example"
   | some st =>
@@ -280,7 +285,7 @@ def saveTactic [Monad m] [MonadEnv m] [MonadError m] (tactic : Syntax) : m Ident
       modifyEnv fun env => tacticExampleCtx.setState env (some {st with tactic := tactic})
       return st.tacticName
 
-def savePre [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (pre : TSyntax `str) : m Ident := do
+private def savePre [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (pre : TSyntax `str) : m Ident := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwError "Can't set pre-state - not in a tactic example"
   | some st =>
@@ -291,7 +296,7 @@ def savePre [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [Add
       logErrorAt (← getRef) "Pre-state already specified"
     return st.preName
 
-def saveOutput [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (output : TSyntax `str) (options : TacticOutputConfig) : m Ident := do
+private def saveOutput [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (output : TSyntax `str) (options : TacticOutputConfig) : m Ident := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwError "Can't set expected output - not in a tactic example"
   | some st =>
@@ -349,15 +354,17 @@ def tacticExample : DirectiveExpander
     let body' ← `(Verso.Doc.Block.concat #[$body,*]) >>= endExample
     pure #[body']
 
+end
+
 
 structure TacticGoalConfig where
   «show» : Bool
 
-def TacticGoalConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m TacticGoalConfig :=
+meta def TacticGoalConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m TacticGoalConfig :=
   TacticGoalConfig.mk <$> (.flag `show true)
 
 @[role_expander goal]
-def goal : RoleExpander
+meta def goal : RoleExpander
   | args, inlines => do
     let config ← TacticGoalConfig.parse.run args
     let #[arg] := inlines
@@ -413,6 +420,8 @@ where
       modifyInfoTrees fun _ => treesSaved.push tree
       pure tree
 
+
+meta section
 
 open Lean.Parser in
 @[code_block_expander setup]
@@ -487,6 +496,8 @@ def tacticStepInline : RoleExpander
 
       pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $hlTac) #[Inline.code $(quote tacStr.getString)])]
 
+end
+
 def Block.proofState : Block where
   name := `Manual.proofState
 
@@ -494,7 +505,7 @@ structure ProofStateOptions where
   tag : Option String := none
 
 
-def ProofStateOptions.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m ProofStateOptions :=
+meta def ProofStateOptions.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m ProofStateOptions :=
   ProofStateOptions.mk <$> .named `tag .string true
 
 
@@ -504,7 +515,7 @@ Show a proof state in the text. The proof goal is expected as a documentation co
 prior to tactics.
 -/
 @[code_block_expander proofState]
-def proofState : CodeBlockExpander
+meta def proofState : CodeBlockExpander
   | args, str => do
     let opts ← ProofStateOptions.parse.run args
     let altStr ← parserInputString str
@@ -649,6 +660,8 @@ structure StateConfig where
   tag : Option String := none
   «show» : Bool := true
 
+meta section
+
 def StateConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m StateConfig :=
   StateConfig.mk <$> .named `tag .string true <*> (.flag `show true)
 
@@ -676,3 +689,5 @@ def post : CodeBlockExpander
       pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPost))} #[Block.code $(quote str.getString)])]
     else
       pure #[]
+
+end

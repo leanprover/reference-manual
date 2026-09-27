@@ -4,16 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Term
-import Lean.Elab.Tactic
-import Lean.Meta.Hint
+module
+public import SubVerso.Examples
+public meta import VersoManual.Docstring
+public import VersoManual.Docstring
 
-import Verso.Code.Highlighted
-import Verso.Doc.ArgParse
-import SubVerso.Highlighting.Code
-import VersoManual
-
-import Manual.Meta.Basic
+public section
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab Term Parser Tactic Doc
@@ -34,7 +30,7 @@ tokens by inspecting the category's Pratt parsing tables.
 This replicates `Lean.Elab.Tactic.Doc.firstTacticTokens`, which only scans the `tactic` syntax
 category and so does not cover the `grind` category.
 -/
-def firstGrindTokens [Monad m] [MonadEnv m] : m (Lean.NameMap String) := do
+private meta def firstGrindTokens [Monad m] [MonadEnv m] : m (Lean.NameMap String) := do
   let env ← getEnv
   let some cat := parserExtension.getState env |>.categories.find? `grind
     | return {}
@@ -65,7 +61,7 @@ Builds a hint whose code actions replace the ambiguous reference at `span` with 
 syntax kind, one suggestion per candidate. Each kind is unresolved in the current scope, so the
 suggestion uses the shortest name that refers to it here.
 -/
-def grindDisambiguationHint (span : Syntax) (kinds : List Name) : TermElabM MessageData := do
+private meta def grindDisambiguationHint (span : Syntax) (kinds : List Name) : TermElabM MessageData := do
   let suggestions ← kinds.toArray.mapM fun k => do
     let n ← unresolveNameGlobal k
     return ({ suggestion := .tsyntax (mkIdent n), span? := some span } : Lean.Meta.Hint.Suggestion)
@@ -76,7 +72,7 @@ Resolves a `grind` interactive tactic, either by its leading token (a string lit
 syntax kind (an identifier matched as a suffix). Returns the resolved kind, its leading token, and
 its docstring. Ambiguity is an error.
 -/
-def getGrindTactic (name : StrLit ⊕ Ident) (allowMissing : Option Bool) : TermElabM GrindTacticDoc :=
+meta def getGrindTactic (name : StrLit ⊕ Ident) (allowMissing : Option Bool) : TermElabM GrindTacticDoc :=
   withOptions (allowMissing.map (fun b opts => verso.docstring.allowMissing.set opts b) |>.getD id) do
     let env ← getEnv
     let parserState := parserExtension.getState env
@@ -108,7 +104,7 @@ def Block.grindTactic (name : Name) («show» : String) (docs? : Option String) 
   data := ToJson.toJson (name, «show», docs?)
 
 @[directive]
-def grindTactic : DirectiveExpanderOf TacticDocsOptions
+meta def grindTactic : DirectiveExpanderOf TacticDocsOptions
   | opts, more => do
     let tactic ← getGrindTactic opts.name opts.allowMissing
     Doc.PointOfInterest.save (← getRef) tactic.name.toString
@@ -194,6 +190,8 @@ token shared by several grind tactics.
 structure GrindTacticInlineArgs where
   kind? : Option Ident
 
+meta section
+
 def GrindTacticInlineArgs.parse [Monad m] [MonadError m] : ArgParse m GrindTacticInlineArgs :=
   GrindTacticInlineArgs.mk <$> ((some <$> .positional `kind .ident) <|> pure none)
 
@@ -213,6 +211,8 @@ def grindTacticInline : RoleExpanderOf GrindTacticInlineArgs
     let tacDoc ← getGrindTactic name none
     let hl : Highlighted := .token ⟨.keyword (some tacDoc.name) none tacDoc.docs?, tac.getString⟩
     `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.grindTactic with data := $(quote (ToJson.toJson hl))} #[Verso.Doc.Inline.code $(quote tac.getString)])
+
+end
 
 @[inline_extension Inline.grindTactic]
 def grindTacticInline.descr : InlineDescr := withHighlighting {

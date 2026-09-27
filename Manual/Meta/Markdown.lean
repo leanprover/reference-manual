@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joachim Breitner
 -/
 
-import VersoManual
-import Manual.Meta.Figure
-import Lean.Elab.InfoTree
+module
+public import VersoManual.Basic
+public meta import VersoManual.Markdown
+import MD4Lean.Basic
+
+public section
 
 open Verso Doc Elab
 open Verso.Genre Manual
@@ -28,8 +31,10 @@ def Block.noVale.descr : BlockDescr where
     some <| fun _ goB _ _ content => do
       pure {{<div class="no-vale">{{← content.mapM goB}}</div>}}
 
+meta section
+
 /-- Closes the last-opened section, throwing an error on failure. -/
-def closeEnclosingSection : PartElabM Unit := do
+private def closeEnclosingSection : PartElabM Unit := do
   -- Markdown headers carry no source extent of their own, so end the section at the end of the
   -- current reference. This keeps each part's range valid (the selection stays within
   -- `[rangeStart, endPos]`) for the TOC range conversion.
@@ -40,7 +45,7 @@ def closeEnclosingSection : PartElabM Unit := do
     throwError m!"Failed to close the last-opened explanation part"
 
 /-- Closes as many sections as were created by markdown processing. -/
-def closeEnclosingSections (headerMapping : Markdown.HeaderMapping) : PartElabM Unit := do
+private def closeEnclosingSections (headerMapping : Markdown.HeaderMapping) : PartElabM Unit := do
   for _ in headerMapping do
     closeEnclosingSection
 

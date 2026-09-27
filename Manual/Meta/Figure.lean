@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import VersoManual
-import Lean.Elab.InfoTree.Types
+module
+public import Verso.Doc.ArgParse
+public meta import Verso.Doc.Elab.Block
+public meta import Verso.Doc.Elab.Inline
+public meta import Verso.Doc.PointOfInterest
+public import VersoManual.Basic
 
-import Manual.Meta.Basic
+public section
 
 open Verso Doc Elab
 open Verso.Genre Manual
@@ -29,11 +33,11 @@ structure FigureConfig where
   tag : Option String := none
 
 
-def FigureConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m FigureConfig :=
+meta def FigureConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m FigureConfig :=
   FigureConfig.mk <$> .positional `caption .inlinesString <*> .named `tag .string true
 
 @[directive_expander figure]
-def figure : DirectiveExpander
+meta def figure : DirectiveExpander
   | args, contents => do
     let cfg ← FigureConfig.parse.run args
 

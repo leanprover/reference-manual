@@ -4,5 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import ManualLakeTest.Test
-import ManualLakeTest.PackageTest
+module
+public import ManualLakeTest.Test
+public import ManualLakeTest.PackageTest
+
+public section

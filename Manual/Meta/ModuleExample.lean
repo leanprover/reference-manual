@@ -4,19 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Term
-import Lean.Elab.Tactic
+module
+public import Verso.Doc.Elab
 
-import Verso.Code.Highlighted
-import Verso.Doc.Elab
-import Verso.Doc.ArgParse
-import Verso.Doc.Suggestion
-import SubVerso.Highlighting.Code
-import SubVerso.Examples.Messages
-import VersoManual
+public meta import Manual.Meta.Basic
+public import Verso.Log
+public meta import VersoManual.InlineLean.Outputs
+import VersoManual.InlineLean
 
-import Manual.Meta.Basic
-import Manual.Meta.PPrint
+public section
 
 open Verso.Doc.Elab
 open Verso.ArgParse
@@ -35,14 +31,14 @@ section
 
 variable [Monad m] [MonadError m]
 
-instance : FromArgs ModuleConfig m where
+meta instance : FromArgs ModuleConfig m where
   fromArgs := ModuleConfig.mk <$> .named' `name true <*> .named' `moduleName true <*> .flag `error false <*> .flag `show true
 
 end
 
 section
 open SubVerso.Highlighting
-partial def getMessages (hl : Highlighted) : Array (Nat × Highlighted.Message) :=
+meta partial def getMessages (hl : Highlighted) : Array (Nat × Highlighted.Message) :=
   let ((), _, out) := go hl (0, #[])
   out
 where
@@ -59,7 +55,7 @@ where
     | .point sev contents =>
       modify fun (l, msgs) => (l, msgs.push (l, ⟨sev, contents⟩))
 
-def dropBlanks (hl : Highlighted) : Highlighted :=
+meta def dropBlanks (hl : Highlighted) : Highlighted :=
   match hl with
   | .text s => .text s.trimAsciiStart.copy
   | .seq xs => Id.run do
@@ -71,6 +67,8 @@ def dropBlanks (hl : Highlighted) : Highlighted :=
   | _ => hl
 
 end
+
+meta section
 
 def logBuild [Monad m] [MonadRef m] [MonadOptions m] [MonadLog m] [AddMessageContext m] (command : String) (out : IO.Process.Output) (blame : Option Syntax := none) : m Unit := do
   let blame ←
@@ -159,21 +157,23 @@ def leanModule : CodeBlockExpanderOf ModuleConfig
     else
       ``(Verso.Doc.Block.empty)
 
+end
+
 structure IdentRefConfig where
   name : Ident
 
 section
 variable [Monad m] [MonadError m]
-instance : FromArgs IdentRefConfig m where
+meta instance : FromArgs IdentRefConfig m where
   fromArgs := IdentRefConfig.mk <$> .positional' `name
 end
 
 @[code_block]
-def identRef : CodeBlockExpanderOf IdentRefConfig
+meta def identRef : CodeBlockExpanderOf IdentRefConfig
   | { name := x }, _ => pure x
 
 @[role identRef]
-def identRefRole : RoleExpanderOf IdentRefConfig
+meta def identRefRole : RoleExpanderOf IdentRefConfig
   | { name := x }, _ => pure x
 
 structure ModulesConfig where
@@ -183,9 +183,11 @@ structure ModulesConfig where
 
 section
 variable [Monad m] [MonadError m]
-instance : FromArgs ModulesConfig m where
+meta instance : FromArgs ModulesConfig m where
   fromArgs := ModulesConfig.mk <$> .flag `server true <*> .many (.named' `moduleRoot false) <*> .flag `error false
 end
+
+meta section
 
 open Lean.Doc.Syntax in
 partial def getBlocks (block : Syntax) : StateT (NameMap (ModuleConfig × StrLit × Syntax)) DocElabM Syntax := do
@@ -240,14 +242,17 @@ def getRoot (mods : NameMap (ModuleConfig × α)) : Option Name :=
     | none, _, ({ moduleName, .. }, _) => moduleName.map (·.getId)
     | some y, _, ({moduleName := some x, ..}, _) => prefix? y x.getId
     | some y, _, ({moduleName := none, ..}, _) => some y
+
 where
   prefix? x y :=
     if x.isPrefixOf y then some x
     else if y.isPrefixOf x then some y
     else none
 
+end
+
 @[directive]
-def leanModules : DirectiveExpanderOf ModulesConfig
+meta def leanModules : DirectiveExpanderOf ModulesConfig
   | { server, moduleRoots, error }, blocks => do
     let (blocks, codeBlocks) ← blocks.mapM getBlocks {}
     let moduleRoots ←
@@ -299,7 +304,12 @@ def leanModules : DirectiveExpanderOf ModulesConfig
         IO.FS.writeFile (dirname / leanFileName) <|
           mkImports root <| mods.map fun (x, _, _, _) => x
 
-      let out ← IO.Process.output {cmd := "lake", args := #["build"], cwd := some dirname}
+      let out ← IO.Process.output {
+        cmd := "lake", args := #["build"], cwd := some dirname
+        -- `subverso-extract-mod` reads `.olean` files from the build directory, which the local artifact
+        -- cache leaves empty unless artifacts are restored
+        env := #[("LAKE_RESTORE_ARTIFACTS", "true")]
+      }
       if !error && out.exitCode != 0 then
         throwError
           m!"When running 'lake build' in {dirname}, the exit code was {out.exitCode}\n" ++

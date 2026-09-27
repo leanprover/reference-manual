@@ -3,7 +3,15 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
-import Manual.Meta.LakeCmd -- TODO: generalize the common parts into a library that can be upstreamed
+module
+public import Manual.Meta.CommandSpec
+public meta import Manual.Meta.CommandSpec
+public import Verso.Doc.ArgParse
+public meta import Verso.Doc.Elab.Block
+public import VersoManual.Basic
+import VersoManual.Docstring
+
+public section
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
@@ -19,7 +27,7 @@ structure ElanCommandOptions where
   -- This only allows one level of subcommand, but it's sufficient for Elan as it is today
   aliases : List Name
 
-partial def ElanCommandOptions.parse [Monad m] [MonadError m] : ArgParse m ElanCommandOptions :=
+meta partial def ElanCommandOptions.parse [Monad m] [MonadError m] : ArgParse m ElanCommandOptions :=
   ElanCommandOptions.mk <$>
     many1 (.positional `name .name) <*>
     (.positional `spec strLit <|>
@@ -87,7 +95,7 @@ private partial def addElanMetaBlock (name : String) : Doc.Block Verso.Genre.Man
 
 
 @[directive_expander elan]
-def elan : DirectiveExpander
+meta def elan : DirectiveExpander
   | args, contents => do
     let {name, spec, aliases} ← ElanCommandOptions.parse.run args
     let spec ←
@@ -108,7 +116,7 @@ def elan : DirectiveExpander
 def elanCommandDomain : Name := `Manual.elanCommand
 
 open Verso.Search in
-def elanCommandDomainMapper : DomainMapper := {
+private def elanCommandDomainMapper : DomainMapper := {
   displayName := "Elan Command",
   className := "elan-command-domain",
   dataToSearchables := "(domainData) =>
@@ -199,7 +207,7 @@ def elanCommand.descr : BlockDescr := withHighlighting {
 }
 
 @[role_expander elanMeta]
-def elanMeta : RoleExpander
+meta def elanMeta : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
@@ -235,7 +243,7 @@ def elanMeta.descr : InlineDescr := withHighlighting {
 
 
 @[role_expander elan]
-def elanInline : RoleExpander
+meta def elanInline : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
@@ -284,7 +292,7 @@ a.elan-command:hover {
       is.mapM goI
 
 @[role_expander elanArgs]
-def elanArgs : RoleExpander
+meta def elanArgs : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines

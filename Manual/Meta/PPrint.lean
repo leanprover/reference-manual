@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Data.Json
-import Lean.Widget.TaggedText
+module
+public import Lean.Widget.TaggedText
+
+public section
 
 namespace Manual.Meta.PPrint
 open Std (Format TreeMap)
@@ -18,7 +20,7 @@ structure TagFormatM.State (α) where
   nextTag : Nat := 0
   tags : TreeMap Nat α compare := {}
 
-def TagFormatT α m := StateT (TagFormatM.State α) m
+@[expose] def TagFormatT α m := StateT (TagFormatM.State α) m
 
 instance [Monad m] : Monad (TagFormatT α m) := inferInstanceAs (Monad (StateT (TagFormatM.State α) m))
 
@@ -55,7 +57,7 @@ deriving Inhabited
 
 private abbrev RenderM α := (ReaderT (TreeMap Nat α compare) (StateM (TaggedState α)))
 
-instance inst [Inhabited α] : Format.MonadPrettyFormat (RenderM α) where
+private instance inst [Inhabited α] : Format.MonadPrettyFormat (RenderM α) where
   pushOutput s       := modify fun ⟨out, ts, col⟩ => ⟨out.appendText s, ts, col + s.length⟩
   pushNewline indent := modify fun ⟨out, ts, _⟩ => ⟨out.appendText ("\n".pushn ' ' indent), ts, indent⟩
   currColumn         := return (←get).column

@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import VersoManual
+module
+public meta import Manual.Meta.Basic
+public meta import Verso.Doc.Elab.Monad
+public import VersoManual.Basic
+import VersoManual.Docstring
+import Manual.Meta.Syntax -- shake: keep
 
-import Verso.Code.Highlighted
-
-import Manual.Meta.Basic
-import Manual.Meta.PPrint
-import Manual.Meta.Syntax
+public section
 
 open Verso Doc Elab
 open Verso.Genre Manual
@@ -39,7 +40,7 @@ Attributes such as `export` require arguments, so their bare names don't parse a
 syntax. When the leading token identifies a single production, this returns that production's kind,
 which is enough to refer to the attribute and link to its documented syntax.
 -/
-def attrSyntaxKind? (env : Environment) (tok : String) : Option Name := Id.run do
+private meta def attrSyntaxKind? (env : Environment) (tok : String) : Option Name := Id.run do
   let some cat := getCategory (parserExtension.getState env).categories `attr
     | return none
   let tok := tok.trimAscii
@@ -59,7 +60,7 @@ def attrSyntaxKind? (env : Environment) (tok : String) : Option Name := Id.run d
   | _ => none
 
 @[role_expander attr]
-def attr : RoleExpander
+meta def attr : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
@@ -134,7 +135,7 @@ def attr.descr : InlineDescr where
 Shows a collection of applied attributes
 -/
 @[role_expander attrs]
-def attrs : RoleExpander
+meta def attrs : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
