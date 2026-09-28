@@ -383,7 +383,7 @@ example : (2 : Tiny) + (1 : Tiny) = (3 : Tiny) := by grind
 ```leanOutput withLits
 [grind.hom] ¬2 + 1 = 3
     ===>
-    ¬min (2 + 1) 3 = 3
+    ¬min 3 3 = 3
 ```
 :::
 
