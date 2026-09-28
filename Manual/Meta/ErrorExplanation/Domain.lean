@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Rotella, Rob Simmons
 -/
 
-import VersoManual
+module
+public import VersoSearch.DomainSearch
+import VersoManual.Basic
+
+public section
 
 open Lean
 open Verso.Genre.Manual

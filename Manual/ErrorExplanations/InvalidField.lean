@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Rob Simmons
 -/
 import VersoManual
-import Manual.Meta.ErrorExplanation
+import Manual.Meta
 
 open Lean
 open Verso.Genre Manual InlineLean

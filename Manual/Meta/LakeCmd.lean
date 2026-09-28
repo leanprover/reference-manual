@@ -4,19 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
+module
+public import Verso.Doc.ArgParse
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
+public import Manual.Meta.CommandSpec
+public meta import Manual.Meta.CommandSpec
+public meta import Verso.Doc.Elab.Block
+public import VersoManual.Basic
+import VersoManual.Docstring
 
-import SubVerso.Highlighting
-import SubVerso.Examples
-
-import Manual.Meta.Basic
+public section
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
@@ -28,113 +25,13 @@ open Lean.Doc (CodeView)
 
 namespace Manual
 
-namespace CommandSpec
-mutual
-  inductive Item where
-    | metavar (name : String)
-    | literalSyntax (string : String)
-    | ellipses
-    | optional (contents : List DecoratedItem)
-    | or
-  deriving ToJson, FromJson, Repr
-  structure DecoratedItem where
-    leading : String
-    item : Item
-    trailing : String
-  deriving ToJson, FromJson, Repr
-end
-
-mutual
-  partial def Item.toHighlighted : Item → Highlighted
-    | .metavar x => .token ⟨.var ⟨x.toName⟩ x none, x⟩ -- Hack: abusing FVarId here
-    | .literalSyntax s => .token ⟨.keyword none none none, s⟩
-    | .ellipses => .token ⟨.unknown, "..."⟩
-    | .or => .token ⟨.keyword none none none, "|"⟩
-    | .optional xs =>
-      .token ⟨.keyword none none none, "["⟩ ++
-      .seq (xs.toArray.map DecoratedItem.toHighlighted) ++
-      .token ⟨.keyword none none none, "]"⟩
-
-  partial def DecoratedItem.toHighlighted : DecoratedItem → Highlighted
-    | ⟨l, x, r⟩ => .text l ++ x.toHighlighted ++ .text r
-end
-
-open Syntax (mkCApp)
-
-private def quoteList [Quote α `term] : List α → Term
-  | []      => mkCIdent ``List.nil
-  | (x::xs) => Syntax.mkCApp ``List.cons #[quote x, quoteList xs]
-
-mutual
-  partial def Item.quote : Item → Term
-    | .metavar x => mkCApp ``Item.metavar #[Quote.quote x]
-    | .literalSyntax s => mkCApp ``Item.literalSyntax #[Quote.quote s]
-    | .ellipses => mkCApp ``Item.ellipses #[]
-    | .or => mkCApp ``Item.or #[]
-    | .optional xs =>
-      have : Quote DecoratedItem := ⟨DecoratedItem.quote⟩
-      mkCApp ``Item.optional #[quoteList xs]
-
-  partial def DecoratedItem.quote : DecoratedItem → Term
-    | ⟨l, i, t⟩ => mkCApp ``DecoratedItem.mk #[quote l, i.quote, quote t]
-end
-
-instance : Quote Item := ⟨Item.quote⟩
-instance : Quote DecoratedItem := ⟨DecoratedItem.quote⟩
-
-end CommandSpec
-
-
-abbrev CommandSpec : Type := List CommandSpec.DecoratedItem
-
-def CommandSpec.toHighlighted (spec : CommandSpec) : Highlighted := .seq (spec.map (·.toHighlighted)).toArray
-
-declare_syntax_cat lake_cmd_spec_item
-syntax ident : lake_cmd_spec_item
-syntax str : lake_cmd_spec_item
-syntax "..." : lake_cmd_spec_item
-syntax "|" : lake_cmd_spec_item
-syntax "[" lake_cmd_spec_item+ "]" : lake_cmd_spec_item
-
-declare_syntax_cat lake_cmd_spec
-syntax lake_cmd_spec_item* : lake_cmd_spec
-
-mutual
-  partial def CommandSpec.Item.ofSyntax (stx : TSyntax `lake_cmd_spec_item) : Except String CommandSpec.Item :=
-    match stx with
-    | `(lake_cmd_spec_item|$i:ident) => pure <| .metavar <| i.getId.toString (escape := false)
-    | `(lake_cmd_spec_item|$s:str) => pure <| .literalSyntax s.getString
-    | `(lake_cmd_spec_item|...) => pure <| .ellipses
-    | `(lake_cmd_spec_item||) => pure <| .or
-    | `(lake_cmd_spec_item|[ $items* ]) => .optional <$> items.toList.mapM DecoratedItem.ofSyntax
-    | _ => .error s!"Not a command spec item: {stx}"
-
-  partial def CommandSpec.DecoratedItem.ofSyntax
-      (stx : TSyntax `lake_cmd_spec_item) : Except String CommandSpec.DecoratedItem := do
-    return ⟨lead stx.raw.getHeadInfo, ← Item.ofSyntax stx, trail stx.raw.getTailInfo⟩
-  where
-    lead : SourceInfo → String
-      | .original l .. => l.toString
-      | _ => ""
-
-    trail : SourceInfo → String
-      | .original _ _ t _ => t.toString
-      | _ => ""
-end
-
-def CommandSpec.ofSyntax (stx : Syntax) : Except String CommandSpec :=
-  match stx with
-  | `(lake_cmd_spec|$items:lake_cmd_spec_item*) => do
-      items.toList.mapM DecoratedItem.ofSyntax
-  | _ => .error s!"Not a command spec: {stx}"
-
 structure LakeCommandOptions where
   name : List Name
   spec : StrLit
   -- This only allows one level of subcommand, but it's sufficient for Lake as it is today
   aliases : List Name
 
-partial def LakeCommandOptions.parse [Monad m] [MonadError m] : ArgParse m LakeCommandOptions :=
+meta partial def LakeCommandOptions.parse [Monad m] [MonadError m] : ArgParse m LakeCommandOptions :=
   LakeCommandOptions.mk <$>
     many1 (.positional `name .name) <*>
     (.positional `spec strLit <|>
@@ -203,7 +100,7 @@ private partial def addLakeMetaBlock (name : String) : Doc.Block Verso.Genre.Man
 
 
 @[directive_expander lake]
-def lake : DirectiveExpander
+meta def lake : DirectiveExpander
   | args, contents => do
     let {name, spec, aliases} ← LakeCommandOptions.parse.run args
     let spec ←
@@ -223,7 +120,7 @@ def lake : DirectiveExpander
 def lakeCommandDomain : Name := `Manual.lakeCommand
 
 open Verso.Search in
-def lakeCommandDomainMapper : DomainMapper where
+private def lakeCommandDomainMapper : DomainMapper where
   displayName := "Lake Command"
   className := "lake-command-domain"
   dataToSearchables :=
@@ -311,7 +208,7 @@ def lakeCommand.descr : BlockDescr where
     else throw s!"Expected a three-element array with a string first, got {info}"
 
 @[role_expander lakeMeta]
-def lakeMeta : RoleExpander
+meta def lakeMeta : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
@@ -345,7 +242,7 @@ def lakeMeta.descr : InlineDescr := withHighlighting {
 }
 
 @[role_expander lake]
-def lakeInline : RoleExpander
+meta def lakeInline : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
@@ -394,7 +291,7 @@ a.lake-command:hover {
       is.mapM goI
 
 @[role_expander lakeArgs]
-def lakeArgs : RoleExpander
+meta def lakeArgs : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines

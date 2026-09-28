@@ -4,29 +4,23 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
+module
+public import Manual.Meta.LakeToml.Toml
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
+public import Manual.Meta.LakeToml.Table
+public meta import Manual.Meta.LakeToml.Table
+public import Manual.Meta.LakeToml.Check
+public meta import Manual.Meta.LakeToml.Check
+public meta import Manual.Meta.ExpectString
+public meta import Manual.Meta.Basic
+public meta import Verso.Doc.Elab.Block
+public meta import VersoManual.Markdown
+import MD4Lean.Basic
 
-import SubVerso.Highlighting
-import SubVerso.Examples
-
-import Manual.Meta.Basic
-import Manual.Meta.ExpectString
-import Manual.Meta.LakeToml.Toml
-import ManualLakeTest.Test
-import ManualLakeTest.PackageTest
-
-import Lake.Toml.Decode
-import Lake.Load.Toml
+public section
 
 
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Verso ArgParse Doc Elab Genre.Manual Html Code
 open Lean Elab
 open SubVerso.Highlighting Highlighted
 open Lean.Elab.Tactic.GuardMsgs
@@ -36,86 +30,6 @@ set_option guard_msgs.diff true
 
 namespace Manual
 
-namespace Toml
-
-inductive FieldType where
-  | string
-  | stringOf (what : String)
-  | version
-  | path
-  | array (contents : FieldType)
-  | oneOf (choices : List String)
-  | option (t : FieldType)
-  | bool
-  | target
-  | other (name : Name) (what : String) (whatPlural : Option String)
-deriving Repr, ToJson, FromJson
-
-open Lean Syntax in
-instance : Quote FieldType where
-  quote := q
-where
-  q : FieldType → Term
-    | .string => mkCApp ``FieldType.string #[]
-    | .stringOf x => mkCApp ``FieldType.stringOf #[quote x]
-    | .version => mkCApp ``FieldType.version #[]
-    | .path => mkCApp ``FieldType.path #[]
-    | .array x => mkCApp ``FieldType.array #[q x]
-    | .oneOf cs => mkCApp ``FieldType.oneOf #[quote cs]
-    | .option x => mkCApp ``FieldType.option #[q x]
-    | .bool => mkCApp ``FieldType.bool #[]
-    | .target => mkCApp ``FieldType.target #[]
-    | .other x y z => mkCApp ``FieldType.other #[quote x, quote y, quote z]
-
-
-open Output Html in
-def FieldType.toHtml (plural : Bool := false) : FieldType → Html
-  | .string => if plural then "strings" else "String"
-  | .stringOf x => s!"{x} (as string{if plural then "s" else ""}"
-  | .version => if plural then "version strings" else "Version string"
-  | .path => if plural then "paths" else "Path"
-  | .array t => (if plural then "arrays of " else "Array of ") ++ t.toHtml true
-  | .other _ y none => if plural then y ++ "s" else y
-  | .other _ y (some z) => if plural then z else y
-  | .bool => if plural then "Booleans" else "Boolean"
-  | .target => if plural then "targets" else "target"
-  | .option t => t.toHtml ++ " (optional)"
-  | .oneOf xs =>
-    let opts := xs
-      |>.map ({{<code>{{show Html from .text true s!"\"{·}\""}}</code>}})
-      |>.intersperse {{", "}}
-    {{"one of " {{opts}} }}
-
-structure Field (α) where
-  name : Name
-  type : FieldType
-  docs? : Option α
-deriving Repr, ToJson, FromJson
-
-instance : Functor Field where
-  map f | ⟨n, t, d?⟩ => ⟨n, t, d?.map f⟩
-
-def Field.mapM [Monad m] (f : α → m β) : Field α → m (Field β)
-  | ⟨n, t, d?⟩ => d?.mapM f <&> (⟨n, t, ·⟩)
-
-def Field.takeDocs (f : Field α) : Field Empty × Option α :=
-  ({f with docs? := none}, f.docs?)
-
-open Lean Syntax in
-instance [Quote α] : Quote (Field α) where
-  quote | ⟨n, t, d?⟩ => mkCApp ``Field.mk #[quote n, quote t, quote d?]
-
-structure Table (α) where
-  name : String
-  typeName : Name
-  fields : Array (Field α)
-deriving Repr
-
-open Lean Syntax in
-instance [Quote α] : Quote (Table α) where
-  quote | ⟨n, tn, fs⟩ => mkCApp ``Table.mk #[quote n, quote tn, quote fs]
-
-end Toml
 
 def Block.tomlFieldCategory (title : String) (fields : List Name) : Block where
   name := `Manual.Block.tomlFieldCategory
@@ -145,6 +59,8 @@ structure TomlFieldOpts where
 local instance [Inhabited α] [Applicative f] : Inhabited (f α) where
   default := pure default
 
+meta section
+
 @[specialize]
 private partial def many [Applicative f] [Alternative f] (p : f α) : f (List α) :=
   ((· :: ·) <$> p <*> many p) <|> pure []
@@ -164,6 +80,8 @@ def tomlField : DirectiveExpander
     let contents ← contents.mapM elabBlock
     return #[← ``(Block.other (Block.tomlField $(quote sort) $(quote inTable) $(quote field)) #[$contents,*])]
 
+end
+
 open Verso.Search in
 def tomlTableDomainMapper := {
   displayName := "Lake TOML Table",
@@ -182,7 +100,7 @@ def tomlTableDomainMapper := {
   : DomainMapper }.setFont { family := .code }
 
 open Verso.Search in
-def tomlFieldDomainMapper := {
+private def tomlFieldDomainMapper := {
   displayName := "Lake TOML Field",
   className := "lake-toml-field-domain",
   dataToSearchables := "(domainData) =>
@@ -258,11 +176,11 @@ structure TomlFieldCategoryOpts where
   title : String
   fields : List Name
 
-def TomlFieldCategoryOpts.parse [Monad m] [MonadError m] : ArgParse m TomlFieldCategoryOpts :=
+meta def TomlFieldCategoryOpts.parse [Monad m] [MonadError m] : ArgParse m TomlFieldCategoryOpts :=
   TomlFieldCategoryOpts.mk <$> .positional `title .string <*> many (.positional `field .name)
 
 @[directive_expander tomlFieldCategory]
-def tomlFieldCategory : DirectiveExpander
+meta def tomlFieldCategory : DirectiveExpander
   | args, contents => do
     let {title, fields} ← TomlFieldCategoryOpts.parse.run args
     let contents ← contents.mapM elabBlock
@@ -453,118 +371,6 @@ dl.toml-table-field-spec {
 
 namespace Toml
 
-section
-
-open Lean Meta
-
-variable {m : Type → Type}
-variable [Monad m]
-variable [MonadEnv m] [MonadMCtx m] [MonadWithOptions m] [MonadFileMap m] [MonadError m]
-variable [MonadQuotation m]
-variable [MonadControlT MetaM m] [MonadLiftT MetaM m] [MonadLiftT IO m]
-
-def buildTypes := ["debug", "relWithDebInfo", "minSizeRel", "release"]
-
--- Fail if more types added
-theorem builtTypes_exhaustive (isLower : s.decapitalize = s) : s ∈ buildTypes ↔ (Lake.BuildType.ofString? s).isSome := by
-  simp only [buildTypes]
-  constructor
-  . intro h
-    simp only [Lake.BuildType.ofString?]
-    split <;> try (simp; done)
-    simp_all
-  . intro h
-    simp [Lake.BuildType.ofString?] at h
-    split at h <;> simp_all
-
-open Lean Meta in
-/--
-Reads the field metadata generated by Lake's `configuration` command for the structure `n`
-(the `<Struct>._fields` definition), returning an empty array when `n` was not declared with
-`configuration` (and so has no such metadata).
--/
-private unsafe def configFieldInfosImpl (n : Name) : MetaM (Array Lake.ConfigFieldInfo) := do
-  let fieldsName := n.str "_fields"
-  unless (← getEnv).contains fieldsName do return #[]
-  let type ← mkAppM ``Array #[.const ``Lake.ConfigFieldInfo []]
-  evalExpr (Array Lake.ConfigFieldInfo) type (.const fieldsName [])
-
-@[implemented_by configFieldInfosImpl]
-private def configFieldInfos (_ : Name) : MetaM (Array Lake.ConfigFieldInfo) := pure #[]
-
-/--
-Maps each real structure field name to the user-facing TOML key that should be used to document and
-cross-reference it.
-
-Lake's `configuration` command lets an `Option`-typed field be declared with a `?`-suffixed Lean
-accessor name alongside a non-`?` alias that is the actual TOML key (e.g. the field
-`builtinLint? : Option Bool` whose TOML key is `builtinLint`). The underlying structure field keeps
-the `?`, but the documentation should use the key that authors write in `lakefile.toml`. This maps
-such a real field name to the alias formed by dropping the trailing `?`; fields without this aliasing
-pattern are absent from the map and should be documented under their real name.
--/
-private def configKeyMap (n : Name) : MetaM (Std.HashMap Name Name) := do
-  let mut m : Std.HashMap Name Name := {}
-  for info in (← configFieldInfos n) do
-    -- An alias whose name is the real field name with a trailing `?` removed is the TOML key.
-    if !info.parent && info.name != info.realName && info.realName == info.name.appendAfter "?" then
-      m := m.insert info.realName info.name
-  return m
-
-def asTable (humanName : String) (n : Name) (skip : List Name := []) : DocElabM Term  := do
-  let env ← getEnv
-  if let some (.inductInfo ii) := env.find? n then
-    let allFields := getStructureFieldsFlattened env n (includeSubobjectFields := false) |>.filter (!skip.contains ·)
-    let directFields := getStructureFields env n
-    -- Sort the direct fields first, because that makes the ordering "more intuitive" in the docs
-    let allFields := allFields.filter (directFields.contains ·) ++ allFields.filter (!directFields.contains ·)
-    let ancestry ← getStructureResolutionOrder n
-    let keyMap ← configKeyMap n
-    let tomlFields : Array (Field (Array Term)) ← forallTelescopeReducing ii.type fun params _ =>
-      withLocalDeclD `self (mkAppN (mkConst n (ii.levelParams.map mkLevelParam)) params) fun s =>
-        allFields.mapM fun fieldName => do
-          let proj ← mkProjection s fieldName
-          let type ← inferType proj >>= instantiateMVars
-          for struct in ancestry do
-            if let some projFn := getProjFnInfoForField? env struct fieldName then
-              let docs? ← findDocString? env projFn.1
-              let docs? ← docs?.mapM fun mdDocs => do
-                let some ast := MD4Lean.parse mdDocs
-                  | throwError "Failed to parse docstring as Markdown"
-                -- Here most code elements are not Lean code; don't elaborate them
-                ast.blocks.mapM Markdown.blockFromMarkdown
-
-              let type' : Option FieldType :=
-                if type.isConstOf ``String then some .string
-                else if type.isConstOf ``Name then some .string
-                else if type.isConstOf ``Bool then some .bool
-                else if type.isConstOf ``System.FilePath then some .path
-                else if type.isConstOf ``Lake.WorkspaceConfig then some (.other ``Lake.WorkspaceConfig "Workspace configuration" none)
-                else if type.isConstOf ``Lake.BuildType then some (.oneOf buildTypes)
-                else if type.isConstOf ``Lake.StdVer then some .version
-                else if type.isConstOf ``Lake.StrPat then some (.other ``Lake.StrPat "String pattern" none)
-                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lean.LeanOption then some (.array (.other ``Lean.LeanOption "Lean option" none))
-                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``String then some (.array .string)
-                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Name then some (.array .string)
-                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``System.FilePath then some (.array .path)
-                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lake.PartialBuildKey then some (.array .target)
-                else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``Bool then some (.option .bool)
-                else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``String then some (.option .string)
-                else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``System.FilePath then some (.option .path)
-                else if type.isAppOfArity ``Lake.TargetArray 1 && (type.getArg! 0).isConstOf ``Lake.Dynlib then
-                  some (.array (.other ``Lake.Dynlib "dynamic library" "dynamic libraries"))
-                else if type.isAppOfArity ``Lake.TargetArray 1 && (type.getArg! 0).isConstOf ``System.FilePath then
-                  some (.array .path)
-                else none
-              if let some type := type' then
-                return { name := keyMap.getD fieldName fieldName, type, docs?}
-              else throwError "Can't convert Lean type '{type}' to a field type for '{fieldName}'"
-          throwError "No projection function found for {n}.{fieldName}"
-    ``(Table.mk $(quote humanName) $(quote n) $(quote tomlFields))
-  else
-    throwError "Not an inductive type: {n}"
-
-
 def Field.toBlock (inTable : Name) (f : Field (Array (Block Genre.Manual))) : Block Genre.Manual :=
   let (f, docs?) := f.takeDocs
   .other (Block.tomlField none inTable f) (docs?.getD #[])
@@ -574,7 +380,6 @@ def Table.toBlock (arrayKey : Option String) (docs : Array (Block Genre.Manual))
 
   #[.other (Block.tomlTable arrayKey t.name t.typeName) <| notFields ++ (fieldBlocks ++ t.fields.map (Field.toBlock t.typeName))]
 
-end
 
 end Toml
 
@@ -588,7 +393,7 @@ structure TomlTableOpts where
   name : Name
   skip : List Name
 
-def TomlTableOpts.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m TomlTableOpts :=
+meta def TomlTableOpts.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m TomlTableOpts :=
   TomlTableOpts.mk <$> .positional `key arrayKey <*> .positional `description .string <*> .positional `name .resolvedName <*> many (.named `skip .name false)
 where
   arrayKey := {
@@ -608,7 +413,7 @@ open Markdown in
 Interpret a structure type as a TOML table, and generate docs.
 -/
 @[directive_expander tomlTableDocs]
-def tomlTableDocs : DirectiveExpander
+meta def tomlTableDocs : DirectiveExpander
   | args, contents => do
     let {arrayKey, description, name, skip} ← TomlTableOpts.parse.run args
     let docsStx ←
@@ -631,149 +436,6 @@ def tomlTableDocs : DirectiveExpander
 
 
 
-namespace Toml
-
-
-open Lake Toml in
-def report [Monad m] [Lean.MonadLog m] [MonadFileMap m] [Test α] (val : α) (errs : Array DecodeError) : m String := do
-    let mut result := ""
-    unless errs.isEmpty do
-      result := result ++ "Errors:\n"
-      for e in errs do
-        result := result ++ (← posStr e.ref) ++ e.msg ++ "\n"
-      result := result ++ "-------------\n"
-    result := result ++ (Test.toString val).pretty ++ "\n"
-    pure result
-where
-  posStr (stx : Syntax) : m String := do
-    let text ← getFileMap
-    let fn ← getFileName <&> (System.FilePath.fileName · |>.getD "")
-    let head := (stx.getHeadInfo? >>= SourceInfo.getPos?) <&> text.utf8PosToLspPos
-    let tail := (stx.getTailInfo? >>= SourceInfo.getPos?) <&> text.utf8PosToLspPos
-    if let some ⟨l, c⟩ := head then
-      if let some ⟨l', c'⟩ := tail then
-        if l = l' then return s!"{fn}:{l}:{c}-{c'}: "
-        else return s!"{fn}:{l}-{l'}:{c}-{c'}: "
-      return s!"{fn}:{l}:{c}: "
-    return ""
-end Toml
-
-section
-
-variable [Monad m] [MonadLiftT BaseIO m] [MonadFileMap m] [Lean.MonadLog m]
-
-open Lean.Parser in
-open Lake Toml in
-def checkToml (α : Type)  [Inhabited α] [DecodeToml α] [Toml.Test α] (str : String) (what : Name) : m (Except String String) := do
-  let ictx := mkInputContext str "<example TOML>"
-  match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
-  | .error err =>
-    return .error <| toString (← err.unreported.toArray.mapM (·.toString))
-  | .ok tbl =>
-    let .ok (out : α) errs := (tbl.tryDecode what).run #[]
-    .ok <$> report out errs
-
-structure Named (α : Name → Type u) where
-  name : Name
-  val : α name
-
-instance [(n : Name) → Toml.Test (α n)] : Toml.Test (Named α) where
-  toString
-    | ⟨n, v⟩ => "{ " ++ .group (.nest 2 <| "name := " ++ n.toString ++ "," ++ .line ++ "val := " ++ Toml.Test.toString v ++ "}")
-
-instance [(n : Name) →  Lake.DecodeToml (α n)] : Lake.DecodeToml (Named α) where
-  decode v := do
-    let table ← v.decodeTable --
-    let name ← Lake.stringToLegalOrSimpleName <$> table.decode `name
-    let val ← Lake.DecodeToml.decode v
-    return ⟨name, val⟩
-
-open Lean.Parser in
-open Lake Toml in
-def checkTomlArrayWithName (α : Name → Type) [(n : Name) → Inhabited (α n)] [(n : Name) → DecodeToml (α n)] [(n : Name) → Toml.Test (α n)] (str : String) (what : Name) : m (Except String String) := do
-  let ictx := mkInputContext str "<example TOML>"
-  match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
-  | .error err =>
-    return .error <| toString (← err.unreported.toArray.mapM (·.toString))
-  | .ok tbl =>
-    let .ok (name : Name) errs := (tbl.tryDecode `name).run #[]
-    let .ok out errs := (tbl.tryDecode what).run errs
-    .ok <$> report (out : α name) errs
-
-
--- TODO this became private upstream, so it's been copied to fix the build.
--- Negotiate a public API.
-open Lake Toml in
-private def decodeTargetDecls
-  (pkg : Name) (t : Table)
-: DecodeM (Array (PConfigDecl pkg) × DNameMap (NConfigDecl pkg)) := do
-  let r := (#[], {})
-  let r ← go r LeanLib.keyword LeanLib.configKind LeanLibConfig.decodeToml
-  let r ← go r LeanExe.keyword LeanExe.configKind LeanExeConfig.decodeToml
-  let r ← go r InputFile.keyword InputFile.configKind InputFileConfig.decodeToml
-  let r ← go r InputDir.keyword InputDir.configKind InputDirConfig.decodeToml
-  return r
-where
-  go r kw kind (decode : {n : Name} → Table → DecodeM (ConfigType kind pkg n)) := do
-    let some tableArrayVal := t.find? kw | return r
-    let some vals ← tryDecode? tableArrayVal.decodeValueArray | return r
-    vals.foldlM (init := r) fun r val => do
-      let some t ← tryDecode? val.decodeTable | return r
-      let some name ← tryDecode? <| stringToLegalOrSimpleName <$> t.decode `name
-        | return r
-      let (decls, map) := r
-      if let some orig := map.get? name then
-        modify fun es => es.push <| .mk val.ref s!"\
-          {pkg}: target '{name}' was already defined as a '{orig.kind}', \
-          but then redefined as a '{kind}'"
-        return (decls, map)
-      else
-        let config ← @decode name t
-        let decl : NConfigDecl pkg name :=
-          -- Safety: By definition, config kind = facet kind for declarative configurations.
-          unsafe {pkg, name, kind, config, wf_data := lcProof}
-        return (decls.push decl.toPConfigDecl, map.insert name decl)
-
-open Lean.Parser in
-open Lake Toml in
-def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String String) := do
-  let ictx := mkInputContext str "<example TOML>"
-  match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
-  | .error err =>
-    return .error <| toString (← err.unreported.toArray.mapM (·.toString))
-  | .ok tbl =>
-    let .ok env ←
-      EIO.toBaseIO <|
-        Lake.Env.compute {home:=""} {sysroot:=""} none none
-      | throwError "Failed to make env"
-    let cfg : LoadConfig := {lakeEnv := env, wsDir := "."}
-    let .ok (pkg : Lake.Package) errs := Id.run <| (EStateM.run · #[]) <| do
-      let name ← stringToLegalOrSimpleName <$> tbl.tryDecode `name
-      let config : PackageConfig name name ← PackageConfig.decodeToml tbl
-      let (targetDecls, targetDeclMap) ← decodeTargetDecls name tbl
-      let defaultTargets ← tbl.tryDecodeD `defaultTargets #[]
-      let defaultTargets := defaultTargets.map stringToLegalOrSimpleName
-      let depConfigs ← tbl.tryDecodeD `require #[]
-      pure {
-        dir := cfg.pkgDir
-        relDir := cfg.relPkgDir
-        relConfigFile := cfg.relConfigFile
-        scope := cfg.scope
-        remoteUrl := cfg.remoteUrl
-        configFile := cfg.configFile
-        config, depConfigs, targetDecls, targetDeclMap
-        defaultTargets
-        baseName := name
-        wsIdx := 0
-        origName := name
-        keyName := name
-        relManifestFile := Lake.defaultManifestFile
-      }
-
-    .ok <$> report pkg errs
-
-end
-
 structure LakeTomlOpts where
   /-- The type to check it against -/
   type : Name
@@ -781,6 +443,8 @@ structure LakeTomlOpts where
   field : Name
   /-- Whether to keep the result -/
   «show» : Bool
+
+meta section
 
 def LakeTomlOpts.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m LakeTomlOpts :=
   LakeTomlOpts.mk <$> .positional `type .resolvedName <*> .positional `field .name <*> (.named `show .bool true <&> (·.getD true))
@@ -840,6 +504,8 @@ def tomlFieldInline : RoleExpander
     let name := name.getVersoCode
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.tomlField $(quote table) $(quote name.toName)) #[Inline.code $(quote name)])]
+
+end
 
 @[inline_extension Manual.Inline.tomlField]
 def tomlFieldInline.descr : InlineDescr where

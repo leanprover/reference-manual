@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joachim Breitner
 -/
 
-import VersoManual
-import Lean.Elab.InfoTree.Types
+module
+public meta import Verso.Doc.Elab.Block
+public import VersoManual.Basic
 
-import Manual.Meta.Basic
+public section
 
 open Verso Doc Elab
 open Verso.Genre Manual
@@ -24,7 +25,7 @@ def Block.listBullet (bullet : String) : Block where
   data := .str bullet
 
 @[directive_expander listBullet]
-def listBullet : DirectiveExpander
+meta def listBullet : DirectiveExpander
   | args, contents => do
     let bullet ← ArgParse.run (.positional `bullet .string) args
     let blocks ← contents.mapM elabBlock

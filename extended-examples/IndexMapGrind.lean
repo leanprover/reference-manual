@@ -277,10 +277,10 @@ right_2 : a_2 ∈ m.indices.erase a
     [prop] m.size = m.values.size
     [prop] (m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = if i = i_2 then some (m.keys.back ⋯) else m.keys.pop[i_2]?
     [prop] m.keys.pop.set i (m.keys.back ⋯) ⋯ = (m.keys.set i (m.keys.back ⋯) ⋯).pop
-    [prop] m.keys.back ⋯ = m.keys[m.keys.size - 1]
+    [prop] m.keys.pop.size = m.keys.size - 1
     [prop] ↑(m.keys.size - 1) = if -1 * ↑m.keys.size + 1 ≤ 0 then ↑m.keys.size + -1 else 0
     [prop] m.keys.size = m.size
-    [prop] m.keys.pop.size = m.keys.size - 1
+    [prop] m.keys.back ⋯ = m.keys[m.keys.size - 1]
     [prop] ((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? =
           if (m.keys.back ⋯ == a_2) = true then some i else (m.indices.erase a)[a_2]?
     [prop] m.keys.size ≤ i_2 → m.keys[i_2]? = none
@@ -292,15 +292,15 @@ right_2 : a_2 ∈ m.indices.erase a
           (a_2 ∈ (m.indices.erase a).insert (m.keys.back ⋯) i)
     [prop] (a ∈ m.indices) = (a ∈ m)
     [prop] (m.keys[m.indices[a]]? = some a) = (m.indices[a]? = some m.indices[a])
-    [prop] (m.keys.set i (m.keys.back ⋯) ⋯).pop[i_2]? =
-          if i_2 + 1 ≤ (m.keys.set i (m.keys.back ⋯) ⋯).size - 1 then (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]? else none
+    [prop] (m.keys.pop.set i (m.keys.back ⋯) ⋯).size = m.keys.pop.size
+    [prop] (m.keys.set i (m.keys.back ⋯) ⋯).pop.size = (m.keys.set i (m.keys.back ⋯) ⋯).size - 1
     [prop] ↑((m.keys.set i (m.keys.back ⋯) ⋯).size - 1) =
           if -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 ≤ 0 then ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + -1 else 0
+    [prop] (m.keys.set i (m.keys.back ⋯) ⋯).pop[i_2]? =
+          if i_2 + 1 ≤ (m.keys.set i (m.keys.back ⋯) ⋯).size - 1 then (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]? else none
     [prop] ∀ (h_9 : i + 1 ≤ m.keys.pop.size), m.keys.pop.set i (m.keys.back ⋯) ⋯ = (m.keys.set i (m.keys.back ⋯) ⋯).pop
     [prop] (m.keys[i_2]? = some a_2) = (m.indices[a_2]? = some i_2)
     [prop] (m.keys[i]? = some a_2) = (m.indices[a_2]? = some i)
-    [prop] (m.keys.set i (m.keys.back ⋯) ⋯).pop.size = (m.keys.set i (m.keys.back ⋯) ⋯).size - 1
-    [prop] (m.keys.pop.set i (m.keys.back ⋯) ⋯).size = m.keys.pop.size
     [prop] (a_2 ∈ (m.indices.erase a).insert (m.keys.back ⋯) i) = (m.keys.back ⋯ = a_2 ∨ a_2 ∈ m.indices.erase a)
     [prop] ∀ (h : a ∈ m), m.indices[a] + 1 ≤ m.size
     [prop] m.values.size = m.size
@@ -308,9 +308,9 @@ right_2 : a_2 ∈ m.indices.erase a
     [prop] ∀ (h : a_2 ∈ m.indices), m.indices[a_2]? = some m.indices[a_2]
     [prop] ((m.indices.erase a).contains a_2 = true) = (a_2 ∈ m.indices.erase a)
     [prop] (m.keys[m.indices[a]]? = some a_2) = (m.indices[a_2]? = some m.indices[a])
+    [prop] (m.keys.set i (m.keys.back ⋯) ⋯).size = m.keys.size
     [prop] (m.keys[i]? = some m.keys[i]) = (m.indices[m.keys[i]]? = some i)
     [prop] (m.keys[i_2]? = some m.keys[i]) = (m.indices[m.keys[i]]? = some i_2)
-    [prop] (m.keys.set i (m.keys.back ⋯) ⋯).size = m.keys.size
     [prop] (a_2 ∈ m.indices.erase a) = ((a == a_2) = false ∧ a_2 ∈ m.indices)
     [prop] (((m.indices.erase a).insert (m.keys.back ⋯) i).contains a_2 = true) =
           (m.keys.back ⋯ = a_2 ∨ (m.indices.erase a).contains a_2 = true)
@@ -622,7 +622,7 @@ right_2 : a_2 ∈ m.indices.erase a
     [cases] [1/2]: if -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 ≤ 0 then
           ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + -1
         else 0
-      [cases] source: E-matching `Array.getElem?_pop`
+      [cases] source: E-matching `Array.size_pop`
     [cases] [1/2]: ((m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2) =
           ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
       [cases] source: Initial goal
@@ -645,20 +645,20 @@ right_2 : a_2 ∈ m.indices.erase a
     [thm] size.eq_1: [@size #4 #3 #2 #1 #0]
     [thm] Option.some_le_some: [@LE.le (Option #3) _ (@some _ #1) (@some _ #0)]
     [thm] Option.mem_some: [@Membership.mem #2 (Option _) _ (@some _ #0) #1]
+    [thm] Option.some_lt_some: [@LT.lt (Option #3) _ (@some _ #1) (@some _ #0)]
+    [thm] Array.size_pos_of_mem: [@Membership.mem #3 (Array _) _ #1 #2, @Array.size _ #1]
+    [thm] Array.getElem?_eq_none: [@Array.size #3 #1, @getElem? (Array _) `[Nat] _ _ _ #1 #2]
+    [thm] Array.eq_empty_of_size_eq_zero: [@Array.size #2 #1]
+    [thm] Array.size_set: [@Array.size #4 (@Array.set _ #3 #2 #1 #0)]
     [thm] Array.getElem?_set: [@getElem? (Array #5) `[Nat] _ _ _ (@Array.set _ #4 #3 #1 #2) #0]
     [thm] Array.mem_or_eq_of_mem_set: [@Membership.mem #6 (Array _) _ (@Array.set _ #5 #4 #2 _) #3]
     [thm] Array.set_pop: [@Array.set #4 (@Array.pop _ #3) #1 #2 #0]
+    [thm] Array.size_pop: [@Array.size #1 (@Array.pop _ #0)]
     [thm] Array.getElem?_pop: [@getElem? (Array #2) `[Nat] _ _ _ (@Array.pop _ #1) #0]
     [thm] Array.set_pop: [@Array.pop #4 (@Array.set _ #3 #1 #2 _)]
+    [thm] size_keys: [@Array.size #4 (@keys _ #3 #2 #1 #0)]
     [thm] WF: [@getElem? (Array #6) `[Nat] _ _ _ (@keys _ #5 #4 #3 #2) #1, @some _ #0]
     [thm] Array.back_eq_getElem: [@Array.back #2 #1 #0]
-    [thm] Option.some_lt_some: [@LT.lt (Option #3) _ (@some _ #1) (@some _ #0)]
-    [thm] Array.size_pos_of_mem: [@Membership.mem #3 (Array _) _ #1 #2, @Array.size _ #1]
-    [thm] size_keys: [@Array.size #4 (@keys _ #3 #2 #1 #0)]
-    [thm] Array.getElem?_eq_none: [@Array.size #3 #1, @getElem? (Array _) `[Nat] _ _ _ #1 #2]
-    [thm] Array.eq_empty_of_size_eq_zero: [@Array.size #2 #1]
-    [thm] Array.size_pop: [@Array.size #1 (@Array.pop _ #0)]
-    [thm] Array.size_set: [@Array.size #4 (@Array.set _ #3 #2 #1 #0)]
     [thm] HashMap.mem_insert: [@Membership.mem #9 (HashMap _ #8 #7 #6) _ (@HashMap.insert _ _ _ _ #5 #2 #0) #1]
     [thm] HashMap.getElem?_insert: [@getElem? (HashMap #9 #8 #7 #6) _ _ _ _ (@HashMap.insert _ _ _ _ #5 #2 #0) #1]
     [thm] HashMap.mem_erase: [@Membership.mem #8 (HashMap _ #7 #6 #5) _ (@HashMap.erase _ _ _ _ #4 #1) #0]
@@ -709,15 +709,15 @@ right_2 : a_2 ∈ m.indices.erase a
         [_] ↑m.keys.size + -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size = 0
         [_] ↑i + -1 * ↑m.indices[a] = 0
         [_] ↑m.keys.pop.size + -1 * ↑(m.keys.size - 1) = 0
-        [_] ↑(m.keys.pop.set i (m.keys.back ⋯) ⋯).size + -1 * ↑((m.keys.set i (m.keys.back ⋯) ⋯).size - 1) = 0
+        [_] ↑(m.keys.pop.set i (m.keys.back ⋯) ⋯).size + -1 * ↑(m.keys.size - 1) = 0
         [_] ↑i_2 + -1 * ↑m.indices[m.keys[i_2]] = 0
         [_] ↑(m.keys.size - 1) + -1 * ↑((m.keys.set i (m.keys.back ⋯) ⋯).size - 1) = 0
-        [_] ↑((m.keys.set i (m.keys.back ⋯) ⋯).size - 1) + -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 = 0
-        [_] ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).pop.size + -1 = 0
+        [_] ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + -1 * ↑((m.keys.set i (m.keys.back ⋯) ⋯).size - 1) + -1 = 0
+        [_] ↑((m.keys.set i (m.keys.back ⋯) ⋯).size - 1) + -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).pop.size = 0
     [ring] Ring `Lean.Grind.Ring.OfSemiring.Q Nat`
       [basis] Basis
-        [_] ↑(m.keys.size - 1) + -1 * ↑(m.size - 1) = 0
-        [_] ↑(m.size - 1) + -1 * ↑((m.keys.set i (m.keys.back ⋯) ⋯).size - 1) = 0
+        [_] ↑(m.size - 1) + -1 * ↑(m.keys.size - 1) = 0
+        [_] ↑(m.keys.size - 1) + -1 * ↑((m.keys.set i (m.keys.back ⋯) ⋯).size - 1) = 0
 [grind] Diagnostics
   [ematch] E-matching Diagnostics
     [thm] Theorem Instance Count

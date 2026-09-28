@@ -4,22 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
+module
+public import Verso.Doc.ArgParse
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
+public meta import Verso.Doc.Elab.Monad
+public import VersoManual.Basic
 
-import Manual.Meta.Basic
+public section
 
 
 -- TODO: this is copied from LakeOpt for reasons of expediency. Factor out the common parts to a library!
 
 
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Verso ArgParse Doc Elab Genre.Manual Html Code
 open Lean Elab
 open Lean.Doc (CodeView)
 
@@ -35,7 +32,7 @@ def ElanOptKind.ns : ElanOptKind → String
   | .option => "elan-option"
 
 open ElanOptKind in
-instance : Quote ElanOptKind where
+meta instance : Quote ElanOptKind where
   quote
     | .flag => Syntax.mkCApp ``ElanOptKind.flag #[]
     | .option => Syntax.mkCApp ``ElanOptKind.option #[]
@@ -53,7 +50,7 @@ def elanOptDomain := `Manual.elanOpt
 structure ElanOptDefOpts where
   kind : ElanOptKind
 
-def ElanOptDefOpts.parse [Monad m] [MonadError m] : ArgParse m ElanOptDefOpts :=
+meta def ElanOptDefOpts.parse [Monad m] [MonadError m] : ArgParse m ElanOptDefOpts :=
   ElanOptDefOpts.mk <$> .positional `kind optKind
 where
   optKind : ValDesc m ElanOptKind := {
@@ -80,7 +77,7 @@ r#"
 "#
 
 @[role_expander elanOptDef]
-def elanOptDef : RoleExpander
+meta def elanOptDef : RoleExpander
   | args, inlines => do
     let {kind} ← ElanOptDefOpts.parse.run args
     let #[arg] := inlines
@@ -139,7 +136,7 @@ def elanOptDef.descr : InlineDescr where
 
 
 @[role_expander elanOpt]
-def elanOpt : RoleExpander
+meta def elanOpt : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
