@@ -26,6 +26,7 @@ import Manual.IO
 import Manual.Interaction
 import Manual.Monads
 import Manual.BuildTools
+import Manual.Linters
 import Manual.Releases
 import Manual.Namespaces
 import Manual.Runtime
@@ -137,6 +138,8 @@ Overview of the standard library, including types from the prelude and those tha
 {include 0 Manual.NotationsMacros}
 
 {include 0 Manual.BuildTools}
+
+{include 0 Manual.Linters}
 
 {include 0 Manual.ValidatingProofs}
 
