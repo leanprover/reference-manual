@@ -5,7 +5,7 @@ Author: Joseph Rotella, Rob Simmons
 -/
 
 import VersoManual
-import Manual.Meta.ErrorExplanation
+import Manual.Meta
 
 open Lean
 open Verso.Genre Manual InlineLean

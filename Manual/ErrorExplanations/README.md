@@ -97,7 +97,7 @@ the line `{include 0 Manual.ErrorExplanations.Foo}`.
 /- Manual/ErrorExplanations/Foo.lean -/
 
 import VersoManual
-import Manual.Meta.ErrorExplanation
+import Manual.Meta
 
 open Lean Doc
 open Verso.Genre Manual InlineLean

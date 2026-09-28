@@ -4,20 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Term
-import Lean.Elab.Tactic
-import Lean.Elab.Tactic.Grind
-import Lean.Elab.Tactic.Grind.ShowState
+module
+public import Manual.Meta.Tactics
+public meta import Manual.Meta.Tactics
+import VersoManual.InlineLean -- shake: keep
 
-import Verso.Code.Highlighted
-import Verso.Doc.ArgParse
-import SubVerso.Highlighting.Code
-import VersoManual
+public section
 
-import Manual.Meta.Basic
-import Manual.Meta.Tactics
-
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Verso ArgParse Doc Elab Genre.Manual Html Code
 open Lean Elab Term Tactic
 open SubVerso.Highlighting
 open Lean.Meta.Grind (Filter)
@@ -30,7 +24,7 @@ namespace Manual
 The result of elaborating a `grind`/`sym` interactive tactic example: the highlighted goal state and
 captured `grind` whiteboard before and after the demonstrated step, plus the highlighted step.
 -/
-structure GrindExampleResult where
+private structure GrindExampleResult where
   preGoals : Array (Highlighted.Goal Highlighted)
   postGoals : Array (Highlighted.Goal Highlighted)
   preGoalsStr : String
@@ -40,6 +34,8 @@ structure GrindExampleResult where
   postStateMsg : Highlighted.Message
   preStateStr : String
   postStateStr : String
+
+meta section
 
 private partial def disableLinter : InfoTree → InfoTree
   | .context (.commandCtx ci) child =>
@@ -88,7 +84,7 @@ Elaborates a `grind`/`sym` interactive example. Runs `setup` as ordinary tactics
 interactive engine on the resulting goal (with eager preprocessing unless `sym`), runs `grindPrefix`,
 captures the goal state and whiteboard, runs `step`, and captures them again.
 -/
-def checkGrindExample
+private def checkGrindExample
     (goal : Expr) (setup : Option Syntax) (grindPrefix : Option Syntax) (step : Syntax) (sym : Bool) :
     TermElabM GrindExampleResult := do
   let mv ← Meta.mkFreshExprMVar (some goal)
@@ -149,6 +145,8 @@ def checkGrindExample
     preStateMsg, postStateMsg, preStateStr, postStateStr
   }
 
+end
+
 /-! ## The `grindTacticExample` directive -/
 
 open Manual (TacticOutputConfig)
@@ -170,10 +168,12 @@ structure GrindExampleContext where
   preStateName : Ident
   postStateName : Ident
 
-initialize grindExampleCtx : EnvExtension (Option GrindExampleContext) ←
+meta initialize grindExampleCtx : EnvExtension (Option GrindExampleContext) ←
   registerEnvExtension (pure none)
 
 variable [Monad m] [MonadEnv m] [MonadError m] [MonadQuotation m] [MonadRef m]
+
+meta section
 
 private def getCtx : m GrindExampleContext := do
   match grindExampleCtx.getState (← getEnv) with
@@ -183,7 +183,7 @@ private def getCtx : m GrindExampleContext := do
 private def setCtx (st : GrindExampleContext) : m Unit := do
   modifyEnv fun env => grindExampleCtx.setState env (some st)
 
-def startGrindExample (sym : Bool) : m Unit := do
+private def startGrindExample (sym : Bool) : m Unit := do
   if (grindExampleCtx.getState (← getEnv)).isSome then
     throwError "Already in a grind tactic example"
   let preGoalsName ← mkFreshIdent (← getRef)
@@ -193,7 +193,7 @@ def startGrindExample (sym : Bool) : m Unit := do
   let postStateName ← mkFreshIdent (← getRef)
   setCtx { sym, preGoalsName, postGoalsName, stepName, preStateName, postStateName }
 
-def saveGrindGoal (goal : Expr) : m Unit := do
+private def saveGrindGoal (goal : Expr) : m Unit := do
   let st ← getCtx
   if st.goal.isSome then throwError "Goal already specified"
   setCtx { st with goal := goal }
@@ -203,13 +203,13 @@ def saveGrindSetup (setup : Syntax) : m Unit := do
   if st.setup.isSome then throwError "Setup already specified"
   setCtx { st with setup }
 
-def saveGrindPrefix (grindPrefix : Syntax) : m Unit := do
+private def saveGrindPrefix (grindPrefix : Syntax) : m Unit := do
   let st ← getCtx
   if st.grindPrefix.isSome then throwError "Grind prefix already specified"
   setCtx { st with grindPrefix }
 
 /-- Saves the demonstrated step and returns the ident bound to its highlighting. -/
-def saveGrindStep (step : Syntax) : m Ident := do
+private def saveGrindStep (step : Syntax) : m Ident := do
   let st ← getCtx
   if st.step.isSome then throwError "Step already specified"
   setCtx { st with step, seenStep := true }
@@ -239,7 +239,11 @@ def saveGrindState (str : VersoCodeBlock) (opts : TacticOutputConfig) : m Ident 
     setCtx { st with preGS := some (str, opts) }
     return st.preStateName
 
+end
+
 open Verso.Genre.Manual.InlineLean.Scopes (runWithOpenDecls runWithVariables)
+
+meta section
 
 open Lean.Parser in
 /-- Parses `str` as a sequence in the syntax category `cat` (e.g. `tacticSeq` or `grindSeq`). -/
@@ -335,6 +339,7 @@ def endGrindExample (body : TSyntax `term) : DocElabM (TSyntax `term) := do
     let $preStateName : Highlighted.Message := $(quote r.preStateMsg)
     let $postStateName : Highlighted.Message := $(quote r.postStateMsg)
     $body)
+
 where
   checkText (expected : VersoCodeBlock) (actual : String) (what : String) : DocElabM Unit := do
     if expected.getVersoCodeBlock.trimAscii != actual.trimAscii then
@@ -345,14 +350,16 @@ where
       Verso.Doc.Suggestion.saveSuggestion expected ((actual.take 30).copy ++ "…") (actual ++ "\n")
       logErrorAt expected m!"Grind state mismatch. Expected:{indentD actual}\nGot:{indentD expected.getVersoCodeBlock}"
 
+end
+
 structure GrindExampleConfig where
   sym : Bool := false
 
-def GrindExampleConfig.parse [Monad m] [MonadError m] : ArgParse m GrindExampleConfig :=
+meta def GrindExampleConfig.parse [Monad m] [MonadError m] : ArgParse m GrindExampleConfig :=
   GrindExampleConfig.mk <$> .flag `sym false
 
 @[directive_expander grindTacticExample]
-def grindTacticExample : DirectiveExpander
+meta def grindTacticExample : DirectiveExpander
   | args, blocks => do
     let config ← GrindExampleConfig.parse.run args
     startGrindExample config.sym

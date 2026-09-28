@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.Deriving
+module
+public import Lean.Data.NameMap.Basic
+public meta import Lean.Elab.Deriving.Basic -- shake: keep
+import Lean.Exception
+
+public section
 
 namespace Manual.Toml
 
@@ -35,10 +39,12 @@ instance {α : Type u} {β : Type v} : Test (α → β) where
   toString _ := "#<fun>"
 
 -- HACK: elide these fields that are platform-specific
-def ignoreFields := [`buildArchive]
+meta section
+
+private def ignoreFields := [`buildArchive]
 
 open Lean Elab Command in
-def deriveTest (declNames : Array Name) : CommandElabM Bool := do
+private def deriveTest (declNames : Array Name) : CommandElabM Bool := do
   if h : declNames.size ≠ 1 then return false
   else
     let declName := declNames[0]

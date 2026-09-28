@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Rotella, Rob Simmons
 -/
 
-import Manual.Meta.ErrorExplanation
+import Manual.Meta
 import Manual.ErrorExplanations.CtorResultingTypeMismatch
 import Manual.ErrorExplanations.DependsOnNoncomputable
 import Manual.ErrorExplanations.InductionWithNoAlts

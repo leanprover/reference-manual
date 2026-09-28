@@ -4,25 +4,24 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
+module
+public import Verso.Doc.Elab
+
+public section
 
 namespace Manual
 
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Verso ArgParse Doc Elab
 open Lean Elab
 
 structure SpliceContentsConfig where
   moduleName : Ident
 
-def SpliceContentsConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m SpliceContentsConfig :=
+meta def SpliceContentsConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m SpliceContentsConfig :=
   SpliceContentsConfig.mk <$> .positional `moduleName .ident
 
 @[part_command Lean.Doc.Parser.Block.command]
-def spliceContents : PartCommand
+meta def spliceContents : PartCommand
   | .command v => do
     unless v.name.getId == `spliceContents do Lean.Elab.throwUnsupportedSyntax
     let {moduleName} ← SpliceContentsConfig.parse.run (← parseArgs v.args)

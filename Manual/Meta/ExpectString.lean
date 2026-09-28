@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
+module
+public import Verso.Doc.Suggestion.Basic
+public import Lean.Util.Diff
+public import Verso.Literal
 
-import Verso
+public section
 
 open Lean Elab
 open Verso Doc
@@ -18,7 +20,7 @@ namespace Manual
 variable {m : Type → Type} [Monad m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
 variable [MonadInfoTree m]
 
-def abbreviateString (what : String) (maxLength : Nat := 30) : String :=
+private def abbreviateString (what : String) (maxLength : Nat := 30) : String :=
   if what.length > maxLength then
     (what.take maxLength).copy ++ "…"
   else

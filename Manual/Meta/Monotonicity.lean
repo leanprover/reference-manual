@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joachim Breitner
 -/
 
-import Verso
+module
+public meta import Manual.Meta.Instances
+public import VersoManual.InlineLean
+import VersoManual.Table
+import Manual.Meta.CustomStyle -- shake: keep
 
-import Manual.Meta.Attribute
-import Manual.Meta.Basic
-import Manual.Meta.CustomStyle
-import Manual.Meta.Instances
+public section
 
 
 open Verso Doc Elab Manual
@@ -24,7 +25,7 @@ namespace Manual
 A table for monotonicity lemmas. Likely some of this logic can be extracted to a helper
 in `Manual/Meta/Table.lean`.
 -/
-private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := none) : TermElabM Name := do
+private meta def mkInlineTable (rows : Array (Array Term)) (tag : Option String := none) : TermElabM Name := do
   if h : rows.size = 0 then
     throwError "Expected at least one row"
   else
@@ -99,16 +100,16 @@ def otherArg := @id
 
 open PrettyPrinter.Delaborator
 
-@[app_delab monoArg] def delabMonoArg : Delab :=
+@[app_delab monoArg] meta def delabMonoArg : Delab :=
   PrettyPrinter.Delaborator.withOverApp 2 `(·)
-@[app_delab otherArg] def delabOtherArg : Delab :=
+@[app_delab otherArg] meta def delabOtherArg : Delab :=
   PrettyPrinter.Delaborator.withOverApp 2 `(_)
 
 end delabhelpers
 
 
 open Lean Elab Command Term
-def mkMonotonicityLemmas : TermElabM Name := do
+meta def mkMonotonicityLemmas : TermElabM Name := do
     let names := (Meta.Monotonicity.monotoneExt.getState (← getEnv)).values
     let names := names.qsort (toString · < toString ·)
 
@@ -172,7 +173,7 @@ run_cmd do
 
 
 @[block_command]
-def monotonicityLemmas : BlockCommandOf Unit
+meta def monotonicityLemmas : BlockCommandOf Unit
   | () => do
     let extraCss ← `(Block.other (Block.customCSS $(quote css)) #[])
     ``(Block.concat #[$extraCss, monoTable])

@@ -4,85 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Verso
-import VersoManual
+module
+public import Manual.Meta.LexedText.Basic
+public meta import Manual.Meta.LexedText.Basic
+public meta import Verso.Doc.Elab.Monad
+public meta import Verso.Parser
+public import VersoManual.Basic
+import Verso.Doc.Elab.Monad
 
--- TODO generalize upstream - this is based on the one in the blog genre.
+public section
+
 namespace Manual
 open Verso
 open Lean.Doc (CodeView)
-
-abbrev LexedText.Highlighted := Array (Option String × String)
-
-structure LexedText where
-  name : String
-  content : LexedText.Highlighted
-deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToJson, Lean.FromJson
-
-open Lean in
-instance : Quote LexedText where
-  quote
-    | LexedText.mk n c => Syntax.mkCApp ``LexedText.mk #[quote n, quote c]
-
-namespace LexedText
-
-open Lean Parser
-
-open Verso.Parser (ignoreFn)
-
--- In the absence of a proper regexp engine, abuse ParserFn here
-structure Highlighter where
-  name : String
-  lexer : ParserFn
-  tokenClass : Syntax → Option String
-
-def highlight (hl : Highlighter) (str : String) : IO LexedText := do
-  let mut out : Highlighted := #[]
-  let mut unHl : Option String := none
-  let env ← mkEmptyEnvironment
-  let ictx := mkInputContext str "<input>"
-  let pmctx : ParserModuleContext := {env := env, options := {}}
-  let mut s := mkParserState str
-  repeat
-    if s.pos.atEnd str then
-      if let some txt := unHl then
-        out := out.push (none, txt)
-      break
-    let s' := hl.lexer.run ictx pmctx {} s
-    if s'.hasError then
-      let c := s.pos.get! str
-      unHl := unHl.getD "" |>.push c
-      s := {s with pos := s.pos + c}
-    else
-      let stk := s'.stxStack.extract 0 s'.stxStack.size
-      if stk.size ≠ 1 then
-        unHl := unHl.getD "" ++ s.pos.extract str s'.pos
-        s := s'.restore 0 s'.pos
-      else
-        let stx := stk[0]!
-        match hl.tokenClass stx with
-        | none => unHl := unHl.getD "" ++ s.pos.extract str s'.pos
-        | some tok =>
-          if let some ws := unHl then
-            out := out.push (none, ws)
-            unHl := none
-          out := out.push (some tok, s.pos.extract str s'.pos)
-        s := s'.restore 0 s'.pos
-  pure ⟨hl.name, out⟩
-
-def token (kind : Name) (p : ParserFn) : ParserFn :=
-  nodeFn kind <| ignoreFn p
-
-open Verso.Output Html
-
-def toHtml (text : LexedText) : Html :=
-  text.content.map fun
-    | (none, txt) => (txt : Html)
-    | (some cls, txt) => {{ <span class={{cls}}>{{txt}}</span>}}
-
---- Manual-specific parts
-
-end LexedText
 
 open Lean
 open Verso.Genre.Manual
@@ -95,7 +29,7 @@ open LexedText
 open Verso.Parser
 open Lean.Parser
 
-def hlC : Highlighter where
+meta def hlC : Highlighter where
   name := "C"
   lexer :=
     token `type (andthenFn type (notFollowedByFn (satisfyFn (·.isAlphanum)) "")) <|>
@@ -135,7 +69,7 @@ def Inline.c (value : LexedText) : Inline where
 def lexedText := ()
 
 @[code_block]
-def C : CodeBlockExpanderOf Unit
+meta def C : CodeBlockExpanderOf Unit
   | (), str => do
     let codeStr := str.getVersoCodeBlock
     let toks ← LexedText.highlight hlC codeStr
@@ -166,7 +100,7 @@ def c.idescr : InlineDescr where
   extraCss := [c.css]
 
 @[role C]
-def cInline : RoleExpanderOf Unit
+meta def cInline : RoleExpanderOf Unit
   | (), contents => do
     let #[x] := contents
       | throwError "Expected exactly one parameter"

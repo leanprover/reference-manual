@@ -4,31 +4,23 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
-
-import Verso
+module
+public meta import Manual.Meta.ExpectString
+public meta import Verso.Doc.Elab.Monad
 import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
 
-import SubVerso.Highlighting
-import SubVerso.Examples
-
-import Manual.Meta.Basic
-import Manual.Meta.ExpectString
+public section
 
 
 open Lean Elab
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Verso ArgParse Doc Elab
 open SubVerso.Highlighting Highlighted
 
 open Lean.Elab.Tactic.GuardMsgs
 
 namespace Manual
 
-private partial def parseOpts [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m (List String) :=
+private meta partial def parseOpts [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m (List String) :=
   (.many (.positional `subcommand stringOrIdent))
 where
   stringOrIdent : ValDesc m String := {
@@ -45,7 +37,7 @@ where
 Check that the output of `lake --help` has not changed unexpectedly
 -/
 @[code_block_expander lakeHelp]
-def lakeHelp : CodeBlockExpander
+meta def lakeHelp : CodeBlockExpander
   | args, str => do
     let sub ← parseOpts.run args
     let args := #["--help"] ++ sub.toArray
@@ -70,7 +62,7 @@ Check that the output of `lake CMD help` has not changed unexpectedly.
 This was introduced to get CI unstuck when `lake --help cache` was broken temporarily, but `lake cache help` worked.
 -/
 @[code_block_expander lakeCacheHelp]
-def lakeCacheHelp : CodeBlockExpander
+meta def lakeCacheHelp : CodeBlockExpander
   | args, str => do
     let sub ← parseOpts.run args
     let args := #["cache", "help"] ++ sub

@@ -4,26 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mac Malone
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
-
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
-
-import SubVerso.Highlighting
-import SubVerso.Examples
-
-import Manual.Meta.Basic
-import Manual.Meta.ExpectString
-import Manual.Meta.LexedText
-
+module
+public meta import Lake.Load.Manifest
+public import Manual.Meta.LexedText.Basic
+public meta import Manual.Meta.LexedText.Basic
+public meta import Verso.Doc.Elab.Monad
+public import VersoManual.Basic
 import Lake.Load.Manifest
+import Verso.Doc.Elab.Monad
+meta import Verso.Parser
+public meta import Verso.Parser
+
+public section
 
 open Lean Elab
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Verso ArgParse Doc Elab Genre.Manual Html Code
 open SubVerso.Highlighting Highlighted
 
 open Lean.Elab.Tactic.GuardMsgs
@@ -33,7 +28,7 @@ namespace Manual
 open Lean.Parser in
 open Verso.Parser in
 open LexedText in
-def jsonHl : Highlighter where
+private meta def jsonHl : Highlighter where
   name := "json"
   lexer :=
     token `brace (chFn '{' <|> chFn '}') <|>
@@ -47,7 +42,7 @@ def jsonHl : Highlighter where
   tokenClass := fun s => some (toString s.getKind)
 
 
-private def parseJson [Verso.Literal k] (str : TSyntax k) : DocElabM (Json × LexedText) := do
+private meta def parseJson [Verso.Literal k] (str : TSyntax k) : DocElabM (Json × LexedText) := do
   let s := Verso.Literal.decode str
   let json ←
     match Json.parse s with
@@ -103,7 +98,7 @@ block_extension Block.json (value : LexedText) where
 Check that contents of the block is a valid manifest file.
 -/
 @[code_block]
-def lakeManifest : CodeBlockExpanderOf Unit
+meta def lakeManifest : CodeBlockExpanderOf Unit
   | (), str => do
     let (json, toks) ← parseJson str
     match Lake.Manifest.decodeEntries json with
@@ -115,7 +110,7 @@ def lakeManifest : CodeBlockExpanderOf Unit
 Check that contents of the block is a valid package overrides file.
 -/
 @[code_block]
-def lakePackageOverrides : CodeBlockExpanderOf Unit
+meta def lakePackageOverrides : CodeBlockExpanderOf Unit
   | (), str => do
     let (json, toks) ← parseJson str
     match fromJson? json with
