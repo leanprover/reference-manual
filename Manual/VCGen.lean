@@ -54,16 +54,17 @@ The dependency on {namespace}`Lean.Order` is a temporary measure: this namespace
 
 The workflow of {tactic}`vcgen` consists of the following:
 
-1. Monadic programs are re-interpreted according to a {tech}[predicate transformer semantics].
-   An instance of {name}`WP` determines the monad's interpretation.
+1. Programs are re-interpreted according to a {tech}[predicate transformer semantics].
+   An instance of {name}`WP` for the program type determines the interpretation.
+   The program type can be a monadic computation, such as a {keywordOf Lean.Parser.Term.do}`do`-block in {lean}`StateM Nat`, or any other type, for example the syntax trees of a small imperative language.
    Each program is interpreted as a mapping from arbitrary {tech}[postconditions] to the {tech}[weakest precondition] that would ensure the postcondition.
-   This step is invisible to most users, but library authors who want to enable their monads to work with {tactic}`vcgen` need to understand it.
+   This step is invisible to most users, but library authors who want to enable their program types to work with {tactic}`vcgen` need to understand it.
 2. Programs are composed from smaller programs.
-   Each statement in a {keywordOf Lean.Parser.Term.do}`do`-block is associated with a predicate transformer, and there are general-purpose rules for combining these statements with sequencing and control-flow operators.
+   Each part of a program, such as a statement in a {keywordOf Lean.Parser.Term.do}`do`-block, is associated with a predicate transformer, and there are general-purpose rules for combining these parts with sequencing and control-flow operators.
    A statement with its pre- and postconditions is called a {tech}_Hoare triple_.
    In a program, the postcondition of each statement should suffice to prove the precondition of the next one, and loops require a specified {deftech}_loop invariant_, which is a statement that must be true at the beginning of the loop and at the end of each iteration.
    Designated {tech}_specification lemmas_ associate functions with Hoare triples that specify them.
-3. Applying the weakest-precondition semantics of a monadic program to a desired proof goal results in the precondition that must hold in order to prove the goal.
+3. Applying the weakest-precondition semantics of a program to a desired proof goal results in the precondition that must hold in order to prove the goal.
    Any missing steps such as loop invariants or proofs that a statement's precondition implies its postcondition become new subgoals.
    These missing steps are called the {deftech}_verification conditions_.
    The {tactic}`vcgen` tactic performs this transformation, replacing the goal with its verification conditions.
