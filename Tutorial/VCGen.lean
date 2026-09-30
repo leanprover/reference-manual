@@ -880,7 +880,7 @@ instance Result.instWPMonad : WPMonad Result Prop (Error → Prop) where
 :::
 
 ::: paragraph
-Finally, we also prove an adequacy lemma similar to {name}`Except.of_eq_wp` for {lean}`Result`.
+Finally, we also prove a soundness lemma similar to {name}`Except.of_eq_wp` for {lean}`Result`.
 ```lean
 theorem Result.of_eq_wp {α} {x prog : Result α}
     (h : prog = x) (P : Result α → Prop)

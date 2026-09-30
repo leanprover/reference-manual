@@ -65,8 +65,9 @@ The workflow of {tactic}`vcgen` consists of the following:
    In a program, the postcondition of each statement should suffice to prove the precondition of the next one, and loops require a specified {deftech}_loop invariant_, which is a statement that must be true at the beginning of the loop and at the end of each iteration.
    Designated {tech}_specification lemmas_ associate functions with Hoare triples that specify them.
 3. Applying the weakest-precondition semantics of a program to a desired proof goal results in the precondition that must hold in order to prove the goal.
-   Any missing steps such as loop invariants or proofs that a statement's precondition implies its postcondition become new subgoals.
-   These missing steps are called the {deftech}_verification conditions_.
+   The remaining entailments between assertions, such as a proof that the postcondition of one statement implies the precondition of the next, contain no weakest preconditions and become new subgoals.
+   These subgoals are called the {deftech}_verification conditions_.
+   Loop invariants that the user supplies become separate subgoals.
    The {tactic}`vcgen` tactic performs this transformation, replacing the goal with its verification conditions.
    During this transformation, {tactic}`vcgen` uses specification lemmas to discharge proofs about individual statements.
 4. After supplying loop invariants, many verification conditions can in practice be discharged automatically.
@@ -86,14 +87,14 @@ The predicates in question can be stateful: they can mention the program's curre
 Furthermore, postconditions can relate the return value and any exceptions thrown by the program to the final state.
 Each monad that can be used with {tactic}`vcgen` is assigned an assertion type and an exception postcondition type by an instance of {name}`WP`.
 For a state monad such as {lean}`StateM Nat`, an assertion is a predicate on the state, of type {lean}`Nat → Prop`.
-A postcondition additionally takes the return value as its first argument, and the exception postcondition covers each exception that the monad can throw.
+A postcondition additionally takes the return value as its first argument, and the exception postcondition covers each exception that the program can throw.
 
 
 ## Assertion Lattices
 
-The predicate transformer semantics of monadic programs is based on a logic in which propositions may mention the program's state.
+The predicate transformer semantics of programs is based on a logic in which propositions may mention the program's state.
 Here, “state” refers not only to mutable state, but also to read-only values such as those that are provided via {name}`ReaderT`.
-Different monads have different assertion types, which can be any complete lattice.
+Different programs have different assertion types, which can be any complete lattice.
 More specifically, assertion types instantiate {name}`Assertion`, which is a `class abbrev` over {name}`CompleteLattice` that is recognized by `vcgen`.
 
 {docstring Assertion}
@@ -183,8 +184,6 @@ estack⟨$_,*⟩
 ```
 :::
 
-{TODO}[I think the partial vs. total correctness discussion should maybe happen after we have actually introduced Triple? It discusses its syntax.]
-
 :::leanSection
 ```lean -show
 universe u v
@@ -204,8 +203,6 @@ variable {Pred : Type u} {EPred : Type v} {α : Type w} [Assertion Pred] [Assert
 A predicate transformer is a function from postconditions into assertions that describe preconditions.
 
 {docstring Lean.Order.PredTrans}
-
-{docstring Lean.Order.PredTrans.apply}
 
 :::leanSection
 ```lean -show
@@ -241,7 +238,7 @@ For example, {name}`PredTrans.pushArg` is typically used for state monads, but c
 variable {Prog : Type u} {Value : Type v} [WP Prog Value Pred EPred] {x : Prog} {post : Value → Pred} {epost : EPred}
 ```
 
-The {tech}[weakest precondition] semantics of a program type are provided by the {name}`WP` type class.
+The {tech}[weakest precondition] semantics of a program type is provided by the {name}`WP` type class.
 An instance {lean}`WP Prog Value Pred EPred` interprets programs of type {lean}`Prog` with results of type {lean}`Value` as monotone predicate transformers over the assertion type {lean}`Pred` and the exception postcondition type {lean}`EPred`.
 The type {lean}`Prog` determines {lean}`Value`, {lean}`Pred` and {lean}`EPred` as {name}`outParam`s.
 The function {name}`wp` applies the interpretation: {lean}`wp x post epost` is the weakest precondition under which the program {lean}`x` establishes the postcondition {lean}`post` and the exception postcondition {lean}`epost`.
@@ -251,7 +248,7 @@ The function {name}`wp` applies the interpretation: {lean}`wp x post epost` is t
 {docstring WP.wp}
 
 A program `x` that is {deftech}_conjunctive_ distributes a weakest precondition of a meet of two postconditions into a meet of the weakest preconditions of the postconditions.
-The type class {name}`WPConjunctive` captures this property, which allows for combining two specifications for `x` into a single strongest one, for example ({name}`Triple.and`).
+The type class {name}`WPConjunctive` captures this property, which allows for combining two specifications for `x` into a single strongest one, for example used in {name}`Triple.and`.
 
 {docstring WPConjunctive}
 
@@ -306,8 +303,7 @@ instance : LawfulMonad Identity :=
 ```
 
 The missing instance prevents {tactic}`vcgen` from using its specifications for {name}`pure` and {name}`bind`.
-This shows up as an error that no specification applies to the program.
-This function that reverses a list:
+For example, the following function reverses a list with a `for` loop in {name}`Identity`:
 ```lean
 def rev (xs : List α) : Identity (List α) := do
   let mut out := []
@@ -315,8 +311,8 @@ def rev (xs : List α) : Identity (List α) := do
     out := x :: out
   return out
 ```
-It is correct if it is equal to {name}`List.reverse`.
-However, {tactic}`vcgen` cannot take the program apart:
+The theorem `rev_correct` states that {name}`rev` agrees with {name}`List.reverse`.
+Without a {name}`WPMonad` instance, {tactic}`vcgen` cannot take {name}`rev` apart and reports that no specification applies to the program:
 ```lean +error -keep (name := noInst)
 theorem rev_correct {xs : List α} :
     (rev xs).run = xs.reverse := by
@@ -349,14 +345,14 @@ theorem rev_correct {xs : List α} :
 ```
 :::
 
-### Adequacy Lemmas
+### Soundness Lemmas
 %%%
-tag := "vcgen-adequacy"
+tag := "vcgen-soundness"
 %%%
 
 Monads that can be invoked from pure code typically provide an invocation operator that takes any required input state as a parameter and returns either a value paired with an output state or some kind of exceptional value.
 Examples include {name}`StateT.run`, {name}`ExceptT.run`, and {name}`Id.run`.
-{deftech}_Adequacy lemmas_ provide a bridge between statements about invocations of monadic programs and those programs' {tech}[weakest precondition] semantics as given by their {name}`WP` instances.
+{deftech}_Soundness lemmas_ provide a bridge between statements about invocations of monadic programs and those programs' {tech}[weakest precondition] semantics as given by their {name}`WP` instances.
 They show that a property about the invocation is true if its weakest precondition is true.
 
 {docstring Id.of_run_eq_wp}
@@ -403,10 +399,11 @@ When the exception postcondition is omitted, as in {lean}`⦃ P ⦄ x ⦃ Q ⦄`
 
 ## Specification Lemmas
 
-{deftech}_Specification lemmas_ are designated theorems that associate Hoare triples with functions.
-When {tactic}`vcgen` encounters a function, it checks whether there are any registered specification lemmas and attempts to use them to discharge intermediate {tech}[verification conditions].
-If there is no applicable specification lemma, then the connection between the statement's pre- and postconditions will become a verification condition.
-Specification lemmas allow compositional reasoning about libraries of monadic code.
+{deftech}_Specification lemmas_ are designated theorems that associate a Hoare triple with a program construct, such as {name Bind.bind}`bind`, {name Pure.pure}`pure`, a loop, or a call of a library function.
+The {tactic}`vcgen` tactic decomposes a goal `P ⊑ wp prog Q E` by applying a specification lemma whose program matches `prog`, as the section on {ref "vcgen-verification-conditions"}[verification conditions] describes.
+If no specification lemma applies to `prog`, then {tactic}`vcgen` reports an error that names `prog` and the candidate lemmas.
+Specification lemmas make reasoning about programs _compositional_: the specification lemma of a function `f` is proved once, and {tactic}`vcgen` applies it at every call of `f` without unfolding the definition of `f`.
+In this respect, {name Pure.pure}`pure` and {name Bind.bind}`bind` are ordinary functions: the specification lemmas {name}`Spec.pure` and {name}`Spec.bind` hold in every monad with a {name}`WPMonad` instance.
 
 When applied to a theorem whose statement is a Hoare triple, the {attr}`spec` attribute registers the theorem as a specification lemma.
 These lemmas are used in order of priority.
@@ -421,10 +418,9 @@ spec $[$_:prio]?
 {includeDocstring Lean.Parser.Attr.spec}
 :::
 
-Universally-quantified variables in specification lemmas can be used to relate input states to output states and return values.
-These variables are referred to as {deftech}_schematic variables_.
+A {deftech}_logical variable_ is a universally quantified variable of a specification lemma that the program does not mention and that relates the initial state to the final state and the return value.
 
-:::example "Schematic Variables"
+:::example "Logical Variables"
 ```imports -show
 import Std.WP
 import Std.Tactic.Do
@@ -442,7 +438,7 @@ def double : StateM Nat Unit := do
   modify (2 * ·)
 ```
 Its specification should _relate_ the initial and final states, but it cannot know their precise values.
-The specification uses a schematic variable to stand for the initial state:
+The specification uses a logical variable to stand for the initial state:
 ```lean
 theorem double_spec {n : Nat} :
     ⦃ fun s => s = n ⦄ double ⦃ fun _ s => s = 2 * n ⦄ := by
@@ -470,6 +466,9 @@ An invariant is a function of the prefix of elements that the loop has already c
 {docstring Invariant.withEarlyReturnNewDo}
 
 # Verification Conditions
+%%%
+tag := "vcgen-verification-conditions"
+%%%
 
 The {tactic}`vcgen` tactic converts a goal that's expressed in terms of weakest preconditions to a set of invariants and verification conditions that, together, suffice to prove the original goal.
 In particular, {tech}[Hoare triples] are defined in terms of weakest preconditions, so {tactic}`vcgen` can be used to prove them.
@@ -487,12 +486,15 @@ The verification conditions for a goal are generated as follows:
    If this fails, then a new goal is generated for each branch.
 4. If the expression is an application of a constant, then the applicable lemmas marked {attrs}`@[spec]` are attempted in priority order.
    Lean includes specification lemmas for constants such as {name Bind.bind}`bind`, {name Pure.pure}`pure`, and {name}`ForIn.forIn` that result from desugaring {keywordOf Lean.Parser.Term.do}`do`-notation.
-   Instantiating the lemma will sometimes discharge its premises, in particular schematic variables due to definitional equalities with the goal.
-   Assumptions of a type registered with {attr}`spec_invariant_type` are never instantiated this way, however.
-   If the spec lemma's precondition or postcondition do not exactly match those of the goal, then new metavariables are created that prove the necessary entailments.
-   If these cannot be immediately discharged using simple automation that attempts to use local assumptions and decomposes conjunctions in postconditions, then they remain as verification conditions.
+   Applying a lemma unifies its program with the program of the goal, which instantiates the variables of the lemma that occur in its program; the universally quantified postcondition of an {tech}[auto-framing specification] becomes the postcondition of the goal.
+   Assumptions of a type registered with {attr}`spec_invariant_type` become invariant goals.
+   If the precondition or postcondition of the lemma differs from that of the goal, then the entailment between them becomes a new goal.
+   The logical variables of the lemma appear in these entailments as metavariables.
 5. Each remaining goal created by this process is recursively processed for verification conditions if it has the form {lean}`P ⊑ wp e Q E`. If not, it is added to the set of invariants or verification conditions.
-6. The resulting subgoals receive the names `inv1`, `inv2`, … for invariants and `vc1`, `vc2`, … for verification conditions, in the order of generation.
+6. Before a verification condition is added, {tactic}`vcgen` solves its conjuncts of the form `True` or `e₁ = e₂` by definitional equality.
+   Solving an equality can assign a metavariable, so some logical variables become assigned: a conjunct `s = ?n` assigns `?n := s`.
+   The unsolved conjuncts remain as the verification condition.
+7. The resulting subgoals receive the names `inv1`, `inv2`, … for invariants and `vc1`, `vc2`, … for verification conditions, in the order of generation.
 
 An `until` clause stops VC generation at the first program that matches the given pattern.
 A `with` clause runs the given `grind`-mode step on every remaining verification condition.
@@ -509,7 +511,7 @@ Other monads will require instances of {name}`WP`, {name}`LawfulMonad`, and {nam
 The tactic has been designed to support monads that model single-threaded control with state that might be interrupted; in other words, the effects that are present in ordinary imperative programming.
 More exotic effects have not yet been investigated.
 
-Once the basic instances are provided, the next step is to prove an {ref "vcgen-adequacy"}[adequacy lemma].
+Once the basic instances are provided, the next step is to prove a {ref "vcgen-soundness"}[soundness lemma].
 This lemma should show that the weakest precondition for running the monadic computation and asserting a desired predicate is in fact sufficient to prove the predicate.
 
 In addition to the definition of the monad, typical libraries provide a set of primitive operators.
@@ -521,7 +523,7 @@ While it's often easier to think in terms of how the operator transforms an inpu
 This allows automation to instantiate the postcondition with the exact precondition of the next statement, rather than needing to show an entailment.
 In other words, specifications that specify the precondition as a function of the postcondition work better in practice than specifications that merely relate the pre- and postconditions.
 
-:::example "Schematic Postconditions"
+:::example "Auto-Framing Specifications"
 ```imports -show
 import Std.WP
 import Std.Tactic.Do
@@ -539,14 +541,14 @@ def double : StateM Nat Unit := do
   modify (2 * ·)
 ```
 Thinking chronologically, a reasonable specification is that value of the output state is twice that of the input state.
-This is expressed using a schematic variable that stands for the initial state:
+This is expressed using a logical variable that stands for the initial state:
 ```lean -keep
 theorem double_spec {n : Nat} :
     ⦃ fun s => s = n ⦄ double ⦃ fun _ s => s = 2 * n ⦄ := by
   simp [double]
   vcgen with finish
 ```
-However, an equivalent specification that treats the postcondition schematically will lead to smaller verification conditions when {name}`double` is used in other functions:
+However, an equivalent {deftech}_auto-framing specification_ leads to smaller verification conditions when {name}`double` is used in other functions:
 ```lean
 @[spec]
 theorem better_double_spec {Q : Unit → Nat → Prop} :
@@ -555,6 +557,8 @@ theorem better_double_spec {Q : Unit → Nat → Prop} :
   vcgen with finish
 ```
 Now, the precondition merely states that the postcondition should hold for double the initial state.
+Any property that `Q` states about state that {name}`double` does not change, such as a second state layer in a monad stack, holds after the call.
+At a call of {name}`double`, {tactic}`vcgen` instantiates `Q` with the postcondition that the rest of the program requires, so no entailment between postconditions remains as a verification condition.
 :::
 
 :::example "A Logging Monad"
@@ -627,7 +631,7 @@ instance : WPMonad (LogM β) (Array β → Prop) EStack⟨⟩ where
   bind_le_wp_bind x f post epost := by simp [wp, WP.wpTrans, bind]
 ```
 
-The adequacy lemma has one important detail: the weakest precondition is applied to the empty array.
+The soundness lemma has one important detail: the weakest precondition is applied to the empty array.
 This is necessary because the logging computation has been modeled as an append-only state, so there must be some initial state.
 Semantically, the empty array is the correct choice so as to not place items in a log that don't come from the program; technically, it must also be a value that commutes with the append operator on arrays.
 ```lean
@@ -650,7 +654,7 @@ theorem log_spec {x : β} {s' : Array β} :
   simp [log, wp, WP.wpTrans]
 ```
 
-A better specification for {name}`log` uses a schematic postcondition:
+A better specification for {name}`log` is an {tech}[auto-framing specification]:
 ```lean
 @[spec]
 theorem log_spec_better {x : β} {Q : Unit → Array β → Prop} :
