@@ -170,13 +170,19 @@ To use the feature at all, the mapping should be injective with respect to equal
 That is, given {lean}`x` and {lean}`y` of type {lean}`T`, it should be the case that {lean}`x = y` is logically equivalent to {lean}`x.toU = y.toU`.
 Adding the {attr}`grind hom` attribute to a suitable injectivity theorem activates the mapping feature.
 
+:::paragraph
 To be useful, the mapping should translate operations of interest on {lean}`T` into operations in {lean}`U` that are supported by {tactic}`grind`'s solvers.
 The {attr}`grind hom` attribute can be added to the following kinds of theorems:
+
 * To translate {lean}`f` into {lean}`g`, it should be the case that {lean}`(f x y).toU = g x.toU y.toU`.
 * Ordering relations can be translated by showing that {lean}`x ≤ y ↔ x.toU ≤ y.toU` and {lean}`x < y ↔ x.toU < y.toU`.
 * Numeric literals can be translated by providing a theorem that translates them into a function into {lean}`U`.
   This is done by adding the {attr}`grind hom` attribute to a theorem of the form {lean}`(OfNat.ofNat n : T).toU = h n`.
 * Conditionals can be translated by providing a theorem that shows that {lean}`(if p then x else y).toU = if p then x.toU else y.toU`.
+
+As a last resort, fallback rules can be provided that are applied after other rules have failed to rewrite a term.
+These are typically used for rules that would otherwise overlap others.
+:::
 
 Additional facts about the range of the mapping can be provided by tagging lemmas with {attr}`grind hom_pred`.
 This is typically used to restrict the range, such as by asserting that the target of {name}`Fin.val` is less than the {name}`Fin`'s bound.
@@ -188,6 +194,30 @@ This can be much more efficient.
 Because the mapping is injective, _disequality_ of terms in the new type implies disequality in the solver's domain, so {tactic}`grind`'s strategy of negating statements to derive a contradiction can be applied directly even without having a bijection.
 Because they run only very early in the process, homomorphism lemmas are applied without a discharger.
 This means that they do not permit conditional rewrites that require further proving (though rewrites can still be made conditional on an instance-implicit hypothesis, and propositional hypotheses are permitted when they are fully determined by the left-hand side).
+
+Homomorphism rules are declared using three attributes: {attr}`grind hom`, {attr}`grind hom fallback`, and {attr}`grind hom_pred`.
+These attributes respectively register homomorphism rules, fallback rules to be tried when the other {attr}`grind hom` rules don't apply, and facts about the range of the mapping.
+
+:::syntax attr (title := "Homomorphism Rules")
+```grammar
+grind hom
+```
+{includeDocstring Lean.Parser.Attr.grindHom}
+:::
+
+:::syntax attr (title := "Fallback Homomorphism Rules")
+```grammar
+grind hom fallback
+```
+{includeDocstring Lean.Parser.Attr.grindHomFallback}
+:::
+
+:::syntax attr (title := "Homomorphism Predicates")
+```grammar
+grind hom_pred
+```
+{includeDocstring Lean.Parser.Attr.grindHomPred}
+:::
 
 
 When debugging, homomorphism rewrites can be observed by setting {option}`trace.grind.hom` or {option}`trace.grind.hom.pred` to `true`.
@@ -529,5 +559,156 @@ example (h : a ++ c = b ++ c) : a = b := by
 
 example (h : a ++ b = .nil) : a = .nil := by
   grind [List.append_eq_nil_iff]
+```
+:::
+
+:::example "Times of Day"
+
+A time can be represented by hours and minutes:
+
+```lean
+structure Time where
+  hour : Fin 24
+  minute : Fin 60
+```
+
+```lean
+namespace Time
+```
+
+Each time can be represented as the number of minutes since midnight.
+This representation is not unique, because more than a day's worth of minutes wrap around to a time in the next day.
+
+```lean
+def toMinutes (t : Time) : Nat :=
+  t.hour.val * 60 + t.minute.val
+
+def ofMinutes (n : Nat) : Time where
+  hour := ⟨n / 60 % 24, by grind⟩
+  minute := ⟨n % 60, by grind⟩
+```
+
+While it's not particularly sensible to add two points in time, it's perfectly reasonable to add minutes to a time, yielding a later time.
+```lean
+def addMinutes (t : Time) (n : Nat) : Time :=
+  ofMinutes (t.toMinutes + n)
+```
+
+One time is less than another if it occurs earlier in the day.
+```lean
+instance : LT Time where
+  lt a b := a.toMinutes < b.toMinutes
+```
+
+Using {attr}`grind hom`, these operators can be mapped directly to the natural numbers.
+
+```lean
+@[grind hom]
+theorem eq_iff_toMinutes_eq (a b : Time) :
+    a = b ↔ a.toMinutes = b.toMinutes := by
+  constructor
+  · intro h; rw [h]
+  · obtain ⟨⟨h₁, _⟩, ⟨m₁, _⟩⟩ := a
+    obtain ⟨⟨h₂, _⟩, ⟨m₂, _⟩⟩ := b
+    simp only [toMinutes, mk.injEq, Fin.mk.injEq]
+    grind
+
+@[grind hom]
+theorem lt_iff_toMinutes_lt (a b : Time) :
+    a < b ↔ a.toMinutes < b.toMinutes := by
+  rfl
+
+@[grind hom]
+theorem toMinutes_addMinutes (t : Time) (n : Nat) :
+    (t.addMinutes n).toMinutes =
+      (t.toMinutes + n) % 1440 := by
+  have := t.hour.isLt
+  have := t.minute.isLt
+  simp only [addMinutes, ofMinutes, toMinutes]
+  grind
+```
+
+However, there is no rule that relates facts about the fields of {name}`Time` to minute counts.
+This leads to failures when using {tactic}`grind` to reason about the fields:
+
+```lean +error
+example (a b : Time) (h : a.hour < b.hour) : a < b := by
+  grind
+```
+
+One way around this is to use the defining equation of {name}`toMinutes` as a {attr}`grind hom` rule.
+Using this rule causes _all_ applications of {name}`toMinutes` to be rewritten in terms of the time's field values.
+
+```lean
+theorem toMinutes_eq (t : Time) :
+    t.toMinutes = t.hour.val * 60 + t.minute.val := by
+  rfl
+
+attribute [local grind hom] toMinutes_eq in
+example (a b : Time) (h : a.hour < b.hour) : a < b := by
+  grind
+```
+
+Unfortunately, this rule is applied in situations where one of the more specific rules would have been better.
+It's a useful fallback, but it is not the best choice when the other rules could have been used.
+In particular, it takes precedence over {name}`toMinutes_addMinutes`, which causes this proof to fail:
+
+```lean +error (name := timeOrdinary)
+attribute [local grind hom] toMinutes_eq in
+set_option trace.grind.hom true in
+example (t : Time) (h : t.hour < 23) :
+    t < t.addMinutes 60 := by
+  grind
+```
+```leanOutput timeOrdinary
+[grind.hom.pred] ↑t.hour < 24
+[grind.hom] t.hour < 23
+    ===>
+    ↑t.hour ≤ 22
+[grind.hom.pred] ↑t.minute < 60
+[grind.hom.pred] ↑(t.addMinutes 60).hour < 24
+[grind.hom.pred] ↑(t.addMinutes 60).minute < 60
+[grind.hom] t < t.addMinutes 60
+    ===>
+    60 * ↑t.hour + ↑t.minute + 1 ≤ 60 * ↑(t.addMinutes 60).hour + ↑(t.addMinutes 60).minute
+```
+
+The solution is to add {name}`toMinutes_eq` as a fallback rule:
+
+```lean
+attribute [grind hom fallback] toMinutes_eq
+```
+
+```lean (name := timeFallback)
+set_option trace.grind.hom true in
+example (t : Time) (h : t.hour < 23) :
+    t < t.addMinutes 60 := by
+  grind
+```
+```leanOutput timeFallback
+[grind.hom.pred] ↑t.hour < 24
+[grind.hom] t.hour < 23
+    ===>
+    ↑t.hour ≤ 22
+[grind.hom.pred] ↑t.minute < 60
+[grind.hom] t < t.addMinutes 60
+    ===>
+    60 * ↑t.hour + ↑t.minute + 1 ≤ (60 * ↑t.hour + ↑t.minute + 60) % 1440
+```
+
+With the fallback in place, all of these proofs succeed:
+
+```lean
+example (t : Time) : t.addMinutes 1440 = t := by
+  grind
+
+example (t : Time) (m n : Nat) :
+    (t.addMinutes m).addMinutes n =
+      t.addMinutes (m + n) := by
+  grind
+
+example (t : Time) (h : t.hour = 23) (h' : t.minute = 59) :
+    t.addMinutes 1 = ⟨0, 0⟩ := by
+  grind
 ```
 :::
