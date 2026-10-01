@@ -38,6 +38,8 @@ exampleStyle := .inlineLean `VCGenTutorial
 %%%
 
 This section is a tutorial that introduces the most important concepts of {tactic}`vcgen` top-down.
+The {tactic}`vcgen` tactic proves properties of any kind of program that has a weakest precondition semantics, from monadic computations to the syntax trees of a small imperative language.
+This tutorial focuses on monadic programs written with {keywordOf Lean.Parser.Term.do}`do`-notation, because they are the executable programs that Lean users most often want to prove something about.
 Recall that you need to import {module}`Std.WP` and {module}`Std.Tactic.Do` and open the namespaces {namespace}`Std.WP` and {namespace}`Lean.Order` to run these examples:
 
 :::codeOnly
@@ -93,8 +95,8 @@ def mySum (l : Array Nat) : Nat := Id.run do
 :::
 
 If {name}`mySum` is correct, then it is equal to {name}`Array.sum`.
-In {name}`mySum`, the use of {keywordOf Lean.Parser.Term.do}`do` is an internal implementation detail—the function's signature makes no mention of any monad.
-Thus, the proof first manipulates the goal into a form that is amenable to the use of {tactic}`vcgen`, using the lemma {name}`Id.of_run_eq_wp`.
+The statement `mySum l = l.sum` mentions no monad, because {keywordOf Lean.Parser.Term.do}`do` is an internal implementation detail of {name}`mySum`.
+The proof below therefore first brings the goal into the form that {tactic}`vcgen` works on, a weakest precondition, with the lemma {name}`Id.of_run_eq_wp`.
 This lemma states that facts about the result of running a computation in the {name}`Id` monad that terminates normally (`Id` computations never throw exceptions) can be proved by showing that the {tech (remote := "reference")}[weakest precondition] that ensures the desired result is true.
 Next, the proof uses {tactic}`vcgen` to replace the formulation in terms of weakest preconditions with a set of {tech (remote := "reference")}[verification conditions].
 
@@ -284,8 +286,10 @@ Some observations:
 
 The usual way to avoid replicating the control flow of a definition in a proof is to use the {tactic}`fun_cases` or {tactic}`fun_induction` tactics.
 Unfortunately, {tactic}`fun_cases` does not help with control flow inside a {name}`forIn` application.
-The {tactic}`vcgen` tactic, on the other hand, ships with support for many {name}`forIn` implementations.
-It can easily be extended (with {attrs}`@[spec]` annotations) to support custom {name}`forIn` implementations.
+The {tactic}`vcgen` tactic, on the other hand, ships with support for many {name}`forIn` implementations, and a custom {name}`forIn` implementation can be supported with a specification lemma that is annotated with {attrs}`@[spec]`.
+Writing such a lemma takes considerable work, because a loop specification takes the invariant as a parameter and must prove that the loop preserves it.
+A {name}`Std.Internal.PureForIn` instance is less work: it states that the loop over a container is the loop over the list {name}`ForIn.toList` of its elements.
+With this instance, the loop specification that ships with {tactic}`vcgen` applies to the container.
 Furthermore, a {tactic}`vcgen`-powered proof will never need to copy any part of the original program.
 
 # Compositional Reasoning About Effectful Programs Using Hoare Triples
@@ -340,8 +344,8 @@ theorem mkFreshN_correct (n : Nat) : ((mkFreshN n).run' s).Nodup := by
   generalize h : (mkFreshN n).run' s = x
   apply StateM.of_run'_eq_wp h
   -- Show something about monadic program `mkFresh n`.
-  -- The `mkFreshN` and `mkFresh` arguments to `vcgen` add to an
-  -- internal `simp` set and makes `vcgen` unfold these definitions.
+  -- The `mkFreshN` and `mkFresh` arguments make `vcgen` unfold
+  -- these definitions.
   vcgen [mkFreshN, mkFresh] invariants
   -- Invariant: The counter is larger than any accumulated number,
   --            and all accumulated numbers are distinct.
@@ -354,6 +358,12 @@ theorem mkFreshN_correct (n : Nat) : ((mkFreshN n).run' s).Nodup := by
 ```
 ::::
 
+This proof unfolds both {name}`mkFreshN` and {name}`mkFresh`.
+In a larger program, many functions call {name}`mkFresh`, and every proof about one of them like the above would unfold {name}`mkFresh` again.
+Instead, the behavior of {name}`mkFresh` can be stated once, proved once, and then used at every call.
+Proofs that use the specification of a function and never its code are called _modular_.
+Hoare triples are the standard form of specifications for effectful programs, and they make such modular reasoning possible.
+
 ## Hoare Triples
 
 ::::::leanSection
@@ -365,16 +375,9 @@ variable {m : Type u → Type v} [Monad m] {α σ ε : Type u} {Pred : Type u} {
 A {tech (remote := "reference")}_Hoare triple_ consists of a precondition, a statement, and a postcondition; it asserts that if the precondition holds, then the postcondition holds after running the statement.
 In Lean syntax, this is written {lean}`⦃ P ⦄ prog ⦃ Q ⦄`, where {lean}`P` is the precondition, {typed}`prog : m α` is the statement, and {lean}`Q` is the postcondition.
 {lean}`P` and {lean}`Q` are written in an assertion language that is determined by the specific monad {lean}`m`.{margin}[In particular, the monad's instance of the type class {name}`WP` specifies the ways in which assertions may refer to the monad's state or the exceptions it may throw.]
-
-:::leanSection
-```lean -show
-variable {stmt1 stmt2 : m PUnit} {P : Pred} {Q : PUnit → Pred} {P' : Pred} {Q' : PUnit → Pred}
-```
-
-Specifications as Hoare triples are compositional because they allow statements to be sequenced.
-Given {lean}`⦃P⦄ stmt1 ⦃Q⦄` and {lean}`⦃P'⦄ stmt2 ⦃Q'⦄`, if {lean}`Q` implies {lean}`P'` then {lean}`⦃P⦄ (do stmt1; stmt2) ⦃Q'⦄`.
-Just as proofs about ordinary functions can rely on lemmas about the functions that they call, proofs about monadic programs can use lemmas that are specified in terms of Hoare triples.
-:::
+An explicit exception postcondition can be supplied after a semicolon, as in `⦃ P ⦄ prog ⦃ Q; E ⦄`.
+When the exception postcondition is omitted, it defaults to the bottom assertion `⊥`, which asserts that the program throws no exception.
+The section “Exceptions” below shows postconditions for programs that throw.
 
 :::::paragraph
 One suitable specification for {name}`mkFreshN` as a Hoare triple is this translation of {name}`mkFreshN_correct`:
@@ -406,9 +409,7 @@ variable {n : Nat}
 mkFresh
 ⦃fun r state => r = c ∧ c < state.counter⦄
 ```
-When working in a state monad, preconditions may be parameterized over the value of the state prior to running the code.
-Here, the universally quantified {name}`Nat` is used to _relate_ the initial state to the final state; the precondition is used to connect it to the initial state.
-Similarly, the postcondition may also accept the final state as a parameter.
+The universally quantified {lean}`c` is a {tech (remote := "reference")}[logical variable]: it relates the initial state to the result and to the final state.
 This Hoare triple states:
 
 > If {lean}`c` refers to the {name}`Supply.counter` field of the {name}`Supply` prestate, then running {name}`mkFresh` returns {lean}`c` and modifies the {name}`Supply.counter` of the poststate to be larger than {lean}`c`.
@@ -421,28 +422,16 @@ This is good, because specifications may _abstract over_ uninteresting implement
 
 
 ::::paragraph
-Hoare triples are defined in terms of a {tech (remote := "reference")}[weakest precondition] semantics {lean}`wp prog Q epost` that translates programs into assertions.
-A weakest precondition semantics is an interpretation of programs as mappings from postconditions to the weakest precondition that the program would require to ensure the postcondition; in this interpretation, programs are understood as {tech (key := "predicate transformer semantics") (remote := "reference")}_predicate transformers_.
-The Hoare triple syntax is notation for {name}`Std.WP.Triple`:
+A triple {lean}`⦃ P ⦄ prog ⦃ Q ⦄` means {lean}`P ⊑ wp prog Q ⊥`: the precondition entails the {tech (remote := "reference")}[weakest precondition] from the beginning of this tutorial.
+The weakest precondition semantics {name}`wp` interprets programs as {tech (key := "predicate transformer semantics") (remote := "reference")}_predicate transformers_ that map postconditions to preconditions.
+The Hoare triple syntax is notation for {name}`Std.WP.Triple`, which is defined as follows, with some binders elided:
 
-:::codeOnly
-```lean
-section
-variable {Prog : Type u} {Value : Type v} {Pred : Type} {EPred : Type} [Assertion Pred] [Assertion EPred]
 ```
-:::
-```lean
--- This is the definition of Std.WP.Triple:
-structure Triple (x : Prog) [WP Prog Value Pred EPred]
+structure Triple ... (x : Prog) [WP Prog Value Pred EPred]
     (pre : Pred) (post : Value → Pred) (epost : EPred) : Prop where
   intro ::
   le_wp : pre ⊑ wp x post epost
 ```
-:::codeOnly
-```lean
-end
-```
-:::
 ::::
 
 ```lean -show
@@ -458,7 +447,7 @@ For {name}`StateM` programs, the following type is equivalent to {name}`Std.WP.T
 ```lean
 def StateMTriple {α σ : Type} (prog : StateM σ α)
     (P : σ → Prop) (Q : α → σ → Prop) : Prop :=
-  ∀ s, P s → (fun (a, s') => Q a s') (prog.run s)
+  ∀ s, P s → let (a, s') := prog.run s; Q a s'
 ```
 ```lean -show
 example {α σ : Type} (prog : StateM σ α) (P : σ → Prop) (Q : α → σ → Prop) :
@@ -467,16 +456,21 @@ example {α σ : Type} (prog : StateM σ α) (P : σ → Prop) (Q : α → σ �
 ```
 :::
 
-An explicit exception postcondition can be supplied after a semicolon, as in `⦃ P ⦄ prog ⦃ Q; E ⦄`.
-When the exception postcondition is omitted, it defaults to the bottom assertion `⊥`, which asserts that the program throws no exception.
-The shape of postconditions becomes more interesting once exceptions enter the picture.
+:::leanSection
+```lean -show
+variable {stmt1 stmt2 : m PUnit} {R : Pred} {Q : PUnit → Pred}
+```
+
+Specifications as Hoare triples are compositional because they allow statements to be sequenced.
+Given {lean}`⦃P⦄ stmt1 ⦃fun _ => R⦄` and {lean}`⦃R⦄ stmt2 ⦃Q⦄`, it follows that {lean}`⦃P⦄ (do stmt1; stmt2) ⦃Q⦄`.
+Just as proofs about ordinary functions can rely on lemmas about the functions that they call, proofs about monadic programs can use lemmas that are specified in terms of Hoare triples.
+:::
 
 ::::::
 
 ## Composing Specifications
 
-Nested unfolding of definitions as in {multiCode}[{tactic}`vcgen`{lit}` [`{name}`mkFreshN`{lit}`, `{name}`mkFresh`{lit}`]`] is quite blunt but effective for small programs.
-A more modular way is to develop individual {tech (remote := "reference")}_specification lemmas_ for each monadic function.
+The specifications from the previous section become {tech (remote := "reference")}_specification lemmas_.
 A specification lemma is a Hoare triple that is automatically used during {tech (remote := "reference")}[verification condition] generation to obtain the pre- and postconditions of each statement in a {keywordOf Lean.Parser.Term.do}`do`-block.
 When the system cannot automatically prove that the postcondition of one statement implies the precondition of the next, then this missing reasoning step becomes a verification condition.
 
@@ -516,53 +510,6 @@ theorem mkFreshN_correct_modular (n : Nat) :
 ```
 The specification lemma {name}`mkFreshN_spec` is automatically used by {tactic}`vcgen`.
 :::
-
-
-## An Advanced Note About Pure Preconditions and a Notion of Frame Rule
-
-This subsection is a bit of a digression and can be skipped on first reading.
-
-::::leanSection
-
-:::codeOnly
-```lean
-axiom M : Type → Type
-variable {x y : UInt8} {Pred EPred : Type}
-variable [Assertion Pred] [Assertion EPred]
-variable [Monad M] [WPMonad M Pred EPred]
-def addQ (x y : UInt8) : M UInt8 := pure (x + y)
-local infix:1023 " +? " => addQ
-```
-```lean -show
-axiom dots {α} : α
-local notation "…" => dots
-```
-:::
-
-Say the specification for some [`Aeneas`](https://github.com/AeneasVerif/aeneas)-inspired monadic addition function {typed}`x +? y : M UInt8` has the
-requirement that the addition won't overflow, that is, `h : x.toNat + y.toNat ≤ UInt8.size`.
-The corner brackets `⌜p⌝` embed a proposition `p` into the assertion language as a _pure_ assertion, an assertion that holds independently of the monadic state.
-Should this requirement be encoded as a regular Lean hypothesis of the specification (`add_spec_hyp`) or should this requirement be encoded as a pure precondition of the Hoare triple, using `⌜·⌝` notation (`add_spec_pre`)?
-
-:::displayOnly
-```lean
-theorem add_spec_hyp (x y : UInt8)
-    (h : x.toNat + y.toNat ≤ UInt8.size) :
-    ⦃⌜True⌝⦄ x +? y ⦃fun r => ⌜r.toNat = x.toNat + y.toNat⌝⦄ := …
-
-theorem add_spec_pre (x y : UInt8) :
-    ⦃⌜x.toNat + y.toNat ≤ UInt8.size⌝⦄
-    x +? y
-    ⦃fun r => ⌜r.toNat = x.toNat + y.toNat⌝⦄ := …
-```
-:::
-
-::::
-
-The first approach is advisable, although it should not make a difference in practice.
-The VC generator will move pure hypotheses from the stateful context into the regular Lean context, so the second form turns effectively into the first form.
-This is referred to as {deftech}_framing_ hypotheses.
-Hypotheses in the Lean context are part of the immutable {deftech}_frame_ of the stateful logic, because in contrast to stateful hypotheses they survive the rule of consequence.
 
 # Monad Transformers and Lifting
 
@@ -628,7 +575,9 @@ theorem mkFreshN_spec (n : Nat) :
       ⌜(∀ n ∈ acc, n < state.counter) ∧ acc.toList.Nodup⌝
   with finish
 ```
-The corner brackets absorb the assertion arguments that a specification does not mention: the precondition of {name}`mkFresh_spec` names the {name}`Supply` state, and `⌜state.counter = c⌝` covers the reader environment beneath it.
+The corner brackets `⌜p⌝` embed a proposition `p` into the assertion language as a _pure_ assertion, which holds independently of the state.
+In {name}`CounterM`, an assertion takes the {name}`Supply` state and then the {lean}`String` environment of the reader.
+The precondition of {name}`mkFresh_spec` binds only the state, and `⌜state.counter = c⌝` is a pure assertion about the environment: it holds for every environment if `state.counter = c` holds.
 ::::
 
 :::leanSection
@@ -636,9 +585,11 @@ The corner brackets absorb the assertion arguments that a specification does not
 universe u v
 variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type u} {prog : m α}
 ```
-The {name}`WPMonad` type class asserts that {name}`wp` distributes over the {name}`Monad` operations (“monad morphism”).
 This proof might not look much more exciting than when only a single monad was involved.
 However, under the radar of the user the proof builds on a cascade of specifications for {name}`MonadLift` instances.
+It also builds on the {name}`WPMonad` instances of {name}`StateT` and {name}`ReaderT`, which make the specifications of {name Pure.pure}`pure` and {name Bind.bind}`bind` available in every layer.
+A {name}`WPMonad` instance requires only that the weakest precondition of {name Pure.pure}`pure` and {name Bind.bind}`bind` is at least as weak as the one that the predicate transformer monad computes.
+In other words, {name}`wp` is a lax morphism of ordered monads.
 
 :::
 
@@ -785,8 +736,8 @@ The {name}`WP` instance for {lean}`EStateM ε σ` uses assertions of type `σ �
 The {tactic}`vcgen` framework is designed to be extensible.
 None of the monads presented so far have in any way been hard-coded into {tactic}`vcgen`.
 Rather, {tactic}`vcgen` relies on instances of the {name}`WP` and {name}`WPMonad` type class and user-provided specifications to generate {tech (remote := "reference")}[verification conditions].
-The type class {name}`WP` applies to any program type, for example the syntax trees of a small imperative language, and {tactic}`vcgen` generates verification conditions for all of them.
-This section treats the common case of a monad, which additionally needs a {name}`WPMonad` instance.
+Every program type needs a {name}`WP` instance, and a monad additionally needs a {name}`WPMonad` instance.
+This section develops both for a custom monad.
 
 :::leanSection
 ```lean -show
