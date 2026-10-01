@@ -85,7 +85,7 @@ Logically equivalent assertions are considered to be equal.
 
 The predicates in question can be stateful: they can mention the program's current state.
 Furthermore, postconditions can relate the return value and any exceptions thrown by the program to the final state.
-Each monad that can be used with {tactic}`vcgen` is assigned an assertion type and an exception postcondition type by an instance of {name}`WP`.
+Each program type that can be used with {tactic}`vcgen` is assigned an assertion type and an exception postcondition type by an instance of {name}`WP`.
 For a state monad such as {lean}`StateM Nat`, an assertion is a predicate on the state, of type {lean}`Nat → Prop`.
 A postcondition additionally takes the return value as its first argument, and the exception postcondition covers each exception that the program can throw.
 
@@ -94,7 +94,7 @@ A postcondition additionally takes the return value as its first argument, and t
 
 The predicate transformer semantics of programs is based on a logic in which propositions may mention the program's state.
 Here, “state” refers not only to mutable state, but also to read-only values such as those that are provided via {name}`ReaderT`.
-Different programs have different assertion types, which can be any complete lattice.
+Different program types have different assertion types, which can be any complete lattice.
 More specifically, assertion types instantiate {name}`Assertion`, which is a `class abbrev` over {name}`CompleteLattice` that is recognized by `vcgen`.
 
 {docstring Assertion}
@@ -248,7 +248,7 @@ The function {name}`wp` applies the interpretation: {lean}`wp x post epost` is t
 {docstring WP.wp}
 
 A program `x` that is {deftech}_conjunctive_ distributes a weakest precondition of a meet of two postconditions into a meet of the weakest preconditions of the postconditions.
-The type class {name}`WPConjunctive` captures this property, which allows for combining two specifications for `x` into a single strongest one, for example used in {name}`Triple.and`.
+The type class {name}`WPConjunctive` captures this property, which allows for combining two specifications for `x` into a single strongest one, as {name}`Triple.and` does.
 
 {docstring WPConjunctive}
 
@@ -519,10 +519,8 @@ Simplified hypotheses also help `grind` to detect contradictory goals.
 
 # Enabling `vcgen` For Monads
 
-If a monad is implemented in terms of {tech}[monad transformers] that are provided by the Lean standard library, such as {name}`ExceptT` and {name}`StateT`, then it should not require additional instances.
+If a monad is implemented in terms of {tech}[monad transformers] that are provided by the Lean standard library, such as {name}`ExceptT` and {name}`StateT`, then it should not require additional instances to work with {tactic}`vcgen`.
 Other monads will require instances of {name}`WP`, {name}`LawfulMonad`, and {name}`WPMonad`.
-The tactic has been designed to support monads that model single-threaded control with state that might be interrupted; in other words, the effects that are present in ordinary imperative programming.
-More exotic effects have not yet been investigated.
 
 Once the basic instances are provided, the next step is to prove a {ref "vcgen-soundness"}[soundness lemma].
 This lemma should show that the weakest precondition for running the monadic computation and asserting a desired predicate is in fact sufficient to prove the predicate.
@@ -531,10 +529,8 @@ In addition to the definition of the monad, typical libraries provide a set of p
 Each of these should be provided with a {tech}[specification lemma].
 It may additionally be useful to make the internals of the state private, and export a carefully-designed set of assertion operators.
 
-The specification lemmas for the library's primitive operators should ideally be precise specifications of the operators as predicate transformers.
-While it's often easier to think in terms of how the operator transforms an input state into an output state, {tech}[verification condition] generation will work more reliably when postconditions are completely free.
-This allows automation to instantiate the postcondition with the exact precondition of the next statement, rather than needing to show an entailment.
-In other words, specifications that specify the precondition as a function of the postcondition work better in practice than specifications that merely relate the pre- and postconditions.
+The specification lemmas for the library's primitive operators should preserve every fact about the state that they do not deliberately hide.
+While it's often easier to think in terms of how the operator transforms an input state into an output state, {tech}[verification condition] generation works more reliably when the postcondition is universally quantified, so that automation can instantiate it with the precondition of the next statement instead of proving an entailment.
 
 :::example "Auto-Framing Specifications"
 ```imports -show
