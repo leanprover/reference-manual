@@ -402,7 +402,7 @@ When the exception postcondition is omitted, as in {lean}`⦃ P ⦄ x ⦃ Q ⦄`
 {deftech}_Specification lemmas_ are designated theorems that associate a Hoare triple with a program construct, such as {name Bind.bind}`bind`, {name Pure.pure}`pure`, a loop, or a call of a library function.
 The {tactic}`vcgen` tactic decomposes a goal `P ⊑ wp prog Q E` by applying a specification lemma whose program matches `prog`, as the section on {ref "vcgen-verification-conditions"}[verification conditions] describes.
 If no specification lemma applies to `prog`, then {tactic}`vcgen` reports an error that names `prog` and the candidate lemmas.
-Specification lemmas make reasoning about programs _compositional_: the specification lemma of a function `f` is proved once, and {tactic}`vcgen` applies it at every call of `f` without unfolding the definition of `f`.
+Specification lemmas make reasoning about programs _modular_: the specification lemma of a function `f` is proved once, and {tactic}`vcgen` applies it at every call of `f` without unfolding the definition of `f`.
 In this respect, {name Pure.pure}`pure` and {name Bind.bind}`bind` are ordinary functions: the specification lemmas {name}`Spec.pure` and {name}`Spec.bind` hold in every monad with a {name}`WPMonad` instance.
 
 When applied to a theorem whose statement is a Hoare triple, the {attr}`spec` attribute registers the theorem as a specification lemma.
@@ -477,32 +477,45 @@ In particular, {tech}[Hoare triples] are defined in terms of weakest preconditio
 ```lean -show
 variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type u} {e : m α} {P : Pred} {Q : α → Pred} {E : EPred}
 ```
-{TODO}[This is not completely faithful to the current implementation and does not talk about advanced topics like frameprocs. But it is a good model to keep for now, I think]
+{TODO}[This model does not cover frames: the `frames` clause and frameprocs.]
 The verification conditions for a goal are generated as follows:
-1. A number of simplifications and rewrites are applied, and the goal context is internalized into `grind`'s E-graph.
-2. The goal should now be of the form {lean}`P ⊑ wp e Q E` (that is, an entailment from some assertion to the weakest precondition that implies a desired postcondition).
-3. If the expression is an application of an {tech}[auxiliary matching function] or a conditional ({name}`ite` or {name}`dite`), then it is first simplified.
-   The {tech (key := "match discriminant")}[discriminant] of each matcher is simplified, and the entire term is reduced in an attempt to eliminate the matcher or conditional.
-   If this fails, then a new goal is generated for each branch.
-4. If the expression is an application of a constant, then the applicable lemmas marked {attrs}`@[spec]` are attempted in priority order.
-   Lean includes specification lemmas for constants such as {name Bind.bind}`bind`, {name Pure.pure}`pure`, and {name}`ForIn.forIn` that result from desugaring {keywordOf Lean.Parser.Term.do}`do`-notation.
-   Applying a lemma unifies its program with the program of the goal, which instantiates the variables of the lemma that occur in its program; the universally quantified postcondition of an {tech}[auto-framing specification] becomes the postcondition of the goal.
-   Assumptions of a type registered with {attr}`spec_invariant_type` become invariant goals.
-   If the precondition or postcondition of the lemma differs from that of the goal, then the entailment between them becomes a new goal.
-   The logical variables of the lemma appear in these entailments as metavariables.
-5. Each remaining goal created by this process is recursively processed for verification conditions if it has the form {lean}`P ⊑ wp e Q E`. If not, it is added to the set of invariants or verification conditions.
-6. Before a verification condition is added, {tactic}`vcgen` solves its conjuncts of the form `True` or `e₁ = e₂` by definitional equality.
+1. The goal is brought into the form of an entailment `P ⊑ R` between assertions.
+   Binders are introduced, a {tech}[Hoare triple] is unfolded to {lean}`P ⊑ wp e Q E`, and a goal `wp e Q E` becomes `⊤ ⊑ wp e Q E`.
+2. The precondition `P` moves into the local context: a pure assertion `⌜φ⌝` becomes a hypothesis `φ`, an existential `⨆` becomes a variable, and the arguments of a state predicate become variables.
+3. The assertion `R` is decomposed along its connectives: `⊓` gives one goal per conjunct, `⇨` moves its antecedent into the precondition, `⌜φ⌝` gives the proposition `φ`, and `⊤` closes the goal.
+4. If `R` is {lean}`wp e Q E`, then the program {lean}`e` is decomposed:
+   1. A `let` is introduced.
+      An application of an {tech}[auxiliary matching function] whose {tech (key := "match discriminant")}[discriminant] is a constructor application is reduced; any other conditional or match is split into one goal per branch.
+   2. An application of a function is handled by the first applicable specification lemma in priority order.
+      Hypotheses that are Hoare triples also count as specification lemmas.
+      Lean includes specification lemmas for {name Bind.bind}`bind`, {name Pure.pure}`pure`, {name}`ForIn.forIn` and the other functions that result from desugaring {keywordOf Lean.Parser.Term.do}`do`-notation.
+      If no specification lemma applies, then {tactic}`vcgen` reports an error.
+   3. A specification lemma `P' ⊑ wp e' Q' E'` is applied by transitivity of `⊑`: the goal {lean}`P ⊑ wp e Q E` follows from `P ⊑ P'` and `wp e' Q' E' ⊑ wp e Q E`.
+      The second entailment holds when `e'` unifies with {lean}`e`, `Q' ⊑ Q` and `E' ⊑ E`.
+      In effect, {tactic}`vcgen` replaces the weakest precondition in the goal by the precondition of the lemma, which gives the new goal `P ⊑ P'`.
+   4. Unification instantiates the variables of the lemma that occur in its program.
+      The universally quantified postcondition of an {tech}[auto-framing specification] becomes {lean}`Q`, so `Q' ⊑ Q` holds by reflexivity and no goal for the postcondition remains.
+      Otherwise, the entailments `Q' ⊑ Q` and `E' ⊑ E` become new goals.
+      Assumptions of a type registered with {attr}`spec_invariant_type` become invariant goals.
+      The logical variables of the lemma appear as metavariables in all of these new goals.
+5. Each new goal is processed again from step 1.
+   For example, the specification lemma {name}`Spec.bind` is auto-framing and has the precondition `wp x (fun a => wp (f a) Q E) E`.
+   For a goal `P ⊑ wp (x >>= f) Q E`, the new goal is `P ⊑ wp x (fun a => wp (f a) Q E) E`.
+   When a specification lemma for `x` applies to this goal, the entailment between the postconditions has `wp (f a) Q E` on the right, so the rest of the program is decomposed in the same way.
+   Before a new goal is processed, its hypotheses are internalized into `grind`'s E-graph, and a goal whose hypotheses are contradictory is dropped.
+6. A goal that no step decomposes further is a verification condition.
+   Before it is emitted, {tactic}`vcgen` solves its conjuncts of the form `True` or `e₁ = e₂` by definitional equality.
    Solving an equality can assign a metavariable, so some logical variables become assigned: a conjunct `s = ?n` assigns `?n := s`.
    The unsolved conjuncts remain as the verification condition.
 7. The resulting subgoals receive the names `inv1`, `inv2`, … for invariants and `vc1`, `vc2`, … for verification conditions, in the order of generation.
 
+VC generation stops early after `stepLimit` program steps.
 An `until` clause stops VC generation at the first program that matches the given pattern.
 A `with` clause runs the given `grind`-mode step on every remaining verification condition.
+A clause `simplifying_assumptions [h₁, h₂]` rewrites the hypotheses that binders and branches introduce, and the state arguments of each weakest precondition, with `h₁` and `h₂` as additional rewrite rules.
+This keeps the intermediate goals in a normal form that the user chooses: for example, a sequence of state updates can fold into one constructor application, so that the goals do not grow with the number of updates.
+Simplified hypotheses also help `grind` to detect contradictory goals.
 :::
-
-Verification condition generation can be improved by defining appropriate {tech}[specification lemmas] for a library.
-The presence of good specification lemmas results in fewer generated verification conditions.
-Additionally, ensuring that the {tech}[simp normal form] of terms is suitable for pattern matching, and that there are sufficient lemmas in the default simp set to reduce every possible term to that normal form, can lead to more conditionals and pattern matches being eliminated.
 
 # Enabling `vcgen` For Monads
 
@@ -540,7 +553,7 @@ The function {name}`double` doubles a natural number state:
 def double : StateM Nat Unit := do
   modify (2 * ·)
 ```
-Thinking chronologically, a reasonable specification is that value of the output state is twice that of the input state.
+Thinking chronologically, a reasonable specification is that the value of the output state is twice that of the input state.
 This is expressed using a logical variable that stands for the initial state:
 ```lean -keep
 theorem double_spec {n : Nat} :
@@ -559,6 +572,10 @@ theorem better_double_spec {Q : Unit → Nat → Prop} :
 Now, the precondition merely states that the postcondition should hold for double the initial state.
 Any property that `Q` states about state that {name}`double` does not change, such as a second state layer in a monad stack, holds after the call.
 At a call of {name}`double`, {tactic}`vcgen` instantiates `Q` with the postcondition that the rest of the program requires, so no entailment between postconditions remains as a verification condition.
+
+The precondition of {name}`better_double_spec` is exactly the weakest precondition of {name}`double`, so callers depend on the complete behavior of {name}`double`.
+An auto-framing specification can also leave details open.
+For example, the precondition `fun s => ∀ s', s ≤ s' → Q () s'` only promises that {name}`double` does not decrease the state.
 :::
 
 :::example "A Logging Monad"

@@ -476,7 +476,7 @@ The shape of postconditions becomes more interesting once exceptions enter the p
 ## Composing Specifications
 
 Nested unfolding of definitions as in {multiCode}[{tactic}`vcgen`{lit}` [`{name}`mkFreshN`{lit}`, `{name}`mkFresh`{lit}`]`] is quite blunt but effective for small programs.
-A more compositional way is to develop individual {tech (remote := "reference")}_specification lemmas_ for each monadic function.
+A more modular way is to develop individual {tech (remote := "reference")}_specification lemmas_ for each monadic function.
 A specification lemma is a Hoare triple that is automatically used during {tech (remote := "reference")}[verification condition] generation to obtain the pre- and postconditions of each statement in a {keywordOf Lean.Parser.Term.do}`do`-block.
 When the system cannot automatically prove that the postcondition of one statement implies the precondition of the next, then this missing reasoning step becomes a verification condition.
 
@@ -508,7 +508,7 @@ theorem mkFreshN_spec (n : Nat) :
 :::paragraph
 The original correctness theorem can now be proved using {tactic}`vcgen` alone:
 ```lean
-theorem mkFreshN_correct_compositional (n : Nat) :
+theorem mkFreshN_correct_modular (n : Nat) :
     ((mkFreshN n).run' s).Nodup := by
   generalize h : (mkFreshN n).run' s = x
   apply StateM.of_run'_eq_wp h
