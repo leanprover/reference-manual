@@ -245,14 +245,13 @@ variable {l : List Int} {ret : Bool} {seen : Std.HashSet Int} {pref suff : List 
 axiom onReturn : Bool → Std.HashSet Int → Prop
 axiom onContinue : List Int → List Int → Std.HashSet Int → Prop
 ```
-The proof has the same succinct structure as for the initial {name}`mySum` example, because we again offload all proofs to {tactic}`grind` and its existing automation around {name}`List.Nodup`.
-Therefore, the only difference is in the {tech (remote := "reference")}[loop invariant].
+The proof has the same structure as the one for {name}`mySum`: {tactic}`grind` discharges all verification conditions with its existing automation around {name}`List.Nodup`, and only the {tech (remote := "reference")}[loop invariant] differs.
 Since our loop has an {ref "early-return" (remote := "reference")}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturnNewDo`, which supports the {ref "do-elab" (remote := "reference")}[extensible `do`-notation elaborator].
 This function allows us to specify the invariant in two parts:
 
 * {lean}`onReturn ret seen` holds after the loop was left through an early return with value {lean}`ret`.
   In case of {name}`nodup`, the only value that is ever returned is {name}`false`, in which case {name}`nodup` has decided there _is_ a duplicate in the list.
-* {lean}`onContinue pref suff seen` is the regular induction step that proves the invariant is preserved each loop iteration.
+* {lean}`onContinue pref suff seen` is the invariant that holds after each regular iteration.
   As in {name}`mySum`, the list {lean}`pref` holds the elements that the loop has already visited and {lean}`suff` holds the elements that the loop has yet to visit.
   The given example asserts that the set {lean}`seen` contains all the elements of previous loop iterations and asserts that there were no duplicates so far.
 ```lean -show
@@ -286,11 +285,11 @@ Some observations:
 
 The usual way to avoid replicating the control flow of a definition in a proof is to use the {tactic}`fun_cases` or {tactic}`fun_induction` tactics.
 Unfortunately, {tactic}`fun_cases` does not help with control flow inside a {name}`forIn` application.
-The {tactic}`vcgen` tactic, on the other hand, ships with support for many {name}`forIn` implementations, and a custom {name}`forIn` implementation can be supported with a specification lemma that is annotated with {attrs}`@[spec]`.
+A {tactic}`vcgen`-powered proof, on the other hand, never needs to copy any part of the original program.
+The {tactic}`vcgen` tactic ships with support for many {name}`forIn` implementations, and a custom {name}`forIn` implementation can be supported with a specification lemma that is annotated with {attrs}`@[spec]`.
 Writing such a lemma takes considerable work, because a loop specification takes the invariant as a parameter and must prove that the loop preserves it.
 A {name}`Std.Internal.PureForIn` instance is less work: it states that the loop over a container is the loop over the list {name}`ForIn.toList` of its elements.
 With this instance, the loop specification that ships with {tactic}`vcgen` applies to the container.
-Furthermore, a {tactic}`vcgen`-powered proof will never need to copy any part of the original program.
 
 # Compositional Reasoning About Effectful Programs Using Hoare Triples
 
@@ -558,7 +557,7 @@ def mkFreshN (n : Nat) : AppM (List Nat) := do
 ::::
 
 ::::paragraph
-Then the {tactic}`vcgen`-based proof goes through unchanged:
+The specification lemmas change only in two places: their pure parts are wrapped in corner brackets, and the invariant takes an extra argument for the {lean}`Bool` state of {name}`AppM`:
 ```lean
 @[spec]
 theorem mkFresh_spec (c : Nat) :
@@ -585,9 +584,9 @@ The precondition of {name}`mkFresh_spec` binds only the state, and `⌜state.cou
 universe u v
 variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type u} {prog : m α}
 ```
-This proof might not look much more exciting than when only a single monad was involved.
-However, under the radar of the user the proof builds on a cascade of specifications for {name}`MonadLift` instances.
-It also builds on the {name}`WPMonad` instances of {name}`StateT` and {name}`ReaderT`, which make the specifications of {name Pure.pure}`pure` and {name Bind.bind}`bind` available in every layer.
+These proofs might not look much more exciting than when only a single monad was involved.
+However, under the radar of the user the proofs build on a cascade of specifications for {name}`MonadLift` instances.
+They also build on the {name}`WPMonad` instances of {name}`StateT` and {name}`ReaderT`, which make the specifications of {name Pure.pure}`pure` and {name Bind.bind}`bind` available in every layer.
 A {name}`WPMonad` instance requires only that the weakest precondition of {name Pure.pure}`pure` and {name Bind.bind}`bind` is at least as weak as the one that the predicate transformer monad computes.
 In other words, {name}`wp` is a lax morphism of ordered monads.
 
@@ -641,7 +640,7 @@ namespace Exceptions
 
 
 For example, suppose that our {name}`Supply` of fresh numbers is bounded and we want to throw an exception if the supply is exhausted.
-Then {name}`mkFreshN` should throw an exception _only if_ the supply is indeed exhausted, as in this implementation:
+Then {name}`mkFresh` should throw an exception _only if_ the supply is indeed exhausted, as in this implementation:
 ```lean
 structure Supply where
   counter : Nat
@@ -670,7 +669,7 @@ theorem mkFresh_spec (c : Nat) :
   vcgen [mkFresh] with finish
 ```
 
-In this property, the triple has two postconditions, separated by a semicolon: the first covers successful termination, and the second applies when an exception is thrown.
+The exception postcondition after the semicolon applies when {name}`mkFresh` throws.
 The monad's {name}`WP` instance determines the types of both postconditions: the exception postcondition takes the thrown exception in place of the result value, and each state gives an extra parameter.
 
 :::leanFirst
@@ -735,7 +734,7 @@ The {name}`WP` instance for {lean}`EStateM ε σ` uses assertions of type `σ �
 
 The {tactic}`vcgen` framework is designed to be extensible.
 None of the monads presented so far have in any way been hard-coded into {tactic}`vcgen`.
-Rather, {tactic}`vcgen` relies on instances of the {name}`WP` and {name}`WPMonad` type class and user-provided specifications to generate {tech (remote := "reference")}[verification conditions].
+Rather, {tactic}`vcgen` relies on instances of the {name}`WP` and {name}`WPMonad` type classes and user-provided specifications to generate {tech (remote := "reference")}[verification conditions].
 Every program type needs a {name}`WP` instance, and a monad additionally needs a {name}`WPMonad` instance.
 This section develops both for a custom monad.
 
@@ -746,7 +745,7 @@ variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [Assertion Pred] 
 ```
 
 The {name}`WP` instance defines the weakest precondition interpretation of a monad {lean}`m` into predicate transformers {lean}`PredTrans Pred EPred α`,
-and the matching {name}`WPMonad` instance asserts that this translation distributes over the {name}`Monad` operations.
+and the matching {name}`WPMonad` instance asserts that this translation is sound for {name Pure.pure}`pure` and {name Bind.bind}`bind`.
 :::
 
 :::::paragraph
@@ -818,9 +817,8 @@ instance : WP (Result α) α Prop (Error → Prop) where
 :::::
 
 :::paragraph
-The implementation of {name}`WP.wp` should distribute over the basic monad operators.
-The {name}`WPMonad` instance proves this in its fields {name}`WPMonad.pure_le_wp_pure` and {name}`WPMonad.bind_le_wp_bind`.
-For {name}`bind`, both the definition of {name}`wp` and the definition of {name}`bind` need to be unfolded to expose the nested {keyword}`match` structure that a case split and {tactic}`simp` make short process of.
+The {name}`WPMonad` instance proves that this interpretation is sound for {name Pure.pure}`pure` and {name Bind.bind}`bind`, in its fields {name}`WPMonad.pure_le_wp_pure` and {name}`WPMonad.bind_le_wp_bind`.
+For {name}`bind`, both the definition of {name}`wp` and the definition of {name}`bind` need to be unfolded to expose the nested {keyword}`match` structure that a case split and {tactic}`simp` make short work of.
 ```lean
 instance Result.instWPMonad : WPMonad Result Prop (Error → Prop) where
   toWP _ := inferInstance
@@ -846,10 +844,11 @@ theorem Result.of_eq_wp {α} {x prog : Result α}
 :::
 
 The definition of the {name}`WP` interpretation determines what properties can be derived from proved specifications via {name}`Result.of_eq_wp`.
-This lemma defines what “weakest precondition” means.
+This lemma connects the weakest precondition to the result of running the program.
 
 :::paragraph
-To exemplify the second part, here is an example definition of {name}`UInt32` addition in {name}`Result` that models integer overflow:
+The second step registers specification lemmas for the Rust primitives.
+As an example, here is a definition of {name}`UInt32` addition in {name}`Result` that models integer overflow:
 
 ```lean
 instance : MonadExcept Error Result where
