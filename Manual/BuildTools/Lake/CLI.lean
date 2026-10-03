@@ -194,7 +194,7 @@ The following variables are augmented with additional information:
 Lake itself can be configured with the following environment variables:
 :::table (align := left) -header
 *
-  * {envVar +def}`ELAN_HOME`
+  * {envVar}`ELAN_HOME`
   * The location of the {ref "elan"}[Elan] installation, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
 
 *
