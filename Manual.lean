@@ -33,6 +33,7 @@ import Manual.Runtime
 import Manual.SupportedPlatforms
 import Manual.VCGen
 import Manual.MVCGen
+import Manual.WebTech
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -139,6 +140,8 @@ Overview of the standard library, including types from the prelude and those tha
 :::
 
 {include 0 Manual.NotationsMacros}
+
+{include 0 Manual.WebTech}
 
 {include 0 Manual.BuildTools}
 
