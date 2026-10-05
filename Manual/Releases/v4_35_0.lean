@@ -46,7 +46,7 @@ _This highlights section was contributed by Juanjo Madrigal._
 
 ## `vcgen`, the successor of `mvcgen`
 
-Lean 4.35 ships vcgen, a verification condition generator that replaces mvcgen as a mostly drop-in successor; mvcgen is now deprecated. Improvements:
+Lean 4.35 ships {tactic}`vcgen`, a verification condition generator that replaces {tactic}`mvcgen` as a mostly drop-in successor; {tactic}`mvcgen` is now deprecated. Improvements:
 
 1. *Deep embeddings.* `vcgen` builds on the `Std.WP` framework, whose weakest precondition interpretation applies to any program type rather than only to monads: besides `do`-programs in any monad, `vcgen` verifies deeply embedded languages, such as that of [x64 assembler](https://github.com/sgraf812/kraken/blob/829c9468974ea0f725abc268baa6dbb9403ccd36/Kraken/X64/Examples/P3.lean#L85-L95) or [WebAssembly](https://github.com/sgraf812/talos/blob/9875d3b4f9a17f9e93211ba20062bd3f78f045aa/wp/WasmWP/Gcd.lean#L69-L82) for which a notion of weakest precondition is definable. This generality is the reason for the new name.
 
