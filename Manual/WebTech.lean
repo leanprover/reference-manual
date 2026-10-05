@@ -35,8 +35,6 @@ To use it, import {module}`Lean.Data.Json.Basic`.
 
 {docstring +allowMissing Json}
 
-We recommend using {name}`Json.mkObj` instead of the {name}`Json.obj` constructor.
-
 The modules {module}`Lean.Data.Json.Parser` and {module}`Lean.Data.Json.Printer`
 provide functions to parse and render JSON values from/to strings, respectively.
 
@@ -137,11 +135,10 @@ It is accessed by importing {module}`Lean.Data.Html.Basic`.
 
 {docstring Html}
 
-This inductive type suffers from a degree of redundancy:
+This inductive type has a degree of redundancy:
 {lean}`Html.seq #[]` and {lean}`Html.seq #[Html.seq #[]]`, for instance,
 denote the same, empty piece of HTML.
-To alleviate this,
-functions in the library generally normalize their {name}`Html` outputs,
+Functions in the library generally normalize their {name}`Html` outputs,
 while accepting non-normal inputs.
 The {name}`Html.isEmpty` recognizer, for example, handles non-normal values.
 
@@ -230,9 +227,9 @@ whenever it needs to inspect a further piece of syntax.
 
 ### Adherence to WhatWG Specification
 
-The HTML syntax is optimized for authoring HTML content within Lean —
-rather than parsing existing HTML documents —
-and as such is not guaranteed to comply with the [WhatWG specification](https://html.spec.whatwg.org/multipage/syntax.html).
+The HTML syntax is optimized for authoring HTML content within Lean,
+rather than parsing existing HTML documents.
+As such, is not guaranteed to comply with the [WhatWG specification](https://html.spec.whatwg.org/multipage/syntax.html).
 That said, it tries to match the specification in most cases;
 known departures from the specification are documented on the relevant parser.
 
