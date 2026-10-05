@@ -110,6 +110,13 @@ JSON representations of many Lean types can be derived automatically.
 The default encoding is documented on {name}`ToJson` (below).
 
 :::example "Serializing a structure to JSON"
+```imports -show
+import Lean.Data.Json.FromToJson
+```
+```lean -show
+open Lean
+
+```
 ```lean (name := fooJson)
 structure Foo where
   x : Bool := true
