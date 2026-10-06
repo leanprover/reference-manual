@@ -20,7 +20,7 @@ tag := "web-technologies"
 %%%
 
 The Lean distribution includes support for certain web technologies: there are data types and DSL syntax for authoring HTML content, as well as for working with JSON representations of data.
-In graphical development environments, the widget system makes it possible to extend the infoview (the editor panel that shows tactic states, messages, and other information relevant to the current cursor position) with new React components.
+In graphical development environments, the widget system makes it possible to extend the InfoView (the editor panel that shows tactic states, messages, and other information relevant to the current cursor position) with new React components.
 Widgets can execute Lean code in the LSP server via remote procedure calls (RPC).
 
 # JSON
@@ -34,7 +34,7 @@ The modules {module}`Lean.Data.Json.Parser` and {module}`Lean.Data.Json.Printer`
 
 {docstring +allowMissing Json.parse}
 
-There are two renderers: {name}`Json.render` and {name}`Json.pretty` produce human-readable output, whereas {name}`Json.compress` optimizes for compact representation.
+The renderers {name}`Json.render` and {name}`Json.pretty` produce human-readable output, whereas {name}`Json.compress` optimizes for compact representation.
 
 {docstring +allowMissing Json.render}
 
@@ -113,7 +113,7 @@ structure Foo where
   x : Bool := true
   y : String := "abc"
   z? : Option Nat := some 1
-  deriving ToJson, FromJson
+deriving ToJson, FromJson
 
 #eval toJson { : Foo }
 ```
@@ -133,28 +133,32 @@ It is accessed by importing {module}`Lean.Data.Html.Basic`.
 
 {docstring Html}
 
-This inductive type has a degree of redundancy: {lean}`Html.seq #[]` and {lean}`Html.seq #[Html.seq #[]]`, for instance, denote the same, empty piece of HTML.
+This inductive type has a degree of redundancy: {lean}`Html.seq #[]` and {lean}`Html.seq #[Html.seq #[]]`, for example, denote the same, empty piece of HTML.
 Functions in the library generally normalize their {name}`Html` outputs, while accepting non-normal inputs.
-The {name}`Html.isEmpty` recognizer, for example, handles non-normal values.
+Recognizers such as {name}`Html.isEmpty` handle non-normal values.
 
 {docstring Html.ofArray}
 
 {docstring Html.isEmpty}
 
-The {name}`render` function, defined in the {module}`Lean.Data.Html.Printer` module, turns {ref "inductive-types"}`inductively` represented HTML into a string that can be parsed by browsers.
+The {name}`render` function, defined in the {module}`Lean.Data.Html.Printer` module, turns {ref "inductive-types"}[inductively] represented HTML into a string that can be parsed by browsers.
 
 {docstring render}
 
 ## Literal Syntax
 
 A grammar for HTML is defined in {module}`Lean.Data.Html.Syntax`.
-It does not declare any {ref "syntax-categories"}`syntax category`, instead consisting entirely of {name}`Parser`s (see the source module for a justification).
+It does not declare any {ref "syntax-categories"}[syntax category], instead consisting entirely of {name}`Parser`s (see the source module for a justification).
 The top-level parser is {name}`Syntax.content`.
+
+:::TODO
+document whitespace rules
+:::
 
 {docstring Syntax.content}
 
-The syntactic category of Lean terms includes HTML literals via the `html${}` delimiter.
-These literals {ref "elaborators"}`elaborate` to {name}`Html` values.
+The syntactic category of Lean terms includes HTML literals via the `html%{}` delimiter.
+These literals {ref "elaborators"}[elaborate] to {name}`Html` values.
 
 :::syntax term (title := "HTML Literals")
 ```grammar
@@ -178,31 +182,45 @@ The following parsers, invoked recursively by {name}`Syntax.content` and each ot
 
 :::leanSection
 ```lean -show
-variable {html : Html} {htmls : Array Html} {attr : String × String} {attrs : Array (String × String)} {val : String}
+variable {html : Html} {htmls : Array Html}
+  {ρ : Type} [ForIn Id ρ Html] {htmls' : ρ}
+  {attr : String × String} {attrs : Array (String × String)}
+  {σ : Type} [ForIn Id σ (String × String)] {attrs' : σ}
+  {val : String}
 ```
 _Interpolations_ are holes in the syntax, filled in with a Lean term of the correct type.
 They are written with curly braces and supported in:
 
-- _Content._ Given one value {typed}`html : Html` or multiple {typed}`htmls : Array Html` (or any collection), we can write {lean}`html%{<tag>{html} {...htmls}</tag>}`.
-- _Attributes._ Given one value {typed}`attr : String × String` or multiple {typed}`attrs : Array (String × String)` (or any collection), we can write {lean}`html%{<tag {attr} {...attrs} />}`.
-- _Attribute values._ Given {typed}`val : String`, we can write {lean}`html%{<tag attr-name={val} />}`.
+: Content
+
+  - Given an {typed}`html : Html` value, we can write {lean}`html%{<tag>{html}</tag>}`.
+  - Given multiple values {typed}`htmls : Array Html`, or more generally any collection {typed}`htmls' : ρ` with a {lean}`ForIn Id ρ Html` instance, we can write {lean}`html%{<tag>{...htmls}{...htmls'}</tag>}`.
+
+: Attributes
+
+  - Given an {typed}`attr : String × String` value, we can write {lean}`html%{<tag {attr} />}`.
+  - Given multiple values {typed}`attrs : Array (String × String)`, or more generally any collection {typed}`attrs' : σ` with a {lean}`ForIn Id σ (String × String)` instance, we can write {lean}`html%{<tag {...attrs} {...attrs'} />}`.
+
+: Attribute values
+
+  Given {typed}`val : String`, we can write {lean}`html%{<tag attr-name={val} />}`.
 :::
 
 ### Custom elaborators
 
 The HTML syntax is designed to support elaboration into custom types besides the {name}`Html` type.
 This is facilitated by _view_ functions that provide convenient descriptions of the parsed syntax.
-For instance, the {name}`Syntax.Content.view` function describes a {name}`Syntax.Content` node — an alias for {lean}`TSyntax Syntax.contentKind` — as a sequence of items.
+For instance, the {name}`Syntax.Content.view` function describes a {name}`Syntax.Content` node—an alias for {lean}`TSyntax Syntax.contentKind`—as a sequence of items.
 
 :::sectionNote
-The builtin elaborator in {module}`Lean.Data.Html.Elab` is a useful reference for how to use views.
+The `html%{}` literal elaborator in {module}`Lean.Data.Html.Elab` is a useful example of how to use views.
 :::
 
 {docstring Syntax.Content.view}
 
 {docstring +allowMissing Syntax.ContentItemView}
 
-Views are lazy, with one level of depth: a view describes the current syntax node, but the arguments to its constructors are again ordinary Lean {name}`Syntax`.
+Views are lazy, with one level of depth: a view describes the current syntax node, but the arguments to its constructors are again ordinary {name}`Lean.TSyntax`.
 For instance, the argument to {name}`Syntax.ContentItemView.element` is {name}`Syntax.Element`, an alias for {lean}`TSyntax Syntax.elementKind`.
 An elaborator based on views invokes view functions whenever it needs to inspect a further piece of syntax.
 
