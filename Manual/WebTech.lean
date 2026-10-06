@@ -26,26 +26,55 @@ Widgets can execute Lean code in the LSP server via remote procedure calls (RPC)
 # JSON
 
 The {name}`Json` datatype represents [JSON](https://www.json.org/json-en.html) values.
-To use it, import {module}`Lean.Data.Json.Basic`.
+To use the type and related functionality, import {module}`Lean.Data.Json`.
 
 {docstring +allowMissing Json}
 
-The modules {module}`Lean.Data.Json.Parser` and {module}`Lean.Data.Json.Printer` provide functions to parse and render JSON values from/to strings, respectively.
+JSON can express arbitrary precision rational numbers.
+We store these as {name}`JsonNumber`s: a mantissa and a negative exponent.
+Beware that if decoded in JavaScript, these numbers may [lose precision](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON#lossless_number_serialization).
+
+{docstring +allowMissing JsonNumber}
+
+To parse JSON text into a {name}`Json` value, use {name}`Json.parse`.
 
 {docstring +allowMissing Json.parse}
 
-The renderers {name}`Json.render` and {name}`Json.pretty` produce human-readable output, whereas {name}`Json.compress` optimizes for compact representation.
+In the other direction, there are two ways to render {name}`Json` values as text.
+To optimize for compact representation, invoke {name}`Json.compress`.
+Alternatively, to produce human-readable output, call {name}`Json.render` or {name}`Json.pretty`.
+
+{docstring +allowMissing Json.compress}
 
 {docstring +allowMissing Json.render}
 
 {docstring +allowMissing Json.pretty}
 
-{docstring +allowMissing Json.compress}
-
 ## Literal Syntax
 
 In addition to using the {name}`Json` constructors directly, JSON values can be written in standard notation following the `json%` keyword.
-This syntax extension is defined in {module}`Lean.Data.Json.Elab`.
+
+One may optionally omit quotes on object keys in `json%` literals (similarly to [JavaScript object literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_objects#using_object_initializers)).
+A `$()` delimiter can be used to interpolate any value with a {name}`FromJson` instance (including {name}`Json` values).
+
+:::example "Using a JSON literal"
+```imports -show
+import Lean.Data.Json
+```
+```lean -show
+open Lean
+```
+```lean
+variable (j : Json)
+
+#check json% {
+  "a": 1,
+  "b": [2, 3],
+  c: null,
+  d: $(j)
+}
+```
+:::
 
 :::syntax term (title := "JSON Terms")
 ```grammar
@@ -54,7 +83,7 @@ json% $_:json
 :::
 
 :::comment
-Using `freeSyntax` because `syntax` can't render multiple productions in one BNF.
+Using `freeSyntax` due to https://github.com/leanprover/reference-manual/issues/966.
 :::
 :::freeSyntax json (title := "JSON Literals") -open
 ```grammar
@@ -72,7 +101,9 @@ Using `freeSyntax` because `syntax` can't render multiple productions in one BNF
 *****
 `( json|[ $[$_:json],* ])
 *****
-`( json|{ $[$k:jsonIdent : $v:json],* })
+`( json|{ $[$_:jsonIdent : $_:json],* })
+*****
+"$("$_:term")"
 ```
 :::
 
@@ -82,14 +113,6 @@ Using `freeSyntax` because `syntax` can't render multiple productions in one BNF
 *****
 `(Lean.Json.jsonIdent| $_:str)
 ```
-:::
-
-:::leanSection
-```lean -show
-variable { j : Json }
-```
-The literal syntax supports antiquotation of JSON values.
-For example, given {typed}`j : Json` we may write {lean}`json% { field: $(j) }`.
 :::
 
 ## Serialization
