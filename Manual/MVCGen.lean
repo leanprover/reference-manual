@@ -36,6 +36,12 @@ open Std.Do
 tag := "mvcgen-tactic"
 %%%
 
+:::sectionNote
+The {tactic}`mvcgen` tactic and its supporting libraries have been superseded by {tactic}`vcgen`, which supports a wider variety of proofs and performs better.
+New code should use {tactic}`vcgen`, and existing code should migrate.
+Please refer to the {ref "vcgen-tactic"}[documentation] for {tactic}`vcgen` for details.
+:::
+
 :::tutorials
  * {ref "mvcgen-tactic-tutorial" (remote := "tutorials")}[Verifying Imperative Programs Using `mvcgen`]
 :::
