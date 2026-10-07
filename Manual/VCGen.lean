@@ -48,15 +48,33 @@ In order to use the {tactic}`vcgen` tactic, {module}`Std.WP` and {module}`Std.Ta
 The dependency on {namespace}`Lean.Order` is a temporary measure: this namespace holds the {ref "partial-fixpoint-theory"}[order theory behind `partial_fixpoint`], which is yet to move into `Std`.
 
 
+:::syntax tactic (title := "Verification Condition Generation")
+```grammar
+vcgen $cfg:optConfig $[[$x,*]]?
+  $[until $_]?
+  $[frames $_]?
+  $[invariants $inv*]?
+  $[simplifying_assumptions $[$_]? $[[$_,*]]?]?
+  $[with $_]?
+```
+
+Generates {tech}[verification conditions] for the current goal.
+
+The {keywordOf Lean.Parser.Tactic.vcgen}`until` clause stops verification condition generation at the first goal that matches the provided pattern.
+The {keywordOf Lean.Parser.Tactic.vcgen}`invariants` clause allows {tech}[loop invariants] to be specified.
+These invariants are used during verification condition generation and can inform the simplification and automation passes.
+If the {keywordOf Lean.Parser.Tactic.vcgen}`simplifying_assumptions` clause is present, then hypotheses introduced during verfication condition generation are simplified in the same manner as the goals.
+Because {tactic}`vcgen` shares much of its implementation with {tactic}`grind`, the {keywordOf Lean.Parser.Tactic.vcgen}`with` clause allows either an {ref "grind-interactive"}`interactive `grind` tactic` or an ordinary tactic to be applied in all generated verification conditions.
+:::
+
 # Overview
-
-
 
 The workflow of {tactic}`vcgen` consists of the following:
 
 1. Programs are re-interpreted according to a {tech}[predicate transformer semantics].
    An instance of {name}`WP` for the program type determines the interpretation.
-   The program type can be a monadic computation, such as a {keywordOf Lean.Parser.Term.do}`do`-block in {lean}`StateM Nat`, or any other type, for example the syntax trees of a small imperative language.
+   The program type can be a monadic computation, such as a {keywordOf Lean.Parser.Term.do}`do`-block in {lean}`StateM Nat`.
+   Non-monadic types, such as the syntax trees of a small imperative langauge, are also supported.
    Each program is interpreted as a mapping from arbitrary {tech}[postconditions] to the {tech}[weakest precondition] that would ensure the postcondition.
    This step is invisible to most users, but library authors who want to enable their program types to work with {tactic}`vcgen` need to understand it.
 2. Programs are composed from smaller programs.
