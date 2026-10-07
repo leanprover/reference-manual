@@ -105,7 +105,7 @@ The predicates in question can be stateful: they can mention the program's curre
 Furthermore, postconditions can relate the return value and any exceptions thrown by the program to the final state.
 Each program type that can be used with {tactic}`vcgen` is assigned an assertion type and an exception postcondition type by an instance of {name}`WP`.
 For a state monad such as {lean}`StateM Nat`, an assertion is a predicate on the state, of type {lean}`Nat → Prop`.
-A postcondition additionally takes the return value as its first argument, and the exception postcondition covers each exception that the program can throw.
+A postcondition additionally takes the return value as its first argument, and the exception postcondition includes an assertion for each exception that the program can throw.
 
 
 ## Assertion Lattices
@@ -144,7 +144,41 @@ The difference between entailment and implication is that entailment is a statem
 {module}`Std.WP` comes with {name}`Assertion` instances for {lean}`Prop`, {lean}`Unit`, function types, and pairs.
 The lattice operations on {lean}`Prop` coincide with the ordinary logical connectives, with entailment being implication.
 The lattice operations on a function type such as {lean}`Nat → Prop` operate pointwise, so entailment of state predicates is universally-quantified implication.
-The lattice operations on a pair such as {lean}`(Nat → Prop) × (Bool → Prop)` operate componentwise, so entailment of pair predicates is the pair of entailments on the component predicates.
+The lattice operations on a pair such as {lean}`(Nat → Prop) × (Bool → Prop)` operate componentwise, so entailment of paired predicates is the conjunction of entailments on the component predicates.
+
+:::example "Entailment at Different Assertion Types"
+```imports -show
+import Std.WP
+import Std.Tactic.Do
+```
+```lean -show
+open Std.WP Lean.Order
+```
+At {lean}`Prop`, entailment is implication:
+```lean
+example (P Q : Prop) : (P ⊑ Q) = (P → Q) := rfl
+```
+At a state predicate type, entailment is implication at every state:
+```lean
+example (f g : Nat → Prop) :
+    (f ⊑ g) = ∀ n, f n → g n := rfl
+```
+Entailment of pairs is conjunction of entailments:
+```lean
+example (f₁ f₂ : Nat → Prop) (g₁ g₂ : Bool → Prop) :
+    ((f₁, g₁) ⊑ (f₂, g₂)) = ((f₁ ⊑ f₂) ∧ (g₁ ⊑ g₂)) := rfl
+```
+A concrete entailment between state predicates can be proved by unfolding the entailment order and reasoning about each state:
+```lean
+def Positive : Nat → Prop := fun n => 0 < n
+def AtLeastTwo : Nat → Prop := fun n => 2 ≤ n
+
+example : AtLeastTwo ⊑ Positive := by
+  simp [PartialOrder.rel, AtLeastTwo, Positive]
+  intro x h
+  grind
+```
+:::
 
 ::::leanSection
 ```lean -show
