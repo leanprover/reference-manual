@@ -5,7 +5,6 @@ Author: David Thrane Christiansen
 -/
 
 module
-public import Lean.ToExpr
 public import SubVerso.Highlighting.Highlighted
 
 open SubVerso.Highlighting

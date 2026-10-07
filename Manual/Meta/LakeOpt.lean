@@ -4,18 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
+module
+public import Verso.Doc.ArgParse
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
+public meta import Verso.Doc.Elab.Monad
+public import VersoManual.Basic
 
-import Manual.Meta.Basic
+public section
 
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Verso ArgParse Doc Elab Genre.Manual Html Code
 open Lean.Doc.Syntax
 open Lean Elab
 
@@ -31,7 +28,7 @@ def LakeOptKind.ns : LakeOptKind → String
   | .option => "lake-option"
 
 open LakeOptKind in
-instance : Quote LakeOptKind where
+meta instance : Quote LakeOptKind where
   quote
     | .flag => Syntax.mkCApp ``LakeOptKind.flag #[]
     | .option => Syntax.mkCApp ``LakeOptKind.option #[]
@@ -49,7 +46,7 @@ def lakeOptDomain := `Manual.lakeOpt
 structure LakeOptDefOpts where
   kind : LakeOptKind
 
-def LakeOptDefOpts.parse [Monad m] [MonadError m] : ArgParse m LakeOptDefOpts :=
+meta def LakeOptDefOpts.parse [Monad m] [MonadError m] : ArgParse m LakeOptDefOpts :=
   LakeOptDefOpts.mk <$> .positional `kind optKind
 where
   optKind : ValDesc m LakeOptKind := {
@@ -76,7 +73,7 @@ r#"
 "#
 
 @[role_expander lakeOptDef]
-def lakeOptDef : RoleExpander
+meta def lakeOptDef : RoleExpander
   | args, inlines => do
     let {kind} ← LakeOptDefOpts.parse.run args
     let #[arg] := inlines
@@ -135,7 +132,7 @@ def lakeOptDef.descr : InlineDescr where
 
 
 @[role_expander lakeOpt]
-def lakeOpt : RoleExpander
+meta def lakeOpt : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines

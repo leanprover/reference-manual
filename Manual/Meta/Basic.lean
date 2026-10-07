@@ -4,16 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 module
-public import Lean.Data.Position
-public import Lean.Syntax
-public import Lean.Environment
-public import Lean.Parser.Types
 public import Lean.Elab.Command
-import Lean.Parser
 
-import Verso.Parser
-import Verso.Doc.ArgParse
-import SubVerso.Highlighting
 
 open Lean
 
@@ -47,6 +39,14 @@ open Lean.Syntax in
 public instance : Quote Position where
   quote
     | .mk l c => mkCApp ``Position.mk #[quote l, quote c]
+
+open Lean.Syntax in
+open MessageSeverity in
+public instance : Quote MessageSeverity where
+  quote
+    | error => mkCIdent ``error
+    | warning => mkCIdent ``warning
+    | information => mkCIdent ``information
 
 open Lean.Syntax in
 public instance : Quote SyntaxError where

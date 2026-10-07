@@ -13,7 +13,7 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.35.0-rc2 (2026-09-16)" =>
+#doc (Manual) "Lean 4.35.0-rc4 (2026-10-06)" =>
 %%%
 tag := "release-v4.35.0"
 file := "v4.35.0"
@@ -24,12 +24,12 @@ These release notes describe a _release candidate_, not the final release.
 They may be incomplete and are subject to change.
 :::
 
-For this release, 206 changes landed.
-In addition to the 76 feature additions
-and 53 fixes listed below,
+For this release, 213 changes landed.
+In addition to the 78 feature additions
+and 56 fixes listed below,
 there were 18 refactoring changes,
 7 documentation improvements,
-21 performance improvements,
+23 performance improvements,
 2 improvements to the test suite,
 and 29 other changes.
 
@@ -206,6 +206,9 @@ and 29 other changes.
 
 ````markdown
 
+- [#15430](https://github.com/leanprover/lean4/pull/15430)
+  marks `Decidable` instances for `And` and `Or` as `macro_inline` once more. This makes them properly short circuit in all situations.
+
 - [#13490](https://github.com/leanprover/lean4/pull/13490)
   adds `Nat.powMod b e m`, a modular exponentiation function provably equal to `b ^ e % m`, so large powers modulo a nonzero modulus can be evaluated without constructing the full power. It also makes exponentiation on `Fin n` use this operation.
 
@@ -341,6 +344,9 @@ and 29 other changes.
 
 ```markdown
 
+- [#15391](https://github.com/leanprover/lean4/pull/15391)
+  makes the first library suggestion query in a process much faster. Since #15159 the symbol frequency map and the Sine Qua Non trigger index are computed on first use. The first `grind +suggestions`, `simp? +suggestions` or `try?` in a file took 12 s with `import Lean` and several minutes with `import Mathlib`. Both indexes now come from one traversal of the imported theorem statements. The traversal runs in parallel tasks and classifies the arguments of each application head once per head and arity. The results are identical to the previous traversal on every theorem of Lean core and of Mathlib. Concurrent first queries share one computation, and a cancelled query stops at once.
+
 - [#15161](https://github.com/leanprover/lean4/pull/15161)
   reduces module import overhead in Lean’s core builds by sharing the parsers for `grind` modifiers.
 
@@ -462,6 +468,18 @@ and 29 other changes.
 
 ```markdown
 
+- [#15429](https://github.com/leanprover/lean4/pull/15429)
+  introduces support for mutual recursion between the `macro_inline` and `csimp` features. It is now for example possible to have a `macro_inline` definition that contains a `csimp`-ed definition whose replacement contains a `macro_inline` and so forth. The compiler does *not* check that this process terminates and will instead eventually run into a maxRecDepth error if the user did not ensure this.
+
+- [#15288](https://github.com/leanprover/lean4/pull/15288)
+  fixes potential undefined behavior when an object with a huge number of incoming references is shared between threads. The official kernel does not use multithreading in its default configuration (as used by comparator and `lake check/compare`), but other Lean-based checkers such as con-leche might be affected.
+
+- [#15289](https://github.com/leanprover/lean4/pull/15289)
+  makes maximal sharing, including the kernel's sharing of every theorem it checks, panic when a shared subterm gains more than `INT_MAX` references, instead of eventually freeing the subterm while it is still referenced. On inputs north of 100GB, the possibility of triggering undefined behavior in the official kernel this way, which could be extended into a proof of False, could not be excluded. Other kernels such as nanoda or con-leche not based on the Lean runtime or not making use of this specific function were not affected.
+
+- [#15241](https://github.com/leanprover/lean4/pull/15241)
+  prevents deletion cascades from releasing objects whose reference count has been frozen after over- or underflow. Like #14838, on machines with at least 18GB of free RAM, it could potentially be used to trigger use-after-free in the official kernel, which could be extended into a proof of False. Other kernels such as nanoda or con-ron not based on the Lean runtime were not affected.
+
 - [#15107](https://github.com/leanprover/lean4/pull/15107)
   allows the `ReduceArity` pass to remove all parameters of a function. If this does happen, it places a `void` parameter to avoid promoting the value to a constant.
 
@@ -520,6 +538,9 @@ and 29 other changes.
 # Lake
 
 ```markdown
+
+- [#15142](https://github.com/leanprover/lean4/pull/15142)
+  adds a `copy` configuration option to path dependencies. In TOML, this is specified by `[[require]] copy = true` and, in Lean, this is specified by `require <name> from copy <path>`. When enabled, Lake will copy the package at the relative path verbatim into the workspace's packages directory (similar to a Git clone) and load the package from the copy rather than directly from the relative source.
 
 - [#15153](https://github.com/leanprover/lean4/pull/15153)
   bundles the `con-ron` external checker with release toolchains, so it can be used as an independent checker without a separate install.

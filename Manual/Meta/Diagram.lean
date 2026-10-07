@@ -4,20 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
+module
+public import Illuminate.Backend.SVG
+import Illuminate.Diagram.CurlyBrace
+import Illuminate.Style.Text
 
-import Illuminate
+public section
 
-open Verso ArgParse Doc Elab Genre.Manual Html
 open Lean Elab
-open Verso.SyntaxUtils (parserInputString)
-open Verso.Doc.Html (HtmlT)
-open Verso.Output (Html)
 
-open Verso.Genre.Manual.InlineLean.Scopes (getScopes runWithOpenDecls runWithVariables)
 
 namespace Manual
 
@@ -38,7 +33,7 @@ def field (name : Lean.Name) (label : String) (w : Float) : Diagram SVG :=
     (.text label monoStyle)
     ((Diagram.rect w 28 (fill := Color.white) (name := name)).padRight (-0.5) |>.padLeft (-0.5))
 
-def fieldWithBrace (name : Lean.Name) (label : String) (w : Float)
+private def fieldWithBrace (name : Lean.Name) (label : String) (w : Float)
     (braceDepth braceGap : Float) (braceLabel : Diagram SVG) : Diagram SVG :=
   let box := field name label w
   let brace := Diagram.curlyBrace (w - 8) (depth := braceDepth) (label := some braceLabel) (angle := 3 * pi / 2)

@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lake.Toml.Decode
-import Lake.Load.Toml
+module
+public import Lake.Toml.Decode
 
-import Manual.Meta.LakeToml.Test
+public import ManualLakeTest.Test
+public import Lake.Config.Package
+
+public section
 
 /-!
 Shared `Manual.Toml.Test` instances for rendering an elaborated `Lake.Package` (and its constituent
@@ -100,7 +103,7 @@ instance : Test (Lake.ConfigType kind pkg name) where
 instance : Test Lake.CacheRef where
   toString _ := "#<cacheref>"
 
-private def contains (fmt : Format) (c : Char) : Bool :=
+def contains (fmt : Format) (c : Char) : Bool :=
   match fmt with
   | .text s => s.contains c
   | .tag _ x | .group x .. | .nest _ x => contains x c

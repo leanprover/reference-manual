@@ -31,6 +31,9 @@ elab "lakePluginArgs%" : term => do
 
 
 package "verso-manual" where
+  -- The highlighting tools read `.olean` files from the build directory, which the local artifact
+  -- cache leaves empty unless artifacts are restored
+  restoreAllArtifacts := true
   -- building the C code cost much more than the optimizations save
   moreLeancArgs := #["-O0"]
   -- work around clang emitting invalid linker optimization hints that lld rejects
@@ -58,6 +61,11 @@ lean_lib IndexMapGrind where
 @[default_target]
 lean_lib Manual where
   weakLeanArgs := lakePluginArgs%
+  -- These executables run during elaboration
+  needs := #[`@/subversoExtractMod, `@/«extract-lakefile»]
+
+/-- Rendering of elaborated Lake configurations, shared by `Manual` and `extract-lakefile`. -/
+lean_lib ManualLakeTest where
 
 /--
 Elaborates Lean-format `lakefile.lean` examples for the manual, emitting both the elaborated

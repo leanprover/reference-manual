@@ -4,20 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import VersoManual
-import Lean.Elab.InfoTree.Types
-import SubVerso.Highlighting.Code
+module
+public meta import Verso.Doc.Elab.Monad
+import Verso.Doc.Elab.Monad
+
+public section
 
 open scoped Lean.Doc.Syntax
 
 open Verso Doc Elab
 open Lean Elab
-open Verso.Genre.Manual InlineLean Scopes
 open Verso.SyntaxUtils
 open SubVerso.Highlighting
 
 @[role]
-def «namespace» : RoleExpanderOf Unit
+meta def «namespace» : RoleExpanderOf Unit
   | (), #[arg] => do
     let `(inline|code($s)) := arg
       | throwErrorAt arg "Expected code"

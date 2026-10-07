@@ -4,17 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Term
-import Lean.Elab.Tactic
+module
+public import Verso.Doc.ArgParse
 
-import Verso.Code.Highlighted
-import Verso.Doc.ArgParse
-import Verso.Doc.Suggestion
-import SubVerso.Highlighting.Code
-import VersoManual
+public meta import Verso.Doc.Elab.Block
+public import VersoManual.Basic
+public meta import VersoManual.Markdown
+import VersoManual.Docstring
 
-import Manual.Meta.Basic
-import Manual.Meta.PPrint
+public section
 
 namespace Manual
 
@@ -43,13 +41,13 @@ structure ParserAliasOptions where
   name : Name
   «show» : Option String
 
-def ParserAliasOptions.parse [Monad m] [MonadError m] : ArgParse m ParserAliasOptions :=
+meta def ParserAliasOptions.parse [Monad m] [MonadError m] : ArgParse m ParserAliasOptions :=
   ParserAliasOptions.mk <$> .positional `name .name <*> .named `show .string true
 
 
 
 @[directive_expander parserAlias]
-def parserAlias : DirectiveExpander
+meta def parserAlias : DirectiveExpander
   | args, more => do
     let opts ← ParserAliasOptions.parse.run args
     let {declName, stackSz?, autoGroupArgs} ← Parser.getParserAliasInfo opts.name

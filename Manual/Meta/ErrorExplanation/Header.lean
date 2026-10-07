@@ -4,8 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Rotella, Rob Simmons
 -/
 
-import VersoManual
+module
+public meta import Manual.Meta.Basic
+public import Verso.Doc.ArgParse
+public meta import Verso.Doc.Elab.Monad
+public import VersoManual.Basic
 import Manual.Meta.ErrorExplanation.Domain
+import Verso.Doc.Elab.Monad
+
+public section
 
 open Lean
 open Verso (reportError)
@@ -18,8 +25,10 @@ structure ErrorExplanationExtendedMetadata extends ErrorExplanation.Metadata whe
   name : Name
 deriving ToJson, FromJson
 
+meta section
 deriving instance Quote for ErrorExplanation.Metadata
 deriving instance Quote for ErrorExplanationExtendedMetadata
+end
 
 block_extension Block.errorExplanationHeader (metadata : ErrorExplanationExtendedMetadata) where
   data := toJson metadata
@@ -86,7 +95,7 @@ block_extension Block.errorExplanationHeader (metadata : ErrorExplanationExtende
 
 structure ErrorHeaderConfig where
   name : Name
-instance : Verso.ArgParse.FromArgs ErrorHeaderConfig m where
+meta instance : Verso.ArgParse.FromArgs ErrorHeaderConfig m where
   fromArgs :=
     ErrorHeaderConfig.mk <$> Verso.ArgParse.positional `title Verso.ArgParse.ValDesc.name
 
@@ -113,7 +122,7 @@ https://lean-lang.org/doc/reference/latest/Error-Explanations/lean___unknownIden
 ```
 -/
 @[block_command]
-def errorExplanationHeader : Verso.Doc.Elab.BlockCommandOf ErrorHeaderConfig
+meta def errorExplanationHeader : Verso.Doc.Elab.BlockCommandOf ErrorHeaderConfig
   | cfg, _contents => do
     match ← getErrorExplanation? cfg.name with
     | .none =>
