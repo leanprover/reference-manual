@@ -5,12 +5,11 @@ Author: Joseph Rotella, Rob Simmons
 -/
 
 module
-public meta import SubVerso.Examples.Env
+public meta import Manual.Meta.Basic
 public import Verso.Doc.ArgParse
 public meta import Verso.Doc.Elab.Monad
 public import VersoManual.Basic
 import Manual.Meta.ErrorExplanation.Domain
-import SubVerso.Examples.Env
 import Verso.Doc.Elab.Monad
 
 public section

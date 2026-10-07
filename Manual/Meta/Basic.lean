@@ -41,6 +41,14 @@ public instance : Quote Position where
     | .mk l c => mkCApp ``Position.mk #[quote l, quote c]
 
 open Lean.Syntax in
+open MessageSeverity in
+public instance : Quote MessageSeverity where
+  quote
+    | error => mkCIdent ``error
+    | warning => mkCIdent ``warning
+    | information => mkCIdent ``information
+
+open Lean.Syntax in
 public instance : Quote SyntaxError where
   quote
     | .mk pos endPos text => mkCApp ``SyntaxError.mk #[quote pos, quote endPos, quote text]
