@@ -187,7 +187,7 @@ example : AtLeastTwo ⊑ Positive := by
 universe u
 variable {P : Prop} {Pred : Type u} [Assertion Pred]
 ```
-Ordinary propositions that do not mention the state can be embedded into any assertion lattice with corner brackets.
+Ordinary propositions that do not mention the state can be embedded into any assertion lattice with {deftech}[corner brackets].
 This is written with the syntax {lean (type := "Pred")}`⌜P⌝`, which is notation for {name}`Lean.Order.CompleteLattice.ofProp`.
 :::syntax term (title := "Embedding Propositions") (namespace := Lean.Order)
 ```grammar
@@ -204,7 +204,7 @@ This is written with the syntax {lean (type := "Pred")}`⌜P⌝`, which is notat
 universe u
 variable {p : Prop} {n k : Nat} {Pred : Type u} [Assertion Pred]
 ```
-An assertion of the form {lean (type := "Pred")}`⌜p⌝` is {deftech (key := "pure assertion")}_pure_: it holds or fails independently of the state.
+An assertion of the form {lean (type := "Pred")}`⌜p⌝` is {deftech (key := "pure assertion")}_pure_: its truth is independent of the state.
 At the assertion type {lean}`Prop`, {lean (type := "Prop")}`⌜p⌝` is the proposition {lean}`p` itself, and at a state predicate type such as {lean}`Nat → Prop`, it is the constant predicate {lean (type := "Nat → Prop")}`fun _ => p`.
 Specifications for a concrete monad can therefore state propositions directly, as in {lean (type := "Nat → Prop")}`fun s => s = n`.
 Corner brackets are necessary when the assertion type is abstract, as in a specification that quantifies over a monad and its assertion type {lean}`Pred`.
@@ -817,12 +817,15 @@ tag := "vcgen-discharging"
 %%%
 
 The verification conditions that {tactic}`vcgen` produces are ordinary Lean goals, so any tactic can discharge them.
+However, because {tactic}`vcgen` uses {tactic}`grind`'s internal representations, it is often fastest to discharge them using {ref "grind-interactive"}[`grind` tactics].
 The {keywordOf Lean.Parser.Tactic.vcgen}`with` clause runs a single {tactic}`grind`-mode step, typically {grindTactic}`finish`, on every remaining verification condition.
 The step runs inside the goal context that {tactic}`vcgen` {tech (key:="internalization")}[internalized] into {tactic}`grind`'s “whiteboard” during generation, so the context is not re-internalized for every verification condition.
 Internalizing the context of a single verification condition takes time linear in the size of that context, so internalizing the context prefix that all verification conditions share only once is cheaper than internalizing each context on its own.
+If {grindTactic}`finish` succeeds at closing only some of the goals, wrapping it in {grindTactic}`try` suppresses the errors.
 
 When working with concrete monads, the verification conditions speak directly about result values and states.
-Monad-polymorphic theorems instead lead to goals over an abstract assertion lattice. {tactic}`grind` discharges such goals when they reduce to entailments between pure assertions, as in the following example. Other goals over an abstract lattice can require a manual proof.
+Monad-polymorphic theorems instead lead to goals over an {ref "vcgen-assertion-lattices"}[abstract assertion lattice].
+{tactic}`grind` discharges such goals when they reduce to entailments between pure assertions, as in the following example. Other goals over an abstract lattice can require a manual proof.
 
 :::example "Monad-Polymorphic Proofs" (tag := "vcgen-monad-polymorphic")
 ```imports -show
@@ -837,7 +840,7 @@ set_option experimental.vcgen true
 ```
 The function {name}`bump` increments its state by the indicated amount and returns the resulting value.
 The underlying monad {lean}`m` and its assertion types stay abstract.
-Because the assertion type {lean}`Pred` is abstract, the specification below embeds its propositions with corner brackets.
+Because the assertion type {lean}`Pred` is abstract, the specification below embeds its propositions with {tech}[corner brackets].
 ```lean
 variable {m : Type → Type v} [Monad m]
 variable {Pred EPred : Type}
