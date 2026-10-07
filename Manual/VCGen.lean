@@ -146,7 +146,7 @@ The difference between entailment and implication is that entailment is a statem
 {module}`Std.WP` comes with {name}`Assertion` instances for {lean}`Prop`, {lean}`Unit`, function types, and pairs.
 The lattice operations on {lean}`Prop` coincide with the ordinary logical connectives, with entailment being implication.
 The lattice operations on a function type such as {lean}`Nat → Prop` operate pointwise, so entailment of state predicates is universally-quantified implication.
-The lattice operations on a pair such as {lean}`(Nat → Prop) × (Bool → Prop)` operate componentwise, so entailment of paired predicates is the conjunction of entailments on the component predicates.
+The lattice operations on a pair such as {lean}`(Nat → Prop) × (Bool → Prop)` operate component-wise, so entailment of paired predicates is the conjunction of entailments of the component predicates.
 
 :::example "Entailment at Different Assertion Types"
 ```imports -show
