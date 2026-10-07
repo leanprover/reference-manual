@@ -798,7 +798,7 @@ This is typically done in two steps:
 
   This theorem uses the {name}`binderNameHint` gadget to preserve a user-chosen binder name, should {lean}`f` be a lambda expression.
 
-By separating the introduction of {name}`List.attach` from the propagation of the introduced assumption, the desired the {lean}`x ∈ xs` assumption is made available to {lean}`f` even in chains such as `(xs.reverse.filter p).map f`.
+By separating the introduction of {name}`List.attach` from the propagation of the introduced assumption, the desired {lean}`x ∈ xs` assumption is made available to {lean}`f` even in chains such as `(xs.reverse.filter p).map f`.
 
 :::
 
