@@ -56,6 +56,13 @@ def envVar.descr : InlineDescr where
     let .arr #[.str var, .bool isDef] := data
       | reportError s!"Couldn't deserialize environment variable info from {data}"; return none
     if isDef then
+      -- Error if this env var is defined anywhere other than here.
+      if let some obj := (← get).getDomainObject? envVarDomain var then
+        -- To avoid spamming every traversal pass, we only check on first registration,
+        -- i.e., when this ID hasn't been stored in the domain yet.
+        unless obj.ids.contains id do
+          let others := obj.ids.toList.filterMap ((← get).externalTags[·]?) |>.map (·.link)
+          reportError s!"Environment variable '{var}' is defined more than once; it is already defined at {", ".intercalate others}"
       let path ← (·.path) <$> read
       let _ ← Verso.Genre.Manual.externalTag id path var
       Index.addEntry id {term := Inline.concat #[.code var, .text " (environment variable)"]}
