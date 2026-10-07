@@ -117,13 +117,21 @@ More specifically, assertion types instantiate {name}`Assertion`, which is a {ke
 
 {docstring Assertion}
 
+::::leanSection
+```lean -show
+variable {α : Type u} {P : α → Prop}
+```
+:::paragraph
 The lattice structure provides the logical vocabulary of assertions:
 
 * The order relation {name Lean.Order.PartialOrder.rel}`⊑` is entailment.
 * The meet {name Lean.Order.meet}`⊓` is conjunction and the join {name Lean.Order.join}`⊔` is disjunction.
 * The top element {name Lean.Order.top}`⊤` is the trivial assertion and the bottom element {name Lean.Order.bot}`⊥` is the absurd assertion.
 * The indexed supremum {name Lean.Order.iSup}`⨆` is existential quantification and the indexed infimum {name Lean.Order.iInf}`⨅` is universal quantification.
+  Their notation resembles that of ordinary quantifiers; for example, {lean}`⨆ x : α, P x` asserts the existence of something that satisfies {lean}`P`.
 * The Heyting implication {name Lean.Order.himp}`⇨` is implication internal to the assertion language.
+:::
+::::
 
 :::leanSection
 ```lean -show
