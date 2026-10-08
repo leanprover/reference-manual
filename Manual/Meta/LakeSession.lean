@@ -476,7 +476,7 @@ where
         ``(Verso.Doc.Block.code $(quote (← parserInputString contents)))
     | .command cfg output _ =>
       unless cfg.show do return ← ``(Verso.Doc.Block.empty)
-      let body ← parserInputString output
+      let body := output.getString
       let text := "$ " ++ cfg.command ++ (if isBlank body then "" else "\n" ++ body)
       ``(Verso.Doc.Block.code $(quote text))
     | .passthrough block =>
