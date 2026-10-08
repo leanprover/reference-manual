@@ -780,8 +780,9 @@ A lint driver in a dependency package can be referenced with the same `<pkg>/<na
 lake lint -- --warnings-as-errors
 ```
 
-Lake also has a separate {deftech}_builtin linter_ that operates on Lean modules directly, independent of any configured driver.
+Lake also has a separate {deftech}_builtin linter_ that runs Lean's {ref "kinds-of-linters"}[own linters] on Lean modules directly, independent of any configured driver.
 Builtin linting is enabled by the `--builtin-lint` and related flags (see {lake}`lint`), or by setting {tomlField Lake.PackageConfig}`builtinLint` to `true` in the package configuration.
+The section on {ref "running-lake-lint"}[running `lake lint`] describes how to select which linters are run.
 When builtin linting is active, positional `MODULE` arguments before `--` select which modules to lint, and they are _not_ passed to the configured driver.
 So `lake lint Mathlib` triggers builtin linting on `Mathlib`, whereas `lake lint -- Mathlib` passes `Mathlib` to the driver.
 The two mechanisms are independent and can run together: when both apply, Lake runs the builtin linter first and then the driver.

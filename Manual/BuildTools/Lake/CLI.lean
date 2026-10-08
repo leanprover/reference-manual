@@ -1231,7 +1231,7 @@ Builtin linting builds the targeted modules with the requested linter options en
 It is triggered by {lakeOpt}`--builtin-lint`, {lakeOpt}`--builtin-only`, {lakeOpt}`--linters`, or {lakeOpt}`--lint-only`, as well as by setting `builtinLint` to {name}`true` in the package configuration.
 By contrast, running the lint driver does not automatically trigger a build of anything but the lint driver itself.
 
-The set of environment linters to be run on a declaration is determined by the linter options that were in effect when that declaration was built, whether they were set by `set_option` in the source or on the command line.
+The set of {tech}[environment linters] to be run on a declaration is determined by the linter options that were in effect when that declaration was built, whether they were set by `set_option` in the source or on the command line.
 Both {lakeOpt}`--linters` and {lakeOpt}`--lint-only` override those options for the lint build.
 
 The {lakeMeta}`options` may be:
