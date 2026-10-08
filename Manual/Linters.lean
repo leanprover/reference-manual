@@ -428,8 +428,8 @@ def tacticCount : Linter where
         n + countTactics env t
     let limit := linter.tacticCount.max.get (← getOptions)
     if count > limit then
-      Linter.logLint linter.tacticCount stx m!"this command runs {count} \
-        tactics, more than {limit}"
+      Linter.logLint linter.tacticCount stx m!"this command runs \
+        {count} tactics, more than {limit}"
 
 initialize addLinter tacticCount
 ```
@@ -613,7 +613,8 @@ meta section
 
 public register_option linter.fileLayout : Bool := {
   defValue := true
-  descr := "warn when commands appear out of the expected order in a file"
+  descr := "warn when commands appear out of the expected order in a \
+    file"
 }
 
 public inductive Region where
@@ -647,7 +648,8 @@ public structure LayoutState where
   current : Option Region := none
 deriving Inhabited
 
-def checkLayout (stx : Syntax) (st : LayoutState) : CommandElabM LayoutState := do
+def checkLayout (stx : Syntax) (st : LayoutState) :
+    CommandElabM LayoutState := do
   let some region := Region.ofCommand stx | return st
   if let some current := st.current then
     if region < current then
@@ -657,10 +659,13 @@ def checkLayout (stx : Syntax) (st : LayoutState) : CommandElabM LayoutState := 
     Linter.logLintIf linter.fileLayout stx
       m!"the first command in a file should be a module docstring"
   let current := st.current.getD region
-  return { current := some (if region > current then region else current) }
+  return {
+    current := some (if region > current then region else current)
+  }
 
 public initialize fileLayoutLinter : StatefulLinter LayoutState Unit ←
-  registerStatefulLinter {} (post := fun stx st _ _ _ => withSetOptionIn (checkLayout · st) stx)
+  registerStatefulLinter {}
+    (post := fun stx st _ _ _ => withSetOptionIn (checkLayout · st) stx)
 ```
 This file contains three violations: it begins without a module docstring, it sets an option after a declaration, and it places a module docstring after a command:
 ```leanModule (moduleName := Layout.Test) (name := ordering)
@@ -759,7 +764,8 @@ meta section
 
 public register_option linter.envLinter.getVariants : Bool := {
   defValue := true
-  descr := "warn when a namespace defines some but not all of `get!`, `get?`, and `getD`"
+  descr := "warn when a namespace defines some but not all of `get!`, \
+    `get?`, and `getD`"
 }
 
 initialize Linter.addEnvLinterOption linter.envLinter.getVariants
@@ -785,9 +791,13 @@ public def getVariantsLinter : EnvLinter where
     let missing := getVariants.filter fun v => !env.contains (.str ns v)
     if missing.isEmpty then return none
     let missing := missing.map fun v => m!"`{Name.str ns v}`"
-    return some m!"`{declName}` is defined, but {MessageData.andList missing} {if missing.length == 1 then "is" else "are"} not"
-  noErrorsFound := "Every namespace defines all of `get!`, `get?`, and `getD`."
-  errorsFound := "THE FOLLOWING NAMESPACES DEFINE ONLY SOME OF `get!`, `get?`, AND `getD`:"
+    return some m!"`{declName}` is defined, but \
+      {MessageData.andList missing} \
+      {if missing.length == 1 then "is" else "are"} not"
+  noErrorsFound := "Every namespace defines all of `get!`, `get?`, and \
+    `getD`."
+  errorsFound := "THE FOLLOWING NAMESPACES DEFINE ONLY SOME OF `get!`, \
+    `get?`, AND `getD`:"
 ```
 The library itself contains a variety of data structures, with their implementations in multiple modules:
 ```lean (file := "Data/Stack.lean")
@@ -815,7 +825,8 @@ public import Data.Stack
 
 public def Stack.get? (s : Stack) (i : Nat) : Option Nat := s.items[i]?
 
-public def Stack.getD (s : Stack) (i : Nat) (default : Nat) : Nat := s.items.getD i default
+public def Stack.getD (s : Stack) (i : Nat) (default : Nat) : Nat :=
+  s.items.getD i default
 ```
 The root module imports all the implementation modules along with the linter:
 ```lean (file := "Data.lean")
@@ -907,16 +918,19 @@ module
 public meta import Lean.Linter.Basic
 public meta import Lean.Linter.Util
 
-open Lean Elab Command
+open Lean Elab Command Linter
+open Std (HashSet)
 
 meta section
 
 public register_option linter.simpUsage : Bool := {
   defValue := true
-  descr := "record which lemmas are passed to `simp` as code quality metrics"
+  descr := "record which lemmas are passed to `simp` as code quality \
+    metrics"
 }
 
-partial def simpLemmaStarts (stx : Syntax) : Array String.Pos.Raw := Id.run do
+partial def simpLemmaStarts (stx : Syntax) :
+    Array String.Pos.Raw := Id.run do
   let mut starts := #[]
   if stx.isOfKind ``Parser.Tactic.simpLemma then
     -- The lemma itself follows the optional `↓`/`↑` and `←` modifiers.
@@ -927,19 +941,21 @@ partial def simpLemmaStarts (stx : Syntax) : Array String.Pos.Raw := Id.run do
 
 def simpUsage : Linter where
   run := withSetOptionIn fun stx => do
-    unless Linter.getLinterValue linter.simpUsage (← Linter.getLinterOptions) do return
+    unless getLinterValue linter.simpUsage (← getLinterOptions) do return
     let starts := simpLemmaStarts stx
     if starts.isEmpty then return
-    -- Each lemma occurrence is identified by its position, since the info tree can contain
-    -- several nodes for the same syntax.
-    let mut found : Std.HashSet (String.Pos.Raw × Name) := {}
+    -- Each lemma occurrence is identified by its position, since the
+    -- info tree can contain several nodes for the same syntax.
+    let mut found : HashSet (String.Pos.Raw × Name) := {}
     for tree in (← getInfoState).trees do
       found := tree.foldInfo (init := found) fun _ info found =>
         match info with
         | .ofTermInfo ti =>
           match ti.expr.constName?, ti.stx.getRange? with
           | some n, some r =>
-            if starts.contains r.start then found.insert (r.start, n) else found
+            if starts.contains r.start then
+              found.insert (r.start, n)
+            else found
           | _, _ => found
         | _ => found
     let mut counts : Std.TreeMap String Float := {}
@@ -961,7 +977,10 @@ The function {name}`parseEntries` parses a sequence of JSON values, while {name}
 import Lean.Data.Json
 open Lean
 
-/-- Parses a sequence of JSON values, as printed by `lake lint --code-quality`. -/
+/--
+Parses a sequence of JSON values, as printed by
+`lake lint --code-quality`.
+-/
 def parseEntries (s : String) : Except String (Array Json) :=
   let p : Std.Internal.Parsec.String.Parser (Array Json) := do
     Std.Internal.Parsec.String.ws
@@ -1126,8 +1145,9 @@ public def duplicateTheorems : PackageCheck where
     let env ← getEnv
     let some rootIdx := env.getModuleIdx? ctx.topLevelModule | return #[]
     let pkg := env.getModulePackageByIdx? rootIdx
-    -- Group the theorems of the package's modules by their statements. Each equivalence class
-    -- is a dictionary that maps its members' names to 1.0 to facilitate reporting.
+    -- Group the theorems of the package's modules by their statements.
+    -- Each equivalence class is a dictionary that maps its members'
+    -- names to 1.0 to facilitate reporting.
     let mut classes : ExprMap (Std.TreeMap String Float) := {}
     let mut theorems := #[]
     for h : i in 0 ... env.header.moduleData.size do
@@ -1138,7 +1158,8 @@ public def duplicateTheorems : PackageCheck where
         unless ← isProp info.type do continue
         classes := classes.alter info.type fun dups? =>
           some ((dups?.getD {}).insert declName.toString 1.0)
-        theorems := theorems.push (env.header.moduleNames[i]!, declName, info.type)
+        let modName := env.header.moduleNames[i]!
+        theorems := theorems.push (modName, declName, info.type)
     -- Report each theorem that has duplicates.
     let mut entries := #[]
     for (modName, declName, type) in theorems do
