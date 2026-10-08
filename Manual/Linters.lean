@@ -24,7 +24,6 @@ open Verso.Code.External
 %%%
 tag := "linters"
 shortContextTitle := "Linters"
-draft := true
 %%%
 
 A {deftech}[linter] is a check that identifies problematic or error-prone patterns in code.

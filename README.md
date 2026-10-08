@@ -71,10 +71,11 @@ following shell script:
 Then run a local web server on its output:
 
 ```
-python3 ./server.py 8880 &
+lake exe verso-serve _out/site
 ```
 
-Then open <http://localhost:8880> in your browser.
+The server prints the address it is listening on. Open it in your
+browser.
 
 ## Contributing
 

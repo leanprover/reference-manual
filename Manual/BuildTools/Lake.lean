@@ -186,6 +186,8 @@ tag := "lake-workflows"
 The process of developing formalized mathematics or software involves more than just writing code and building it.
 Testing, {tech (key:="lint driver")}[linting], and other fixed procedures that are carried out regularly are referred to as {deftech}_development workflows_.
 Lake provides direct support for testing and linting, through the {lake}`test` and {lake}`lint` commands, which use the {ref "test-lint-drivers"}[test and lint drivers] configured on the package.
+Lean also provides built-in linters.
+They, along with the {ref "linting-workflows"}[linting workflows] that {lake}`lint` provides for them, are described in the chapter on {ref "linters"}[linters and code quality].
 For other workflows, Lake provides {ref "lake-scripts"}[scripts], which are programs that can use the {ref "lake-api"}[Lake API] to perform arbitrary tasks.
 Scripts are defined in the {ref "lake-config-lean"}[Lean configuration format] and run through the {lake}`script run` CLI.
 
