@@ -99,7 +99,7 @@ There are a few consequences of this prioritization.
 First, linter sets can only ever enable linters, not disable them.
 Setting a linter set's option to {lean}`false` has no effect.
 Second, setting {option}`linter.all` to either {name}`true` or {name}`false` takes precedence over all linter sets.
-{option}`linter.all` also takes precendece over a linter option's default value, but not over an explicit value.
+{option}`linter.all` also takes precedence over a linter option's default value, but not over an explicit value.
 
 {optionDocs linter.all}
 
@@ -667,7 +667,7 @@ public initialize fileLayoutLinter : StatefulLinter LayoutState Unit ←
   registerStatefulLinter {}
     (post := fun stx st _ _ _ => withSetOptionIn (checkLayout · st) stx)
 ```
-This file contains three violations: it begins without a module docstring, it sets an option after a declaration, and it places a module docstring after a command:
+This file contains three violations: it begins without a module documentation comment, it sets an option after a declaration, and it places a module documentation comment after a command:
 ```leanModule (moduleName := Layout.Test) (name := ordering)
 module
 import Layout.Linter
