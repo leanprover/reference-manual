@@ -369,6 +369,7 @@ public meta import Lean.Linter.Basic
 public meta import Lean.Elab.InfoTree.Util
 
 open Lean Elab Command
+open Std (HashSet)
 
 meta section
 
@@ -379,37 +380,56 @@ public register_option linter.tacticCount : Bool := {
 
 public register_option linter.tacticCount.max : Nat := {
   defValue := 100
-  descr := "the number of tactics a command may run before `linter.tacticCount` warns"
+  descr := "the number of tactics a command may run before \
+    `linter.tacticCount` warns"
 }
 
-/-- Whether `kind` is the syntax kind of a tactic, as opposed to a tactic sequence or block. -/
+ open Parser in
+/--
+Whether `kind` is the syntax kind of a tactic, as opposed to a tactic
+sequence or block.
+-/
 def isTacticKind (env : Environment) (kind : SyntaxNodeKind) : Bool :=
-  match (Parser.parserExtension.getState env).categories.find? `tactic with
+  match (parserExtension.getState env).categories.find? `tactic with
   | some category => category.kinds.contains kind
   | none => false
 
-/-- The number of distinct tactics from the source file that were run while elaborating `tree`. -/
+/--
+The number of distinct tactics from the source file that were run while
+elaborating `tree`.
+-/
 def countTactics (env : Environment) (tree : InfoTree) : Nat :=
-  let positions : Std.HashSet String.Pos.Raw := tree.foldInfo (init := {}) fun _ info positions =>
-    match info with
-    | .ofTacticInfo ti =>
-      match ti.stx.getHeadInfo, ti.stx.getPos? with
-      | .original .., some pos =>
-        if isTacticKind env ti.stx.getKind then positions.insert pos else positions
-      | _, _ => positions
-    | _ => positions
+  let positions : HashSet String.Pos.Raw :=
+    tree.foldInfo (init := {}) fun _ info positions =>
+      match info with
+      | .ofTacticInfo ti =>
+        match ti.stx.getHeadInfo, ti.stx.getPos? with
+        | .original .., some pos =>
+          if isTacticKind env ti.stx.getKind then
+            positions.insert pos
+          else
+            positions
+        | _, _ => positions
+      | _ => positions
   positions.size
 
-/-- Warns when a command runs more than `linter.tacticCount.max` tactics. -/
+open Linter in
+/--
+Warns when a command runs more than `linter.tacticCount.max` tactics.
+-/
 def tacticCount : Linter where
   run := withSetOptionIn fun stx => do
     -- Don't compute the result if it will never be shown
-    unless Linter.getLinterValue linter.tacticCount (← Linter.getLinterOptions) do return
+    unless getLinterValue linter.tacticCount (← getLinterOptions) do
+      return
     let env ← getEnv
-    let count := (← getInfoState).trees.foldl (init := 0) fun n t => n + countTactics env t
+    let count :=
+      (← getInfoState).trees.foldl (init := 0) fun n t =>
+        n + countTactics env t
     let limit := linter.tacticCount.max.get (← getOptions)
     if count > limit then
-      Linter.logLint linter.tacticCount stx m!"this command runs {count} tactics, more than {limit}"
+      Linter.logLint linter.tacticCount stx m!"this command runs {count} \
+        tactics, more than {limit}"
 
 initialize addLinter tacticCount
 ```
@@ -493,7 +513,8 @@ meta section
 
 public register_option linter.declarationLimit : Bool := {
   defValue := true
-  descr := "warn when a file contains more declarations than `linter.declarationLimit.max`"
+  descr := "warn when a file contains more declarations than \
+    `linter.declarationLimit.max`"
 }
 
 public register_option linter.declarationLimit.max : Nat := {
@@ -508,7 +529,8 @@ def declarationLimit : ModuleLinter where
     let decls := cmds.filter (·.isOfKind ``Parser.Command.declaration)
     if h : limit < decls.size then
       Linter.logLintIf linter.declarationLimit decls[limit]
-        m!"this file contains {decls.size} declarations, more than {limit}"
+        m!"this file contains {decls.size} declarations, more than \
+          {limit}"
 
 initialize addModuleLinter declarationLimit
 ```
