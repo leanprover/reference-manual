@@ -210,7 +210,7 @@ def grindTacticInline : RoleExpanderOf GrindTacticInlineArgs
       | none => .inl tac
     let tacDoc ← getGrindTactic name none
     let hl : Highlighted := .token ⟨.keyword (some tacDoc.name) none tacDoc.docs?, tac.getString⟩
-    `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.grindTactic with data := $(quote (ToJson.toJson hl))} #[Verso.Doc.Inline.code $(quote tac.getString)])
+    `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.grindTactic with data := ToJson.toJson (α := Highlighted) $(quote hl)} #[Verso.Doc.Inline.code $(quote tac.getString)])
 
 end
 

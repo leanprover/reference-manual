@@ -45,7 +45,7 @@ def tutorials : Tutorials where
     { title := #[inlines!"Tactics"],
       titleString := "Tactics"
       description := #[blocks!"These tutorials demonstrate Lean's advanced proof automation."]
-      tutorials := #[%doc Tutorial.VCGen, %doc Tutorial.Grind.IndexMap]
+      tutorials := #[%doc Tutorial.VCGen, %doc Tutorial.MVCGen, %doc Tutorial.Grind.IndexMap]
     }
 
   ]
