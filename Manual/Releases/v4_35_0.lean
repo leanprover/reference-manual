@@ -62,7 +62,7 @@ Lean 4.35 ships {tactic}`vcgen`, a verification condition generator that replace
 ![`vcgen` vs kernel](/static/screenshots/vcgen_vs_kernel.png)
 :::
 
-`vcgen` is still marked experimental: `set_option experimental.vcgen true` acknowledges this and silences the corresponding warning. The reference manual chapter and the tutorial {ref "mvcgen-tactic-tutorial" (remote := "tutorials")}[Verifying Imperative Programs Using `vcgen`] describe the tactic.
+`vcgen` is still marked experimental: `set_option experimental.vcgen true` acknowledges this and silences the corresponding warning. The reference manual chapter and the tutorial {ref "vcgen-tactic-tutorial" (remote := "tutorials")}[Verifying Imperative Programs Using `vcgen`] describe the tactic.
 
 ## Checking Projects with `lake check` and `lake comparator`
 
