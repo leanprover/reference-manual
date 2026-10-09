@@ -37,6 +37,8 @@ Beware that if decoded in JavaScript, these numbers may [lose precision](https:/
 {docstring +allowMissing JsonNumber}
 
 To parse JSON text into a {name}`Json` value, use {name}`Json.parse`.
+Note that {name}`Json.parse` is not necessarily robust against adversarial inputs.
+For example, objects with duplicate keys (`{ "a": 1, "a": 2 }`) have unspecified decodings.
 
 {docstring +allowMissing Json.parse}
 
@@ -148,6 +150,12 @@ deriving ToJson, FromJson
 {docstring +allowMissing ToJson}
 
 {docstring +allowMissing FromJson}
+
+Many helper functions are available for writing custom JSON encoders and decoders.
+
+For creating JSON values, we have among others {name}`Json.mkObj`, {name}`Json.setObjVal!`, and {name}`Json.setObjValAs!`.
+
+For decoding JSON, the following can be useful: {name}`Json.isNull`, {name}`Json.getStr?`, {name}`Json.getNat?`, {name}`Json.getInt?`, {name}`Json.getBool?`,  {name}`Json.getArr?`, {name}`Json.getArrVal?`, {name}`Json.getObjVal?`, {name}`Json.getObjValD`, {name}`Json.getObjValAs?`.
 
 # HTML
 
