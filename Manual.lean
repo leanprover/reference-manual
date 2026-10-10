@@ -28,6 +28,8 @@ import Manual.Monads
 import Manual.BuildTools
 import Manual.Linters
 import Manual.Releases
+import Manual.StandardLibrary.HTML
+import Manual.StandardLibrary.JSON
 import Manual.Namespaces
 import Manual.Runtime
 import Manual.SupportedPlatforms
@@ -139,9 +141,11 @@ draft := true
 Overview of the standard library, including types from the prelude and those that require imports.
 :::
 
-{include 0 Manual.NotationsMacros}
+{include 2 Manual.StandardLibrary.HTML}
 
-{include 0 Manual.WebTech}
+{include 2 Manual.StandardLibrary.JSON}
+
+{include 0 Manual.NotationsMacros}
 
 {include 0 Manual.BuildTools}
 
