@@ -56,6 +56,12 @@ Alternatively, to produce human-readable output, call {name}`Json.render` or {na
 
 In addition to using the {name}`Json` constructors directly, JSON values can be written in standard notation following the `json%` keyword.
 
+:::syntax term (title := "JSON Terms")
+```grammar
+json% $_:json
+```
+:::
+
 One may optionally omit quotes on object keys in `json%` literals (similarly to [JavaScript object literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_objects#using_object_initializers)).
 A `$()` delimiter can be used to interpolate any value with a {name}`FromJson` instance (including {name}`Json` values).
 
@@ -78,11 +84,7 @@ variable (j : Json)
 ```
 :::
 
-:::syntax term (title := "JSON Terms")
-```grammar
-json% $_:json
-```
-:::
+The complete grammar of JSON literals is as follows.
 
 :::comment
 Using `freeSyntax` due to https://github.com/leanprover/reference-manual/issues/966.
@@ -193,37 +195,58 @@ The {name}`render` function, defined in the {module}`Lean.Data.Html.Printer` mod
 
 ## Literal Syntax
 
-A grammar for HTML is defined in {module}`Lean.Data.Html.Syntax`, consisting of a number of {name}`Parser`s.
-The top-level parser is {name}`Syntax.content`.
+HTML literal notation can be accessed by importing {module}`Lean.Data.Html`.
+These literals are written inside `html%{}` delimiters, and {ref "elaborators"}[elaborate] to {name}`Html` values.
 
-:::TODO
-document whitespace rules
-:::
-
-{docstring Syntax.content}
-
-The syntactic category of Lean terms includes HTML literals via the `html%{}` delimiter.
-These literals {ref "elaborators"}[elaborate] to {name}`Html` values.
-
-:::syntax term (title := "HTML Literals")
+:::syntax term (title := "HTML Terms")
 ```grammar
 html%{$html:content}
 ```
 :::
 
-The following parsers, invoked recursively by {name}`Syntax.content` and each other, cover the supported pieces of HTML syntax.
+:::example "An HTML literal"
+```imports -show
+import Lean.Data.Html
+```
+```lean
+#check html%{Hello, <b>world</b>!}
+```
+:::
 
-{docstring Syntax.text}
+HTML content is a sequence of zero or more content items.
 
-{docstring Syntax.comment}
+:::comment
+`attr*` below gets parsed as an attribute name, so the hover is wrong.
+:::
+:::freeSyntax contentItem (title := "HTML Content Item") -open
+```grammar
+$_:text
+*****
+`(Lean.Html.Syntax.comment|<!-- comment -->)
+*****
+`(Lean.Html.Syntax.element|<tagName attr*>$_:content</tagName>)
+*****
+`(Lean.Html.Syntax.element|<tagName attr*/>)
+*****
+"{"$_:term"}"
+*****
+"{..."$_:term"}"
+```
+:::
 
-{docstring Syntax.element}
-
-{docstring Syntax.tagName}
-
-{docstring Syntax.attr}
-
-{docstring Syntax.attrName}
+:::freeSyntax Lean.Html.Syntax.attr (title := "HTML Attribute") -open
+```grammar
+`(Lean.Html.Syntax.attr|attrName=$_:str)
+*****
+`(Lean.Html.Syntax.attr|attrName={$_:term})
+*****
+`(Lean.Html.Syntax.attr|attrName )
+*****
+`(Lean.Html.Syntax.attr|{$_:term})
+*****
+`(Lean.Html.Syntax.attr|{... $_:term})
+```
+:::
 
 :::leanSection
 ```lean -show
@@ -234,8 +257,9 @@ variable {html : Html} {htmls : Array Html}
   {val : String}
 ```
 
-{deftech (key := "html-interpolation")}[Interpolations] are holes in the syntax, filled in with a Lean term of the correct type (cf. {ref "string-interpolation"}[string interpolation]).
-They are written with curly braces and supported in:
+Besides standard HTML features, the grammar above includes {deftech (key := "html-interpolation")}[interpolations] written with curly braces.
+These are holes in the syntax, filled in with a Lean term of the correct type (cf. {ref "string-interpolation"}[string interpolation]).
+They are supported in:
 
 : Content
 
@@ -252,10 +276,45 @@ They are written with curly braces and supported in:
   Given {typed}`val : String`, we can write {lean}`html%{<tag attr-name={val} />}`.
 :::
 
+[HTML character references](https://html.spec.whatwg.org/dev/syntax.html#character-references) in text and in double-quoted attribute values are decoded to the Unicode characters they represent.
+
+:::example "Character reference in HTML literal"
+```imports -show
+import Lean.Data.Html
+```
+```lean
+#check html%{&lt;}
+```
+:::
+
+Whitespace in HTML content is governed by the following rules:
+- Whitespace that contains a newline (U+000A or U+000D), and is not surrounded by text on both sides, is removed.
+- Other consecutive whitespace is collapsed into a single space (U+0020).
+
+:::example "Whitespace in HTML literal"
+```imports -show
+import Lean.Data.Html
+```
+```lean
+#check html%{
+  <ul>
+    <li>Item  1</li>
+    <li>Item
+    2</li>
+    <li>Item <b>3</b></li>
+  </ul>
+}
+```
+:::
+
 ### Custom elaborators
 
 The HTML syntax is designed to support elaboration into custom types besides the {name}`Html` type.
-This is facilitated by _view_ functions that provide convenient descriptions of the parsed syntax.
+It is implemented in {module}`Lean.Data.Html.Syntax` as a collection of {name}`Parser`s.
+The top-level parser is {name}`Syntax.content`.
+No {ref "syntax-categories"}[syntax category] is declared.
+
+Elaboration is facilitated by _view_ functions that provide convenient descriptions of the parsed syntax.
 For instance, the {name}`Syntax.Content.view` function describes a {name}`Syntax.Content` node as a sequence of items.
 ({name}`Syntax.Content` is an alias for {lean}`TSyntax Syntax.contentKind`.)
 
@@ -267,7 +326,9 @@ The `html%{}` literal elaborator in {module}`Lean.Data.Html.Elab` is a useful ex
 
 {docstring +allowMissing Syntax.ContentItemView}
 
-Views operate at one level of depth: a view describes the current syntax node, but the arguments to its constructors are again ordinary {name}`Lean.TSyntax`, as opposed to being themselves described by nested views.
+Views implement details of whitespace handling and character reference decoding, simplifying elaborator implementations.
+
+They operate at one level of depth: a view describes the current syntax node, but the arguments to its constructors are again ordinary {name}`Lean.TSyntax`, as opposed to being themselves described by nested views.
 For instance, the argument to {name}`Syntax.ContentItemView.element` is {name}`Syntax.Element` (an alias for {lean}`TSyntax Syntax.elementKind`), not {name}`Syntax.ElementView`.
 An elaborator based on views progressively invokes view functions whenever it needs to inspect more syntax.
 
