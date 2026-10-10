@@ -164,22 +164,36 @@ It is accessed by importing {module}`Lean.Data.Html.Basic`.
 
 {docstring Html}
 
-This inductive type has a degree of redundancy: {lean}`Html.seq #[]` and {lean}`Html.seq #[Html.seq #[]]`, for example, denote the same, empty piece of HTML.
-Functions in the library generally normalize their {name}`Html` outputs, while accepting non-normal inputs.
-Recognizers such as {name}`Html.isEmpty` handle non-normal values.
-
-{docstring Html.ofArray}
+Because this inductive type includes a sequence constructor, its values are multi-rooted HTML _forests_ rather than single-rooted trees.
+This is convenient for grouping content, as in {lean}`Html.seq #[.text "Paragraph.", .element "br" #[] .empty]`, but also introduces redundancy.
+The empty HTML forest, for example, is denoted by {lean}`Html.seq #[]`, by {lean}`Html.seq #[Html.seq #[]]`, and by infinitely many other expressions.
+To counter this, {name}`Html.isEmpty` recognizes any input that renders to the empty string, not just the simplest one.
+In general, functions that consume {name}`Html` should handle all possible forms of their input.
 
 {docstring Html.isEmpty}
 
-The {name}`render` function, defined in the {module}`Lean.Data.Html.Printer` module, turns {ref "inductive-types"}[inductively] represented HTML into a string that can be parsed by browsers.
+Furthermore, to improve representation efficiency, functions that produce {name}`Html` may simplify it on a best-effort basis.
+For example, {name}`Html.append` merges {name}`Html.seq` nodes.
+
+{docstring Html.append}
+
+Smart constructors such as {name}`Html.ofCollection`, {name}`Html.ofArray`, and {name}`Html.ofList` also simplify in this way, so should be preferred over {name}`Html.seq`.
+
+{docstring Html.ofCollection}
+
+{docstring Html.ofArray}
+
+{docstring Html.ofList}
+
+## Rendering
+
+The {name}`render` function, defined in the {module}`Lean.Data.Html.Printer` module, turns HTML values into strings that can be parsed by browsers.
 
 {docstring render}
 
 ## Literal Syntax
 
-A grammar for HTML is defined in {module}`Lean.Data.Html.Syntax`.
-It does not declare any {ref "syntax-categories"}[syntax category], instead consisting entirely of {name}`Parser`s (see the source module for a justification).
+A grammar for HTML is defined in {module}`Lean.Data.Html.Syntax`, consisting of a number of {name}`Parser`s.
 The top-level parser is {name}`Syntax.content`.
 
 :::TODO
@@ -197,7 +211,7 @@ html%{$html:content}
 ```
 :::
 
-The following parsers, invoked recursively by {name}`Syntax.content` and each other, cover the supported kinds of HTML syntax.
+The following parsers, invoked recursively by {name}`Syntax.content` and each other, cover the supported pieces of HTML syntax.
 
 {docstring Syntax.text}
 
@@ -219,7 +233,8 @@ variable {html : Html} {htmls : Array Html}
   {σ : Type} [ForIn Id σ (String × String)] {attrs' : σ}
   {val : String}
 ```
-_Interpolations_ are holes in the syntax, filled in with a Lean term of the correct type.
+
+{deftech (key := "html-interpolation")}[Interpolations] are holes in the syntax, filled in with a Lean term of the correct type (cf. {ref "string-interpolation"}[string interpolation]).
 They are written with curly braces and supported in:
 
 : Content
@@ -241,7 +256,8 @@ They are written with curly braces and supported in:
 
 The HTML syntax is designed to support elaboration into custom types besides the {name}`Html` type.
 This is facilitated by _view_ functions that provide convenient descriptions of the parsed syntax.
-For instance, the {name}`Syntax.Content.view` function describes a {name}`Syntax.Content` node—an alias for {lean}`TSyntax Syntax.contentKind`—as a sequence of items.
+For instance, the {name}`Syntax.Content.view` function describes a {name}`Syntax.Content` node as a sequence of items.
+({name}`Syntax.Content` is an alias for {lean}`TSyntax Syntax.contentKind`.)
 
 :::sectionNote
 The `html%{}` literal elaborator in {module}`Lean.Data.Html.Elab` is a useful example of how to use views.
@@ -251,9 +267,9 @@ The `html%{}` literal elaborator in {module}`Lean.Data.Html.Elab` is a useful ex
 
 {docstring +allowMissing Syntax.ContentItemView}
 
-Views are lazy, with one level of depth: a view describes the current syntax node, but the arguments to its constructors are again ordinary {name}`Lean.TSyntax`.
-For instance, the argument to {name}`Syntax.ContentItemView.element` is {name}`Syntax.Element`, an alias for {lean}`TSyntax Syntax.elementKind`.
-An elaborator based on views invokes view functions whenever it needs to inspect a further piece of syntax.
+Views operate at one level of depth: a view describes the current syntax node, but the arguments to its constructors are again ordinary {name}`Lean.TSyntax`, as opposed to being themselves described by nested views.
+For instance, the argument to {name}`Syntax.ContentItemView.element` is {name}`Syntax.Element` (an alias for {lean}`TSyntax Syntax.elementKind`), not {name}`Syntax.ElementView`.
+An elaborator based on views progressively invokes view functions whenever it needs to inspect more syntax.
 
 ### Adherence to WhatWG Specification
 
