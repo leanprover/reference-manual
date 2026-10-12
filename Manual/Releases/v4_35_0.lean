@@ -15,20 +15,15 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.35.0-rc4 (2026-10-06)" =>
+#doc (Manual) "Lean 4.35.0 (2026-10-12)" =>
 %%%
 tag := "release-v4.35.0"
 file := "v4.35.0"
 %%%
 
-:::warn
-These release notes describe a _release candidate_, not the final release.
-They may be incomplete and are subject to change.
-:::
-
-For this release, 213 changes landed.
+For this release, 214 changes landed.
 In addition to the 78 feature additions
-and 56 fixes listed below,
+and 57 fixes listed below,
 there were 18 refactoring changes,
 7 documentation improvements,
 23 performance improvements,
@@ -944,6 +939,9 @@ After `markLinear`, every write to the value must happen while it is not shared;
 # Other
 
 ```markdown
+
+- [#15542](https://github.com/leanprover/lean4/pull/15542)
+  makes the `LeanExport` NDJSON reader used by `leanchecker --from-export` and `lake check` reject malformed input that it previously accepted silently: bytes after the JSON object on a line, JSON objects with duplicate keys, and lines that bind a name, level, expression or recursor rule index that is already bound (including the predefined index 0 for the anonymous name and level zero).
 
 - [#15130](https://github.com/leanprover/lean4/pull/15130)
   bundles the `con-leche` external checker with release toolchains, so it can be used as an independent checker without a separate install.
