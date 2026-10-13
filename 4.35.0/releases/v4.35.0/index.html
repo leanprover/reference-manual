@@ -1,4 +1,4 @@
-<!-- Generated from commit 0536e6c3e47b4fbd11e401da9216c035711b3ad1 at 2026-10-12T21:43:49Z -->
+<!-- Generated from commit 54e83e8e886c960ae86deb160e52c8f234290364 at 2026-10-13T22:59:40Z -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -3320,7 +3320,7 @@ After <code>markLinear</code>, every write to the value must happen while it is 
                       <a href="https://github.com/leanprover/lean4/pull/14624">#14624</a> fixes <a href="https://github.com/leanprover/lean4/issues/9077">#9077</a>, in which instance synthesis could see through a type synonym.
   During instance search, a metavariable for an instance-implicit argument is now only assigned a value of the expected type, up to instance transparency.
   The related change <a href="https://github.com/leanprover/lean4/pull/14583">#14583</a> makes unification try its remaining heuristics before giving up with a stuck exception.
-  <strong>Migration:</strong> <code>set_option backward.isDefEq.instanceTypes false</code> restores the old instance search behavior, and <code>set_option backward.isDefEq.throwOnStuckAfterApp true</code> the old unification behavior.
+  <strong>Migration:</strong> <code>set_option backward.isDefEq.respectTransparency.instanceSearchTypes false</code> restores the old instance search behavior, and <code>set_option backward.isDefEq.throwOnStuckAfterApp true</code> the old unification behavior.
   In Mathlib, the affected declarations use the first option and are annotated with suggestions for a proper fix.</p>
                     </li>
                   <li>
@@ -3583,7 +3583,7 @@ types the <code>fun</code> binders of a <code>do←</code> argument from the wra
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/14624">#14624</a>
-fixes #9077 by ensuring that, during instance search, all metavariables for instance-implicit arguments are only assigned values of the expected type, up to instance transparency. The backward compatibility option <code>set_option backward.isDefEq.instanceTypes false</code> restores the old behavior. This is a breaking change that affects a few declarations in Mathlib. All of them have been fixed with a backward compatibility option, analyzed and extensively annotated with suggested actions. Note: This fix does <em>not</em> enforce the type of out-params at instance transparency; synthesis of <code>Class X</code>, where <code>X</code> is in an out-param position, can still yield a <code>Class Y</code> instance, as long as <code>X =?= Y</code> at a higher transparency. The latter phenomenon is of a somewhat different nature; it would be easy to enforce, but it would cause ~1000's of broken declarations in Mathlib, for unclear benefit.</p>
+fixes #9077 by ensuring that, during instance search, all metavariables for instance-implicit arguments are only assigned values of the expected type, up to instance transparency. The backward compatibility option <code>set_option backward.isDefEq.respectTransparency.instanceSearchTypes false</code> restores the old behavior. This is a breaking change that affects a few declarations in Mathlib. All of them have been fixed with a backward compatibility option, analyzed and extensively annotated with suggested actions. Note: This fix does <em>not</em> enforce the type of out-params at instance transparency; synthesis of <code>Class X</code>, where <code>X</code> is in an out-param position, can still yield a <code>Class Y</code> instance, as long as <code>X =?= Y</code> at a higher transparency. The latter phenomenon is of a somewhat different nature; it would be easy to enforce, but it would cause ~1000's of broken declarations in Mathlib, for unclear benefit.</p>
                   </li>
                 <li>
                   <p>
