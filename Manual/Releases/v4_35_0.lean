@@ -329,7 +329,7 @@ After `markLinear`, every write to the value must happen while it is not shared;
 - [#14624](https://github.com/leanprover/lean4/pull/14624) fixes [#9077](https://github.com/leanprover/lean4/issues/9077), in which instance synthesis could see through a type synonym.
   During instance search, a metavariable for an instance-implicit argument is now only assigned a value of the expected type, up to instance transparency.
   The related change [#14583](https://github.com/leanprover/lean4/pull/14583) makes unification try its remaining heuristics before giving up with a stuck exception.
-  *Migration:* `set_option backward.isDefEq.instanceTypes false` restores the old instance search behavior, and `set_option backward.isDefEq.throwOnStuckAfterApp true` the old unification behavior.
+  *Migration:* `set_option backward.isDefEq.respectTransparency.instanceSearchTypes false` restores the old instance search behavior, and `set_option backward.isDefEq.throwOnStuckAfterApp true` the old unification behavior.
   In Mathlib, the affected declarations use the first option and are annotated with suggestions for a proper fix.
 
 - [#8309](https://github.com/leanprover/lean4/pull/8309) changes the definition of {name}`Decidable`, as described above.
