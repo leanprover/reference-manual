@@ -30,6 +30,6 @@ def getBreakableSuffix (name : Name) : Option String := do
   htmlText breakableHtml
 where
   htmlText : Verso.Output.Html → String
-    | .text _ txt => txt
+    | .text txt | .raw txt => txt
     | .seq elts => elts.foldl (· ++ htmlText ·) ""
-    | .tag _nm _attrs children => htmlText children
+    | .element _nm _attrs children => htmlText children

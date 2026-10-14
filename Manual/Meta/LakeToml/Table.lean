@@ -71,7 +71,7 @@ def FieldType.toHtml (plural : Bool := false) : FieldType → Html
   | .option t => t.toHtml ++ " (optional)"
   | .oneOf xs =>
     let opts := xs
-      |>.map ({{<code>{{show Html from .text true s!"\"{·}\""}}</code>}})
+      |>.map ({{<code>{{show Html from .text s!"\"{·}\""}}</code>}})
       |>.intersperse {{", "}}
     {{"one of " {{opts}} }}
 

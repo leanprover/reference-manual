@@ -275,29 +275,29 @@ This emits the following IR:
         ret x_2
       List.cons →
         let x_3 : tobj := proj[1] x_1;
-        block_4 (x_5 : tobj) (x_6 : u8) :=
-          let x_7 : tagged := ctor_0[PUnit.unit];
-          let x_8 : tobj := discardElems._redArg x_3;
-          block_9 (x_10 : obj) :=
-            ret x_10;
-          case x_6 : u8 of
+        block_1 (x_4 : tobj) (x_5 : u8) :=
+          let x_6 : tagged := ctor_0[PUnit.unit];
+          let x_7 : tobj := discardElems._redArg x_3;
+          block_2 (x_8 : obj) :=
+            ret x_8;
+          case x_5 : u8 of
           Bool.false →
-            set x_5[1] := x_8;
-            set x_5[0] := x_7;
-            jmp block_9 x_5
+            set x_4[1] := x_7;
+            set x_4[0] := x_6;
+            jmp block_2 x_4
           Bool.true →
-            let x_11 : obj := ctor_1[List.cons] x_7 x_8;
-            jmp block_9 x_11;
-        let x_12 : u8 := isShared x_1;
-        case x_12 : u8 of
+            let x_9 : obj := ctor_1[List.cons] x_6 x_7;
+            jmp block_2 x_9;
+        let x_10 : u8 := isShared x_1;
+        case x_10 : u8 of
         Bool.false →
-          let x_13 : tobj := proj[0] x_1;
-          dec x_13;
-          jmp block_4 x_1 x_12
+          let x_11 : tobj := proj[0] x_1;
+          dec x_11;
+          jmp block_1 x_1 x_10
         Bool.true →
           inc x_3;
           dec x_1;
-          jmp block_4 ◾ x_12
+          jmp block_1 ◾ x_10
 [Compiler.IR] [result]
     def discardElems (x_1 : ◾) (x_2 : tobj) : tobj :=
       let x_3 : tobj := discardElems._redArg x_2;
@@ -305,8 +305,8 @@ This emits the following IR:
 ```
 
 In the IR, the {name}`List.cons` case explicitly checks whether the argument value is shared (i.e. whether its reference count is greater than one).
-If the reference is unique, the reference count of the discarded list element `x_5` is decremented and the constructor value is reused.
-If it is shared, a new {name}`List.cons` is allocated in `x_11` for the result.
+If the reference is unique, the reference count of the discarded list element `x_11` is decremented and the constructor value is reused.
+If it is shared, a new {name}`List.cons` is allocated in `x_9` for the result.
 :::
 
 
