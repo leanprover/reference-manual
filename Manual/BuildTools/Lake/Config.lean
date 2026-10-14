@@ -76,7 +76,7 @@ Field names not used by Lake should not be used to store metadata to be processe
 
 ## Package Configuration
 
-The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], compiler flags to be used for all {tech}[targets], and
+The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], and compiler flags to be used for all {tech}[targets].
 The only mandatory field is `name`, which declares the package's name.
 
 :::::tomlTableDocs root "Package Configuration" Lake.PackageConfig (skip := backend) (skip := releaseRepo?) (skip := buildArchive?) (skip := manifestFile) (skip := moreServerArgs) (skip := dynlibs) (skip := plugins)
