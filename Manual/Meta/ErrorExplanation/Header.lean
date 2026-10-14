@@ -82,8 +82,8 @@ block_extension Block.errorExplanationHeader (metadata : ErrorExplanationExtende
       ++ (metadata.removedVersion?.map fun v => #[("Removed", v)]).getD #[]
     let entries := entries.map fun (label, data) =>
       {{ <span class="error-explanation-metadatum">
-           <strong>{{Html.text true label}}": "</strong>
-           {{Html.text true data}}
+           <strong>{{Html.text label}}": "</strong>
+           {{Html.text data}}
           </span> }}
     return {{
       <div class="error-explanation-metadata">

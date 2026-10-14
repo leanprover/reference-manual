@@ -603,7 +603,6 @@ right_2 : a_2 ∈ m.indices.erase a
       [eqc] {↑i, ↑m.indices[a]}
       [eqc] {↑i_2, ↑m.indices[m.keys[i_2]]}
       [eqc] {↑m.keys.pop.size,
-          ↑(m.keys.pop.set i (m.keys.back ⋯) ⋯).size,
           ↑(m.size - 1),
           if -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 ≤ 0 then ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + -1
           else 0,
@@ -612,10 +611,11 @@ right_2 : a_2 ∈ m.indices.erase a
           ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + -1,
           ↑m.keys.size + -1,
           ↑m.size + -1,
+          ↑(m.keys.pop.set i (m.keys.back ⋯) ⋯).size,
           ↑(m.keys.size - 1),
           ↑(m.keys.set i (m.keys.back ⋯) ⋯).pop.size,
           ↑((m.keys.set i (m.keys.back ⋯) ⋯).size - 1)}
-      [eqc] {↑(m.keys.set i (m.keys.back ⋯) ⋯).size, ↑m.keys.size, ↑m.size}
+      [eqc] {↑m.keys.size, ↑m.size, ↑(m.keys.set i (m.keys.back ⋯) ⋯).size}
       [eqc] {-1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1, -1 * ↑m.keys.size + 1, -1 * ↑m.size + 1}
       [eqc] {-1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size, -1 * ↑m.keys.size, -1 * ↑m.size}
   [cases] Case analyses

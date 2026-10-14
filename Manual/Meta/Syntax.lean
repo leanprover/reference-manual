@@ -721,7 +721,7 @@ partial def grammar.descr : BlockDescr := withHighlighting {
 where
 
   bnfHtml : TaggedText GrammarTag → GrammarHtmlM Html
-  | .text str => pure <| .text true str
+  | .text str => pure <| .text str
   | .tag t txt => tagHtml t (bnfHtml txt)
   | .append txts => .seq <$> txts.mapM bnfHtml
 
