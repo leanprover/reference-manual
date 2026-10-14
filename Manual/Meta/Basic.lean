@@ -5,8 +5,6 @@ Author: David Thrane Christiansen
 -/
 module
 public import Lean.Elab.Command
-public import Lean.DocString.View
-
 public import Verso.Literal
 
 open Lean
@@ -42,6 +40,14 @@ open Lean.Syntax in
 public instance : Quote Position where
   quote
     | .mk l c => mkCApp ``Position.mk #[quote l, quote c]
+
+open Lean.Syntax in
+open MessageSeverity in
+public instance : Quote MessageSeverity where
+  quote
+    | error => mkCIdent ``error
+    | warning => mkCIdent ``warning
+    | information => mkCIdent ``information
 
 open Lean.Syntax in
 public instance : Quote SyntaxError where

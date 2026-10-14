@@ -196,7 +196,7 @@ The following variables are augmented with additional information:
 Lake itself can be configured with the following environment variables:
 :::table (align := left) -header
 *
-  * {envVar +def}`ELAN_HOME`
+  * {envVar}`ELAN_HOME`
   * The location of the {ref "elan"}[Elan] installation, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
 
 *
@@ -553,7 +553,7 @@ Module targets may also be specified by their filename, with an optional facet a
 The available {tech}[facets] depend on whether a package, library, executable, or module is to be built.
 They are listed in {ref "lake-facets"}[the section on facets].
 
-When using the {ref "lake-cache"}[local artifact cache], the {lakeOptDef option}`-o` option saves a {tech}[mappings file] that tracks the inputs and outputs of each step in the build.
+When using the {ref "lake-cache-local"}[local artifact cache], the {lakeOptDef option}`-o` option saves a {tech}[mappings file] that tracks the inputs and outputs of each step in the build.
 The mappings file describes the targets from one package that are included in the build, restricted to the {tech}[root package] by default.
 Targets that were already up to date are included in the mappings file.
 The {lakeOptDef option}`--package` option causes the named package's targets to be written to the mappings file instead of the root package's targets, which makes it possible to upload build outputs for a dependency.
@@ -1235,7 +1235,7 @@ Builtin linting builds the targeted modules with the requested linter options en
 It is triggered by {lakeOpt}`--builtin-lint`, {lakeOpt}`--builtin-only`, {lakeOpt}`--linters`, or {lakeOpt}`--lint-only`, as well as by setting `builtinLint` to {name}`true` in the package configuration.
 By contrast, running the lint driver does not automatically trigger a build of anything but the lint driver itself.
 
-The set of environment linters to be run on a declaration is determined by the linter options that were in effect when that declaration was built, whether they were set by `set_option` in the source or on the command line.
+The set of {tech}[environment linters] to be run on a declaration is determined by the linter options that were in effect when that declaration was built, whether they were set by `set_option` in the source or on the command line.
 Both {lakeOpt}`--linters` and {lakeOpt}`--lint-only` override those options for the lint build.
 
 The {lakeMeta}`options` may be:
@@ -1563,7 +1563,7 @@ If {lakeMeta}`archive.tgz` is not specified, the package's `buildArchive` settin
 # Local Caches
 
 {lake}`cache get`, {lake}`cache put`, and {lake}`cache add` are used to interact with remote cache servers.
-These commands are *experimental*, and are only useful if the {ref "lake-cache"}[local cache] is enabled.
+These commands are *experimental*, and are only useful if the {ref "lake-cache-local"}[local cache] is enabled.
 
 These commands can be configured to use a {deftech}[cache scope], which is a server-specific identifier for a set of build outputs for a package.
 On Reservoir, scopes are currently identical with GitHub repositories, but may include toolchain and platform information in the future.

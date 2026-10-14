@@ -9,7 +9,6 @@ public import Verso.Doc.ArgParse
 
 public import Lean.Elab.GuardMsgs
 public meta import Manual.Meta.Basic
-public meta import SubVerso.Examples.Env
 public meta import SubVerso.Examples.Messages.NormalizeMetavars
 public meta import Verso.Doc.Elab.Block
 public meta import Verso.Doc.Suggestion.Basic

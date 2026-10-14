@@ -790,4 +790,3 @@ where
 /-- info: some #[] -/
 #guard_msgs in
 #eval searchable.suffixMatches #[(· == searchable.dots)] #[(.metavar, "…")]
-

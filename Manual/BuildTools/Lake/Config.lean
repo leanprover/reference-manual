@@ -110,6 +110,7 @@ The code that is run to perform tests and linting is referred to as the test or 
 In Lean configuration files, these can be specified by applying the `@[test_driver]` or `@[lint_driver]` attributes to a {tech}[Lake script] or an executable or library target.
 In both Lean and TOML configuration files, they can also be configured by setting these options.
 A target or script `TGT` from a dependency `PKG` can be specified as a test or lint driver using the string `"PKG/TGT"`
+Setting {tomlField Lake.PackageConfig}`builtinLint` to {lean}`true` causes {lake}`lint` to also run {ref "running-lake-lint"}[Lean's built-in linters], and {tomlField Lake.PackageConfig}`checks` lists the modules that provide {ref "package-code-quality-checks"}[package code quality checks].
 
 :::
 

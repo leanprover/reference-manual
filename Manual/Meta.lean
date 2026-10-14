@@ -20,6 +20,7 @@ public import SubVerso.Examples
 public import Manual.Meta.Attribute
 public import Manual.Meta.Basic
 public import Manual.Meta.CheckMessages
+public import Manual.Meta.CodeQualityJson
 public import Manual.Meta.CommandSpec
 public import Manual.Meta.ConfigFile
 public import Manual.Meta.CustomStyle
@@ -116,7 +117,6 @@ def commentBlock : PartCommand
     catch | _ => throwUnsupportedSyntax
 
 end
-
 
 
 def Block.TODO : Block where

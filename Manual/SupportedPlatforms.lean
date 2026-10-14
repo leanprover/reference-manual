@@ -27,7 +27,7 @@ The Tier 1 platforms are:
 
 * `x86-64` Linux with glibc 2.26+
 * `aarch64` Linux with glibc 2.27+
-* `aarch64` (Apple Silicon) macOS 10.15+
+* `aarch64` (Apple Silicon) macOS 14+
 * `x86-64` Windows 11 (any version), Windows 10 (version 1903 or higher), Windows Server 2022, Windows Server 2025
 :::
 
@@ -41,6 +41,6 @@ Issue reports and fixes are welcome.
 
 :::paragraph
 The Tier 2 platforms are:
-* `x86-64` macOS 10.15+
+* `x86-64` macOS 14+
 * Emscripten WebAssembly
 :::
