@@ -8,6 +8,7 @@ module
 public import Manual.Meta.ModuleExample
 import VersoManual.InlineLean -- shake: keep
 public meta import Manual.Meta.ExpectString
+public meta import Manual.Meta.LakeToml.Toml
 
 public section
 
@@ -44,8 +45,8 @@ open Verso ArgParse Doc Elab Genre.Manual
 open Verso.Doc.Elab
 open Verso.Log
 open Lean Elab
-open scoped Lean.Doc.Syntax
 open SubVerso.Highlighting (Highlighted)
+open Lean.Doc (CodeBlockView VersoBlock VersoCodeBlock)
 
 namespace Manual
 
@@ -100,31 +101,33 @@ private inductive SessionItem where
   A `toml` block, becoming `lakefile.toml`. The syntax is kept for rendering, which `-show`
   suppresses.
   -/
-  | tomlConfig (contents : StrLit) (block : Syntax) («show» : Bool)
+  | tomlConfig (contents : VersoCodeBlock) (block : Syntax) («show» : Bool)
   /-- A `lean +lakefile` block, becoming `lakefile.lean`. The syntax is kept for rendering. -/
-  | leanConfig (contents : StrLit) (block : Syntax)
+  | leanConfig (contents : VersoCodeBlock) (block : Syntax)
   /-- A `lean (file := …)` source-file block. -/
-  | source (cfg : SourceFileConfig) (contents : StrLit)
+  | source (cfg : SourceFileConfig) (contents : VersoCodeBlock)
   /-- A `lakeCmd "…"` block, with its expected output and the block syntax (for error reporting). -/
-  | command (cfg : LakeCmdConfig) (output : StrLit) (blame : Syntax)
+  | command (cfg : LakeCmdConfig) (output : VersoCodeBlock) (blame : Syntax)
   /-- Any other block, rendered unchanged. -/
   | passthrough (block : Syntax)
 
 /-- Classify a block within a `lakeSession`. -/
-private meta def classifySessionBlock (block : Syntax) : DocElabM SessionItem := do
-  match block with
-  | `(block| ``` toml $args* | $contents ```) =>
+private meta def classifySessionBlock (block : VersoBlock) : DocElabM SessionItem := do
+  let some { name? := some name, args, content, .. } := CodeBlockView.of block
+    | return .passthrough block
+  match name.getId with
+  | `toml =>
     let «show» ← (ArgParse.flag `show true).run (← parseArgs args)
-    return .tomlConfig contents block «show»
-  | `(block| ``` lakeCmd $args* | $output ```) =>
+    return .tomlConfig content block «show»
+  | `lakeCmd =>
     let cfg ← LakeCmdConfig.parse.run (← parseArgs args)
-    return .command cfg output block
-  | `(block| ``` lean $args* | $contents ```) =>
+    return .command cfg content block
+  | `lean =>
     -- A `lean` block is the Lean-format configuration when marked `+lakefile`, a project source
     -- file when it carries a `file` argument, and otherwise an ordinary rendered example.
     match ← (try some <$> leanBlockArgs.run (← parseArgs args) catch _ => pure none) with
-    | some (_, true, _) => return .leanConfig contents block
-    | some (some file, false, error) => return .source ⟨file, error⟩ contents
+    | some (_, true, _) => return .leanConfig content block
+    | some (some file, false, error) => return .source ⟨file, error⟩ content
     | _ => return .passthrough block
   | _ => return .passthrough block
 
@@ -322,7 +325,7 @@ def lakeSession : DirectiveExpander
           -- elaboration messages are reported at the corresponding lines of this document below.
           let path := dir / (cfg.file : System.FilePath)
           path.parent.forM (IO.FS.createDirAll ·)
-          IO.FS.writeFile path contents.getString
+          IO.FS.writeFile path contents.getVersoCodeBlock
         | _ => pure ()
 
       -- Run the commands in order, validating each against its expectations.
@@ -386,7 +389,7 @@ where
   they belong to. Errors are reported as errors unless the file is marked `+error`, in which case
   they are expected, and an absence of errors is itself an error.
   -/
-  reportMessages (cfg : SourceFileConfig) (block : StrLit) (hl : Highlighted) : DocElabM Unit := do
+  reportMessages (cfg : SourceFileConfig) (block : VersoCodeBlock) (hl : Highlighted) : DocElabM Unit := do
     let firstLine := ((← getFileMap).toPosition (block.raw.getPos?.getD 0)).line - 1
     let msgs := getMessages hl
     for (l, msg) in msgs do
@@ -408,7 +411,7 @@ where
   next stage's standard input. The pipeline's output is the last stage's standard output followed
   by every stage's standard error, and its exit code is that of the first stage that fails.
   -/
-  runCommand (dir : System.FilePath) (files : Array String) (cfg : LakeCmdConfig) (output : StrLit)
+  runCommand (dir : System.FilePath) (files : Array String) (cfg : LakeCmdConfig) (output : VersoCodeBlock)
       (blame : Syntax) : DocElabM Unit := do
     let mut input? : Option String := none
     let mut stderr := ""
@@ -454,14 +457,10 @@ where
   renderItem (highlights : Std.HashMap String Highlighted) (leanConfigHl : Option Highlighted)
       (item : SessionItem) : DocElabM Term := do
     match item with
-    | .tomlConfig _ block «show» =>
+    | .tomlConfig contents _ «show» =>
       unless «show» do return ← ``(Verso.Doc.Block.empty)
-      -- Re-render the original `toml` block for highlighting. Its only argument is `show`, which
-      -- is dropped so that the renderer does not see it.
-      -- The original block's name is reused, since a `toml` written in a quotation is hygienic.
-      let `(block| ``` $name:ident $_* | $contents ```) := block
-        | elabBlock ⟨block⟩
-      elabBlock ⟨← `(block| ``` $name:ident | $contents ```)⟩
+      let hl ← tomlContent contents
+      ``(Verso.Doc.Block.other (Block.toml $(quote hl) true) #[Verso.Doc.Block.code $(quote contents.getVersoCodeBlock)])
     | .leanConfig contents _ =>
       match leanConfigHl with
       | some hl =>
@@ -476,7 +475,7 @@ where
         ``(Verso.Doc.Block.code $(quote (← parserInputString contents)))
     | .command cfg output _ =>
       unless cfg.show do return ← ``(Verso.Doc.Block.empty)
-      let body := output.getString
+      let body := output.getVersoCodeBlock
       let text := "$ " ++ cfg.command ++ (if isBlank body then "" else "\n" ++ body)
       ``(Verso.Doc.Block.code $(quote text))
     | .passthrough block =>

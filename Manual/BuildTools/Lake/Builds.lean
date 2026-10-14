@@ -111,13 +111,15 @@ The `@` and `+` markers can be used to disambiguate packages and modules
 from file paths or other kinds of targets (e.g., executables or libraries).
 
 LIBRARY FACETS:         build the library's ...
-  leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
+  elabArts              elaboration artifacts (*.olean, *.ilean files)
+  irArts (default)      compilation artifacts (*.ir, *.ir.sig, *.c files)
   static                static artifact (*.a file)
   shared                shared artifact (*.so, *.dll, or *.dylib file)
 
 MODULE FACETS:          build the module's ...
   deps                  dependencies (e.g., imports, shared libraries, etc.)
-  leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
+  elabArts              elaboration artifacts (*.olean, *.ilean files)
+  irArts (default)      compilation artifacts (*.ir, *.ir.sig, *.c files)
   olean                 OLean (binary blob of Lean data for importers)
   ilean                 ILean (binary blob of metadata for the Lean LSP server)
   c                     compiled C file
@@ -216,8 +218,8 @@ info: #[`package.barrel, `package.cache, `package.defaultModules, `package.deps,
 ```lean -show
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: [`lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.static.export, `lean_lib.shared, `lean_lib.modules, `lean_lib.static,
-  `lean_lib.default]
+info: [`lean_lib.elabArts, `lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.irArts, `lean_lib.static.export,
+  `lean_lib.shared, `lean_lib.modules, `lean_lib.static, `lean_lib.default]
 -/
 #guard_msgs in
 #eval Lake.initLibraryFacetConfigs.toList.map (·.1)
@@ -227,9 +229,17 @@ info: [`lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.static.export, `lean_li
 
 The facets available for libraries are:
 
+: `elabArts`
+
+  The library's elaboration artifacts ({tech (key := ".olean files")}`*.olean` and `*.ilean` files).
+
+: `irArts` (default)
+
+  Both the library's elaboration artifacts and the library's code-generation artifacts (`*.ir`, `*.ir.sig`, and `*.c` files).
+
 : `leanArts`
 
-  The artifacts that the Lean compiler produces for the library or executable ({tech (key := ".olean files")}`*.olean`, `*.ilean`, and `*.c` files).
+  The artifacts that the Lean compiler produces for the library (alias of `irArts`).
 
 : `static`
 
@@ -268,6 +278,7 @@ module.depHash
 module.depTrace
 module.deps
 module.dynlib
+module.elabArts
 module.exportInfo
 module.header
 module.ilean
@@ -278,11 +289,13 @@ module.imports
 module.input
 module.ir
 module.ir.sig
+module.irArts
 module.lean
 module.leanArts
 module.linkInfoExport
 module.linkInfoNoExport
 module.ltar
+module.metaExportInfo
 module.o
 module.o.export
 module.o.noexport
@@ -305,9 +318,17 @@ The facets available for modules are:
 
   The module's Lean source file.
 
-: `leanArts` (default)
+: `elabArts`
 
- The module's Lean artifacts (`*.olean`, `*.ilean`, `*.c` files).
+ The module's elaboration artifacts (`*.olean` and `*.ilean` files).
+
+: `irArts` (default)
+
+ Both the module's elaboration artifacts and the module's code-generation artifacts (`*.ir`, `*.ir.sig`, and `*.c` files).
+
+: `leanArts`
+
+ The artifacts that the Lean compiler produces for the module (alias of `irArts`).
 
 : `deps`
 

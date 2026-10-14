@@ -14,7 +14,6 @@ public import Lean.Parser.Extension
 public section
 
 open Lean Elab
-open scoped Lean.Doc.Syntax
 
 namespace Manual
 

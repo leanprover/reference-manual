@@ -13,7 +13,6 @@ namespace Manual
 
 open Verso ArgParse Doc Elab
 open Lean Elab
-open Lean.Doc.Syntax
 
 structure SpliceContentsConfig where
   moduleName : Ident
@@ -21,10 +20,11 @@ structure SpliceContentsConfig where
 meta def SpliceContentsConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m SpliceContentsConfig :=
   SpliceContentsConfig.mk <$> .positional `moduleName .ident
 
-@[part_command Lean.Doc.Syntax.command]
+@[part_command Lean.Doc.Parser.Block.command]
 meta def spliceContents : PartCommand
-  | `(block|command{spliceContents $args*}) => do
-    let {moduleName} ← SpliceContentsConfig.parse.run (← parseArgs args)
+  | .command v => do
+    unless v.name.getId == `spliceContents do Lean.Elab.throwUnsupportedSyntax
+    let {moduleName} ← SpliceContentsConfig.parse.run (← parseArgs v.args)
     let moduleIdent ←
       mkIdentFrom moduleName <$>
       realizeGlobalConstNoOverloadWithInfo (mkIdentFrom moduleName (docName moduleName.getId))

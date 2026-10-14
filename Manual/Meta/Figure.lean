@@ -18,6 +18,7 @@ open Verso.Genre Manual
 open Verso.ArgParse
 
 open Lean Elab
+open Lean.Doc (VersoInline)
 
 
 
@@ -28,7 +29,7 @@ def Block.figure (captionString : String) (name : Option String) : Block where
   data := ToJson.toJson (captionString, name, (none : Option Tag))
 
 structure FigureConfig where
-  caption : TSyntaxArray `inline
+  caption : Array VersoInline
   /-- Name for refs -/
   tag : Option String := none
 

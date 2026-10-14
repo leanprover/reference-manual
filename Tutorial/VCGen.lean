@@ -806,11 +806,11 @@ Each case of {name}`Result` determines the precondition directly:
 ::::
 ```lean
 instance : WP (Result α) α Prop (Error → Prop) where
-  wpTrans
+  trans
     | .ok v => ⟨fun post _ => post v⟩
     | .fail e => ⟨fun _ epost => epost e⟩
     | .div => ⟨fun _ _ => False⟩
-  wp_trans_monotone x := by
+  trans_monotone x := by
     intro post post' epost epost' hepost hpost
     cases x <;> simp_all [PartialOrder.rel]
 ```
@@ -824,7 +824,7 @@ instance Result.instWPMonad : WPMonad Result Prop (Error → Prop) where
   toWP _ := inferInstance
   pure_le_wp_pure x post epost := PartialOrder.rel_refl
   bind_le_wp_bind x f post epost := by
-    cases x <;> simp [wp, WP.wpTrans, bind, PartialOrder.rel]
+    cases x <;> simp [wp, WP.trans, bind, PartialOrder.rel]
 ```
 :::
 
@@ -837,9 +837,9 @@ theorem Result.of_eq_wp {α} {x prog : Result α}
       P x := by
   subst h
   match prog with
-  | .ok a   => simpa [wp, WP.wpTrans] using hwp
-  | .fail e => simpa [wp, WP.wpTrans] using hwp
-  | .div    => simp [wp, WP.wpTrans] at hwp
+  | .ok a   => simpa [wp, WP.trans] using hwp
+  | .fail e => simpa [wp, WP.trans] using hwp
+  | .div    => simp [wp, WP.trans] at hwp
 ```
 :::
 

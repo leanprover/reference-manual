@@ -41,7 +41,7 @@ serializing the result with the compiler's own instance must reproduce the value
 @[code_block]
 def codeQualityEntries : CodeBlockExpanderOf Unit
   | (), str => do
-    let text := str.getString
+    let text := str.getVersoCodeBlock
     let values ←
       match parseJsonStream text with
       | .error e => throwErrorAt str m!"Expected a sequence of JSON values: {e}"

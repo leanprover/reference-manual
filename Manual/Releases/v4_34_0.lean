@@ -83,7 +83,7 @@ The rest of the section is hardening rather than bug fixing:
 import Std.Tactic.BVDecide
 ```
 
-```lean
+```
 opaque g : UInt8 → UInt8
 
 example (a b d : UInt8) (h0 : d = a ||| b)

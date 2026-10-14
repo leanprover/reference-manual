@@ -16,7 +16,7 @@ public section
 
 namespace Manual
 open Verso
-open Lean.Doc.Syntax
+open Lean.Doc (CodeView)
 
 open Lean
 open Verso.Genre.Manual
@@ -71,7 +71,7 @@ def lexedText := ()
 @[code_block]
 meta def C : CodeBlockExpanderOf Unit
   | (), str => do
-    let codeStr := str.getString
+    let codeStr := str.getVersoCodeBlock
     let toks ← LexedText.highlight hlC codeStr
     ``(Block.other (Block.c $(quote toks)) #[Block.code $(quote codeStr)])
 
@@ -104,8 +104,8 @@ meta def cInline : RoleExpanderOf Unit
   | (), contents => do
     let #[x] := contents
       | throwError "Expected exactly one parameter"
-    let `(inline|code($str)) := x
+    let some { content := str, .. } := CodeView.of x
       | throwError "Expected exactly one code item"
-    let codeStr := str.getString
+    let codeStr := str.getVersoCode
     let toks ← LexedText.highlight hlC codeStr
     ``(Inline.other (Inline.c $(quote toks)) #[Inline.code $(quote codeStr)])

@@ -13,11 +13,11 @@ import VersoManual.Index
 public section
 
 
-open Lean.Doc.Syntax
 open Verso ArgParse Doc Elab Genre.Manual Html Code
 open SubVerso.Highlighting Highlighted
 open Lean Elab
 open Lean.Elab.Tactic.GuardMsgs
+open Lean.Doc (CodeView)
 
 namespace Manual
 
@@ -32,9 +32,9 @@ meta def envVar : RoleExpander
     let isDef ← parseOpts.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $varName:str )) := arg
+    let some { content := varName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the environment variable"
-    let v := varName.getString
+    let v := varName.getVersoCode
 
     pure #[← `(.other {Manual.Inline.envVar with data := Json.arr #[.str $(quote v), .bool $(quote isDef)] } #[Inline.code $(quote v)])]
   where

@@ -497,9 +497,9 @@ The {keywordOf Lean.Parser.Command.initialize}`initialize` block must be in the 
 
 {docstring Lean.Elab.Command.addModuleLinter +allowMissing}
 
-::::example "Limiting the Number of Declarations" (tag := "example-module-linter")
+:::::example "Limiting the Number of Declarations" (tag := "example-module-linter")
 
-:::leanModules (moduleRoot := Limit)
+::::leanModules (moduleRoot := Limit)
 The module `Limit.Linter` contains a module linter that issues a warning when a module contains too many declarations.
 The limit is determined by the value of an option.
 Even though the warning is attached to the first declaration that exceeds the limit, it does not appear until the entire file is elaborated because it is implemented as a module linter.
@@ -546,13 +546,17 @@ def b := 2
 def c := 3
 ```
 Building the file demonstrates the linter warning:
-```leanOutput limitTest
+:::TODO
+The next codeblock should have `leanOutput limitTest`.
+This behavior is currently broken, see <https://github.com/leanprover/subverso/issues/245>.
+:::
+```
 this file contains 3 declarations, more than 2
 
 Note: This linter can be disabled with `set_option linter.declarationLimit false`
 ```
-:::
 ::::
+:::::
 
 
 

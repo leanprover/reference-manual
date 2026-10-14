@@ -22,7 +22,6 @@ public section
 open Verso ArgParse Doc Elab Genre.Manual
 open Lean Elab
 open SubVerso.Highlighting Highlighted
-open scoped Lean.Doc.Syntax
 
 namespace Manual
 
@@ -72,7 +71,7 @@ def FieldType.toHtml (plural : Bool := false) : FieldType → Html
   | .option t => t.toHtml ++ " (optional)"
   | .oneOf xs =>
     let opts := xs
-      |>.map ({{<code>{{show Html from .text true s!"\"{·}\""}}</code>}})
+      |>.map ({{<code>{{show Html from .text s!"\"{·}\""}}</code>}})
       |>.intersperse {{", "}}
     {{"one of " {{opts}} }}
 

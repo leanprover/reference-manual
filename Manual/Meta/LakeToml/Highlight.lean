@@ -7,8 +7,9 @@ Author: David Thrane Christiansen
 module
 meta import Lake.Toml.Grammar
 public import Verso.Doc.Elab.Monad
-import Lake.Toml.Grammar
-import Manual.Meta.Basic
+public import Verso.Literal
+public import Lake.Toml.Grammar
+public import Manual.Meta.Basic
 
 public section
 
@@ -16,7 +17,6 @@ open Verso ArgParse Doc Elab
 open SubVerso.Highlighting Highlighted
 open Lean Elab
 
-open scoped Lean.Doc.Syntax
 
 namespace Manual
 
@@ -283,7 +283,7 @@ where
 end Toml
 
 open Lean.Parser in
-def tomlContent (str : StrLit) : DocElabM Toml.Highlighted := do
+def tomlContent [Verso.Literal k] (str : TSyntax k) : DocElabM Toml.Highlighted := do
   let scope : Command.Scope := {header := ""}
   let inputCtx := Parser.mkInputContext (← parserInputString str) (← getFileName)
   let pmctx : Parser.ParserModuleContext :=

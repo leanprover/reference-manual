@@ -22,9 +22,9 @@ public section
 open Verso Doc Elab
 open Verso.Genre Manual
 open Verso.ArgParse
-open Lean.Doc.Syntax
 
 open Lean Elab
+open Lean.Doc (CodeBlockView VersoBlock VersoInline)
 
 namespace Manual
 
@@ -38,7 +38,7 @@ def Block.example (descriptionString : String) (name : Option String) (opened : 
 abbrev ExampleBlockJson := String × Option String × Bool × Option Tag × Option String
 
 structure ExampleConfig where
-  description : TSyntaxArray `inline
+  description : Array VersoInline
   /-- Name for refs -/
   tag : Option String := none
   keep : Bool := false
@@ -71,11 +71,11 @@ private meta def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : �
   out := out.qsort (fun (i, _) (j, _) => i < j)
   return out.map (·.2)
 
-private meta def isLeanBlock : TSyntax `block → CoreM Bool
-  | `(block|```$nameStx:ident $_args*|$_contents:str```) => do
-    let name ← realizeGlobalConstNoOverload nameStx
-    return name == ``Verso.Genre.Manual.InlineLean.lean
-  | _ => pure false
+private meta def isLeanBlock (blk : VersoBlock) : CoreM Bool := do
+  let some { name? := some nameStx, .. } := CodeBlockView.of blk
+    | return false
+  let name ← realizeGlobalConstNoOverload nameStx
+  return name == ``Verso.Genre.Manual.InlineLean.lean
 
 private structure LeanBlockContent where
   content : Option String
@@ -83,19 +83,20 @@ private structure LeanBlockContent where
 
 meta section
 
-private def getLeanBlockContents? : TSyntax `block → DocElabM (LeanBlockContent)
-  | `(block|```$nameStx:ident $args*|$contents:str```) => do
-    let name ← realizeGlobalConstNoOverload nameStx
-    if name == ``Verso.Genre.Manual.imports then
-      return { content := some contents.getString, shouldElab := false }
-    if name != ``Verso.Genre.Manual.InlineLean.lean then
-      return { content := none, shouldElab := false }
-    let args ← Verso.Doc.Elab.parseArgs args
-    let args ← parseThe InlineLean.LeanBlockConfig args
-    if !args.keep || args.error then
-      return { content := none, shouldElab := true }
-    pure <| { content := some contents.getString, shouldElab := true }
-  | _ => pure { content := none, shouldElab := false }
+private def getLeanBlockContents? (blk : VersoBlock) :
+    DocElabM LeanBlockContent := do
+  let some { name? := some nameStx, args, content := contents, .. } := CodeBlockView.of blk
+    | return { content := none, shouldElab := false }
+  let name ← realizeGlobalConstNoOverload nameStx
+  if name == ``Verso.Genre.Manual.imports then
+    return { content := some contents.getVersoCodeBlock, shouldElab := false }
+  if name != ``Verso.Genre.Manual.InlineLean.lean then
+    return { content := none, shouldElab := false }
+  let args ← Verso.Doc.Elab.parseArgs args
+  let args ← parseThe InlineLean.LeanBlockConfig args
+  if !args.keep || args.error then
+    return { content := none, shouldElab := true }
+  pure <| { content := some contents.getVersoCodeBlock, shouldElab := true }
 
 /--
 Elaborates all Lean blocks first, enabling local forward references
@@ -165,7 +166,7 @@ meta def «example» : DirectiveExpanderOf ExampleConfig
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Example")
 
-    let accumulate (b : TSyntax `block) : StateT (List String) DocElabM Bool := do
+    let accumulate b : StateT (List String) DocElabM Bool := do
       let {content, shouldElab} ← getLeanBlockContents? b
       if let some x := content then
         modify (· ++ [x])

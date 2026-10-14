@@ -12,7 +12,6 @@ import Manual.Meta.CustomStyle -- shake: keep
 
 public section
 
-open scoped Lean.Doc.Syntax
 
 open Verso Doc Elab Manual
 open Verso.Genre.Manual

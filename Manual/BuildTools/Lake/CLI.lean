@@ -35,6 +35,7 @@ COMMANDS:
   build <targets>...    build targets
   query <targets>...    build targets and output results
   exe <exe> <args>...   build an exe and run it in Lake's environment
+  samply <exe>          profile an exe with samply and demangle Lean names
   check-build           check if any default build targets are configured
   test                  test the package using the configured test driver
   check-test            check if there is a properly configured test driver
@@ -104,6 +105,7 @@ These utilities must be available on the `PATH` in order to use the correspondin
  * `git` is required in order to access Git dependencies.
  * `tar` is required to create or extract cloud build archives, and `curl` is required to fetch them.
  * `gh` is required to upload build artifacts to GitHub releases.
+ * `samply` is required to record CPU profiles, together with `curl` and `gzip`.
 
 Lean distributions include a C compiler toolchain.
 :::
@@ -496,13 +498,15 @@ The `@` and `+` markers can be used to disambiguate packages and modules
 from file paths or other kinds of targets (e.g., executables or libraries).
 
 LIBRARY FACETS:         build the library's ...
-  leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
+  elabArts              elaboration artifacts (*.olean, *.ilean files)
+  irArts (default)      compilation artifacts (*.ir, *.ir.sig, *.c files)
   static                static artifact (*.a file)
   shared                shared artifact (*.so, *.dll, or *.dylib file)
 
 MODULE FACETS:          build the module's ...
   deps                  dependencies (e.g., imports, shared libraries, etc.)
-  leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
+  elabArts              elaboration artifacts (*.olean, *.ilean files)
+  irArts (default)      compilation artifacts (*.ir, *.ir.sig, *.c files)
   olean                 OLean (binary blob of Lean data for importers)
   ilean                 ILean (binary blob of metadata for the Lean LSP server)
   c                     compiled C file
@@ -569,7 +573,7 @@ The mappings file is in JSON Lines format, with one valid JSON object per line, 
   - The {tech}[default targets] of {tech}[package] `a`
 *
   - `+A`
-  -  The Lean artifacts of module `A` (because the default facet of modules is `leanArts`)
+  -  The compilation artifacts of module `A` (because the default facet of modules is `irArts`)
 *
   - `@a/b`
   - The default facet of target `b` of package `a`
@@ -752,6 +756,16 @@ OPTIONS:
   --keep-public         Preserve all `public` imports for API stability
   --add-public          Add new imports as `public` if they were in the
                         original public closure
+  --add-downstream <MODULE>
+                        Add the module as an `import` to every checked
+                        module that does not reach it yet, except where
+                        that would create an import cycle
+  --add-public-downstream <MODULE>
+                        Like `--add-downstream`, but add the module as a
+                        `public import` wherever it is not reached through
+                        public imports yet. As these are passed on to
+                        importing modules, this adds far fewer imports.
+                        Only one of these two options can be used, once
   --explain             Show which constants require each import
   --fix                 Apply suggested fixes directly to source files
   --gh-style            Output in GitHub problem matcher format
@@ -813,6 +827,16 @@ The {lakeMeta}`options` may be:
 : `--add-public`
 
   Add new imports as `public` if they were in the original public closure
+
+: `--add-downstream <MODULE>`
+
+  Add the module as an `import` to every checked module that does not reach it yet, except where that would create an import cycle
+
+: `--add-public-downstream <MODULE>`
+
+  Like `--add-downstream`, but add the module as a `public import` wherever it is not reached through public imports yet.
+  As these are passed on to importing modules, this adds far fewer imports.
+  Only one of these two options can be used, once
 
 : `--explain`
 
@@ -1322,6 +1346,67 @@ package or its dependencies. It merely verifies that one is specified.
 This is useful for distinguishing between failing lints and incorrectly configured packages.
 :::
 
+## Profiling
+
+```lakeHelp samply
+Profile an executable target with samply and demangle Lean names
+
+USAGE:
+  lake samply [OPTIONS] <exe-target> [-- [<samply-args>...] [-- <exe-args>...]]
+
+Builds the executable target, records a CPU profile using samply, symbolicates
+the raw addresses, demangles Lean compiler names, and writes a Firefox Profiler
+JSON file.
+
+OPTIONS:
+  -o FILE               output path (default: ./profile-demangled.json.gz)
+  --raw                 save the raw profile without serving (default: ./profile-raw.json.gz)
+  --no-serve            write output file and exit without serving it
+
+Anything after `--` is forwarded verbatim to `samply record`. An inner `--`
+separates samply's own flags from the profiled executable's arguments, e.g.:
+
+  lake samply mergeSort                          # no samply or exe args
+  lake samply mergeSort -- --rate 2000           # only samply args
+  lake samply mergeSort -- -- 10                 # only exe args
+  lake samply mergeSort -- --rate 2000 -- 10     # both
+
+Run `samply record --help` to see samply's flags.
+
+REQUIREMENTS:
+  samply                cargo install samply
+  curl, gzip            standard on most Linux/macOS systems
+
+Open the output file in Firefox Profiler at https://profiler.firefox.com/from-file/
+```
+
+:::lake samply "[options...] «exe-target» [\"--\" [«samply-args»...] [\"--\" «exe-args»...]]"
+
+Builds the executable target {lakeMeta}`exe-target` and runs it under the `samply` profiler.
+The resulting profile is post-processed to resolve addresses and the internal C symbol names generated by the Lean compiler (referred to as {deftech}_mangled_ names), replacing them with their original names in the source code.
+This profile is saved as a Firefox Profiler JSON file, and `samply` serves it using [the Firefox Profiler](https://profiler.firefox.com/from-file/).
+
+See {lake}`build` for the syntax of target specifications.
+
+Arguments after `--` are forwarded verbatim to `samply record`.
+When a second `--` is present, it separates samply's own flags from the arguments that are passed to the profiled executable.
+`samply record --help` describes samply's flags.
+
+The {lakeMeta}`options` may be:
+
+: {lakeOptDef option}`-o` {lakeMeta}`file`
+
+  Writes the profile to {lakeMeta}`file` instead of `./profile-demangled.json.gz`.
+
+: {lakeOptDef flag}`--raw`
+
+  Saves the raw profile to `./profile-raw.json.gz`, without demangling or serving it.
+
+: {lakeOptDef flag}`--no-serve`
+
+  Writes the output file and exits, without serving it.
+
+:::
 
 ## Scripts
 

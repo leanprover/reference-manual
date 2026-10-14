@@ -290,7 +290,7 @@ variable {x y : PredTrans Pred EPred α} {post post' : α → Pred} {epost epost
 The partial order on predicate transformers is inherited pointwise from the assertion lattice: {lean}`x ⊑ y` when {lean}`x.apply post epost ⊑ y.apply post epost` for all {lean}`post` and {lean}`epost`.
 Every predicate transformer that a {name}`WP` instance produces is {deftech}_monotone_: if {lean}`post ⊑ post'` and {lean}`epost ⊑ epost'`, then {lean}`x.apply post epost ⊑ x.apply post' epost'`.
 
-{docstring Lean.Order.PredTrans.monotone}
+{docstring Lean.Order.PredTrans.Monotone}
 :::
 
 Predicate transformers form a monad.
@@ -374,7 +374,7 @@ instance : WP (Identity α) α Prop EStack⟨⟩ where
 theorem Identity.of_run_eq_wp {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop)
     (hwp : wp prog P ()) : P x := by
-  simp_all [wp, WP.wpTrans, ← h]
+  simp_all [wp, WP.trans, ← h]
 ```
 
 ```lean -show
@@ -759,8 +759,10 @@ The {name}`WPMonad` instance also benefits from the conceptual model as a state 
 ```lean
 instance : WPMonad (LogM β) (Array β → Prop) EStack⟨⟩ where
   toWP _ := inferInstance
-  pure_le_wp_pure x post epost := by simp [wp, WP.wpTrans, pure]
-  bind_le_wp_bind x f post epost := by simp [wp, WP.wpTrans, bind]
+  pure_le_wp_pure x post epost := by
+    simp [Lean.Order.le_pi_eq_forall, wp, WP.trans, pure]
+  bind_le_wp_bind x f post epost := by
+    simp [Lean.Order.le_pi_eq_forall, wp, WP.trans, bind]
 ```
 
 The soundness lemma has one important detail: the weakest precondition is applied to the empty array.
@@ -772,7 +774,7 @@ theorem LogM.of_run_eq_wp {α : Type u} {β : Type v}
     (h : LogM.run prog = x) (P : α × Array β → Prop)
     (hwp : wp prog (fun v l => P (v, l)) () #[]) : P x := by
   rw [← h]
-  simp [wp, WP.wpTrans] at hwp
+  simp [wp, WP.trans] at hwp
   exact hwp
 ```
 
@@ -783,7 +785,7 @@ For new monads, these proofs must often break the abstraction boundaries of {tec
 theorem log_spec {x : β} {s' : Array β} :
     ⦃ fun s => s = s' ⦄ log x ⦃ fun _ s => s = s'.push x ⦄ := by
   constructor
-  simp [log, wp, WP.wpTrans]
+  simp [log, wp, WP.trans, Lean.Order.le_pi_eq_forall]
 ```
 
 A better specification for {name}`log` is an {tech}[auto-framing specification]:
@@ -792,7 +794,7 @@ A better specification for {name}`log` is an {tech}[auto-framing specification]:
 theorem log_spec_better {x : β} {Q : Unit → Array β → Prop} :
     ⦃ fun s => Q () (s.push x) ⦄ log x ⦃ Q ⦄ := by
   constructor
-  simp [log, wp, WP.wpTrans]
+  simp [log, wp, WP.trans, Lean.Order.le_pi_eq_forall]
 ```
 
 A function {name}`logUntil` that logs all the natural numbers up to some bound will always result in a log whose length is equal to its argument:

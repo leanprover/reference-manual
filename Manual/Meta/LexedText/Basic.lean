@@ -13,7 +13,6 @@ public section
 -- TODO generalize upstream - this is based on the one in the blog genre.
 namespace Manual
 open Verso
-open Lean.Doc.Syntax
 
 abbrev LexedText.Highlighted := Array (Option String × String)
 

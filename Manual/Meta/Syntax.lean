@@ -26,11 +26,11 @@ open Verso.Genre Manual
 open Verso.ArgParse
 open Verso.Code (highlightingJs)
 open Verso.Code.Highlighted.WebAssets
-open Lean.Doc.Syntax
 
 open Verso.Genre.Manual.InlineLean.Scopes (getScopes)
 
 open Lean Elab Parser
+open Lean.Doc (CodeView CodeBlockView VersoBlock VersoInline)
 open Lean.Widget (TaggedText)
 
 namespace Manual
@@ -44,7 +44,7 @@ meta def evalPrio : RoleExpander
     ArgParse.done.run args
     let #[inl] := inlines
       | throwError "Expected a single code argument"
-    let `(inline|code( $s:str )) := inl
+    let some { content := s, .. } := CodeView.of inl
       | throwErrorAt inl "Expected code literal with the priority"
     let altStr ← parserInputString s
     match runParser (← getEnv) (← getOptions) (andthen ⟨{}, whitespace⟩ priorityParser) altStr (← getFileName) with
@@ -54,7 +54,7 @@ meta def evalPrio : RoleExpander
     | .error es =>
       for (pos, msg) in es do
         log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
-      throwError s!"Failed to parse priority from '{s.getString}'"
+      throwError s!"Failed to parse priority from '{s.getVersoCode}'"
 
 @[role_expander evalPrec]
 meta def evalPrec : RoleExpander
@@ -62,7 +62,7 @@ meta def evalPrec : RoleExpander
     ArgParse.done.run args
     let #[inl] := inlines
       | throwError "Expected a single code argument"
-    let `(inline|code( $s:str )) := inl
+    let some { content := s, .. } := CodeView.of inl
       | throwErrorAt inl "Expected code literal with the precedence"
     let altStr ← parserInputString s
     match runParser (← getEnv) (← getOptions) (andthen ⟨{}, whitespace⟩ (categoryParser `prec 1024)) altStr (← getFileName) with
@@ -72,7 +72,7 @@ meta def evalPrec : RoleExpander
     | .error es =>
       for (pos, msg) in es do
         log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
-      throwError s!"Failed to parse precedence from '{s.getString}'"
+      throwError s!"Failed to parse precedence from '{s.getVersoCode}'"
 
 def Block.syntax : Block where
   name := `Manual.syntax
@@ -99,7 +99,7 @@ meta def keywordOf : RoleExpander
     let ⟨kind, parser⟩ ← KeywordOfConfig.parse.run args
     let #[inl] := inlines
       | throwError "Expected a single code argument"
-    let `(inline|code( $kw:str )) := inl
+    let some { content := kw, .. } := CodeView.of inl
       | throwErrorAt inl "Expected code literal with the keyword"
     let kindName := kind.getId
     let parserName ← parser.mapM (realizeGlobalConstNoOverloadWithInfo ·)
@@ -110,7 +110,7 @@ meta def keywordOf : RoleExpander
         if kindName == k then catName := some cat; break
       if let some _ := catName then break
     let kindDoc ← findDocString? (← getEnv) kindName
-    return #[← `(Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Option Name × Name × Option String)) $(quote (kw.getString, catName, parserName.getD kindName, kindDoc))} #[Inline.code $kw])]
+    return #[← `(Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Option Name × Name × Option String)) $(quote (kw.getVersoCode, catName, parserName.getD kindName, kindDoc))} #[Inline.code $(quote kw.getVersoCode)])]
 
 @[inline_extension keywordOf]
 def keywordOf.descr : InlineDescr := withHighlighting {
@@ -207,10 +207,10 @@ meta def keyword : RoleExpander
     let () ← ArgParse.done.run args
     let #[inl] := inlines
       | throwError "Expected a single code argument"
-    let `(inline|code( $kw:str )) := inl
+    let some { content := kw, .. } := CodeView.of inl
       | throwErrorAt inl "Expected code literal with the keyword"
 
-    return #[← `(Inline.other {Inline.keyword with data := Lean.Json.str $(quote kw.getString)} #[Inline.code $kw])]
+    return #[← `(Inline.other {Inline.keyword with data := Lean.Json.str $(quote kw.getVersoCode)} #[Inline.code $(quote kw.getVersoCode)])]
 
 @[inline_extension keyword]
 def keyword.descr : InlineDescr where
@@ -350,12 +350,14 @@ meta def «syntax» : DirectiveExpander
 
     pure #[← `(Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, $(quote config.aliases.toArray))} #[Block.para #[$(title),*], $content,*])]
 where
-  isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
-  | `(block|``` $nameStx:ident $argsStx* | $contents ```) =>
-    if nameStx.getId == `grammar then some (nameStx, argsStx, contents) else none
-  | _ => none
+  isGrammar? (blk : VersoBlock) :
+      Option (Syntax × Array Syntax × Lean.Doc.VersoCodeBlock) :=
+    match CodeBlockView.of blk with
+    | some { name? := some nameStx, args, content, .. } =>
+      if nameStx.getId == `grammar then some (nameStx, args.map (·.raw), content) else none
+    | _ => none
 
-  elabGrammar nameStx config isFirst (argsStx : Array Syntax) (str : TSyntax `str) := do
+  elabGrammar nameStx config isFirst (argsStx : Array Syntax) (str : Lean.Doc.VersoCodeBlock) := do
     let args ← parseArgs <| argsStx.map (⟨·⟩)
     let {of, prec} ← GrammarConfig.parse.run args
     let config : SyntaxConfig :=
@@ -420,12 +422,14 @@ meta def freeSyntax : DirectiveExpander
         content := content.push <| ← elabBlock b
     pure #[← `(Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, #[])} #[Block.para #[$(title),*], $content,*])]
 where
-  isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
-  | `(block|```$nameStx:ident $argsStx* | $contents:str ```) =>
-    if nameStx.getId == `grammar then some (nameStx, argsStx, contents) else none
-  | _ => none
+  isGrammar? (blk : VersoBlock) :
+      Option (Syntax × Array Syntax × Lean.Doc.VersoCodeBlock) :=
+    match CodeBlockView.of blk with
+    | some { name? := some nameStx, args, content, .. } =>
+      if nameStx.getId == `grammar then some (nameStx, args.map (·.raw), content) else none
+    | _ => none
 
-  elabGrammar nameStx config isFirst (argsStx : Array Syntax) (str : TSyntax `str) := do
+  elabGrammar nameStx config isFirst (argsStx : Array Syntax) (str : Lean.Doc.VersoCodeBlock) := do
     let args ← parseArgs <| argsStx.map (⟨·⟩)
     let () ← ArgParse.done.run args
     let altStr ← parserInputString str
@@ -717,7 +721,7 @@ partial def grammar.descr : BlockDescr := withHighlighting {
 where
 
   bnfHtml : TaggedText GrammarTag → GrammarHtmlM Html
-  | .text str => pure <| .text true str
+  | .text str => pure <| .text str
   | .tag t txt => tagHtml t (bnfHtml txt)
   | .append txts => .seq <$> txts.mapM bnfHtml
 
@@ -774,13 +778,13 @@ meta def syntaxKind : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $syntaxKindName:str )) := arg
+    let some { content := syntaxKindName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the syntax kind name"
-    let kName := syntaxKindName.getString.toName
+    let kName := syntaxKindName.getVersoCode.toName
     let id : Ident := mkIdentFrom syntaxKindName kName
     let k ← try realizeGlobalConstNoOverloadWithInfo id catch _ => pure kName
     let doc? ← findDocString? (← getEnv) k
-    return #[← `(Inline.other {Inline.syntaxKind with data := ToJson.toJson (α := Name × String × Option String) ($(quote k), $(quote syntaxKindName.getString), $(quote doc?))} #[Inline.code $(quote k.toString)])]
+    return #[← `(Inline.other {Inline.syntaxKind with data := ToJson.toJson (α := Name × String × Option String) ($(quote k), $(quote syntaxKindName.getVersoCode), $(quote doc?))} #[Inline.code $(quote k.toString)])]
 
 
 @[inline_extension syntaxKind]

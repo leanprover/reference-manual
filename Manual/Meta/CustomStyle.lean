@@ -37,4 +37,4 @@ block_extension Block.customCSS (css : String) where
 @[code_block]
 meta def customCSS : CodeBlockExpanderOf Unit
   | (), str =>
-    `(Block.other (Block.customCSS $(quote str.getString)) #[])
+    `(Block.other (Block.customCSS $(quote str.getVersoCodeBlock)) #[])

@@ -8,11 +8,14 @@ module
 public meta import VersoManual.InlineLean
 public import VersoManual.InlineLean
 import Manual.Meta.Example -- shake: keep
+public meta import Manual.Meta.Basic
 
 public section
 
 open Lean
 open Verso (reportError)
+open Lean.Doc (CodeBlockView VersoBlock VersoCodeBlock)
+open Manual (namedCodeBlock)
 set_option doc.verso true
 
 /-
@@ -198,12 +201,12 @@ meta def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
   | { title }, contents => do
     let brokenStx :: restStx := contents.toList
       | throwError m!"The error example had no contents"
-    let `(Lean.Doc.Syntax.codeblock|``` broken| $brokenTxt ```) := brokenStx
+    let some brokenTxt := namedCodeBlock `broken brokenStx
       | throwErrorAt brokenStx m!"First element in errorExample must be a `broken` codeblock containing the broken minimal working example"
 
     let errorStx :: restStx := restStx
       | throwError m!"The error example did not contain a second element"
-    let `(Lean.Doc.Syntax.codeblock|``` output| $errorTxt ```) := errorStx
+    let some errorTxt := namedCodeBlock `output errorStx
       | throwErrorAt errorStx m!"Second element in errorExample must be an `output` codeblock containing the generated error message"
 
     let brokenBlock ← brokenTxt |> Verso.Genre.Manual.InlineLean.lean
@@ -238,12 +241,15 @@ meta def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
           Doc.Block.other (Manual.Block.tabbedErrorReproduction $(quote tabbedContentHeaders.toArray)) #[$tabbedContentBlocks.toArray,*],
           $narrativeBlocks.toArray,*])
 where
-  partitionFixed (blocks: List (TSyntax `block)) : Verso.Doc.Elab.DocElabM (List (Syntax × Option StrLit × TSyntax `str) × List (TSyntax `block)) := do
+  partitionFixed (blocks : List VersoBlock) :
+      Verso.Doc.Elab.DocElabM
+        (List (Syntax × Option StrLit × VersoCodeBlock) × List VersoBlock) := do
   match blocks with
   | [] => pure ([], [])
   | block :: rest =>
-    let `(Lean.Doc.Syntax.codeblock|``` fixed $args*| $fixedTxt ```) := block
+    let some { name? := some name, args, content := fixedTxt, .. } := CodeBlockView.of block
       | return ([], blocks)
+    unless name.getId == `fixed do return ([], blocks)
     let parsedArgs ← Verso.Doc.Elab.parseArgs args
     let arg? : Option _ ← match parsedArgs.toList with
       | [] => pure none

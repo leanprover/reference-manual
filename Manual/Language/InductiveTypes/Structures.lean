@@ -189,7 +189,7 @@ The structure  {lean}`Palindrome` contains a string and a proof that the string 
 structure Palindrome where
   ofString ::
   text : String
-  is_palindrome : text.data.reverse = text.data
+  is_palindrome : text.toList.reverse = text.toList
 ```
 
 Its constructor is named {name}`Palindrome.ofString`, rather than `Palindrome.mk`.
