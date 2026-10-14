@@ -8,9 +8,9 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require versowebcomponents from git "https://github.com/leanprover/verso-web-components"@"nightly-testing"
+require versowebcomponents from git "https://github.com/leanprover/verso-web-components"@"main"
 require illuminate from git "https://github.com/leanprover/illuminate"@"main"
-require verso from git "https://github.com/leanprover/verso.git"@"nightly-testing"
+require verso from git "https://github.com/leanprover/verso.git"@"main"
 
 
 open Lean System in
