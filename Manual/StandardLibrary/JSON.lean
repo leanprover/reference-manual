@@ -17,7 +17,7 @@ open Lean
 tag := "JSON"
 %%%
 
-he {name}`Json` datatype represents [JSON](https://www.json.org/json-en.html) values.
+The {name}`Json` datatype represents [JSON](https://www.json.org/json-en.html) values.
 To use the type and related functionality, import {module}`Lean.Data.Json`.
 
 {docstring +allowMissing Json}
