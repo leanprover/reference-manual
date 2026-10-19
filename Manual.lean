@@ -35,7 +35,6 @@ import Manual.Runtime
 import Manual.SupportedPlatforms
 import Manual.VCGen
 import Manual.MVCGen
-import Manual.WebTech
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
