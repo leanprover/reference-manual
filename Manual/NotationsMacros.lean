@@ -1200,14 +1200,6 @@ info: TSyntax `str
 info: TSyntax Name.anonymous
 ---
 info: Syntax.TSepArray `num ","
----
-info: Syntax.TSepArray `num ","
----
-info: TSyntax Name.anonymous
----
-info: Syntax.TSepArray `num ","
----
-info: Syntax.TSepArray `num ","
 -/
 #check_msgs in
 macro "gah!" thing:str other:(str <|> num) arg:num,* : term => do

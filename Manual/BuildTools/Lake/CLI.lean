@@ -914,7 +914,8 @@ CONFIGURATION:
 
   `challenge_module`, `solution_module`, `theorem_names` and
   `permitted_axioms` are required; the rest may be omitted.
-  `definition_names` lists the challenge's definition holes.
+  `definition_names` lists the challenge's definition holes, each of which the
+  challenge has to define as `sorry`.
   `permitted_axioms` is deliberately not defaulted: it is what the verdict
   means, so the challenge author states it. The three above are the ones
   `#print axioms` treats as a clean proof.
@@ -1109,6 +1110,8 @@ The challenge configuration is a JSON file that contains an object with the foll
 : `definition_names`
 
   An array of names of definitions that should be filled out in the solution.
+  In the challenge, these definitions may bind parameters, but they must have {lean}`sorry` as their entire body.
+  In the solution, a use of {lean}`sorry` would result in a use of {name}`sorryAx`, which should not be a permitted axiom.
 
 : `external_kernels`
 
