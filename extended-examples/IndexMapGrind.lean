@@ -31,9 +31,9 @@ structure IndexMap
   private indices : HashMap α Nat
   private keys : Array α
   private values : Array β
-  private size_keys' : keys.size = values.size := by grind
+  private size_keys' : keys.size = values.size := by grind +verbose
   private WF : ∀ (i : Nat) (a : α),
-    keys[i]? = some a ↔ indices[a]? = some i := by grind
+    keys[i]? = some a ↔ indices[a]? = some i := by grind +verbose
 -- ANCHOR_END: IndexMap
 
 
@@ -111,7 +111,7 @@ h_1 : m.size ≤ m.indices[a]
 -- ANCHOR: getElem_indices_lt_init
 theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
     m.indices[a] < m.size := by
-  grind
+  grind +verbose
 -- ANCHOR_END: getElem_indices_lt_init
 stop discarding
 

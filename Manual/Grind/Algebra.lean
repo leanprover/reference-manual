@@ -234,7 +234,7 @@ Without it, the proof fails:
 example [CommRing α] (a b : α) :
     2 * a + 2 * b = 0 →
     b ≠ -a → False := by
-  grind
+  grind +verbose
 ```
 ```leanOutput NoNatZero
 `grind` failed
@@ -291,7 +291,7 @@ example [CommRing α] (x y : α) :
     x ^ 2 * y = 1 →
     x * y ^ 2 = y →
     y * x = 1 := by
-  grind -ring
+  grind +verbose -ring
 ```
 ```leanOutput noRing
 `grind` failed
@@ -348,7 +348,7 @@ example [CommRing α] [IsCharP α 0] (d t c : α) (d_inv PSO3_inv : α) :
     d * d_inv = 1 →
     (d + t - d * t - 2) * PSO3_inv = 1 →
     t^2 = t + 1 := by
-  grind (ringSteps := 100)
+  grind +verbose (ringSteps := 100)
 ```
 ```leanOutput ring100
 `grind` failed

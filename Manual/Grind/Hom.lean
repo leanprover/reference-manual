@@ -349,7 +349,7 @@ theorem toNat_add_eq_add (x y : Tiny) :
 ```
 Given these definitions, we might expect the following example to succeed, but it does not:
 ```lean +error (name := noLits)
-example : (2 : Tiny) + (1 : Tiny) = (3 : Tiny) := by grind
+example : (2 : Tiny) + (1 : Tiny) = (3 : Tiny) := by grind +verbose
 ```
 Examining {tactic}`grind`'s output, the problem is that it does not successfully register the contradiction that arises from the fact that {lean}`(2 : Tiny) + (1 : Tiny) = (3 : Tiny)` is negated.
 This is because the rewriting process does not rewrite literals like {lean (type := "Tiny")}`2` (that is, {lean}`OfNat.ofNat (α := Tiny) 2`), which are left alone:

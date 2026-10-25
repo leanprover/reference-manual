@@ -563,7 +563,7 @@ end A
 
 Outside of the namespace, the theorem is not used:
 ```lean +error (name := nogrind)
-example : IsEmpty ([] : List String) := by grind
+example : IsEmpty ([] : List String) := by grind +verbose
 ```
 ```leanOutput nogrind
 `grind` failed
