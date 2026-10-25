@@ -91,12 +91,12 @@ theorem map_both {x : α} {f : α → β} :
 ```
 ```leanOutput mapBoth
 Try these:
-  [apply] grind only [= get_def, = both_fst, = map_fst, = both_snd, = map_snd, #1362, #ba8b]
+  [apply] grind only [= get_def, = both_fst, = map_fst, = both_snd, = map_snd, #1362, #a119]
   [apply] grind only [= get_def, = both_fst, = map_fst, = both_snd, = map_snd]
   [apply] grind =>
     cases #1362
     instantiate only [= get_def]
-    cases #ba8b
+    cases #a119
     · instantiate only [= both_fst, = map_fst]
       instantiate only [= both_fst]
     · instantiate only [= both_snd, = map_snd]
@@ -140,7 +140,7 @@ example {x : α} {f : α → β} : (both x).map f = both (f x) := by
   grind =>
     cases #1362
     instantiate only [= get_def]
-    cases #ba8b
+    cases #a119
     · instantiate only [= both_fst, = map_fst]
       instantiate only [= both_fst]
     · instantiate only [= both_snd, = map_snd]
@@ -248,8 +248,9 @@ Because they are assigned in order, ordinals are less stable than anchors; re-or
 
 :::example "Ordinal Disambiguators"
 This theorem statement says that if there exist two values that are mapped to `0` or `1` by a function, and the sum of those two values of the function is `2`, then there exists a point that the function maps to `1`.
-Both disjunctions map to the same underlying anchor, namely `#4f8c`.
-After exposing them using {tactic}`obtain`, {grindTactic}`cases?` displays two possibilities, each with an ordinal disambiguator:
+The anchor for a variable is derived from its name.
+Because both witnesses are named `c`, the two values are assigned the same anchor, namely `#7fdc`.
+After exposing the witnesses using {tactic}`obtain`, {grindTactic}`cases?` displays two possibilities, each with an ordinal disambiguator:
 ```lean +error (name := ordinals)
 example (f : Nat → Nat)
     (h : ∃ a b,
@@ -257,16 +258,16 @@ example (f : Nat → Nat)
       (f b = 0 ∨ f b = 1) ∧
       f a + f b = 2) :
     ∃ a, f a = 1 := by
-  obtain ⟨_, _, ha, hb, hab⟩ := h
+  obtain ⟨c, c, ha, hb, hab⟩ := h
   grind =>
     cases?
 ```
 ```leanOutput ordinals
 Try these:
-  [apply] cases #4f8c for
-    f w✝ = 0 ∨ f w✝ = 1
-  [apply] cases #4f8c/2 for
-    f w✝¹ = 0 ∨ f w✝¹ = 1
+  [apply] cases #7fdc for
+    f c = 0 ∨ f c = 1
+  [apply] cases #7fdc/2 for
+    f c✝ = 0 ∨ f c✝ = 1
 ```
 :::
 

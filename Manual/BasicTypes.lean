@@ -101,15 +101,23 @@ If in doubt, use {lean}`Unit` until universe errors occur.
 
 ## Definitional Equality
 
-{deftech}_Unit-like types_ are inductive types that have a single constructor which takes no non-proof parameters.
+{deftech}_Unit-like types_ are types that have exactly one element.
+In particular, a non-recursive inductive types with a single constructor in which each parameter's type is either unit-like or a proposition is unit-like, as is a function type whose codomain is unit-like.
 {lean}`PUnit` is one such type.
+{lean}`Nat → PUnit` is another.
 All elements of unit-like types are {tech (key := "definitional equality")}[definitionally equal] to all other elements.
+Types with parameters may be unit-like only for some instantiations of the parameters.
 
 :::example "Definitional Equality of {lean}`Unit`"
 Every term with type {lean}`Unit` is definitionally equal to every other term with type {lean}`Unit`:
 
 ```lean
 example (e1 e2 : Unit) : e1 = e2 := rfl
+```
+
+Similarly, every term with type {lean}`Nat → Unit` is definitionally equal to every other term with that type:
+```lean
+example (f : Nat → Unit) : f = (fun _ => ()) := rfl
 ```
 :::
 
@@ -130,39 +138,32 @@ structure AlsoUnit where
 example (e1 e2 : AlsoUnit) : e1 = e2 := rfl
 ```
 
-Types with parameters, such as {lean}`WithParam`, are also unit-like if they have a single constructor that does not take parameters.
+Inductive types with parameters, such as {lean}`WithParam`, are also unit-like if all their fields' types are unit-like or proofs.
+This check is performed after the parameters are instantiated.
 
 ```lean
-inductive WithParam (n : Nat) where
-  | mk
+structure WithParam (α : Type) where
+  a : α
+  a_eq_a : a = a
 
-example (x y : WithParam 3) : x = y := rfl
+example (x y : WithParam Unit) : x = y := rfl
+```
+```lean -show
+variable {α : Type}
 ```
 
-Constructors with non-proof parameters are not unit-like, even if the parameters are all unit-like types.
-```lean
-inductive NotUnitLike where
-  | mk (u : Unit)
-```
+Note that in this example, {lean}`WithParam α` is only unit-like if {lean}`α` is unit-like. The following fails.
 
 ```lean +error (name := NotUnitLike)
-example (e1 e2 : NotUnitLike) : e1 = e2 := rfl
+example (e1 e2 : WithParam Nat) : e1 = e2 := rfl
 ```
 ```leanOutput NotUnitLike
 Type mismatch
   rfl
 has type
-  ?m.13 = ?m.13
+  ?m.3 = ?m.3
 but is expected to have type
   e1 = e2
-```
-
-Constructors of unit-like types may take parameters that are proofs.
-```lean
-inductive ProofUnitLike where
-  | mk : 2 = 2 → ProofUnitLike
-
-example (e1 e2 : ProofUnitLike) : e1 = e2 := rfl
 ```
 :::
 ::::
