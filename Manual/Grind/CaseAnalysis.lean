@@ -93,7 +93,7 @@ Disabling `splitIte` causes the proof to fail:
 example (c : Bool) (x y : Nat)
     (h : (if c then x else y) = 0) :
     x = 0 ∨ y = 0 := by
-  grind -splitIte
+  grind +verbose -splitIte
 ```
 In particular, it cannot make progress after discovering that the conditional expression is equal to {lean}`0`:
 ```leanOutput noSplitIte (expandTrace := eqc)
@@ -121,7 +121,7 @@ Forbidding all case splitting causes the proof to fail for the same reason:
 example (c : Bool) (x y : Nat)
     (h : (if c then x else y) = 0) :
     x = 0 ∨ y = 0 := by
-  grind (splits := 0)
+  grind +verbose (splits := 0)
 ```
 ```leanOutput noSplitsAtAll (expandTrace := eqc)
 `grind` failed
@@ -158,7 +158,7 @@ Disabling case splitting on pattern matches causes {tactic}`grind` to fail in th
 ```lean +error (name := noSplitMatch)
 example (h : y = match x with | 0 => 1 | _ => 2) :
     y > 0 := by
-  grind -splitMatch
+  grind +verbose -splitMatch
 ```
 ```leanOutput noSplitMatch (expandTrace := eqc)
 `grind` failed
@@ -207,7 +207,7 @@ inductive Not30 : Nat → Prop where
 
 By default, {tactic}`grind` cannot show that {lean}`Not30` implies that a number is, in fact, not {lean}`30`:
 ```lean +error (name := not30fail)
-example : Not30 n → n ≠ 30 := by grind
+example : Not30 n → n ≠ 30 := by grind +verbose
 ```
 This is because {tactic}`grind` does not consider both cases for {lean}`Not30`
 ```leanOutput not30fail (expandTrace := eqc)

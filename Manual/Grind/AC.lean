@@ -244,7 +244,7 @@ example (h₁ : a ++ b = x) (h₂ : x ++ c = y) :
 ```
 Because appending difference lists is not commutative, order still matters:
 ```lean +error (name := grindErr)
-example : a ++ b = b ++ a := by grind
+example : a ++ b = b ++ a := by grind +verbose
 ```
 ```leanOutput grindErr
 `grind` failed
