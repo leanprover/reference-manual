@@ -152,16 +152,20 @@ Lean can display widgets in two ways: within messages in the {tech}[message log]
   open Lean
   ```
   ```lean
+  structure Props where
+    name : String
+    deriving FromJson, ToJson
+
   @[widget_module]
   def helloWidget : Widget.Module where
     javascript := "
       import * as React from 'react';
       export default function(props) {
         const name = props.name || 'world'
-        return React.createElement('p', {}, 'Hello, ' + name + '!')
+        return React.createElement('b', {}, 'Hello, ' + name + '!')
       }"
 
-  #widget helloWidget with json% { name: "Hexapus" }
+  #widget helloWidget with { name := "Hexapus" : Props }
   ```
   :::
 
@@ -185,6 +189,11 @@ The wire format is JSON, and any type with both {name}`Lean.ToJson` and {name}`L
 An instance can be derived automatically, as documented below.
 
 {docstring +allowMissing Server.RpcEncodable}
+
+:::sectionNote
+RPC references are not JSON-serializable without additional state in the encoder, so require {name}`Server.RpcEncodable`.
+But for data structures that do have JSON representations, prefer simply deriving {name}`FromJson` and {name}`ToJson`.
+:::
 
 The main purpose of {name}`Server.RpcEncodable` is to support—in addition to JSON—structures containing {deftech (key := "RPC reference")}[RPC references].
 Every reference is marked with the {name}`Server.WithRpcRef` wrapper.
@@ -215,6 +224,14 @@ Use {name}`Server.WithRpcRef.mk` to construct RPC references.
 {docstring Server.WithRpcRef.mk}
 
 ## RPC Methods
+
+:::sectionNote
+As an alternative to passing {name}`Server.WithRpcRef` values as RPC method arguments, RPC methods may refer to global {name}`IO.Ref`s.
+However, these behave differently.
+A single copy of the {name}`IO.Ref` is shared by all widgets that refer to it, whereas distinct RPC references can be created for each widget instance.
+Make sure not to accidentally share state that you did not intend to across copies of your UI component by using {name}`IO.Ref`s.
+:::
+
 ### Server
 
 :::leanSection
@@ -240,21 +257,16 @@ open Lean
 ```
 ```lean
 structure Args where
-  num : Nat
-  deriving TypeName
+  str : Server.WithRpcRef String
+  deriving Server.RpcEncodable
 
+/-- Extracts a string from a server-side cell
+and sends it to the client. -/
 @[server_rpc_method]
-def extractNum (args : Server.WithRpcRef Args) :
-    Server.RequestM (Server.RequestTask Nat) :=
-  Server.RequestM.asTask <| return args.val.num
+def unwrapStr (args : Args) :
+    Server.RequestM (Server.RequestTask String) :=
+  Server.RequestM.asTask <| return args.str.val
 ```
-:::
-
-:::sectionNote
-As an alternative to passing {name}`Server.WithRpcRef` values as RPC method arguments, RPC methods may refer to global {name}`IO.Ref`s.
-However, these behave differently.
-A single copy of the {name}`IO.Ref` resides in server memory and is shared by all widgets that refer to it, whereas distinct RPC references can be created for each widget instance.
-Make sure not to accidentally share state that you did not intend to across copies of your UI component.
 :::
 
 ### Client
@@ -267,4 +279,55 @@ Any LSP client may create RPC sessions and invoke RPC methods.
 Any widget React component may invoke RPC methods.
 To do so, the component should first obtain an _RPC session_ handle via the [`useRpcSession`](https://leanprover.github.io/vscode-lean4/infoview/docs/functions/index.useRpcSession.html) hook.
 The handle may then be used to call RPC methods; see [`RpcSessionAtPos.call`](https://leanprover.github.io/vscode-lean4/infoview/docs/interfaces/index.RpcSessionAtPos.html#call).
+Invoking RPC is an asynchronous operation that generally occurs in a [React effect](https://react.dev/reference/react/useEffect).
+RPC methods are identified in JavaScript by their fully qualified Lean names.
 
+:::example "Calling an RPC method"
+As remarked above, widgets can receive RPC references as props.
+In this example, we pass such a reference prop.
+We then invoke an RPC method, using the reference as an argument.
+
+```imports -show
+import Lean.Widget
+```
+```lean -show
+open Lean
+```
+```lean
+structure Args where
+  str : Server.WithRpcRef String
+  deriving Server.RpcEncodable
+
+@[server_rpc_method]
+def unwrapStr (args : Args) :
+    Server.RequestM (Server.RequestTask String) :=
+  Server.RequestM.asTask <| return args.str.val
+
+structure Props where
+  str : Server.WithRpcRef String
+  deriving Server.RpcEncodable
+
+@[widget_module]
+def rpcCallWidget : Widget.Module where
+  javascript := r#"
+    import * as React from 'react'
+    import { useRpcSession } from '@leanprover/infoview'
+
+    export default function({ str }) {
+      const rs = useRpcSession()
+      const [display, setDisplay] = React.useState()
+      React.useEffect(() => {
+        rs.call('unwrapStr', { str }).then(s => setDisplay(s))
+      }, [])
+      return React.createElement('b', {}, [display])
+    }
+  "#
+
+run_meta
+  let str ← Server.WithRpcRef.mk "Server-side hello!"
+  Widget.addPanelWidgetLocal { rpcCallWidget with
+    id := .anonymous
+    props := Server.rpcEncode { str : Props }
+  }
+```
+:::
