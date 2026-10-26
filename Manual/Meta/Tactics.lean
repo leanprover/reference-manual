@@ -15,7 +15,7 @@ public meta import Verso.Doc.Suggestion.Basic
 public import VersoManual.Basic
 public meta import VersoManual.InlineLean.Scopes
 import VersoManual.HighlightedCode
-import VersoManual.InlineLean -- shake: keep
+public meta import VersoManual.InlineLean
 
 public section
 
@@ -25,23 +25,7 @@ namespace Manual
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab Term Tactic
 
-/--
-Sets `linter.unusedVariables` to `false` in all `CommandContextInfo.options` within an info tree.
-
-This prevents the outer unused variable linter from re-processing variables in partial proof states
-and generating spurious warnings. Mirrors `disableUnusedVarLinterInInfoTree` in Verso's
-`InlineLean.lean`.
--/
-private meta partial def disableUnusedVarLinterInInfoTree : InfoTree → InfoTree
-  | .context (.commandCtx ci) child =>
-    .context (.commandCtx { ci with options := Lean.Linter.linter.unusedVariables.set ci.options false })
-      (disableUnusedVarLinterInInfoTree child)
-  | .context pci child =>
-    .context pci (disableUnusedVarLinterInInfoTree child)
-  | .node info children =>
-    .node info (children.map disableUnusedVarLinterInInfoTree)
-  | .hole id => .hole id
-
+open Verso.Genre.Manual.InlineLean (withInlineLeanInfoTree elabInlineLean)
 open Verso.Genre.Manual.InlineLean.Scopes (runWithOpenDecls runWithVariables)
 open SubVerso.Highlighting
 open SubVerso.Examples.Messages
@@ -113,7 +97,7 @@ private meta def checkTacticExample'
     | throwError "Not an mvar!"
   -- `runTactic` is too specialized for this purpose - we need to capture the unsolved goals, not
   -- throw them as an exception. This code is adapted from `runTactic`.
-  let ((remainingGoals, _setupMsgs), preTree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `leanInline (← getRef)) do
+  let ((remainingGoals, _setupMsgs), preTree) ← withInlineLeanInfoTree `leanInline (← getRef) do
     let initMsgs ← Core.getMessageLog
     try
       Core.resetMessageLog
@@ -146,7 +130,7 @@ private meta def checkTacticExample'
   let hlPre ← highlightProofState ci remainingGoals (PersistentArray.empty.push preTree)
 
   -- Run the example
-  let ((remainingGoals', msgs), postTree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `leanInline (← getRef)) do
+  let ((remainingGoals', msgs), postTree) ← withInlineLeanInfoTree `leanInline (← getRef) do
     let initMsgs ← Core.getMessageLog
     try
       Core.resetMessageLog
@@ -201,27 +185,6 @@ where
 
   mostlyEqual (ws : WhitespaceMode) (s1 s2 : String) : Bool :=
     ws.apply s1.trimAscii.copy == ws.apply s2.trimAscii.copy
-
-  mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : TermElabM InfoTree := do
-    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx })
-      (trees.map disableUnusedVarLinterInInfoTree)
-    let ctx := PartialContextInfo.commandCtx {
-      env := ← getEnv, fileMap := ← getFileMap, mctx := {}, currNamespace := ← getCurrNamespace,
-      openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
-    }
-    return InfoTree.context ctx tree
-
-  modifyInfoTrees {m} [Monad m] [MonadInfoTree m] (f : PersistentArray InfoTree → PersistentArray InfoTree) : m Unit :=
-    modifyInfoState fun s => { s with trees := f s.trees }
-
-  -- TODO - consider how to upstream this
-  withInfoTreeContext {m α} [Monad m] [MonadInfoTree m] [MonadFinally m] (x : m α) (mkInfoTree : PersistentArray InfoTree → m InfoTree) : m (α × InfoTree) := do
-    let treesSaved ← getResetInfoTrees
-    MonadFinally.tryFinally' x fun _ => do
-      let st    ← getInfoState
-      let tree  ← mkInfoTree st.trees
-      modifyInfoTrees fun _ => treesSaved.push tree
-      pure tree
 
 
 open Command
@@ -375,11 +338,11 @@ meta def goal : RoleExpander
     match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
     | .error e => throwErrorAt term e
     | .ok stx =>
-      let (newMsgs, tree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `leanInline (← getRef)) do
+      let (newMsgs, tree) ← elabInlineLean `leanInline (← getRef) fun _ => do
         let initMsgs ← Core.getMessageLog
         try
           Core.resetMessageLog
-          let goalExpr ← runWithOpenDecls <| runWithVariables fun _ => Elab.Term.elabTerm stx none
+          let goalExpr ← Elab.Term.elabTerm stx none
           saveGoal goalExpr
           Core.getMessageLog
         finally
@@ -397,27 +360,6 @@ meta def goal : RoleExpander
         pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hls)) #[Inline.code $(quote term.getVersoCode)])]
       else
         pure #[]
-where
-  mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : DocElabM InfoTree := do
-    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx })
-      (trees.map disableUnusedVarLinterInInfoTree)
-    let ctx := PartialContextInfo.commandCtx {
-      env := ← getEnv, fileMap := ← getFileMap, mctx := {}, currNamespace := ← getCurrNamespace,
-      openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
-    }
-    return InfoTree.context ctx tree
-
-  modifyInfoTrees {m} [Monad m] [MonadInfoTree m] (f : PersistentArray InfoTree → PersistentArray InfoTree) : m Unit :=
-    modifyInfoState fun s => { s with trees := f s.trees }
-
-  -- TODO - consider how to upstream this
-  withInfoTreeContext {m α} [Monad m] [MonadInfoTree m] [MonadFinally m] (x : m α) (mkInfoTree : PersistentArray InfoTree → m InfoTree) : m (α × InfoTree) := do
-    let treesSaved ← getResetInfoTrees
-    MonadFinally.tryFinally' x fun _ => do
-      let st    ← getInfoState
-      let tree  ← mkInfoTree st.trees
-      modifyInfoTrees fun _ => treesSaved.push tree
-      pure tree
 
 
 meta section
@@ -541,11 +483,13 @@ meta def proofState : CodeBlockExpander
         match stx[5][0] with
         | .missing => none
         | other => some (⟨other⟩ : TSyntax `Lean.Parser.Command.docComment)
-      let goalExpr ← runWithOpenDecls <| runWithVariables fun _ => Elab.Term.elabTerm goalStx none
-      let mv ← Meta.mkFreshExprMVar (some goalExpr)
-      let Expr.mvar mvarId := mv
-        | throwError "Not an mvar!"
-      let (remainingGoals, infoTree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `proofState (← getRef)) do
+      -- The goal is elaborated in the document's Lean scope, but its metavariable is created outside
+      -- that scope, so the proof state shows only the goal's own hypotheses.
+      let (remainingGoals, infoTree) ← withInlineLeanInfoTree `proofState (← getRef) do
+            let goalExpr ← runWithOpenDecls <| runWithVariables fun _ => Elab.Term.elabTerm goalStx none
+            let mv ← Meta.mkFreshExprMVar (some goalExpr)
+            let Expr.mvar mvarId := mv
+              | throwError "Not an mvar!"
             Tactic.run mvarId <|
             withoutTacticIncrementality true <|
             withTacticInfoContext tacticStx do
@@ -565,28 +509,6 @@ meta def proofState : CodeBlockExpander
           logErrorAt s m!"Expected: {indentD stStr}\n\nGot: {indentD s.getDocString}"
           Verso.Doc.Suggestion.saveSuggestion s ((stStr.take 30).copy ++ "…") ("/--\n" ++ stStr ++ "\n-/\n")
       pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(quote hlState))} #[Block.code $(quote stStr)])]
-
-where
-  mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : DocElabM InfoTree := do
-    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx })
-      (trees.map disableUnusedVarLinterInInfoTree)
-    let ctx := PartialContextInfo.commandCtx {
-      env := ← getEnv, fileMap := ← getFileMap, mctx := {}, currNamespace := ← getCurrNamespace,
-      openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
-    }
-    return InfoTree.context ctx tree
-
-  modifyInfoTrees {m} [Monad m] [MonadInfoTree m] (f : PersistentArray InfoTree → PersistentArray InfoTree) : m Unit :=
-    modifyInfoState fun s => { s with trees := f s.trees }
-
-  -- TODO - consider how to upstream this
-  withInfoTreeContext {m α} [Monad m] [MonadInfoTree m] [MonadFinally m] (x : m α) (mkInfoTree : PersistentArray InfoTree → m InfoTree) : m (α × InfoTree) := do
-    let treesSaved ← getResetInfoTrees
-    MonadFinally.tryFinally' x fun _ => do
-      let st    ← getInfoState
-      let tree  ← mkInfoTree st.trees
-      modifyInfoTrees fun _ => treesSaved.push tree
-      pure tree
 
 
 
