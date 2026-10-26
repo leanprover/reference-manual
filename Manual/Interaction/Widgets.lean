@@ -178,7 +178,7 @@ The Remote Procedure Call (RPC) mechanism allows client-side widget code to mani
 
 ## Encoding and References
 
-The {name}`Server.RpcEncodable` typeclass marks client-server transferrable types.
+The {name}`Server.RpcEncodable` type class marks client-server transferrable types.
 The wire format is JSON, and any type with both {name}`Lean.ToJson` and {name}`Lean.FromJson` instances is encodable.
 An instance can be derived automatically, as documented below.
 
