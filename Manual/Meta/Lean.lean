@@ -51,8 +51,7 @@ meta def typed : RoleExpander
         let initMsgs ← Core.getMessageLog
         try
           Core.resetMessageLog
-          let (tree', t) ← runWithOpenDecls <| runWithVariables fun _ => do
-
+          let (t, tree') ← elabInlineLean `Manual.leanInline arg fun _ => do
             let expectedType ← do
               let t ← leveller <| Elab.Term.elabType ty
               Term.synthesizeSyntheticMVarsNoPostponing
@@ -68,11 +67,7 @@ meta def typed : RoleExpander
             let t := Std.Format.group <| (← Meta.ppExpr e) ++ (" :" ++ .line) ++ t
 
             Term.synthesizeSyntheticMVarsNoPostponing
-            let ctx := PartialContextInfo.commandCtx {
-              env := ← getEnv, fileMap := ← getFileMap, mctx := ← getMCtx, currNamespace := ← getCurrNamespace,
-              openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
-            }
-            pure <| (InfoTree.context ctx (.node (Info.ofCommandInfo ⟨`Manual.leanInline, arg⟩) (← getInfoState).trees), t)
+            pure t
           pure (← Core.getMessageLog, t, tree')
         finally
           Core.setMessageLog initMsgs
@@ -85,8 +80,6 @@ meta def typed : RoleExpander
           pure { msg with contents := .append #[.text head, msg.contents] }
 
         saveOutputs name msgs
-
-      pushInfoTree tree
 
       if let some { braceOpen, name, braceClose, .. } := RoleView.of ⟨← getRef⟩ then
         Hover.addCustomHover (mkNullNode #[braceOpen, braceClose]) type
@@ -115,16 +108,3 @@ meta def typed : RoleExpander
         pure #[]
 where
   withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
-
-
-  modifyInfoTrees {m} [Monad m] [MonadInfoTree m] (f : PersistentArray InfoTree → PersistentArray InfoTree) : m Unit :=
-    modifyInfoState fun s => { s with trees := f s.trees }
-
-  -- TODO - consider how to upstream this
-  withInfoTreeContext {m α} [Monad m] [MonadInfoTree m] [MonadFinally m] (x : m α) (mkInfoTree : PersistentArray InfoTree → m InfoTree) : m (α × InfoTree) := do
-    let treesSaved ← getResetInfoTrees
-    MonadFinally.tryFinally' x fun _ => do
-      let st    ← getInfoState
-      let tree  ← mkInfoTree st.trees
-      modifyInfoTrees fun _ => treesSaved.push tree
-      pure tree

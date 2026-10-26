@@ -7,7 +7,7 @@ Author: David Thrane Christiansen
 module
 public import Manual.Meta.Tactics
 public meta import Manual.Meta.Tactics
-import VersoManual.InlineLean -- shake: keep
+public meta import VersoManual.InlineLean
 
 public section
 
@@ -17,6 +17,7 @@ open SubVerso.Highlighting
 open Lean.Meta.Grind (Filter)
 open Lean.Elab.Tactic.Grind (GrindTacticM evalGrindTactic getUnsolvedGoalMVarIds showState withMainContext)
 open Lean.Doc (CodeView VersoCodeBlock)
+open Verso.Genre.Manual.InlineLean (withInlineLeanInfoTree elabInlineLean)
 
 namespace Manual
 
@@ -36,31 +37,6 @@ private structure GrindExampleResult where
   postStateStr : String
 
 meta section
-
-private partial def disableLinter : InfoTree → InfoTree
-  | .context (.commandCtx ci) child =>
-    .context (.commandCtx { ci with options := Lean.Linter.linter.unusedVariables.set ci.options false })
-      (disableLinter child)
-  | .context pci child => .context pci (disableLinter child)
-  | .node info children => .node info (children.map disableLinter)
-  | .hole id => .hole id
-
-private def mkCtxInfoTree [Monad m] [MonadEnv m] [MonadFileMap m] [MonadOptions m] [MonadNameGenerator m] [MonadResolveName m]
-    (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : m InfoTree := do
-  let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx }) (trees.map disableLinter)
-  let ctx := PartialContextInfo.commandCtx {
-    env := ← getEnv, fileMap := ← getFileMap, mctx := {}, currNamespace := ← getCurrNamespace,
-    openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
-  }
-  return InfoTree.context ctx tree
-
-private def withTrees {m α} [Monad m] [MonadInfoTree m] [MonadFinally m]
-    (x : m α) (mk : PersistentArray InfoTree → m InfoTree) : m (α × InfoTree) := do
-  let saved ← getResetInfoTrees
-  MonadFinally.tryFinally' x fun _ => do
-    let tree ← mk (← getInfoState).trees
-    modifyInfoState fun s => { s with trees := saved.push tree }
-    pure tree
 
 /-- Captures the messages logged while running `x`. -/
 private def captureMessages (x : GrindTacticM Unit) : GrindTacticM (List Message) := do
@@ -105,14 +81,14 @@ private def checkGrindExample
     (← addMessageContext (goalsToMessageData goals)).toString
 
   let go : GrindTacticM Unit := do
-    let ((), preTree) ← withTrees (mk := mkCtxInfoTree `grindExample (← getRef)) do
+    let ((), preTree) ← withInlineLeanInfoTree `grindExample (← getRef) do
       if let some pfx := grindPrefix then evalGrindTactic pfx
     preTreeRef.set (some preTree)
     let preGoals ← getUnsolvedGoalMVarIds
     preGoalsRef.set preGoals
     preGoalsStrRef.set (← goalsStr preGoals)
     preStateRef.set (← captureWhiteboard (withMainContext (showState Filter.true)))
-    let ((), postTree) ← withTrees (mk := mkCtxInfoTree `grindExample (← getRef)) do
+    let ((), postTree) ← withInlineLeanInfoTree `grindExample (← getRef) do
       evalGrindTactic step
     postTreeRef.set (some postTree)
     let postGoals ← getUnsolvedGoalMVarIds
@@ -269,7 +245,7 @@ def grindGoal : RoleExpander
     match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
     | .error e => throwErrorAt term e
     | .ok stx =>
-      let goalExpr ← runWithOpenDecls <| runWithVariables fun _ => Elab.Term.elabTerm stx none
+      let (goalExpr, _) ← elabInlineLean `grindGoal (← getRef) fun _ => Elab.Term.elabTerm stx none
       saveGrindGoal goalExpr
       if config.show then
         let hls ← highlight stx #[] {}
