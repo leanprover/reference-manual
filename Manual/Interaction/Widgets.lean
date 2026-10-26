@@ -39,7 +39,7 @@ The definition must have a type convertible to {name}`Widget.Module`, i.e., a ty
 
 :::example "Registering a widget module"
 ```imports -show
-import Lean.Data.Widget.UserWidget
+import Lean.Widget.UserWidget
 ```
 ```lean -show
 open Lean
@@ -144,7 +144,7 @@ A panel widget is associated with the source line the {keywordOf Lean.Widget.wid
 Internally, this command invokes {name}`Widget.savePanelWidgetInfo`.
 
 ```imports -show
-import Lean.Widget
+import Lean.Widget.Commands
 ```
 ```lean -show
 open Lean
@@ -231,7 +231,7 @@ The {name}`Server.RequestM.asTask` convenience function does exactly this.
 
 :::example "Registering an RPC method"
 ```imports -show
-import Lean.Widget
+import Lean.Server.Rpc
 ```
 ```lean -show
 open Lean
