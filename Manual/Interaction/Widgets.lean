@@ -31,7 +31,7 @@ In general, widgets combine client-side JavaScript code that executes in the Inf
 However, many widgets don't use RPC methods, so only have a client part.
 
 Client-side code is organized into {deftech (key := "widget module")}_widget modules_.
-And [JavaScript module](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) compatible with the {ref "widgets-javascript-environment"}[InfoView JavaScript environment] can be used as a widget module.
+Any [JavaScript module](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) compatible with the {ref "widgets-javascript-environment"}[InfoView JavaScript environment] can be used as a widget module.
 There are no generic requirements on its exports; requirements are imposed when some export is used in a specific way, for example as an {tech}[InfoView panel widget].
 
 To register a widget module in Lean, tag its definition with the {attr}`widget_module` attribute.
@@ -76,12 +76,11 @@ The JavaScript environment in which widget modules execute is a standard browser
 : Importing by Hash
 
   A widget module may import another widget module via the module specifier `'widget_module:hash,<hash>'`, where `<hash>` is the dependency's {name}`Widget.Module.javascriptHash`.
-  The imported module must be registered via `@[widget_module]` before the importing module is registered (i.e., it must be registered earlier in the same file, or be registered in an imported Lean module).
 
 ## Bundling
 
 A {tech}[widget module] must be a single, self-contained JavaScript module.
-In order to compile an [`npm`](https://www.npmjs.com/) package (with dependencies, TypeScript, and so on) into this format, one may use a _bundler_.
+In order to compile an [`npm`](https://www.npmjs.com/) package (with dependencies, TypeScript, and so on) into this format, one typically uses a _bundler_.
 The following bundler-specific instructions may be useful.
 
 : [Rollup.js](https://rollupjs.org/)
@@ -101,9 +100,9 @@ Widgets are [React components](https://react.dev/learn/your-first-component) exp
 The InfoView is a React application, and is capable of embedding these components.
 A widget must be the [`default` export](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export#using_the_default_export) of its module.
 
-When registering a widget for display in Lean, we can provide [props](https://react.dev/learn/passing-props-to-a-component) that it will receive when it is rendered by the InfoView.
-In Lean, a {name}`Widget.WidgetInstance` bundles such an assignment of props together with a reference to the widget module that exports the component being instantiated.
-The assignment is stored as a {name}`Json` object—later decoded into a JavaScript object—and more generally a {lean}`StateM Server.RpcObjectStore Json` computation, in order to support {ref "widgets-remote-procedure-calls"}[RPC references].
+When registering a widget for display in Lean, we provide [props](https://react.dev/learn/passing-props-to-a-component) that it will receive when it is rendered by the InfoView.
+In Lean, a {name}`Widget.WidgetInstance` bundles such an assignment of props with a reference to the widget module that exports the component.
+The assignment is stored as a {name}`Json` object—later decoded into a JavaScript object—and more generally a {lean}`StateM Server.RpcObjectStore Json` computation, in order to support {tech (key := "RPC reference")}[RPC references].
 
 {docstring Widget.WidgetInstance}
 
@@ -120,7 +119,7 @@ Lean can display widgets in two ways: within messages in the {tech}[message log]
   By default, the InfoView conveys information about a given position in a Lean source file by means of three panels: _Tactic state_, _Expected type_, and _Messages_.
   This listing can be extended by user-defined panels (appearing below _Expected type_), for instance to render tactic states in custom proof modes.
 
-  Such an {deftech}_InfoView panel widget_ is associated with a source span.
+  Such an {deftech}_InfoView panel widget_ is associated with a span—a range of characters—in the source code.
   It is drawn whenever the InfoView is describing a position within this span (either because the editor cursor is there, or because that position is [pinned](https://github.com/leanprover/vscode-lean4/blob/master/vscode-lean4/manual/manual.md#status-bar)).
 
   :::sectionNote
@@ -128,40 +127,43 @@ Lean can display widgets in two ways: within messages in the {tech}[message log]
   :::
 
   - To associate a widget instance with the span of a piece of {name}`Lean.Syntax`, use {name}`Widget.savePanelWidgetInfo`.
+
+    {docstring Widget.savePanelWidgetInfo}
+
   - To associate it with all positions in a Lean module, scope, or set of modules downstream of a given module, use the {keywordOf Lean.Widget.showPanelWidgetsCmd}`show_panel_widgets` command.
 
-  {docstring Widget.savePanelWidgetInfo}
-
-  When rendering a panel widget, the InfoView extends the props object obtained from the {name}`Widget.WidgetInstance` by additional, automatically computed properties that reflect the editor state (for instance the current cursor position).
+  When rendering a panel widget, the InfoView extends the props object obtained from the {name}`Widget.WidgetInstance` with additional, automatically computed properties that reflect the editor state (for instance the current cursor position).
   These additional props are documented as [`PanelWidgetProps`](https://leanprover.github.io/vscode-lean4/infoview/docs/interfaces/index.PanelWidgetProps.html).
 
   A panel widget should be collapsible (conventionally a [`<details>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details) element).
 
   A panel widget is re-rendered when the source position it describes is re-elaborated.
 
-:::example "Displaying widgets with the #widget command"
-A panel widget is associated with the source line the {keywordOf Lean.Widget.widgetCmd}`#widget` command appears on.
-Internally, this command invokes {name}`Widget.savePanelWidgetInfo`.
+  Finally, the {keywordOf Lean.Widget.widgetCmd}`#widget` command can be used to quickly render a panel widget.
 
-```imports -show
-import Lean.Widget.Commands
-```
-```lean -show
-open Lean
-```
-```lean
-@[widget_module]
-def helloWidget : Widget.Module where
-  javascript := "
-    import * as React from 'react';
-    export default function(props) {
-      const name = props.name || 'world'
-      return React.createElement('p', {}, 'Hello, ' + name + '!')
-    }"
+  :::example "Using the #widget command"
+  The panel widget is associated with the source line the command appears on.
+  Internally, this command invokes {name}`Widget.savePanelWidgetInfo`.
 
-#widget helloWidget with json% { name: "Hexapus" }
-```
-:::
+  ```imports -show
+  import Lean.Widget.Commands
+  ```
+  ```lean -show
+  open Lean
+  ```
+  ```lean
+  @[widget_module]
+  def helloWidget : Widget.Module where
+    javascript := "
+      import * as React from 'react';
+      export default function(props) {
+        const name = props.name || 'world'
+        return React.createElement('p', {}, 'Hello, ' + name + '!')
+      }"
+
+  #widget helloWidget with json% { name: "Hexapus" }
+  ```
+  :::
 
 # Remote Procedure Calls
 %%%
@@ -170,9 +172,9 @@ tag := "widgets-remote-procedure-calls"
 
 The InfoView—together with any embedded widgets—is a web application running on the same computer as the IDE.
 The Lean language server, which {tech (key := "Lean elaborator")}[elaborates] source files and interprets Lean code, is a separate process.
-The two may be resident on two different machines, e.g. when using Lean in a server-backed web IDE or over SSH.
+The InfoView and the language server may reside on two different machines, e.g. when using Lean in a server-backed web IDE or over SSH.
 
-It can be useful for widgets to maintain part of their state or input data in the server, as opposed to sending it to the client.
+It can be useful for widgets to maintain part of their state or input data in the server, as opposed to serializing and transferring it to the client.
 Transfer may be impractical due to a slow network, and objects may not be easily serializable (as is the case for closures, {name}`IO.Promise`s, or {name}`Lean.Environment`s).
 The Remote Procedure Call (RPC) mechanism allows client-side widget code to manipulate {tech (key := "RPC reference")}[RPC references] to server-side data, and to execute {tech (key := "RPC method")}[RPC methods] in the server.
 
@@ -182,10 +184,14 @@ The {name}`Server.RpcEncodable` type class marks client-server transferrable typ
 The wire format is JSON, and any type with both {name}`Lean.ToJson` and {name}`Lean.FromJson` instances is encodable.
 An instance can be derived automatically, as documented below.
 
+{docstring +allowMissing Server.RpcEncodable}
+
 The main purpose of {name}`Server.RpcEncodable` is to support—in addition to JSON—structures containing {deftech (key := "RPC reference")}[RPC references].
 Every reference is marked with the {name}`Server.WithRpcRef` wrapper.
-A value wrapped with {name}`Server.WithRpcRef` is not serialized during transfer.
+A value wrapped with {name}`Server.WithRpcRef` is not serialized or transferred to the client.
 Instead, the client receives an opaque identifier that can later be used to retrieve the value server-side, in an {tech}[RPC method] call.
+
+{docstring +allowMissing Server.WithRpcRef}
 
 ::::leanSection
 ```lean -show
@@ -204,11 +210,7 @@ structure MyNat where
 :::
 ::::
 
-{docstring +allowMissing Server.RpcEncodable}
-
-{docstring +allowMissing Server.WithRpcRef}
-
-Use {name}`Server.WithRpcRef.mk` to construct references.
+Use {name}`Server.WithRpcRef.mk` to construct RPC references.
 
 {docstring Server.WithRpcRef.mk}
 
@@ -238,13 +240,13 @@ open Lean
 ```
 ```lean
 structure Args where
-  n : Nat
+  num : Nat
   deriving TypeName
 
 @[server_rpc_method]
-def extract (args : Server.WithRpcRef Args) :
+def extractNum (args : Server.WithRpcRef Args) :
     Server.RequestM (Server.RequestTask Nat) :=
-  Server.RequestM.asTask <| return args.val.n
+  Server.RequestM.asTask <| return args.val.num
 ```
 :::
 
@@ -262,8 +264,7 @@ The RPC system does not depend on JavaScript.
 Any LSP client may create RPC sessions and invoke RPC methods.
 :::
 
-Widget React components may invoke RPC methods.
-To do so, the component should first use the [`useRpcSession`](https://leanprover.github.io/vscode-lean4/infoview/docs/functions/index.useRpcSession.html) hook.
-This gives an _RPC session_ handle tied to a specific position in a Lean source file.
-The handle may be used to call RPC methods registered in Lean code above that position (including in imported modules);
-see [`RpcSessionAtPos.call`](https://leanprover.github.io/vscode-lean4/infoview/docs/interfaces/index.RpcSessionAtPos.html#call).
+Any widget React component may invoke RPC methods.
+To do so, the component should first obtain an _RPC session_ handle via the [`useRpcSession`](https://leanprover.github.io/vscode-lean4/infoview/docs/functions/index.useRpcSession.html) hook.
+The handle may then be used to call RPC methods; see [`RpcSessionAtPos.call`](https://leanprover.github.io/vscode-lean4/infoview/docs/interfaces/index.RpcSessionAtPos.html#call).
+
