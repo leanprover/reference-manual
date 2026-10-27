@@ -13,7 +13,7 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-#doc (Manual) "Lean 4.36.0-rc1 (2026-10-14)" =>
+#doc (Manual) "Lean 4.36.0-rc2 (2026-10-27)" =>
 %%%
 tag := "release-v4.36.0"
 file := "v4.36.0"
@@ -24,9 +24,9 @@ These release notes describe a _release candidate_, not the final release.
 They may be incomplete and are subject to change.
 :::
 
-For this release, 216 changes landed.
-In addition to the 64 feature additions
-and 81 fixes listed below,
+For this release, 219 changes landed.
+In addition to the 65 feature additions
+and 83 fixes listed below,
 there were 11 refactoring changes,
 1 documentation improvement,
 30 performance improvements,
@@ -36,6 +36,9 @@ and 26 other changes.
 # Language
 
 ```markdown
+
+- [#15839](https://github.com/leanprover/lean4/pull/15839)
+  fixes a race condition that was caused by incorrect code that was supposed to persist scoped extension state between module docstrings, but failed to do so. The issue is fixed by removing the incorrectly-implemented feature, which may be replaced by a correct version in a future PR.
 
 - [#15572](https://github.com/leanprover/lean4/pull/15572)
   adds a hint/code action the the "[deprecated]` attribute should specify the date or library version at which the deprecation was introduced" warning.
@@ -248,6 +251,9 @@ and 26 other changes.
 # Tactics
 
 ```markdown
+
+- [#15750](https://github.com/leanprover/lean4/pull/15750)
+  fixes two `grind` regressions introduced by #15420 and reported in leanprover/cslib#1141, where proofs about inductive predicates over λ-terms that v4.35.0 proved fail on v4.36.0-rc1. The normalizer now rewrites `∀ _ : α, True` to `True` for every `α`, not only for propositions, and the eager `cases` that `grind` applies to new hypotheses resets the E-matching round counter like any other case split.
 
 - [#15678](https://github.com/leanprover/lean4/pull/15678)
   fixes `grind` failing to prove goals such as `c = b → a ≤ b + c + d → a ≤ b + b + d` in an ordered ring when the `Sym.simp` normalizer is enabled (`set_option backward.grind.normalizer false`). The normalizer rewrites `b + b + d` to `2 * b + d`, so the two inequalities are no longer congruent after `c = b`, and no module related the two sums.
@@ -612,6 +618,9 @@ and 26 other changes.
 # Other
 
 ```markdown
+
+- [#15665](https://github.com/leanprover/lean4/pull/15665)
+  adds Lean Beam's CLI, MCP server, daemon, and LSP plugin to Linux and macOS release toolchains.
 
 - [#15559](https://github.com/leanprover/lean4/pull/15559)
   stops a `module` from exporting constants such as `foo.eq_1` when they were realized only inside a proof, so that such proofs no longer trigger downstream rebuilds. Importing modules realize these constants again on demand.
