@@ -256,16 +256,16 @@ import Lean.Server.Rpc
 open Lean
 ```
 ```lean
-structure Args where
-  str : Server.WithRpcRef String
-  deriving Server.RpcEncodable
+structure Cell where
+  str : String
+  deriving TypeName
 
 /-- Extracts a string from a server-side cell
 and sends it to the client. -/
 @[server_rpc_method]
-def unwrapStr (args : Args) :
+def unwrapStr (cell : Server.WithRpcRef Cell) :
     Server.RequestM (Server.RequestTask String) :=
-  Server.RequestM.asTask <| return args.str.val
+  Server.RequestM.asTask <| return cell.val.str
 ```
 :::
 
@@ -294,17 +294,17 @@ import Lean.Widget
 open Lean
 ```
 ```lean
-structure Args where
-  str : Server.WithRpcRef String
-  deriving Server.RpcEncodable
+structure Cell where
+  str : String
+  deriving TypeName
 
 @[server_rpc_method]
-def unwrapStr (args : Args) :
+def unwrapStr (cell : Server.WithRpcRef Cell) :
     Server.RequestM (Server.RequestTask String) :=
-  Server.RequestM.asTask <| return args.str.val
+  Server.RequestM.asTask <| return cell.val.str
 
 structure Props where
-  str : Server.WithRpcRef String
+  cell : Server.WithRpcRef Cell
   deriving Server.RpcEncodable
 
 @[widget_module]
@@ -313,21 +313,21 @@ def rpcCallWidget : Widget.Module where
     import * as React from 'react'
     import { useRpcSession } from '@leanprover/infoview'
 
-    export default function({ str }) {
+    export default function({ cell }) {
       const rs = useRpcSession()
       const [display, setDisplay] = React.useState()
       React.useEffect(() => {
-        rs.call('unwrapStr', { str }).then(s => setDisplay(s))
+        rs.call('unwrapStr', cell).then(s => setDisplay(s))
       }, [])
       return React.createElement('b', {}, [display])
     }
   "#
 
 run_meta
-  let str ← Server.WithRpcRef.mk "Server-side hello!"
+  let cell ← Server.WithRpcRef.mk { str := "Server-side hello!" }
   Widget.addPanelWidgetLocal { rpcCallWidget with
     id := .anonymous
-    props := Server.rpcEncode { str : Props }
+    props := Server.rpcEncode { cell : Props }
   }
 ```
 :::
