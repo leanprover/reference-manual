@@ -133,7 +133,7 @@ Lean can display widgets in two ways: within messages in the {tech}[message log]
   - To associate it with all positions in a Lean module, scope, or set of modules downstream of a given module, use the {keywordOf Lean.Widget.showPanelWidgetsCmd}`show_panel_widgets` command.
 
   When rendering a panel widget, the InfoView extends the props object obtained from the {name}`Widget.WidgetInstance` with additional, automatically computed properties that reflect the editor state (for instance the current cursor position).
-  These additional props are documented as [`PanelWidgetProps`](https://leanprover.github.io/vscode-lean4/infoview/docs/interfaces/index.PanelWidgetProps.html).
+  These additional props are documented as [`PanelWidgetProps`](https://leanprover.github.io/vscode-lean4/infoview/interfaces/index.PanelWidgetProps.html).
 
   A panel widget should be collapsible (conventionally a [`<details>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details) element).
 
@@ -277,8 +277,8 @@ Any LSP client may create RPC sessions and invoke RPC methods.
 :::
 
 Any widget React component may invoke RPC methods.
-To do so, the component should first obtain an _RPC session_ handle via the [`useRpcSession`](https://leanprover.github.io/vscode-lean4/infoview/docs/functions/index.useRpcSession.html) hook.
-The handle may then be used to call RPC methods; see [`RpcSessionAtPos.call`](https://leanprover.github.io/vscode-lean4/infoview/docs/interfaces/index.RpcSessionAtPos.html#call).
+To do so, the component should first obtain an _RPC session_ handle via the [`useRpcSession`](https://leanprover.github.io/vscode-lean4/infoview/functions/index.useRpcSession.html) hook.
+The handle may then be used to call RPC methods; see [`RpcSessionAtPos.call`](https://leanprover.github.io/vscode-lean4/infoview/interfaces/index.RpcSessionAtPos.html#call).
 Invoking RPC is an asynchronous operation that generally occurs in a [React effect](https://react.dev/reference/react/useEffect).
 RPC methods are identified in JavaScript by their fully qualified Lean names.
 
