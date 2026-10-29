@@ -113,7 +113,7 @@ Using `freeSyntax` due to https://github.com/leanprover/reference-manual/issues/
 
 # Serialization
 
-Serialization of Lean values to JSON, and deserialization from JSON, is supported through the {name}`ToJson` and {name}`FromJson` typeclasses.
+Serialization of Lean values to JSON, and deserialization from JSON, is supported through the {name}`ToJson` and {name}`FromJson` type classes.
 Import {module}`Lean.Data.Json.FromToJson` to use this functionality.
 
 JSON representations of many Lean types can be derived automatically.
