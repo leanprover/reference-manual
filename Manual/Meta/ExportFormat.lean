@@ -29,8 +29,7 @@ open LexedText in
 Highlights the JSON-like notation that describes the shape of objects in Lean's export format.
 
 Quoted strings that precede a colon are field names, and other quoted strings are literal values.
-Lowercase words such as `integer` are primitive JSON types, and capitalized words such as
-`Array` or `RecursorVal` name compound types.
+Unquoted words such as `integer` or `RecursorVal` are types.
 -/
 private meta def exportFormatHl : Highlighter where
   name := "export-format"
@@ -42,13 +41,10 @@ private meta def exportFormatHl : Highlighter where
     token `delim (chFn ',' <|> chFn ':') <|>
     token `key (atomicFn (str >> lookaheadFn (manyFn (chFn ' ') >> chFn ':'))) <|>
     token `lit str <|>
-    token `prim (atomicFn (prim >> notFollowedByFn (satisfyFn isWordChar) "word character")) <|>
-    token `type (satisfyFn Char.isUpper >> manyFn (satisfyFn isWordChar))
+    token `type (satisfyFn Char.isAlpha >> manyFn (satisfyFn isWordChar))
   tokenClass := fun s => some (toString s.getKind)
 where
   str := chFn '"' >> manyFn (satisfyEscFn (· != '"')) >> chFn '"'
-  prim := prims.foldl (init := strFn "string") (· <|> strFn ·)
-  prims := ["integer", "number", "boolean", "object"]
   isWordChar (c : Char) : Bool := c.isAlphanum || c == '_'
 
 private def exportFormat.css := "
@@ -80,23 +76,31 @@ pre.export-format {
   color: #107040;
 }
 
-.export-format .prim {
-  color: #107090;
-  font-style: italic;
+
+.export-format {
+  --export-format-type-color: #3030c0;
 }
 
 .export-format .type {
-  color: #3030c0;
+  color: var(--export-format-type-color);
   font-weight: 600;
 }
 
-.export-format .type a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
+/* Linked type names look exactly like unlinked ones, apart from the underline, in every link state. */
+.export-format .type a,
+.export-format .type a:link,
+.export-format .type a:visited,
+.export-format .type a:active,
+.export-format .type a:focus {
+  color: var(--export-format-type-color);
+  font: inherit;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--export-format-type-color);
 }
 
 .export-format .type a:hover {
-  text-decoration: currentcolor underline solid;
+  text-decoration-style: solid;
 }
 
 .export-format .alt, .export-format .angle {
