@@ -34,8 +34,7 @@ import Manual.Runtime
 import Manual.SupportedPlatforms
 import Manual.VCGen
 import Manual.MVCGen
-import Manual.LibLean.HTML
-import Manual.LibLean.JSON
+import Manual.LibLean
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -140,6 +139,8 @@ draft := true
 :::planned 109
 Overview of the standard library, including types from the prelude and those that require imports.
 :::
+
+{include 0 Manual.LibLean}
 
 {include 0 Manual.NotationsMacros}
 
