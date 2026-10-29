@@ -28,13 +28,13 @@ import Manual.Monads
 import Manual.BuildTools
 import Manual.Linters
 import Manual.Releases
-import Manual.StandardLibrary.HTML
-import Manual.StandardLibrary.JSON
 import Manual.Namespaces
 import Manual.Runtime
 import Manual.SupportedPlatforms
 import Manual.VCGen
 import Manual.MVCGen
+import Manual.LibLean.HTML
+import Manual.LibLean.JSON
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -139,10 +139,6 @@ draft := true
 :::planned 109
 Overview of the standard library, including types from the prelude and those that require imports.
 :::
-
-{include 2 Manual.StandardLibrary.HTML}
-
-{include 2 Manual.StandardLibrary.JSON}
 
 {include 0 Manual.NotationsMacros}
 
