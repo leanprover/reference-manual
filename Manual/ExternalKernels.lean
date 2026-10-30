@@ -94,7 +94,7 @@ An exported `.ndjson` file will begin with an {exportType "Initial metadata obje
 }
 ```
 
-The metadata object is followed by a sequence of primitives with integer tags (Name, Level, or Expr) and declarations ({exportType "Axiom"}[axiom], {exportType "Definition"}[definition], {exportType "Theorem"}[theorem], {exportType "Opaque"}[opaque], {exportType "Quotient"}[quot], {exportType "Inductive Declaration"}[inductive] including {exportType "ConstructorVal"}[constructor] and {exportType "RecursorVal"}[recursor]), where related elements of an inductive or mutual inductive declaration (the inductive specifications, constructors, and recursors) are grouped together.
+The metadata object is followed by a sequence of primitives with integer tags ({name Lean.Name}`Name`, {name Lean.Level}`Level`, or {name Lean.Expr}`Expr`) and declarations ({exportType "Axiom"}[axiom], {exportType "Definition"}[definition], {exportType "Theorem"}[theorem], {exportType "Opaque"}[opaque], {exportType "Quotient"}[quot], {exportType "Inductive Declaration"}[inductive] including {exportType "ConstructorVal"}[constructor] and {exportType "RecursorVal"}[recursor]), where related elements of an inductive or mutual inductive declaration (the inductive specifications, constructors, and recursors) are grouped together.
 
 The export format contains information that is redundant and would likely be ignored or only validated by a full external checker (such as the types of recursors).
 These are included for the benefit of other tools that want all constants with their types (e.g. dependency analysis tools).
