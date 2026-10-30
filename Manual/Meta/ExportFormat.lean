@@ -68,7 +68,7 @@ pre.export-format {
   padding: 0.1rem 0;
 }
 
-.export-format .key {
+.export-format .key, code.export-format.key {
   color: #601020;
 }
 
@@ -280,7 +280,8 @@ inline_extension Inline.exportField (name : String) where
   toHtml := some <| fun goI _ data contents => open Verso.Output.Html in do
     let .ok (name : String) := fromJson? data
       | reportError s!"Failed to deserialize {data} as an export format field name"; contents.mapM goI
-    pure {{<code class="export-format"><span class="key">s!"\"{name}\""</span></code>}}
+    -- The text is directly inside `<code>` so that the prose linter skips it.
+    pure {{<code class="export-format key">s!"\"{name}\""</code>}}
 
 /--
 Displays the name of a field in an export format object, in the style of field names in
