@@ -8,6 +8,7 @@ import VersoManual
 
 import Manual.Meta
 import Manual.Interaction.FormatRepr
+import Manual.Interaction.Widgets
 
 open Lean.MessageSeverity
 
@@ -754,3 +755,5 @@ info: Tree.branches
 :::
 
 {include 1 Manual.Interaction.FormatRepr}
+
+{include 1 Manual.Interaction.Widgets}
