@@ -26,13 +26,13 @@ jobs:
                   fi
                   echo "branch=${base#refs/heads/}" >> "$GITHUB_OUTPUT"
 
-            - name: Check that no dependency tracks nightly-testing
+            - name: Check that no dependency tracks nightly-testing or a bump branch
               if: steps.target.outputs.branch == 'main'
               run: |
                   bad=$(jq -r '
                       .packages[]
                       | select(.type == "git")
-                      | select(.inputRev // "" | test("^nightly-testing"))
+                      | select(.inputRev // "" | test("^(nightly-testing|bump/)"))
                       | "\(.name): \(.inputRev)"
                   ' lake-manifest.json)
                   if [ -n "$bad" ]; then
@@ -42,7 +42,7 @@ jobs:
                       exit 1
                   fi
 
-                  if grep -n -E 'require .*@"nightly-testing' lakefile.lean; then
+                  if grep -n -E 'require .*@"(nightly-testing|bump/)' lakefile.lean; then
                       echo "::error::The requirements above in lakefile.lean track nightly-testing."
                       exit 1
                   fi
