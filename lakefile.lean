@@ -10,7 +10,7 @@ open System (FilePath)
 
 require versowebcomponents from git "https://github.com/leanprover/verso-web-components"@"nightly-testing"
 require illuminate from git "https://github.com/leanprover/illuminate"@"main"
-require verso from git "https://github.com/leanprover/verso.git"@"nightly-testing"
+require verso from git "https://github.com/leanprover/verso.git"@"bump/v4.37.0"
 
 
 open Lean System in
