@@ -998,7 +998,7 @@ It is intended only for experts who provide isolation by other means.
 
 The exit code distinguishes an accepted solution (`0`) and a rejected one (`1`) from an environment in which the judgment could not run at all (`2`).
 
-This command is a frontend to the [`comparator`](https://github.com/leanprover/comparator) proof-checking pipeline; {ref "validating-comparator"}[the section on validating proofs] describes the security model and the assumptions that remain.
+{ref "validating-comparator"}[The section on validating proofs] describes the security model and the assumptions that remain.
 ::::
 
 ```lakeHelp check
@@ -1081,6 +1081,83 @@ This establishes only that the checkers accept the export, and says nothing abou
 The exit code is `0` when every checker accepts the project and only standard axioms are used, `1` when a checker rejects it, a non-standard axiom is used, or a build fails, and `2` when the check could not run at all.
 ::::
 
+## Writing a Challenge
+%%%
+tag := "lake-comparator-challenge"
+%%%
+
+:::paragraph
+To allow others to check a project with {lake}`comparator`, follow these steps:
+
+ 1. Decide which theorems are the end results of the project.
+
+ 2. Create a {tech}[challenge] module that states these theorems with {lean}`sorry` in place of their proofs, along with any definitions from the project that appear in the statements.
+
+ 3. Create a {tech}[solution] module that contains or imports the same theorems with the same names, this time with their proofs.
+    It can simply import the whole project.
+
+ 4. Create a {ref "lake-comparator-config"}[configuration file] that names the modules, the theorems, and the permitted axioms.
+:::
+
+:::example "A Challenge and a Solution"
+This challenge module is called `Challenge`:
+```lean -keep
+theorem comm (n m : Nat) : n + m = m + n := by
+  sorry
+```
+
+This solution module is called `Solution`:
+```lean -keep
+theorem comm (n m : Nat) : n + m = m + n := by
+  grind
+```
+
+The configuration file `comparator.json` names both of them:
+```
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": ["comm"],
+  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"]
+}
+```
+:::
+
+Everything that the challenge imports is trusted, so it should import as few modules and contain as few new definitions as possible.
+Moving definitions from the project to a widely reviewed library, such as Mathlib, can make them easier for others to trust.
+The solution can import any amount of code without increasing what must be trusted.
+
+The challenge, the solution, and the configuration file can have any names and can be anywhere in the project, either in its main library or in a separate one.
+Making the challenge and the solution {tech}[default targets] ensures that ordinary builds check them.
+A project that has several challenges needs one configuration file for each, chosen using {lakeOpt}`--config`.
+
+## What Is Compared
+%%%
+tag := "lake-comparator-comparison"
+%%%
+
+:::paragraph
+After building and exporting the {tech}[challenge] and the {tech}[solution], {lake}`comparator` performs the following checks on the exports:
+
+ 1. Each theorem in `theorem_names` must be a theorem in both modules, with the same name, universe parameters, and type.
+
+ 2. Every constant that these types use must be identical in both modules, as must every constant that those constants use, and so on.
+    Unlike the named theorems, these constants are compared in full, including the values of definitions.
+    The permitted axioms and the constants that have a special meaning to the kernel are compared in the same way, so both modules must import the default prelude.
+
+ 3. The named theorems and the {ref "lake-comparator-holes"}[definition holes] must not depend on any axiom other than the permitted ones.
+    This rejects proofs that use {lean}`sorry`, which depends on the axiom {name}`sorryAx`.
+
+ 4. The solution must be accepted by Lean's kernel and by every configured external checker.
+:::
+
+A definition or a notation in the solution cannot affect the challenge.
+Using one to change the meaning of a statement causes a mismatch instead.
+This also means that a definition copied into the challenge must elaborate to the same term as in the solution, including any other constants that it mentions.
+
+{lake}`comparator` cannot determine whether the challenge correctly expresses what its author intended.
+Its definitions and statements need to be read by someone who understands Lean, or to come from libraries that are trusted.
+
 ## Configuration
 %%%
 tag := "lake-comparator-config"
@@ -1125,6 +1202,63 @@ The challenge configuration is a JSON file that contains an object with the foll
   A Boolean for which `true` is equivalent to an `external_kernels` entry that maps `"nanoda"` to `["nanoda_bin"]`.
   It may be `true` only when `external_kernels` is empty or omitted.
 
+:::
+
+## Definition Holes
+%%%
+tag := "lake-comparator-holes"
+%%%
+
+A {tech}[challenge] can leave definitions for the {tech}[solution] to fill in, which are called {deftech}_definition holes_.
+The challenge defines each of them using {lean}`sorry`, and `definition_names` in the {ref "lake-comparator-config"}[configuration file] lists them.
+
+:::paragraph
+For each definition hole, {lake}`comparator` establishes the following properties of the solution:
+
+ * Its name, universe parameters, type, and safety level match those in the challenge.
+
+ * It does not depend on any axiom other than the permitted ones.
+
+ * The kernel accepts it.
+:::
+
+:::example "Filling a Definition Hole"
+This challenge asks for a number that is greater than 37, so its configuration file sets `theorem_names` to `["large_lt"]` and `definition_names` to `["large"]`:
+```lean -keep
+def large : Nat := sorry
+
+theorem large_lt : 37 < large := sorry
+```
+
+This solution is accepted:
+```lean -keep
+def large : Nat := 38
+
+theorem large_lt : 37 < large := by decide
+```
+:::
+
+{lake}`comparator` does not check that the value of a definition hole is what the author of the challenge intended, so many of these challenges can be satisfied in ways that don't answer the question being asked.
+A human or another additional checker must always review the values of definition holes.
+
+:::example "Satisfying a Definition Hole Without an Answer"
+```lean -show
+def Conjecture : Prop := ∀ n : Nat, n = n
+```
+
+This challenge is intended to ask whether a statement `Conjecture` is true, by having the solution define `Answer` to be either {name}`True` or {name}`False`:
+```lean -keep
+def Answer : Prop := sorry
+
+theorem resolved : Conjecture ↔ Answer := sorry
+```
+
+This solution is accepted, even though it says nothing about whether `Conjecture` is true:
+```lean -keep
+def Answer : Prop := Conjecture
+
+theorem resolved : Conjecture ↔ Answer := Iff.rfl
+```
 :::
 
 ## Sandbox

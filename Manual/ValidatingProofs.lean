@@ -179,7 +179,7 @@ This should only be necessary for high risk scenarios (proof marketplaces, high-
 ## Instructions
 
 In a trusted environment, write the theorem *statement* (the “challenge”), and then judge the proposed proof against it with {ref "lake-comparator"}[`lake comparator`], with external checkers enabled.
-This command is a frontend to the [`comparator`](https://github.com/leanprover/comparator) tool.
+{ref "lake-comparator-challenge"}[The section on writing a challenge] describes how to set this up.
 
 ## Significance
 
@@ -190,6 +190,24 @@ Outside the sandbox and out of the reach of possibly malicious code, it validate
 ## Trust
 
 This check is meaningful if the theorem statement in the trusted challenge file is correct and the sandbox used to build the possibly-{tech}[malicious] code is safe.
+
+:::paragraph
+In particular, the check relies on the following assumptions:
+
+ * Everything that the challenge file transitively imports is trusted.
+
+ * The package configuration and the `lake-manifest.json` file, along with all the dependencies that they require, are trusted.
+
+ * The project starts from a clean build, with no existing `.lake` directory.
+
+ * `bubblewrap` is installed for the sandbox, which requires Linux, and the command is not run by a privileged user.
+
+ * Lean's kernel does not accept an incorrect proof, or at least one of the checkers does not when several are used.
+
+ * The solution does not exploit unknown vulnerabilities in other software or hardware on the machine.
+
+ * Any {ref "lake-comparator-holes"}[definition holes] filled in by the solution have been reviewed separately.
+:::
 
 ## Protection
 
@@ -202,7 +220,7 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 
 ## Comments
 
-At the time of writing, `comparator` supports using the official Lean kernel and the external checker [`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust. The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
+The `--paranoid` flag of {ref "lake-comparator"}[`lake comparator`] additionally runs every external checker that is distributed with Lean, including [`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust. The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
 
 # Remaining Issues
 
