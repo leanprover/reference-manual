@@ -241,6 +241,9 @@ element "pre" #[] (text "def f (x : Nat) :=\n  x + 1")
 ```imports -show
 import Lean.Data.Html
 ```
+```lean -show
+open Lean
+```
 The {lit}`<` in this script is parsed as the start of a tag:
 ```lean (name := htmlScriptErr) +error
 #eval html%{<script>if (a < b) f();</script>}
