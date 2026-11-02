@@ -57,14 +57,16 @@ json% $_:json
 One may optionally omit quotes on object keys in `json%` literals (similarly to [JavaScript object literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_objects#using_object_initializers)).
 A `$()` delimiter can be used to interpolate any value with a {name}`FromJson` instance (including {name}`Json` values).
 
-:::example "Using a JSON literal"
+:::example "Using a JSON Literal"
 ```imports -show
 import Lean.Data.Json
 ```
 ```lean -show
 open Lean
 ```
-```lean
+JSON literals support interpolation of values using `$` to escape to Lean syntax.
+Keys that are valid Lean identifiers do not require double quotes:
+```lean (name := jsonInterp)
 variable (j : Json)
 
 #check json% {
@@ -73,6 +75,9 @@ variable (j : Json)
   c: null,
   d: $(j)
 }
+```
+```leanOutput jsonInterp
+Json.mkObj [("a", Json.num 1), ("b", Json.arr #[Json.num 2, Json.num 3]), ("c", Json.null), ("d", toJson j)] : Json
 ```
 :::
 
@@ -119,14 +124,14 @@ Import {module}`Lean.Data.Json.FromToJson` to use this functionality.
 JSON representations of many Lean types can be derived automatically.
 The default encoding is documented on {name}`ToJson` (below).
 
-:::example "Serializing a structure to JSON"
+:::example "Serializing a Structure to JSON"
 ```imports -show
 import Lean.Data.Json.FromToJson
 ```
 ```lean -show
 open Lean
-
 ```
+This structure is serialized to a JSON object that contains one key per field:
 ```lean (name := fooJson)
 structure Foo where
   x : Bool := true
@@ -138,6 +143,14 @@ deriving ToJson, FromJson
 ```
 ```leanOutput fooJson +show
 {"z": 1, "y": "abc", "x": true}
+```
+
+Because {name}`Foo.z?` is an {name}`Option` field whose name ends with a question mark, it is elided when its value is {name}`none`:
+```lean (name := fooJson2)
+#eval toJson { z? := none : Foo }
+```
+```leanOutput fooJson2
+{"y": "abc", "x": true}
 ```
 :::
 
