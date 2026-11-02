@@ -34,7 +34,9 @@ public import Manual.Meta.ErrorExplanation.Domain
 public import Manual.Meta.ErrorExplanation.Example
 public import Manual.Meta.ErrorExplanation.Header
 public import Manual.Meta.Example
+public import Manual.Meta.Executable
 public import Manual.Meta.ExpectString
+public import Manual.Meta.ExportFormat
 public import Manual.Meta.Figure
 public import Manual.Meta.GrindTactic
 public import Manual.Meta.GrindTacticExample
