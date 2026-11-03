@@ -199,9 +199,11 @@ element "ul" #[]
       element "li" #[] (seq #[text "Item ", element "b" #[] (text "3")])])
 ```
 The first list item is {lean}`"Item 1"` with only a single space.
-Its spaces collapse because it does not contain any newlines.
-The second list item is {lean}`"Item 2"`, in which the newline and indentation are collapsed to a single space.
+Its whitespace is within a text node.
+Because this whitespace is not between two text nodes and it does not contain a newline, it is collapsed to a single space.
+The second list item is {lean}`"Item 2"`, in which the newline and indentation are likewise collapsed to a single space.
 The space at the end of {lean}`"Item "` is retained in the third item because it does not contain a newline.
+It is also collapsed to a single space, but it was already a single space.
 All other whitespace has been eliminated.
 :::
 
