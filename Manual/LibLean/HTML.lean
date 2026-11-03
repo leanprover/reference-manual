@@ -202,22 +202,21 @@ element "ul" #[]
       element "li" #[] (seq #[text "Item ", element "b" #[] (text "3")])])
 ```
 The first list item is {lean}`"Item 1"` with only a single space.
-Its whitespace is within a text node.
-Because this whitespace is not between two text nodes and it does not contain a newline, it is collapsed to a single space.
-The second list item is {lean}`"Item 2"`, in which the newline and indentation are likewise collapsed to a single space.
-The space at the end of {lean}`"Item "` is retained in the third item because it does not contain a newline.
-It is also collapsed to a single space, but it was already a single space.
+Because the first item's whitespace does not contain a newline, it is collapsed.
+The second list item is {lean}`"Item 2"`, in which the newline and indentation are collapsed to a single space because they have text on both sides.
+The space at the end of {lean}`"Item "` is retained in the third item because it does not contain a newline; collapsing it to a single space does not change it.
 All other whitespace has been eliminated.
 :::
 
 There is no special parser support for HTML elements such as {lit}`pre`, {lit}`script`, and {lit}`style`.
 Whitespace inside {lit}`pre` is normalized according to the same rules as anywhere else.
 To avoid normalization, interpolate a string with the desired whitespace.
+
 Similarly, a {lit}`script` or {lit}`style` element that contains a {lit}`<` character parses as if an element is being opened.
-{lit}`<` characters that occur in a script are rendered as {lit}`&lt;` in the HTML output, which is invalid JavaScript.
-This is true even for interpolated string values.
 Likewise, the brace characters {lit}`{` and {lit}`}` are interpolation syntax and cannot be written directly in a text node.
-Use an interpolation of {name}`Html.raw` to include JavaScript and CSS content that includes characters that otherwise cannot be written in the HTML syntax.
+Unlike preformatted text, interpolating a string is not sufficient to correctly include JavaScript and CSS content because the string is rendered as a text node with escaping.
+In particular, {lit}`<` characters that occur in a script are rendered as {lit}`&lt;` in the HTML output, which is invalid JavaScript.
+Instead, use an interpolation of {name}`Html.raw` to include JavaScript and CSS content that includes characters that otherwise cannot be written in the HTML syntax.
 
 :::example "Preformatted Text in HTML Literals"
 ```imports -show
