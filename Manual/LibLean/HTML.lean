@@ -131,6 +131,7 @@ Interpolations may occur in the following positions:
 : Content
 
   - A single value {typed}`html : Html` is interpolated with {lean}`html%{<tag>{html}</tag>}`.
+    Because there is a coercion from {name}`String` to {name}`Html` that creates a {name Html.text}`text` node, strings may also be interpreted using this syntax.
   - Multiple values, given as an array {typed}`htmls : Array Html` or any collection {typed}`htmls' : ρ` with a {lean}`ForIn Id ρ Html` instance, are interpolated with {lean}`html%{<tag>{...htmls}{...htmls'}</tag>}`.
 
 : Attributes
