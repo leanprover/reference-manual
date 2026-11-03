@@ -114,7 +114,7 @@ $_:text
 ```
 :::
 
-:::leanSection
+::::leanSection
 ```lean -show
 variable {html : Html} {htmls : Array Html}
   {ρ : Type} [ForIn Id ρ Html] {htmls' : ρ}
@@ -123,24 +123,26 @@ variable {html : Html} {htmls : Array Html}
   {val : String}
 ```
 
+:::paragraph
 Besides standard HTML features, the grammar above includes {deftech (key := "html-interpolation")}[interpolations] written with curly braces.
-These are holes in the syntax, filled in with a Lean term of the correct type (cf. {ref "string-interpolation"}[string interpolation]).
-They are supported in:
+An interpolation is a hole in the syntax that is filled with a Lean term of the appropriate type, much like {ref "string-interpolation"}[string interpolation].
+Interpolations may occur in the following positions:
 
 : Content
 
-  - Given an {typed}`html : Html` value, we can write {lean}`html%{<tag>{html}</tag>}`.
-  - Given multiple values {typed}`htmls : Array Html`, or more generally any collection {typed}`htmls' : ρ` with a {lean}`ForIn Id ρ Html` instance, we can write {lean}`html%{<tag>{...htmls}{...htmls'}</tag>}`.
+  - A single value {typed}`html : Html` is interpolated with {lean}`html%{<tag>{html}</tag>}`.
+  - Multiple values, given as an array {typed}`htmls : Array Html` or any collection {typed}`htmls' : ρ` with a {lean}`ForIn Id ρ Html` instance, are interpolated with {lean}`html%{<tag>{...htmls}{...htmls'}</tag>}`.
 
 : Attributes
 
-  - Given an {typed}`attr : String × String` value, we can write {lean}`html%{<tag {attr} />}`.
-  - Given multiple values {typed}`attrs : Array (String × String)`, or more generally any collection {typed}`attrs' : σ` with a {lean}`ForIn Id σ (String × String)` instance, we can write {lean}`html%{<tag {...attrs} {...attrs'} />}`.
+  - A single attribute {typed}`attr : String × String` is interpolated with {lean}`html%{<tag {attr} />}`.
+  - Multiple attributes, given as an array {typed}`attrs : Array (String × String)` or any collection {typed}`attrs' : σ` with a {lean}`ForIn Id σ (String × String)` instance, are interpolated with {lean}`html%{<tag {...attrs} {...attrs'} />}`.
 
 : Attribute values
 
-  Given {typed}`val : String`, we can write {lean}`html%{<tag attr-name={val} />}`.
+  An attribute value {typed}`val : String` is interpolated with {lean}`html%{<tag attr-name={val} />}`.
 :::
+::::
 
 [HTML character references](https://html.spec.whatwg.org/dev/syntax.html#character-references) in text and in double-quoted attribute values are decoded to the Unicode characters they represent.
 
