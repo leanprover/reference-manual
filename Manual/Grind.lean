@@ -204,17 +204,17 @@ This attempted proof leads to an infinite chain of instantiates of the hypothesi
 example (f : Nat → Nat) (h : ∀ n, f n = f (n + 1)) : f 0 = 1 := by
   grind
 ```
-{tactic}`grind` fails after too much {ref ""}[E-matching]:
+{tactic}`grind` fails after too much {ref "e-matching"}[E-matching]:
 ```leanOutput ematchLimit
 `grind` has failed after reaching the threshold `(ematch := 5)`, use `+verbose` to obtain diagnostic information
 ```
-To see which hypothesis reached the limit, add the `verbose` flag:
+To see which hypothesis reached the limit, add the {name Lean.Grind.Config.verbose}`verbose` flag:
 
 ```lean +error (name := ematchLimit2)
 example (f : Nat → Nat) (h : ∀ n, f n = f (n + 1)) : f 0 = 1 := by
   grind +verbose
 ```
-The reesulting message demonstrates that `h` is instantiated five times:
+The resulting message demonstrates that `h` is instantiated five times:
 ```leanOutput ematchLimit2 (expandTrace := grind) (expandTrace := limits) (expandTrace := ematch) (expandTrace := thm)
 `grind` failed
 case grind
