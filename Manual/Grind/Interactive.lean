@@ -220,9 +220,11 @@ Anchors appear in the output of the inspection tactics or in filtered states.
 The {grindTactic}`cases?` and {grindTactic}`show_cases` tactics report the anchors that {grindTactic}`cases` can act on.
 
 An anchor is a stable hash of the term that it refers to.
-It is computed from the term's structure while deliberately ignoring unstable implementation details such as internal names, implicit arguments, and instance arguments.
-This means that anchors are insensitive to many unrelated proof changes, but they may change if the structure of the referenced term changes.
-An anchor produced by {grindTactic}`cases?` can therefore be saved in a script file as long as the referenced candidate remains structurally the same.
+The hash function's input is computed from the term's structure while deliberately ignoring unstable implementation details such as internal names, implicit arguments, proofs, and {name}`Decidable` instances.
+Local variables from the goal's initial context are hashed by their name and the number of prior variables with that same name, so that shadowing doesn't result in collisions.
+Variables introduced by {tactic}`grind`'s case splitting are hashed according to the anchor of the term that was split, the specific branch that the variable is introduced in, and the variable's position in that branch's fields.
+This means that anchors are insensitive to many unrelated proof changes, but they may change if the structure of the referenced term changes or one of the variables that occurs in it is renamed.
+An anchor produced by {grindTactic}`cases?` can therefore be saved in a script file as long as the referenced candidate remains unchanged.
 
 ```lean (name := anchorCanary) -show
 -- Regression test: the anchor of `p ∨ q` is a stable hash; this pins its value so that any change
@@ -248,27 +250,24 @@ Because they are assigned in order, ordinals are less stable than anchors; re-or
 
 :::example "Ordinal Disambiguators"
 Because anchors ignore implicit arguments, two case split candidates that differ only in an implicit argument are assigned the same anchor.
-```lean
-opaque op : Nat → Nat
-
-opaque val {α : Type} : Nat
-```
-The two existential statements below differ only in the implicit type argument of {name}`val`, so {grindTactic}`cases?` displays two possibilities that share an anchor, each with an ordinal disambiguator:
+The two hypotheses below differ only in the type at which `lookup` is used.
+This type is an implicit argument, so {grindTactic}`cases?` displays two possibilities that share an anchor, each with an ordinal disambiguator:
 ```lean +error (name := ordinals)
-example :
-    (∃ z, op z = @val Nat) →
-    (∃ z, op z = @val Int) →
-    (∀ z, op z ≠ @val Int) → False := by
-  intro h₁ h₂ h₃
+example (lookup : {α : Type} → String → Option α)
+    (h₁ : (lookup "host" : Option String) = none ∨
+      (lookup "port" : Option String) = none)
+    (h₂ : (lookup "host" : Option Nat) = none ∨
+      (lookup "port" : Option Nat) = none) :
+    False := by
   grind =>
     cases?
 ```
 ```leanOutput ordinals
 Try these:
-  [apply] cases #c603 for
-    ∃ z, op z = val
-  [apply] cases #c603/2 for
-    ∃ z, op z = val
+  [apply] cases #3b86 for
+    lookup "host" = none ∨ lookup "port" = none
+  [apply] cases #3b86/2 for
+    lookup "host" = none ∨ lookup "port" = none
 ```
 :::
 
