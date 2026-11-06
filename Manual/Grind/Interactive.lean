@@ -91,12 +91,12 @@ theorem map_both {x : α} {f : α → β} :
 ```
 ```leanOutput mapBoth
 Try these:
-  [apply] grind only [= get_def, = both_fst, = map_fst, = both_snd, = map_snd, #1362, #a119]
+  [apply] grind only [= get_def, = both_fst, = map_fst, = both_snd, = map_snd, #3f5e, #a186]
   [apply] grind only [= get_def, = both_fst, = map_fst, = both_snd, = map_snd]
   [apply] grind =>
-    cases #1362
+    cases #3f5e
     instantiate only [= get_def]
-    cases #a119
+    cases #a186
     · instantiate only [= both_fst, = map_fst]
       instantiate only [= both_fst]
     · instantiate only [= both_snd, = map_snd]
@@ -138,9 +138,9 @@ set_option diagnostics true in
 set_option diagnostics.threshold 1 in
 example {x : α} {f : α → β} : (both x).map f = both (f x) := by
   grind =>
-    cases #1362
+    cases #3f5e
     instantiate only [= get_def]
-    cases #a119
+    cases #a186
     · instantiate only [= both_fst, = map_fst]
       instantiate only [= both_fst]
     · instantiate only [= both_snd, = map_snd]
@@ -220,9 +220,11 @@ Anchors appear in the output of the inspection tactics or in filtered states.
 The {grindTactic}`cases?` and {grindTactic}`show_cases` tactics report the anchors that {grindTactic}`cases` can act on.
 
 An anchor is a stable hash of the term that it refers to.
-It is computed from the term's structure while deliberately ignoring unstable implementation details such as internal names and instance arguments.
-This means that anchors are insensitive to many unrelated proof changes, but they may change if the structure of the referenced term changes.
-An anchor produced by {grindTactic}`cases?` can therefore be saved in a script file as long as the referenced candidate remains structurally the same.
+The hash function's input is computed from the term's structure while deliberately ignoring unstable implementation details such as internal names, implicit arguments, proofs, and {name}`Decidable` instances.
+Local variables from the goal's initial context are hashed by their name and the number of prior variables with that same name, so that shadowing doesn't result in collisions.
+Variables introduced by {tactic}`grind`'s case splitting are hashed according to the anchor of the term that was split, the specific branch that the variable is introduced in, and the variable's position in that branch's fields.
+This means that anchors are insensitive to many unrelated proof changes, but they may change if the structure of the referenced term changes or one of the variables that occurs in it is renamed.
+An anchor produced by {grindTactic}`cases?` can therefore be saved in a script file as long as the referenced candidate remains unchanged.
 
 ```lean (name := anchorCanary) -show
 -- Regression test: the anchor of `p ∨ q` is a stable hash; this pins its value so that any change
@@ -236,7 +238,7 @@ example (p q : Prop) (h : p ∨ q) : q ∨ p := by
 ```
 ```leanOutput anchorCanary -show
 [splits] Case split candidates
-  [split] #4283 := p ∨ q
+  [split] #3a71 := p ∨ q
 ```
 
 In some cases, multiple terms may be assigned the same anchor.
@@ -247,27 +249,25 @@ Number `1` is assigned to the first term with a given anchor; thus, `#7a83/1` is
 Because they are assigned in order, ordinals are less stable than anchors; re-ordering hypotheses can change them.
 
 :::example "Ordinal Disambiguators"
-This theorem statement says that if there exist two values that are mapped to `0` or `1` by a function, and the sum of those two values of the function is `2`, then there exists a point that the function maps to `1`.
-The anchor for a variable is derived from its name.
-Because both witnesses are named `c`, the two values are assigned the same anchor, namely `#7fdc`.
-After exposing the witnesses using {tactic}`obtain`, {grindTactic}`cases?` displays two possibilities, each with an ordinal disambiguator:
+Because anchors ignore implicit arguments, two case split candidates that differ only in an implicit argument are assigned the same anchor.
+The two hypotheses below differ only in the type at which `lookup` is used.
+This type is an implicit argument, so {grindTactic}`cases?` displays two possibilities that share an anchor, each with an ordinal disambiguator:
 ```lean +error (name := ordinals)
-example (f : Nat → Nat)
-    (h : ∃ a b,
-      (f a = 0 ∨ f a = 1) ∧
-      (f b = 0 ∨ f b = 1) ∧
-      f a + f b = 2) :
-    ∃ a, f a = 1 := by
-  obtain ⟨c, c, ha, hb, hab⟩ := h
+example (lookup : {α : Type} → String → Option α)
+    (h₁ : (lookup "host" : Option String) = none ∨
+      (lookup "port" : Option String) = none)
+    (h₂ : (lookup "host" : Option Nat) = none ∨
+      (lookup "port" : Option Nat) = none) :
+    False := by
   grind =>
     cases?
 ```
 ```leanOutput ordinals
 Try these:
-  [apply] cases #7fdc for
-    f c = 0 ∨ f c = 1
-  [apply] cases #7fdc/2 for
-    f c✝ = 0 ∨ f c✝ = 1
+  [apply] cases #3b86 for
+    lookup "host" = none ∨ lookup "port" = none
+  [apply] cases #3b86/2 for
+    lookup "host" = none ∨ lookup "port" = none
 ```
 :::
 
@@ -531,11 +531,11 @@ example (f : Nat → Nat) (h : ∀ n, f n ≤ n * n) :
     f 3 ≤ 9 := by
   grind =>
     show_local_thms
-    instantiate [#7468]
+    instantiate [#110a]
 ```
 ```leanOutput instAnchor
 [thms] Local theorems
-  [thm] #7468 := ∀ (n : Nat), f n ≤ n * n
+  [thm] #110a := ∀ (n : Nat), f n ≤ n * n
 ```
 
 ```lean -show

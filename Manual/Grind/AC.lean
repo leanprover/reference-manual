@@ -155,19 +155,19 @@ example : union (union a b) a = union a (union b none) := by grind
 
 ```lean -show
 -- check solver
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : union a (union b c) = union (union c a) b := by grind -ac
 
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : union (union a b) a = union a b := by grind -ac
 
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : union a none = a := by grind -ac
 
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example :
     union (union a b) (union none (union b c))

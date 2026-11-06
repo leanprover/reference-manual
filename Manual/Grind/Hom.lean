@@ -530,20 +530,20 @@ example (h : a.toList = []) : a = .nil := by grind
 
 ```lean -show
 -- The examples fail without hom
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : (a ++ b) ++ c = a ++ (b ++ c) := by grind -hom
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : a ++ .nil = a := by grind -hom
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : .nil ++ a = a := by grind -hom
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example (h₁ : a.toList = [1,2]) (h₂ : b.toList = [3]) :
     (a ++ b).toList = [1,2,3] := by grind -hom
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example (h : a.toList = []) : a = .nil := by grind -hom
 ```

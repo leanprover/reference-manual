@@ -882,7 +882,7 @@ theorem addOp_ok_spec {x y} (h : x.toNat + y.toNat < UInt32.size) :
     addOp x y
     ⦃fun r => r = x + y ∧ (x + y).toNat = x.toNat + y.toNat⦄ := by
   vcgen [addOp]
-  all_goals simp_all; try grind
+  all_goals grind
 ```
 :::
 

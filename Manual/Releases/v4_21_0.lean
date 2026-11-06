@@ -451,7 +451,7 @@ _Other Highlights_
   irrelevant branches after performing a case-split that is not relevant.
   It is not just about performance, but also the size of the final proof
   term. The new test demonstrates this feature in practice.
-  ```lean
+  ```
   -- In the following test, the first 8 case-splits are irrelevant,
   -- and non-choronological backtracking is used to avoid searching
   -- (2^8 - 1) irrelevant branches

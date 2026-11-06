@@ -988,7 +988,7 @@ Parses a sequence of JSON values, as printed by
 def parseEntries (s : String) : Except String (Array Json) :=
   let p : Std.Internal.Parsec.String.Parser (Array Json) := do
     Std.Internal.Parsec.String.ws
-    let entries ← Std.Internal.Parsec.many Json.Parser.anyCore
+    let entries ← Std.Internal.Parsec.many (Json.Parser.anyCore Json.Parser.maxDepth)
     Std.Internal.Parsec.eof
     return entries
   p.run s

@@ -53,7 +53,7 @@ The dependency on {namespace}`Lean.Order` is a temporary measure: this namespace
 vcgen $cfg:optConfig $[[$x,*]]?
   $[until $_]?
   $[invariants $inv*]?
-  $[simplifying_assumptions $[$_]? $[[$_,*]]?]?
+  $[simp [$_,*]]?
   $[with $_]?
 ```
 
@@ -62,8 +62,31 @@ Generates {tech}[verification conditions] for the current goal.
 The {keywordOf Lean.Parser.Tactic.vcgen}`until` clause stops verification condition generation at the first goal that matches the provided pattern.
 The {keywordOf Lean.Parser.Tactic.vcgen}`invariants` clause allows {tech}[loop invariants] to be specified.
 These invariants are used during verification condition generation and can inform the simplification and automation passes.
-If the {keywordOf Lean.Parser.Tactic.vcgen}`simplifying_assumptions` clause is present, then hypotheses introduced during verfication condition generation are simplified in the same manner as the goals.
+By default, all the hypotheses that {tactic}`vcgen` introduces, the program's intermediate states, and the resulting verification conditions are simplified according to the {attr}`vcgen_simp` set.
+The {keywordOf Lean.Parser.Tactic.vcgen}`simp` clause adds further theorems.
+Simplification can be switched off by setting the {name Lean.Elab.Tactic.Do.VCGen.Config.simp}`simp` flag to {lean}`false`.
 Because {tactic}`vcgen` shares much of its implementation with {tactic}`grind`, the {keywordOf Lean.Parser.Tactic.vcgen}`with` clause allows either an {ref "grind-interactive"}`interactive `grind` tactic` or an ordinary tactic to be applied in all generated verification conditions.
+
+```lean -show
+-- Ground terms in verification conditions are evaluated by default
+-- and `-simp` switches the simplification off.
+def groundTest (s : String) : Id Nat :=
+  pure (if s = "x" then 1 else 0)
+
+theorem groundTest_spec :
+    ⦃True⦄ groundTest "y" ⦃fun r => r = 0⦄ := by
+  vcgen [groundTest]
+
+/--
+error: unsolved goals
+case vc1
+⊢ (if "y" = "x" then 1 else 0) = 0
+-/
+#guard_msgs in
+theorem groundTest_spec' :
+    ⦃True⦄ groundTest "y" ⦃fun r => r = 0⦄ := by
+  vcgen -simp [groundTest]
+```
 :::
 
 # Overview
@@ -404,8 +427,14 @@ theorem rev_correct {xs : List α} :
   vcgen [rev]
 ```
 ```leanOutput noInst
-No spec applicable to program (forIn xs [] fun x __s => pure (ForInStep.yield (x :: __s))) >>=
-  pure in monad Identity. Candidates were [SpecProof.global Std.WP.Spec.bind].
+No spec applicable to program do
+  let __s ←
+    forIn xs out fun x __s =>
+        have out := __s;
+        have out := x :: out;
+        pure (ForInStep.yield out)
+  have out : List α := __s
+  pure out in monad Identity. Candidates were [SpecProof.global Std.WP.Spec.bind].
 ```
 When no specification is applicable to {name}`bind`, the problem is usually a missing {name}`WPMonad` instance.
 The issue can be resolved by adding a suitable instance:
@@ -628,7 +657,8 @@ Generation proceeds as follows:
 VC generation stops early after {name Lean.Elab.Tactic.Do.VCGen.Config.stepLimit}`stepLimit` program steps.
 An {keywordOf Lean.Parser.Tactic.vcgen}`until` clause stops VC generation at the first program that matches the given pattern.
 A {keywordOf Lean.Parser.Tactic.vcgen}`with` clause runs the given {tactic}`grind`-mode step on every remaining verification condition.
-A clause {keywordOf Lean.Parser.Tactic.vcgen}`simplifying_assumptions` `[h₁, h₂]` rewrites the hypotheses that binders and branches introduce, and the state arguments of each weakest precondition, with `h₁` and `h₂` as additional rewrite rules.
+During generation, cerification conditions are simplified with the theorems in the {attr}`vcgen_simp` simp set and by evaluating ground arithmetic expressions and checking decidable equalities.
+The clause {keywordOf Lean.Parser.Tactic.vcgen}`simp` `[h₁, h₂]` adds `h₁` and `h₂` as further rewrite rules, and setting {name Lean.Elab.Tactic.Do.VCGen.Config.simp}`simp` to {lean}`false` disables the rewriting altogether.
 This keeps the intermediate goals in a normal form that the user chooses: for example, a sequence of state updates can fold into one constructor application, so that the goals do not grow with the number of updates.
 Simplified hypotheses also help {tactic}`grind` to detect contradictory goals.
 :::
