@@ -18,8 +18,9 @@ tag := "widgets"
 %%%
 
 The widget system enables Lean code to define and render user interface components, loosely referred to as _widgets_.
-In graphical development environments such as VS Code with the [official Lean extension](https://github.com/leanprover/vscode-lean4/), widgets are displayed in the [InfoView](https://github.com/leanprover/vscode-lean4/blob/master/vscode-lean4/manual/manual.md#infoview) (the editor panel that shows tactic states, messages, and other information relevant to the current cursor position).
-Besides communicating additional information or visuals, widgets may manipulate Lean values and run Lean functions, as well as edit source files (for example in response to UI events).
+In graphical development environments such as VS Code with the [official Lean extension](https://github.com/leanprover/vscode-lean4/), the {deftech (key := "InfoView")}[[InfoView](https://github.com/leanprover/vscode-lean4/blob/master/vscode-lean4/manual/manual.md#infoview)] is the editor panel that shows tactic states, messages, and other information relevant to the current cursor position.
+Widgets are displayed in the InfoView.
+In addition to communicating additional information or visuals, widgets may manipulate Lean values and run Lean functions, as well as edit source files (for example in response to UI events).
 To start using widgets, import {module}`Lean.Widget`.
 :::TODO
 - When verso#311 lands, note it as another usecase.
@@ -27,17 +28,18 @@ To start using widgets, import {module}`Lean.Widget`.
 
 # Client-Side JavaScript
 
-In general, widgets combine client-side JavaScript code that executes in the InfoView with server-side Lean code implementing {ref "widgets-remote-procedure-calls"}[RPC method handlers].
-However, many widgets don't use RPC methods, so only have a client part.
+In general, widgets combine client-side JavaScript code that executes in the InfoView with server-side Lean code that implements {ref "widgets-remote-procedure-calls"}[RPC method handlers].
+However, many widgets don't use RPC methods, so they only have a client part.
 
 Client-side code is organized into {deftech (key := "widget module")}_widget modules_.
 Any [JavaScript module](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) compatible with the {ref "widgets-javascript-environment"}[InfoView JavaScript environment] can be used as a widget module.
-There are no generic requirements on its exports; requirements are imposed when some export is used in a specific way, for example as an {tech}[InfoView panel widget].
+A widget module may simply export utility functions for use in other modules, so there are no generic requirements on its exports.
+Requirements are imposed when an export is used in a specific way, for example as an {tech}[InfoView panel widget].
 
 To register a widget module in Lean, tag its definition with the {attr}`widget_module` attribute.
-The definition must have a type convertible to {name}`Widget.Module`, i.e., a type with a {name}`Widget.ToModule` instance.
+It must be possible to convert the definition to a {name}`Widget.Module`, i.e., the definition's type must have a {name}`Widget.ToModule` instance.
 
-:::example "Registering a widget module"
+:::example "Registering a Widget Module"
 ```imports -show
 import Lean.Widget.UserWidget
 ```
@@ -70,7 +72,7 @@ The JavaScript environment in which widget modules execute is a standard browser
   Each can be imported by using its name as the module specifier (under the hood, an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script/type/importmap) is configured).
   For example, `import * as React from 'react'` would work.
   - [`'react'`](https://www.npmjs.com/package/react), [`'react-dom'`](https://www.npmjs.com/package/react-dom), and `'react/jsx-runtime'` provide the [React](https://react.dev/) runtime shared with the InfoView.
-  - [`'@leanprover/infoview'`](https://www.npmjs.com/package/@leanprover/infoview) allows widgets to reuse UI components used by the InfoView, as well as to communicate with other parts of the InfoView, with the editor, and with the Lean language server.
+  - [`'@leanprover/infoview'`](https://www.npmjs.com/package/@leanprover/infoview) allows widgets to reuse UI components used by the {tech}[InfoView], as well as to communicate with other parts of the InfoView, with the editor, and with the Lean language server.
     Documentation can be found [here](https://leanprover.github.io/vscode-lean4/infoview).
 
 : Importing by Hash
@@ -97,10 +99,10 @@ The following bundler-specific instructions may be useful.
 # Displaying Widgets
 
 Widgets are [React components](https://react.dev/learn/your-first-component) exported from widget modules.
-The InfoView is a React application, and is capable of embedding these components.
+The InfoView is a React application and is capable of embedding these components.
 A widget must be the [`default` export](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export#using_the_default_export) of its module.
 
-When registering a widget for display in Lean, we provide [props](https://react.dev/learn/passing-props-to-a-component) that it will receive when it is rendered by the InfoView.
+When registering a widget for display in Lean, you provide the [props](https://react.dev/learn/passing-props-to-a-component) that it will receive when it is rendered by the InfoView.
 In Lean, a {name}`Widget.WidgetInstance` bundles such an assignment of props with a reference to the widget module that exports the component.
 The assignment is stored as a {name}`Json` object—later decoded into a JavaScript object—and more generally a {lean}`StateM Server.RpcObjectStore Json` computation, in order to support {tech (key := "RPC reference")}[RPC references].
 
@@ -108,13 +110,13 @@ The assignment is stored as a {name}`Json` object—later decoded into a JavaScr
 
 Lean can display widgets in two ways: within messages in the {tech}[message log], or as {tech (key := "InfoView panel widget")}[InfoView panels] associated with a source span.
 
-: Widgets in Messages
+: Widgets in messages
 
   A widget component is displayed inline in a Lean message.
 
   {docstring MessageData.ofWidget}
 
-: InfoView Panels
+: InfoView panels
 
   By default, the InfoView conveys information about a given position in a Lean source file by means of three panels: _Tactic state_, _Expected type_, and _Messages_.
   This listing can be extended by user-defined panels (appearing below _Expected type_), for instance to render tactic states in custom proof modes.
@@ -141,7 +143,7 @@ Lean can display widgets in two ways: within messages in the {tech}[message log]
 
   Finally, the {keywordOf Lean.Widget.widgetCmd}`#widget` command can be used to quickly render a panel widget.
 
-  :::example "Using the #widget command"
+  :::example "Using the `#widget` Command"
   The panel widget is associated with the source line the command appears on.
   Internally, this command invokes {name}`Widget.savePanelWidgetInfo`.
 
@@ -176,9 +178,9 @@ tag := "widgets-remote-procedure-calls"
 
 The InfoView—together with any embedded widgets—is a web application running on the same computer as the IDE.
 The Lean language server, which {tech (key := "Lean elaborator")}[elaborates] source files and interprets Lean code, is a separate process.
-The InfoView and the language server may reside on two different machines, e.g. when using Lean in a server-backed web IDE or over SSH.
+Indeed, the InfoView and the language server may reside on two different machines, e.g. when using Lean in a server-backed web IDE or over SSH.
 
-It can be useful for widgets to maintain part of their state or input data in the server, as opposed to serializing and transferring it to the client.
+Widgets can maintain part of their state or input data in the server, as opposed to serializing and transferring it all to the client.
 Transfer may be impractical due to a slow network, and objects may not be easily serializable (as is the case for closures, {name}`IO.Promise`s, or {name}`Lean.Environment`s).
 The Remote Procedure Call (RPC) mechanism allows client-side widget code to manipulate {tech (key := "RPC reference")}[RPC references] to server-side data, and to execute {tech (key := "RPC method")}[RPC methods] in the server.
 
@@ -191,14 +193,16 @@ An instance can be derived automatically, as documented below.
 {docstring +allowMissing Server.RpcEncodable}
 
 :::sectionNote
-RPC references are not JSON-serializable without additional state in the encoder, so require {name}`Server.RpcEncodable`.
+RPC references are not JSON-serializable without additional state in the encoder, so encoding them requires a {name}`Server.RpcEncodable` instance.
 But for data structures that do have JSON representations, prefer simply deriving {name}`FromJson` and {name}`ToJson`.
 :::
 
-The main purpose of {name}`Server.RpcEncodable` is to support—in addition to JSON—structures containing {deftech (key := "RPC reference")}[RPC references].
+The main purpose of {name}`Server.RpcEncodable` is to support exchanging {deftech (key := "RPC reference")}[RPC references] between the language server and widgets.
+Data containing references cannot be simply converted to JSON.
+
 Every reference is marked with the {name}`Server.WithRpcRef` wrapper.
 A value wrapped with {name}`Server.WithRpcRef` is not serialized or transferred to the client.
-Instead, the client receives an opaque identifier that can later be used to retrieve the value server-side, in an {tech}[RPC method] call.
+Instead, the client receives an opaque identifier that can later be used to retrieve the value in server-side code during an {tech}[RPC method] call.
 
 {docstring +allowMissing Server.WithRpcRef}
 
@@ -206,9 +210,9 @@ Instead, the client receives an opaque identifier that can later be used to retr
 ```lean -show
 variable (α : Type)
 ```
-The type {lean}`α` must have a {name}`TypeName` instance for {lean}`Server.RpcEncodable (Server.WithRpcRef α)` to be inhabited.
+For a {lean}`Server.RpcEncodable (Server.WithRpcRef α)` instance to synthesize, the type {lean}`α` must have a {name}`TypeName` instance.
 
-:::example "TypeName and imported constants"
+:::example "TypeName and Imported Constants"
 We discourage deriving {lean}`TypeName α` outside of the module where {lean}`α` is defined.
 Instead, define a single-field structure (a “newtype”) wrapping {lean}`α`, and derive {lean}`TypeName` for that.
 ```lean
@@ -239,7 +243,7 @@ Make sure not to accidentally share state that you did not intend to across copi
 variable (α β : Type)
 ```
 To register an {deftech}[RPC method], use the {attr}`server_rpc_method` attribute.
-The method must be a function of type {lean}`α → Server.RequestM (Server.RequestTask β)`, where `α` and `β` are {name}`Server.RpcEncodable`.
+The method must be a function of type {lean}`α → Server.RequestM (Server.RequestTask β)`, where there are {name}`Server.RpcEncodable` instances for `α` and `β`.
 
 The {name}`Server.RequestM` monad supports IO actions, and provides access to parts of the language server state.
 
@@ -248,7 +252,7 @@ Ideally, a method implementation returns immediately, doing most of its work in 
 The {name}`Server.RequestM.asTask` convenience function does exactly this.
 :::
 
-:::example "Registering an RPC method"
+:::example "Registering an RPC Method"
 ```imports -show
 import Lean.Server.Rpc
 ```
@@ -258,10 +262,12 @@ open Lean
 ```lean
 structure Cell where
   str : String
-  deriving TypeName
+deriving TypeName
 
-/-- Extracts a string from a server-side cell
-and sends it to the client. -/
+/--
+Extracts a string from a server-side cell
+and sends it to the client.
+-/
 @[server_rpc_method]
 def unwrapStr (cell : Server.WithRpcRef Cell) :
     Server.RequestM (Server.RequestTask String) :=
@@ -278,14 +284,13 @@ Any LSP client may create RPC sessions and invoke RPC methods.
 
 Any widget React component may invoke RPC methods.
 To do so, the component should first obtain an _RPC session_ handle via the [`useRpcSession`](https://leanprover.github.io/vscode-lean4/infoview/functions/index.useRpcSession.html) hook.
-The handle may then be used to call RPC methods; see [`RpcSessionAtPos.call`](https://leanprover.github.io/vscode-lean4/infoview/interfaces/index.RpcSessionAtPos.html#call).
+The handle may then be used to call RPC methods; for details, see [`RpcSessionAtPos.call`](https://leanprover.github.io/vscode-lean4/infoview/interfaces/index.RpcSessionAtPos.html#call) in the InfoView API documentation.
 Invoking RPC is an asynchronous operation that generally occurs in a [React effect](https://react.dev/reference/react/useEffect).
 RPC methods are identified in JavaScript by their fully qualified Lean names.
 
-:::example "Calling an RPC method"
-As remarked above, widgets can receive RPC references as props.
-In this example, we pass such a reference prop.
-We then invoke an RPC method, using the reference as an argument.
+:::example "Calling an RPC Method"
+Widgets can receive RPC references as props.
+This example demonstrates how to pass a reference as a prop and how to invoke an RPC method using the reference as an argument.
 
 ```imports -show
 import Lean.Widget
@@ -296,7 +301,7 @@ open Lean
 ```lean
 structure Cell where
   str : String
-  deriving TypeName
+deriving TypeName
 
 @[server_rpc_method]
 def unwrapStr (cell : Server.WithRpcRef Cell) :
@@ -305,7 +310,7 @@ def unwrapStr (cell : Server.WithRpcRef Cell) :
 
 structure Props where
   cell : Server.WithRpcRef Cell
-  deriving Server.RpcEncodable
+deriving Server.RpcEncodable
 
 @[widget_module]
 def rpcCallWidget : Widget.Module where
