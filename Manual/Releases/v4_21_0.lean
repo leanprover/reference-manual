@@ -451,7 +451,7 @@ _Other Highlights_
   irrelevant branches after performing a case-split that is not relevant.
   It is not just about performance, but also the size of the final proof
   term. The new test demonstrates this feature in practice.
-  ```lean
+  ```
   -- In the following test, the first 8 case-splits are irrelevant,
   -- and non-choronological backtracking is used to avoid searching
   -- (2^8 - 1) irrelevant branches
@@ -483,7 +483,7 @@ _Other Highlights_
         p7 ∨ q7 →
         p8 ∨ q8 →
         False := by
-    grind (branches := 10)
+    grind (splits := 10)
   ```
 
 * [#8443](https://github.com/leanprover/lean4/pull/8443) adds the lemmas about ordered rings and ordered fields which

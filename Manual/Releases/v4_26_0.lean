@@ -614,9 +614,9 @@ This release includes several performance optimizations in match compilation of 
 * [#11049](https://github.com/leanprover/lean4/pull/11049) implements equality propagation for `Nat` in `grind order`.
   `grind order` supports offset equalities for rings, but it has an
   adapter for `Nat`. Example:
-  ```lean
+  ```
   example (a b : Nat) (f : Nat → Int) : a ≤ b + 1 → b + 1 ≤ a → f (1 + a) = f (1 + b + 1) := by
-    grind -offset -mbtc -lia -linarith (branches := 0)
+    grind -offset -mbtc -lia -linarith (splits := 0)
   ```
 
 * [#11050](https://github.com/leanprover/lean4/pull/11050) fixes equality propagation for `Nat` in `grind order`.

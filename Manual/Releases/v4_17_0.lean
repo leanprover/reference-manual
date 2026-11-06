@@ -498,7 +498,7 @@ config.
 
 * [#6733](https://github.com/leanprover/lean4/pull/6733) adds better support for overlapping `match` patterns in `grind`.
 `grind` can now solve examples such as
-  ```lean
+  ```
   inductive S where
     | mk1 (n : Nat)
     | mk2 (n : Nat) (s : S)
@@ -514,7 +514,7 @@ config.
 
   example : b = .mk2 y1 y2 → y1 = 2 → a = .mk4 y3 y4 → f a b = 5 := by
     unfold f
-    grind (branches := 0)
+    grind (splits := 0)
   ```
 
 * [#6735](https://github.com/leanprover/lean4/pull/6735) adds support for case splitting on `match`-expressions with
