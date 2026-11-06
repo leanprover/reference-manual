@@ -95,7 +95,7 @@ def parserAlias.descr : BlockDescr where
     pure none
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let Json.arr #[ name, declName, «show», stackSz?, autoGroupArgs, docs?, argCount] := info
         | do reportError s!"Failed to deserialize docstring data while making HTML for parser alias, expected array but got {info}"; pure .empty
 
@@ -121,28 +121,28 @@ def parserAlias.descr : BlockDescr where
 
       let arity : Html :=
         match stackSz? with
-        | some n => {{s!"Arity: {n}"}}
-        | none => {{"Arity is sum of arguments' arities"}}
+        | some n => s!"Arity: {n}"
+        | none => "Arity is sum of arguments' arities"
       let grp :=
         if autoGroupArgs then
-          some {{"Automatically wraps arguments in a " <code>"null"</code> " node unless there's exactly one"}}
+          some html%{Automatically wraps arguments in a <code>null</code> node unless there's exactly one}
         else none
       let metadata :=
         match grp with
-        | none => {{<p>{{arity}}</p>}}
-        | some g => {{<ul><li>{{arity}}</li><li>{{g}}</li></ul>}}
+        | none => html%{<p>{arity}</p>}
+        | some g => html%{<ul><li>{arity}</li><li>{g}</li></ul>}
 
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">"parser alias"</span>
-          <pre class="signature hl lean block">{{← (Highlighted.seq #[x, args]).toHtml (g := Verso.Genre.Manual)}}</pre>
+      return html%{
+        <div class="namedocs" {...idAttr}>
+          {permalink id xref false}
+          <span class="label">parser alias</span>
+          <pre class="signature hl lean block">{← (Highlighted.seq #[x, args]).toHtml (g := Verso.Genre.Manual)}</pre>
           <div class="text">
-            {{metadata}}
-            {{← contents.mapM goB}}
+            {metadata}
+            {← contents.mapM goB}
           </div>
         </div>
-      }}
+      }
   toTeX := none
   extraCss := [highlightingStyle, docstringStyle]
   extraJs := [highlightingJs]

@@ -42,39 +42,39 @@ private def configPaths : Std.HashMap (List String) Name := Std.HashMap.ofList [
   (["lean_exe"], ``Lake.LeanExeConfig),
 ]
 
-open Verso Output Html in
+open Verso Output in
 partial def Highlighted.toHtml (tableLink : Name → Option String) (keyLink : Name → Name → Option String) (urlLinks : Bool := true) : Highlighted -> Html
   | .token t s =>
     match t with
-    | .bool _ => {{<span class="bool">{{s}}</span>}}
-    | .string _ => {{<span class="string">{{s}}</span>}}
-    | .num _ => {{<span class="num">{{s}}</span>}}
+    | .bool _ => html%{<span class="bool">{s}</span>}
+    | .string _ => html%{<span class="string">{s}</span>}
+    | .num _ => html%{<span class="num">{s}</span>}
   | .tableHeader hl =>
-    {{<span class="table-header">{{hl.toHtml tableLink keyLink urlLinks}}</span>}}
+    html%{<span class="table-header">{hl.toHtml tableLink keyLink urlLinks}</span>}
   | .tableName n hl =>
     let tableName := n.map (·.splitOn ".") >>= (configPaths[·]?)
     if let some dest := tableName >>= tableLink then
-      {{<a href={{dest}}>{{hl.toHtml tableLink keyLink urlLinks}}</a>}}
+      html%{<a href={dest}>{hl.toHtml tableLink keyLink urlLinks}</a>}
     else
       hl.toHtml tableLink keyLink urlLinks
-  | .tableDelim hl => {{<span class="table-delimiter">{{hl.toHtml tableLink keyLink urlLinks}}</span>}}
+  | .tableDelim hl => html%{<span class="table-delimiter">{hl.toHtml tableLink keyLink urlLinks}</span>}
   | .concat hls => .seq (hls.map (toHtml tableLink keyLink urlLinks))
   | .link url hl =>
     if urlLinks then
-      {{<a href={{url}}>{{hl.toHtml tableLink keyLink urlLinks}}</a>}}
+      html%{<a href={url}>{hl.toHtml tableLink keyLink urlLinks}</a>}
     else
       hl.toHtml tableLink keyLink urlLinks
   | .text s => s
   | .ws s =>
     let comment := s.find (· == '#')
     let commentStr := s.extract comment s.endPos
-    let commentHtml := if commentStr.isEmpty then .empty else {{<span class="comment">{{commentStr}}</span>}}
-    {{ {{s.extract s.startPos comment}} {{commentHtml}} }}
-  | .key none k => {{
+    let commentHtml := if commentStr.isEmpty then .empty else html%{<span class="comment">{commentStr}</span>}
+    html%{{s.extract s.startPos comment}{commentHtml}}
+  | .key none k => html%{
     <span class="key">
-      {{k.toHtml tableLink keyLink urlLinks}}
+      {k.toHtml tableLink keyLink urlLinks}
     </span>
-  }}
+  }
   | .key (some p) k =>
     let path := p.splitOn "."
     let dest :=
@@ -84,12 +84,12 @@ partial def Highlighted.toHtml (tableLink : Name → Option String) (keyLink : N
         else none
       else none
 
-    {{ <span class="key" data-toml-key={{p}}>
-        {{ if let some url := dest then {{
-          <a href={{url}}>{{k.toHtml tableLink keyLink urlLinks}}</a>
-        }} else k.toHtml tableLink keyLink urlLinks }}
+    html%{<span class="key" data-toml-key={p}>
+        {if let some url := dest then html%{
+          <a href={url}>{k.toHtml tableLink keyLink urlLinks}</a>
+        } else k.toHtml tableLink keyLink urlLinks}
       </span>
-    }}
+    }
 
 
 
@@ -104,13 +104,13 @@ def Inline.toml (highlighted : Toml.Highlighted) : Inline where
   data := toJson highlighted
 
 
-open Verso.Output Html in
+open Verso.Output in
 private def htmlLink (state : TraverseState) (id : InternalId) (html : Html) : Html :=
   if let some dest := state.externalTags[id]? then
-    {{<a href={{dest.link}}>{{html}}</a>}}
+    html%{<a href={dest.link}>{html}</a>}
   else html
 
-open Verso.Output Html in
+open Verso.Output in
 private def htmlDest (state : TraverseState) (id : InternalId) : Option String :=
   if let some dest := state.externalTags[id]? then
     some <| dest.link
@@ -214,17 +214,17 @@ def Block.toml.descr : BlockDescr where
 
   toHtml := some <| fun _goI _ _ info _ =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let .ok (hl, link) := FromJson.fromJson? (α := Toml.Highlighted × Bool) info
         | do reportError "Failed to deserialize highlighted TOML data"; pure .empty
 
       let xref := (← read).traverseState
 
-      return {{
+      return html%{
         <pre class="toml">
-          {{hl.toHtml (Toml.tableLink xref) (Toml.fieldLink xref) link}}
+          {hl.toHtml (Toml.tableLink xref) (Toml.fieldLink xref) link}
         </pre>
-      }}
+      }
 
 @[inline_extension Inline.toml]
 def Inline.toml.descr : InlineDescr where
@@ -236,14 +236,14 @@ def Inline.toml.descr : InlineDescr where
 
   toHtml := some <| fun _ _ info _ =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let .ok hl := FromJson.fromJson? (α := Toml.Highlighted) info
         | do reportError "Failed to deserialize highlighted TOML data"; pure .empty
 
       let xref := (← read).traverseState
 
-      return {{
+      return html%{
         <code class="toml">
-          {{hl.toHtml (Toml.tableLink xref) (Toml.fieldLink xref)}}
+          {hl.toHtml (Toml.tableLink xref) (Toml.fieldLink xref)}
         </code>
-      }}
+      }

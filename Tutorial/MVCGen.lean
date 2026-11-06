@@ -26,7 +26,6 @@ set_option linter.unusedVariables false
 set_option linter.typography.quotes true
 set_option linter.typography.dashes true
 
-set_option mvcgen.warning false
 set_option linter.deprecated.syntax false
 
 #doc (Tutorial) "Verifying Imperative Programs Using `mvcgen`" =>
@@ -51,7 +50,6 @@ import Std.Tactic.Do
 ```
 :::codeOnly
 ```lean
-set_option mvcgen.warning false
 set_option linter.deprecated.syntax false
 ```
 :::
