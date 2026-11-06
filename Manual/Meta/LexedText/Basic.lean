@@ -75,11 +75,11 @@ def highlight (hl : Highlighter) (str : String) : IO LexedText := do
 def token (kind : Name) (p : ParserFn) : ParserFn :=
   nodeFn kind <| ignoreFn p
 
-open Verso.Output Html
+open Verso.Output
 
 def toHtml (text : LexedText) : Html :=
   text.content.map fun
     | (none, txt) => (txt : Html)
-    | (some cls, txt) => {{ <span class={{cls}}>{{txt}}</span>}}
+    | (some cls, txt) => html%{<span class={cls}>{txt}</span>}
 
 end LexedText

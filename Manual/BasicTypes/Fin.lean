@@ -157,7 +157,7 @@ Heterogeneous operators such as {lean}`Fin.natAdd` do not have corresponding het
 
 ## Bitwise Operations
 
-Typically, bitwise operations on {name}`Fin` should be accessed using Lean's overloaded bitwise operators, particularly via the instances {inst}`ShiftLeft (Fin n)`, {inst}`ShiftRight (Fin n)`, {inst}`AndOp (Fin n)`, {inst}`OrOp (Fin n)`, {inst}`Xor (Fin n)`
+Typically, bitwise operations on {name}`Fin` should be accessed using Lean's overloaded bitwise operators, particularly via the instances {inst}`ShiftLeft (Fin n)`, {inst}`ShiftRight (Fin n)`, {inst}`AndOp (Fin n)`, {inst}`OrOp (Fin n)`, {inst}`XorOp (Fin n)`
 
 {docstring Fin.shiftLeft}
 

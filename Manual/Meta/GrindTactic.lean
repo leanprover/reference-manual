@@ -153,7 +153,7 @@ def grindTactic.descr : BlockDescr := withHighlighting {
     pure none
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let .ok (name, «show», docs?) := FromJson.fromJson? (α := Name × String × Option String) info
         | do reportError "Failed to deserialize grind tactic data"; pure .empty
       let x : Highlighted := .token ⟨.keyword (some name) none docs?, «show»⟩
@@ -161,19 +161,19 @@ def grindTactic.descr : BlockDescr := withHighlighting {
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
 
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">"grind tactic"</span>
-          <pre class="signature hl lean block">{{← x.toHtml (g := Verso.Genre.Manual)}}</pre>
+      return html%{
+        <div class="namedocs" {...idAttr}>
+          {permalink id xref false}
+          <span class="label">grind tactic</span>
+          <pre class="signature hl lean block">{← x.toHtml (g := Verso.Genre.Manual)}</pre>
           <div class="text">
-            {{← contents.mapM goB}}
+            {← contents.mapM goB}
           </div>
         </div>
-      }}
-  localContentItem := fun _id info _contents => open Verso.Output.Html in do
+      }
+  localContentItem := fun _id info _contents => do
     let (_name, «show», _docs?) ← FromJson.fromJson? (α := Name × String × Option String) info
-    pure #[(«show», {{<code class="tactic-name">{{«show»}}</code>}})]
+    pure #[(«show», html%{<code class="tactic-name">{«show»}</code>})]
 
   toTeX := some <| fun _goI goB _id _info contents => contents.mapM goB
   extraCss := [docstringStyle]

@@ -73,7 +73,6 @@ def figure.descr : BlockDescr where
         pure <| .seq #[← go b, .raw "\n"]
   toHtml :=
     open Verso.Doc.Html in
-    open Verso.Output.Html in
     some <| fun goI goB id _data blocks => do
       if h : blocks.size < 1 then
         reportError "Malformed figure"
@@ -83,12 +82,12 @@ def figure.descr : BlockDescr where
           | reportError "Malformed figure - caption not paragraph"; pure .empty
         let xref ← HtmlT.state
         let attrs := xref.htmlId id
-        pure {{
-          <figure {{attrs}}>
-            {{← blocks.extract 1 blocks.size |>.mapM goB}}
-            <figcaption>{{← caption.mapM goI}}</figcaption>
+        pure html%{
+          <figure {...attrs}>
+            {← blocks.extract 1 blocks.size |>.mapM goB}
+            <figcaption>{← caption.mapM goI}</figcaption>
           </figure>
-        }}
-  localContentItem _ info blocks := open Verso.Output.Html in do
+        }
+  localContentItem _ info blocks := do
     let (captionString, _, _) ← FromJson.fromJson? info (α := String × Option String × Option Tag)
-    pure #[(captionString, {{<span class="figure">{{captionString}}</span>}})]
+    pure #[(captionString, html%{<span class="figure">{captionString}</span>})]

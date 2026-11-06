@@ -354,7 +354,7 @@ def layoutConfig : LayoutConfig :=
     hasSpecialStyling := fun path => if isFro path then some "fro" else if path.isEmpty then "tutorials" else none,
     renderPostList := fun path html =>
       if isUseCases path then
-        {{ <div class="use-cases-grid"> {{ html }} </div> }}
+        html%{<div class="use-cases-grid">{html}</div>}
       else
         html
   }
@@ -364,12 +364,12 @@ def theme : Theme :=
     { siteName := "Lean Lang", rootTitle := "Lean enables correct, maintainable, and formally verified code", socialMeta, headConfig, variables := colorTheme }
     layoutConfig
     buildFroNavBarConfig
-    {{
+    html%{
       <script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script>
       <script>
-        "window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-        plausible.init()"
+        {"window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+        plausible.init()"}
       </script>
-    }}
+    }
     (beforeNavBar := .empty)
     (pure footer)

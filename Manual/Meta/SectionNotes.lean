@@ -80,9 +80,9 @@ def sectionNote.css := r#"
 
 "#
 
-open Verso.Output Html in
+open Verso.Output in
 private def sectionNoteHtml (content : Html) : Html :=
-  {{<div class="section-note"><div class="note">{{content}}</div></div>}}
+  html%{<div class="section-note"><div class="note">{content}</div></div>}
 
 
 block_extension Block.sectionNote where
@@ -91,7 +91,6 @@ block_extension Block.sectionNote where
 
   extraCss := [sectionNote.css]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ goB _ _ content  => do
       sectionNoteHtml <$> content.mapM goB
 
@@ -107,11 +106,10 @@ block_extension Block.sectionNoteTitle where
   traverse _ _ _ := return none
   toTeX := none
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goI _ _ _ content => do
       match content with
       | #[.para xs] =>
-        return {{<h1> {{← xs.mapM goI}} </h1>}}
+        return html%{<h1>{← xs.mapM goI}</h1>}
       | _ => reportError "Malformed section note title"; return .empty
 
 @[directive]

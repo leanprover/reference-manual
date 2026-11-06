@@ -107,7 +107,7 @@ window.addEventListener('DOMContentLoaded', () => {
   "#]
   toHtml := some fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
     let .ok titles := FromJson.fromJson? (α := Array String) info
       | reportError "Invalid titles JSON for example block"
         pure .empty
@@ -121,15 +121,15 @@ window.addEventListener('DOMContentLoaded', () => {
     let buttons ← titles.mapIdxM fun i (title : String) => do
       let (tabIndex, selected) := if i == 0 then ("0", "true") else ("-1", "false")
       let idxStr := toString i
-      return {{
+      return html%{
         <button type="button" role="tab"
-            aria-selected={{selected}}
-            tabindex={{tabIndex}}
-            id={{s!"{htmlId.toString}-button-{idxStr}"}}
-            aria-controls={{s!"{htmlId.toString}-panel-{idxStr}"}}>
-          {{title}}
+            aria-selected={selected}
+            tabindex={tabIndex}
+            id={s!"{htmlId.toString}-button-{idxStr}"}
+            aria-controls={s!"{htmlId.toString}-panel-{idxStr}"}>
+          {title}
         </button>
-      }}
+      }
     let panels ← contents.mapIdxM fun i b => do
       let className := "error-example-tabpanel" ++ if i == 0 then "" else " error-example-tabpanel-hidden"
       let idxStr := toString i
@@ -138,24 +138,24 @@ window.addEventListener('DOMContentLoaded', () => {
       -- z-index issues
       let panelContents ← withReader (fun ctx => { ctx with codeOptions := { ctx.codeOptions with inlineProofStates := false } } )
         (goB b)
-      return {{
+      return html%{
         <div role="tabpanel"
-            class={{className}}
-            id={{s!"{htmlId.toString}-panel-{idxStr}"}}
-            aria-labelledby={{s!"{htmlId.toString}-button-{i}"}}>
-          {{ panelContents }}
+            class={className}
+            id={s!"{htmlId.toString}-panel-{idxStr}"}
+            aria-labelledby={s!"{htmlId.toString}-button-{i}"}>
+          {panelContents}
         </div>
-      }}
-    pure {{
+      }
+    pure html%{
       <div class="error-example-container">
         <div class="error-example-tab-list" role="tablist" aria-label="Code Samples">
-          {{buttons}}
+          {buttons}
         </div>
         <div class="error-example-tab-view">
-          {{panels}}
+          {panels}
         </div>
       </div>
-    }}
+    }
 
 
 variable [Monad m] [MonadError m]

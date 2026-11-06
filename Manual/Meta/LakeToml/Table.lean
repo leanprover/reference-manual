@@ -57,7 +57,7 @@ where
     | .other x y z => mkCApp ``FieldType.other #[quote x, quote y, quote z]
 
 
-open Output Html in
+open Output in
 def FieldType.toHtml (plural : Bool := false) : FieldType → Html
   | .string => if plural then "strings" else "String"
   | .stringOf x => s!"{x} (as string{if plural then "s" else ""}"
@@ -71,9 +71,9 @@ def FieldType.toHtml (plural : Bool := false) : FieldType → Html
   | .option t => t.toHtml ++ " (optional)"
   | .oneOf xs =>
     let opts := xs
-      |>.map ({{<code>{{show Html from .text s!"\"{·}\""}}</code>}})
-      |>.intersperse {{", "}}
-    {{"one of " {{opts}} }}
+      |>.map (html%{<code>{show Html from .text s!"\"{·}\""}</code>})
+      |>.intersperse html%{{", "}}
+    html%{one of {opts}}
 
 structure Field (α) where
   name : Name

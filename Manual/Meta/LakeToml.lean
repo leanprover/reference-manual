@@ -142,28 +142,28 @@ def Block.tomlField.descr : BlockDescr where
 
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let .ok (_, _inTable, field) := FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
         | do reportError "Failed to deserialize field doc data"; pure .empty
-      let sig : Html := {{ {{field.name.toString}} }}
+      let sig : Html := field.name.toString
 
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
 
-      return {{
-        <dt {{idAttr}}>
-          <code class="field-name">{{sig}}</code>
+      return html%{
+        <dt {...idAttr}>
+          <code class="field-name">{sig}</code>
         </dt>
         <dd>
-            <p><strong>"Contains:"</strong>" " {{field.type.toHtml}}</p>
-            {{← contents.mapM goB}}
+            <p><strong>Contains:</strong> {field.type.toHtml}</p>
+            {← contents.mapM goB}
         </dd>
-      }}
-  localContentItem _ info _ := open Verso.Output Html in do
+      }
+  localContentItem _ info _ := open Verso.Output in do
     let (_, _inTable, field) ← FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
     let name := field.name.toString
     pure #[
-      (name, {{<code class="field-name">{{name}}</code>}})
+      (name, html%{<code class="field-name">{name}</code>})
     ]
 
 private partial def flattenBlocks (blocks : Array (Block genre)) : Array (Block genre) :=
@@ -206,7 +206,7 @@ def Block.tomlFieldCategory.descr : BlockDescr where
 
   toHtml := some <| fun _goI goB _id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let .arr #[.str title, _fields] := info
         | do reportError "Failed to deserialize field category doc data"; pure .empty
 
@@ -215,15 +215,15 @@ def Block.tomlFieldCategory.descr : BlockDescr where
           | .other {name := `Manual.Block.tomlField, ..} _ => false
           | _ => true
 
-      return {{
+      return html%{
         <div class="field-category">
-          <p><strong>{{title}}":"</strong></p>
-          {{← nonField.mapM goB}}
+          <p><strong>{title}:</strong></p>
+          {← nonField.mapM goB}
           <dl>
-            {{← field.mapM goB}}
+            {← field.mapM goB}
           </dl>
         </div>
-      }}
+      }
 
 @[block_extension Block.tomlTable]
 def Block.tomlTable.descr : BlockDescr where
@@ -252,7 +252,7 @@ dl.toml-table-field-spec {
 
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let .ok (arrayKey, humanName, typeName) := FromJson.fromJson? (α := Option String × String × Name) info
         | do reportError "Failed to deserialize Lake TOML table doc data"; pure .empty
 
@@ -262,7 +262,7 @@ dl.toml-table-field-spec {
       -- Don't include links here because they'd just be self-links anyway
       let tableArrayName : Option Html := tableArrayName.map (Toml.Highlighted.toHtml (fun _ => none) (fun _ _ => none))
 
-      let sig : Html := {{ {{humanName}} {{tableArrayName.map ({{" — " <code class="toml">{{·}}</code> }}) |>.getD .empty }} }}
+      let sig : Html := html%{{humanName}{tableArrayName.map (html%{ — <code class="toml">{·}</code>}) |>.getD .empty}}
 
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
@@ -327,46 +327,46 @@ dl.toml-table-field-spec {
       let uncatHtml ← uncategorized.mapM goB
       let catHtml ← categories.mapM goB
 
-      let fieldHeader := {{
+      let fieldHeader := html%{
         <p>
           <strong>
-            {{if categories.isEmpty then "Fields:" else "Other Fields:"}}
+            {if categories.isEmpty then "Fields:" else "Other Fields:"}
           </strong>
         </p>
-      }}
+      }
 
-      let fieldHtml := {{
-        {{if categories.isEmpty then .empty else catHtml}}
-        {{if uncategorized.isEmpty then .empty
-          else {{
+      let fieldHtml := html%{
+        {if categories.isEmpty then .empty else catHtml}
+        {if uncategorized.isEmpty then .empty
+          else html%{
             <div class="field-category">
-              {{fieldHeader}}
+              {fieldHeader}
               <dl class="toml-table-field-spec">
-                {{uncatHtml}}
+                {uncatHtml}
               </dl>
             </div>
-          }}
-        }}
-      }}
+          }
+        }
+      }
 
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          <span class="label">"TOML table"</span>
-          <pre class="signature">{{sig}}</pre>
+      return html%{
+        <div class="namedocs" {...idAttr}>
+          <span class="label">TOML table</span>
+          <pre class="signature">{sig}</pre>
           <div class="text">
-            {{← notFields.mapM goB}}
+            {← notFields.mapM goB}
 
-            {{fieldHtml}}
+            {fieldHtml}
           </div>
         </div>
-      }}
+      }
 
-  localContentItem _ info _ := open Verso.Output Html in do
+  localContentItem _ info _ := open Verso.Output in do
     let (arrayKey, humanName, typeName) ← FromJson.fromJson? (α := Option String × String × Name) info
     if let some arrayKey := arrayKey then
-      pure #[(s!"[[{arrayKey}]]", {{<code>s!"[[{arrayKey}]]"</code>}})]
+      pure #[(s!"[[{arrayKey}]]", html%{<code>{s!"[[{arrayKey}]]"}</code>})]
     else
-      pure #[(humanName, {{ {{humanName}} }})]
+      pure #[(humanName, html%{{humanName}})]
 
 
 namespace Toml
@@ -527,7 +527,6 @@ r#"
 
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goB _id data content => do
       let .ok (tableName, fieldName) := fromJson? (α := Name × Name) data
         | reportError s!"Failed to deserialize metadata for Lake option ref: {data}"; content.mapM goB
@@ -535,8 +534,8 @@ r#"
       if let some obj := (← read).traverseState.getDomainObject? tomlFieldDomain s!"{tableName} {fieldName}" then
         for id in obj.ids do
           if let some dest := (← read).traverseState.externalTags[id]? then
-            return {{<code class="toml-field"><a href={{dest.link}}>{{fieldName.toString}}</a></code>}}
+            return html%{<code class="toml-field"><a href={dest.link}>{fieldName.toString}</a></code>}
       else
         reportError s!"No link destination for TOML field {tableName}:{fieldName}"
 
-      pure {{<code class="toml-field">{{fieldName.toString}}</code>}}
+      pure html%{<code class="toml-field">{fieldName.toString}</code>}

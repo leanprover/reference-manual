@@ -551,6 +551,11 @@ This precedence can be used to decide whether to insert parentheses: if the prec
 tag := "repr-instance-howto"
 %%%
 
+:::leanSection
+```lean -show
+open Std (HashSet)
+variable {α : Type} [BEq α] [Hashable α] [Repr α]
+```
 Lean can produce an appropriate {name}`Repr` instance for most types automatically using {ref "deriving-instances"}[instance deriving].
 In some cases, however, it's necessary to write an instance by hand:
 
@@ -565,6 +570,7 @@ In some cases, however, it's necessary to write an instance by hand:
 
 * The derived {name}`Repr` instance for structures uses {tech}[structure instance] notation.
   A hand-written instance can use the constructor's name explicitly or use {tech}[anonymous constructor syntax].
+:::
 
 ```lean -show -keep
 /-- info: Std.HashSet.ofList [0, 3, 5] -/

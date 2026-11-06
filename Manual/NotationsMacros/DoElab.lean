@@ -623,10 +623,15 @@ In some advanced cases, one of the functions in {namespace}`Lean.Elab.Do.InferCo
 
 ## Mutable Variables
 
+:::leanSection
+```lean -show
+open Lean.Elab.Do (MutVar)
+```
 One important part of the context is the set of mutable variables available for the {keywordOf Lean.Parser.Term.do}`do`-element being elaborated.
 This is available in two fields: {name Lean.Elab.Do.Context.mutVars}`mutVars` provides the identifiers that initially bound the variables, while {name Lean.Elab.Do.Context.mutVarDefs}`mutVarDefs` maps their names to the local variables that represent them.
 Due to {tech}[hygiene], the identifiers in {name Lean.Elab.Do.Context.mutVars}`mutVars` contain {tech}[macro scopes], but these are automatically removed by the {inst}`ToMessageData MutVar` instance.
 If the names are displayed in some other way, then the macro scopes should be removed using {name}`Name.simpMacroScopes` prior to constructing a user-facing error message.
+:::
 
 {docstring Lean.Elab.Do.MutVar}
 
