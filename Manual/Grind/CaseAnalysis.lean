@@ -56,7 +56,8 @@ This case analysis is not exhaustive: {tactic}`grind` only splits cases up to a 
 : Global limits
 
   The {tactic}`grind` option `branches := n` caps the number of search branches.
-  A case split with `k` cases adds `k - 1` branches (`k` for a recursive type); at `n` branches {tactic}`grind` stops splitting, and if the goal stays open it reports that the branch threshold has been reached.
+  A case split with `k` cases consumes `k - 1` branches from the overall budget (`k` for a recursive type).
+  When all `n` branches have been taken, {tactic}`grind` stops splitting, and if the goal stays open it reports that the branch threshold has been reached.
 
 : Manual annotations
 
@@ -254,10 +255,10 @@ example (h : Even (n + 2)) : Even n := by
 
 # Performance
 
-Case analysis is powerful, but computationally expensive: each level of case splitting multiplies the search space.
+Case analysis is powerful, but computationally expensive: each new branch results in a new goal that {tactic}`grind` must prove.
 It's important to be judicious and not perform unnecessary splits.
 In particular:
-* Increase {name Lean.Grind.Config.branches}`branches` *only* when the goal genuinely needs more branching; each branch adds a goal to close.
+* Increase {name Lean.Grind.Config.branches}`branches` *only* when the goal genuinely needs more branching; each branch adds a goal that needs to be proved.
 * Disable `splitMatch` when large pattern‑matching definitions explode the tree; this can be observed by setting the {option}`trace.grind.split`.
 * Flags can be combined, e.g. `by grind -splitMatch (branches := 10) +splitImp`.
 * The {attr}`grind cases` attribute is {ref "scoped-attributes"}_scoped_.
