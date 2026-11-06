@@ -24,7 +24,6 @@ set_option linter.unusedVariables false
 set_option linter.typography.quotes true
 set_option linter.typography.dashes true
 
-set_option mvcgen.warning false
 set_option linter.deprecated.syntax false
 
 open Manual (comment)
@@ -131,7 +130,6 @@ import Std.Tactic.Do
 ```lean -show
 open Std.Do
 
-set_option mvcgen.warning false
 set_option linter.deprecated.syntax false
 
 ```
@@ -395,8 +393,8 @@ The function must be {deftech (key := "mvcgen conjunctive")}_conjunctive_, which
 ```lean -show
 variable {σ : List (Type u)} {ps : PostShape} {x y : PredTrans ps α} {Q : Assertion ps}
 ```
-The {inst}`LE PredTrans` instance is defined in terms of their logical strength; one transformer is stronger than another if the result of applying it always entails the result of applying the other.
-In other words, {lean}`∀ Q, y Q ⊢ₛ x Q`, then {lean}`x ≤ y`.
+The {inst}`LE (PredTrans ps α)` instance is defined in terms of logical strength; one transformer is stronger than another if the result of applying it always entails the result of applying the other.
+In other words, {lean}`∀ Q, y.apply Q ⊢ₛ x.apply Q`, then {lean}`x ≤ y`.
 This means that stronger predicate transformers are considered greater than weaker ones.
 :::
 
@@ -448,7 +446,6 @@ import Std.Tactic.Do
 ```lean -show
 open Std.Do
 
-set_option mvcgen.warning false
 set_option linter.deprecated.syntax false
 
 ```
@@ -609,7 +606,6 @@ import Std.Tactic.Do
 ```lean -show
 open Std.Do
 
-set_option mvcgen.warning false
 set_option linter.deprecated.syntax false
 
 ```
@@ -723,7 +719,6 @@ import Std.Tactic.Do
 ```lean -show
 open Std.Do
 
-set_option mvcgen.warning false
 set_option linter.deprecated.syntax false
 
 ```
@@ -761,7 +756,6 @@ import Std.Tactic.Do
 ```lean -show
 open Std.Do
 
-set_option mvcgen.warning false
 set_option linter.deprecated.syntax false
 
 ```
@@ -906,7 +900,6 @@ import Std.Tactic.Do
 ```lean -show
 open Std.Do
 
-set_option mvcgen.warning false
 set_option linter.deprecated.syntax false
 
 ```

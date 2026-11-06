@@ -33,11 +33,11 @@ inline_extension Inline.errorExplanationShortName (errorName : Name) where
   extraCss := [".error-explanation-short-name { hyphenate-character: ''; }"]
   toTeX := none
   toHtml := some fun _go _id info _content =>
-    open Verso.Output Html in do
+    open Verso.Output in do
     let .ok (some errorName) := fromJson? (α := Option String) info
       | reportError "Invalid data for explanation name element"
         pure .empty
-    let html := {{ <code class="error-explanation-short-name">{{errorName}}</code> }}
+    let html := html%{<code class="error-explanation-short-name">{errorName}</code>}
     return html
 
 

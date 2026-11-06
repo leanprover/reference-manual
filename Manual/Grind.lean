@@ -157,9 +157,9 @@ example (x y : Int) :
 tag := "grind-errors"
 %%%
 
-When {tactic}`grind` fails, it prints the subgoal that it could not solve.
-This is typically not enough information to diagnose why {tactic}`grind` failed, however.
-Enabling the {name Lean.Grind.Config.verbose}`verbose` flag causes the error message to additionally include all the information returned by {tactic}`grind`'s subsystems—the contents of the “shared whiteboard.”
+When {tactic}`grind` fails, it reports only that it failed, together with any search thresholds that were reached on the way.
+This is not enough information to diagnose why {tactic}`grind` failed.
+Enabling the {name Lean.Grind.Config.verbose}`verbose` flag causes the error message to show the subgoal that could not be solved, along with all the information returned by {tactic}`grind`'s subsystems—the contents of the “shared whiteboard.”
 In particular, it presents equivalence classes of terms that it has determined to be equal.
 The two largest classes are shown as `True propositions` and `False propositions`, listing every literal currently known to be provable or refutable.
 Inspect these lists to spot missing facts or contradictory assumptions.
@@ -170,15 +170,9 @@ This example uses {tactic}`grind` in a situation where there is not sufficient i
 example (f : Nat → Nat) (h : f 0 = 1) : f 1 = 1 := by
   grind
 ```
-The resulting error message shows only the goal that could not be proved:
+The resulting error message does not show the goal that could not be proved:
 ```leanOutput quietFail
-`grind` failed
-case grind
-f : Nat → Nat
-h : f 0 = 1
-h_1 : ¬f 1 = 1
-⊢ False
-use `+verbose` to obtain diagnostic information
+`grind` has failed, use `+verbose` to obtain diagnostic information
 ```
 Enabling the {name Lean.Grind.Config.verbose}`verbose` flag makes the error message much more informative:
 ```lean +error (name := verboseFail)
@@ -228,7 +222,7 @@ They are enabled by default, but duplicating the local definition's value can le
   If it is disabled, the term is not reduced.
   ```lean -show
   example : (let x := 5; x + x) = 10 := by grind
-  /-- `grind` failed -/
+  /-- `grind` has failed -/
   #guard_msgs (substring := true) in
   example : (let x := 5; x + x) = 10 := by grind -zeta
   ```
@@ -253,7 +247,7 @@ They are enabled by default, but duplicating the local definition's value can le
   :::
   ```lean -show
   example : let x := 5; (x + x = 10) := by intro x; grind
-  /-- `grind` failed -/
+  /-- `grind` has failed -/
   #guard_msgs (substring := true) in
   example : let x := 5; (x + x = 10) := by intro x; grind -zetaDelta
   ```

@@ -89,10 +89,10 @@ block_extension Block.json (value : LexedText) where
   traverse _ _ _ := pure none
   toTeX := none
   extraCss := [json.css]
-  toHtml := some <| fun _ _ _ info _ => open Verso.Output.Html in do
+  toHtml := some <| fun _ _ _ info _ => do
     let .ok (v : LexedText) := fromJson? info
       | reportError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
-    pure {{<pre class="json">{{v.toHtml}}</pre>}}
+    pure html%{<pre class="json">{v.toHtml}</pre>}
 
 /--
 Check that contents of the block is a valid manifest file.

@@ -23,16 +23,15 @@ block_extension Block.customCSS (css : String) where
   traverse _ _ _ := pure none
   toTeX := none
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ _ data _ => do
       match FromJson.fromJson? data with
       | .error err =>
         reportError <| "Couldn't deserialize CSS while rendering HTML: " ++ err
         pure .empty
       | .ok (css : String) =>
-        pure {{
-          <style>{{css}}</style>
-        }}
+        pure html%{
+          <style>{css}</style>
+        }
 
 @[code_block]
 meta def customCSS : CodeBlockExpanderOf Unit

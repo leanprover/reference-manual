@@ -86,7 +86,6 @@ r#"
 ]
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ data _ => do
       let (exe, isDef) ←
         match data with
@@ -97,16 +96,16 @@ r#"
         for id in dest.ids do
           if let some dest := (← read).traverseState.externalTags[id]? then
             if isDef then
-              return {{<code class="executable" id={{dest.htmlId.toString}}>s!"{exe}"</code>}}
+              return html%{<code class="executable" id={dest.htmlId.toString}>{s!"{exe}"}</code>}
             else
               let url := dest.link
-              return {{<code class="executable"><a href={{url}}>s!"{exe}"</a></code>}}
+              return html%{<code class="executable"><a href={url}>{s!"{exe}"}</a></code>}
 
-      return {{<code class="executable">s!"{exe}"</code>}}
+      return html%{<code class="executable">{s!"{exe}"}</code>}
 
-  localContentItem _ info _ := open Verso.Output.Html in do
+  localContentItem _ info _ := do
     if let .arr #[.str exe, .bool isDef] := info then
       if isDef then
-        pure #[(exe, {{<code>{{exe}}</code>}}), (s!"{exe} (Executable)", {{<code>{{exe}}</code>" (Executable)"}})]
+        pure #[(exe, html%{<code>{exe}</code>}), (s!"{exe} (Executable)", html%{<code>{exe}</code> (Executable)})]
       else pure #[]
     else throw s!"Expected a two-element array with a string and a Boolean, got {info}"

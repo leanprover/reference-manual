@@ -37,7 +37,6 @@ def listBullet.descr : BlockDescr where
   toTeX := none
   toHtml :=
     open Verso.Doc.Html in
-    open Verso.Output.Html in
     some <| fun _goI goB _id data blocks => do
       let bullet ←
         match data with
@@ -45,9 +44,9 @@ def listBullet.descr : BlockDescr where
         | _ =>
           reportError "Invalid data for listBullet block"
           pure ""
-      pure {{
-        <div class="listBullet" style=s!"--bullet: '{bullet} ';">
-          {{← blocks.mapM goB}}
+      pure html%{
+        <div class="listBullet" style={s!"--bullet: '{bullet} ';"}>
+          {← blocks.mapM goB}
         </div>
-      }}
+      }
   extraCss := [r##".listBullet li::marker { content: var(--bullet); font-size: 1.2em; }"##]

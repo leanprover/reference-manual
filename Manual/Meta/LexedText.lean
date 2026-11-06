@@ -75,7 +75,7 @@ meta def C : CodeBlockExpanderOf Unit
     let toks ← LexedText.highlight hlC codeStr
     ``(Block.other (Block.c $(quote toks)) #[Block.code $(quote codeStr)])
 
-open Verso.Output Html in
+open Verso.Output in
 open Verso.Doc.Html in
 @[block_extension Block.c]
 def c.descr : BlockDescr where
@@ -84,10 +84,10 @@ def c.descr : BlockDescr where
   toHtml := some <| fun _ _ _ info _ => do
     let .ok (v : LexedText) := fromJson? info
       | reportError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
-    pure {{<pre class="c">{{v.toHtml}}</pre>}}
+    pure html%{<pre class="c">{v.toHtml}</pre>}
   extraCss := [c.css]
 
-open Verso.Output Html in
+open Verso.Output in
 open Verso.Doc.Html in
 @[inline_extension Inline.c]
 def c.idescr : InlineDescr where
@@ -96,7 +96,7 @@ def c.idescr : InlineDescr where
   toHtml := some <| fun _ _ info _ => do
     let .ok (v : LexedText) := fromJson? info
       | reportError s!"Failed to deserialize {info} as lexer-enhanced text"; pure .empty
-    pure {{<code class="c">{{v.toHtml}}</code>}}
+    pure html%{<code class="c">{v.toHtml}</code>}
   extraCss := [c.css]
 
 @[role C]

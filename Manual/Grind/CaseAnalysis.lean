@@ -24,7 +24,7 @@ tag := "grind-split"
 
 In addition to congruence closure and constraint propagation, {tactic}`grind` performs case analysis.
 During case analysis, {tactic}`grind` considers each possible way that a term could have been built, or each possible value of a particular term, in a manner similar to the {tactic}`cases` and {tactic}`split` tactics.
-This case analysis is not exhaustive: {tactic}`grind` only recursively splits cases up to a configured depth limit, and configuration options and annotations control which terms are candidates for splitting.
+This case analysis is not exhaustive: {tactic}`grind` only splits cases up to a configured number of branches, and configuration options and annotations control which terms are candidates for splitting.
 
 
 # Selection Heuristics
@@ -55,8 +55,8 @@ This case analysis is not exhaustive: {tactic}`grind` only recursively splits ca
 
 : Global limits
 
-  The {tactic}`grind` option `splits := n` caps the depth of the search tree.
-  Once a branch performs `n` splits {tactic}`grind` stops splitting further in that branch; if the branch cannot be closed it reports that the split threshold has been reached.
+  The {tactic}`grind` option `branches := n` caps the number of search branches.
+  A case split with `k` cases adds `k - 1` branches (`k` for a recursive type); at `n` branches {tactic}`grind` stops splitting, and if the goal stays open it reports that the branch threshold has been reached.
 
 : Manual annotations
 
@@ -121,7 +121,7 @@ Forbidding all case splitting causes the proof to fail for the same reason:
 example (c : Bool) (x y : Nat)
     (h : (if c then x else y) = 0) :
     x = 0 ∨ y = 0 := by
-  grind +verbose (splits := 0)
+  grind +verbose (branches := 0)
 ```
 ```leanOutput noSplitsAtAll (expandTrace := eqc)
 `grind` failed
@@ -149,7 +149,7 @@ Allowing just one split is sufficient:
 example (c : Bool) (x y : Nat)
     (h : (if c then x else y) = 0) :
     x = 0 ∨ y = 0 := by
-  grind (splits := 1)
+  grind (branches := 1)
 ```
 :::
 
@@ -257,9 +257,9 @@ example (h : Even (n + 2)) : Even n := by
 Case analysis is powerful, but computationally expensive: each level of case splitting multiplies the search space.
 It's important to be judicious and not perform unnecessary splits.
 In particular:
-* Increase `splits` *only* when the goal genuinely needs deeper branching; each extra level multiplies the search space.
+* Increase {name Lean.Grind.Config.branches}`branches` *only* when the goal genuinely needs more branching; each branch adds a goal to close.
 * Disable `splitMatch` when large pattern‑matching definitions explode the tree; this can be observed by setting the {option}`trace.grind.split`.
-* Flags can be combined, e.g. `by grind -splitMatch (splits := 10) +splitImp`.
+* Flags can be combined, e.g. `by grind -splitMatch (branches := 10) +splitImp`.
 * The {attr}`grind cases` attribute is {ref "scoped-attributes"}_scoped_.
   The modifiers {keywordOf Lean.Parser.Term.attrKind}`local` and {keywordOf Lean.Parser.Term.attrKind}`scoped` restrict extra splitting to a section or namespace.
 

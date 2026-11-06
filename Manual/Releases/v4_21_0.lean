@@ -483,7 +483,7 @@ _Other Highlights_
         p7 ∨ q7 →
         p8 ∨ q8 →
         False := by
-    grind (splits := 10)
+    grind (branches := 10)
   ```
 
 * [#8443](https://github.com/leanprover/lean4/pull/8443) adds the lemmas about ordered rings and ordered fields which

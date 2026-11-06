@@ -159,7 +159,7 @@ def lakeCommand.descr : BlockDescr where
 
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let Json.arr #[ Json.str name, aliases, spec] := info
         | do reportError s!"Failed to deserialize data while making HTML for Lake command, got {info}"; pure .empty
       let .ok (aliases : List String) := FromJson.fromJson? aliases
@@ -177,34 +177,34 @@ def lakeCommand.descr : BlockDescr where
       let aliasHtml : Html :=
         match aliases with
         | [] => .empty
-        | _::more => {{
+        | _::more => html%{
             <p>
-              <strong>{{if more.isEmpty then "Alias:" else "Aliases:"}}</strong>
-              " "
-              {{aliases.map (fun (a : String) => {{<code>s!"lake {a}"</code>}}) |>.intersperse {{", "}}}}
+              <strong>{if more.isEmpty then "Alias:" else "Aliases:"}</strong>
+              {" "}
+              {aliases.map (fun (a : String) => html%{<code>{s!"lake {a}"}</code>}) |>.intersperse (.text ", ")}
             </p>
-          }}
+          }
 
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">"Lake command"</span>
-          <pre class="signature hl lean block" data-lean-context={{name}}>
-            {{← (Highlighted.seq #[lakeTok, .text " ", nameTok, .text " ", spec]).toHtml (g := Verso.Genre.Manual)}}
+      return html%{
+        <div class="namedocs" {...idAttr}>
+          {permalink id xref false}
+          <span class="label">Lake command</span>
+          <pre class="signature hl lean block" data-lean-context={name}>
+            {← (Highlighted.seq #[lakeTok, .text " ", nameTok, .text " ", spec]).toHtml (g := Verso.Genre.Manual)}
           </pre>
           <div class="text">
-            {{aliasHtml}}
-            {{← contents.mapM goB}}
+            {aliasHtml}
+            {← contents.mapM goB}
           </div>
         </div>
-      }}
+      }
   toTeX := none
   extraCss := [highlightingStyle, docstringStyle]
   extraJs := [highlightingJs]
-  localContentItem _ info _ := open Verso.Output.Html in do
+  localContentItem _ info _ := do
     if let Json.arr #[ Json.str name, _, _] := info then
       let str := s!"lake {name}"
-      pure #[(str, {{<code>{{str}}</code>}})]
+      pure #[(str, html%{<code>{str}</code>})]
     else throw s!"Expected a three-element array with a string first, got {info}"
 
 @[role_expander lakeMeta]
@@ -228,7 +228,6 @@ def lakeMeta.descr : InlineDescr := withHighlighting {
       pure <| .seq <| ← content.mapM fun b => do
         pure <| .seq #[← go b, .raw "\n"]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ data _ => do
       let (mName, ctx) :=
         match data with
@@ -274,7 +273,6 @@ a.lake-command:hover {
 "#
 ]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goI _ data is => do
       let (name) :=
         match data with
@@ -285,7 +283,7 @@ a.lake-command:hover {
         if let some dest := (← read).traverseState.getDomainObject? lakeCommandDomain n then
           for id in dest.ids do
             if let some dest := (← read).traverseState.externalTags[id]? then
-              return {{<a href={{dest.link}} class="lake-command"><code>s!"lake {n}"</code></a>}}
+              return html%{<a href={dest.link} class="lake-command"><code>{s!"lake {n}"}</code></a>}
 
       reportError s!"No name for lake command in {data.compress}"
       is.mapM goI
@@ -315,7 +313,6 @@ def lakeArgs.descr : InlineDescr := withHighlighting {
   toTeX := none
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ data _ => do
       if let .arr #[hl, name] := data then
         match fromJson? (α := Highlighted) hl with

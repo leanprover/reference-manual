@@ -1058,17 +1058,17 @@ With 33 elements, the list literal becomes a sequence of local definitions:
    1]
 ```
 ```leanOutput indeedLong
-let y :=
-  let y :=
-    let y := [1, 1, 1, 1, 1];
-    1 :: 1 :: 1 :: 1 :: y;
-  let y := 1 :: 1 :: 1 :: 1 :: y;
-  1 :: 1 :: 1 :: 1 :: y;
-let y :=
-  let y := 1 :: 1 :: 1 :: 1 :: y;
-  1 :: 1 :: 1 :: 1 :: y;
-let y := 1 :: 1 :: 1 :: 1 :: y;
-1 :: 1 :: 1 :: 1 :: y : List Nat
+let x :=
+  let x :=
+    let x := [1, 1, 1, 1, 1];
+    1 :: 1 :: 1 :: 1 :: x;
+  let x := 1 :: 1 :: 1 :: 1 :: x;
+  1 :: 1 :: 1 :: 1 :: x;
+let x :=
+  let x := 1 :: 1 :: 1 :: 1 :: x;
+  1 :: 1 :: 1 :: 1 :: x;
+let x := 1 :: 1 :: 1 :: 1 :: x;
+1 :: 1 :: 1 :: 1 :: x : List Nat
 ```
 
 :::

@@ -281,7 +281,7 @@ example [Field α] {x y z w : α} :
     x / y = z / w →
     y ≠ 0 → w ≠ 0 →
     x * w = z * y := by
-  grind (splits := 0)
+  grind (branches := 0)
 ```
 
 You can disable the `ring` solver using the option `grind -ring`.

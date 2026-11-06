@@ -238,7 +238,6 @@ def example.descr : BlockDescr where
         pure <| .seq #[← go b, .raw "\n"]
   toHtml :=
     open Verso.Doc.Html in
-    open Verso.Output.Html in
     some <| fun goI goB id data blocks => do
       if h : blocks.size < 1 then
         reportError "Malformed example"
@@ -263,16 +262,16 @@ def example.descr : BlockDescr where
             -- This link is `display: none` hidden by default, and enabled by maybeShowLiveLinks,
             -- assuming we detect that we're a sufficiently recent version of the manual
             -- to be compatible with the versions served by https://live.lean-lang.org
-            {{ <div class="live-link"><a href={{href}}>"Live ↪"</a></div> }}
-          pure {{
-            <details class="example" {{attrs}}>
-              <summary class="description">{{← description.mapM goI}}</summary>
+            html%{<div class="live-link"><a href={href}>Live ↪</a></div>}
+          pure html%{
+            <details class="example" {...attrs}>
+              <summary class="description">{← description.mapM goI}</summary>
               <div class="example-content">
-                {{← blocks.extract 1 blocks.size |>.mapM goB}}
-                  {{liveLink}}
+                {← blocks.extract 1 blocks.size |>.mapM goB}
+                  {liveLink}
               </div>
             </details>
-          }}
+          }
   extraJs := [
 r#"function openDetailsForHashTarget() {
   // Get the current hash from the URL
@@ -423,6 +422,5 @@ def keepEnv.descr : BlockDescr where
   toTeX := none
   toHtml :=
     open Verso.Doc.Html in
-    open Verso.Output.Html in
     some <| fun _ goB _ _ blocks => do
       blocks.mapM goB
