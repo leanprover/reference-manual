@@ -65,33 +65,33 @@ block_extension Block.errorExplanationHeader (metadata : ErrorExplanationExtende
   "]
   toHtml := some fun _goI _goB _id info _contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
     let .ok metadata := FromJson.fromJson? (α := ErrorExplanationExtendedMetadata) info
       | reportError "Failed to parse info for error explanation metadata block:\n{metadata}"
         pure .empty
     let deprecatedWarning :=
       if metadata.removedVersion?.isSome then
-        {{ <div class="error-explanation-removed-warning">
-             <p><strong>"Note: "</strong> "This diagnostic is no longer produced."</p>
-           </div> }}
+        html%{<div class="error-explanation-removed-warning">
+             <p><strong>Note: </strong>This diagnostic is no longer produced.</p>
+           </div>}
       else
         .empty
     let sevText := if metadata.severity matches .warning then "Warning" else "Error"
     let entries := #[("Severity", sevText), ("Since", metadata.sinceVersion)]
       ++ (metadata.removedVersion?.map fun v => #[("Removed", v)]).getD #[]
     let entries := entries.map fun (label, data) =>
-      {{ <span class="error-explanation-metadatum">
-           <strong>{{Html.text label}}": "</strong>
-           {{Html.text data}}
-          </span> }}
-    return {{
+      html%{<span class="error-explanation-metadatum">
+           <strong>{Html.text label}: </strong>
+           {Html.text data}
+          </span>}
+    return html%{
       <div class="error-explanation-metadata">
-        {{deprecatedWarning}}
-        <p>"Error code: "<code>{{metadata.name.toString}}</code></p>
-        <p><em>{{metadata.summary}}</em></p>
-        <p>{{entries}}</p>
+        {deprecatedWarning}
+        <p>Error code: <code>{metadata.name.toString}</code></p>
+        <p><em>{metadata.summary}</em></p>
+        <p>{entries}</p>
       </div>
-    }}
+    }
 
 structure ErrorHeaderConfig where
   name : Name

@@ -47,7 +47,6 @@ inline_extension Inline.configFile (filename : String) where
     pure none
 
   toHtml :=
-    open Verso.Output.Html in
     open Verso.Doc.Html in
     some fun _ id data _ => do
       let .str filename := data
@@ -55,7 +54,7 @@ inline_extension Inline.configFile (filename : String) where
           pure .empty
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
-      return {{<code {{idAttr}}>{{filename}}</code>}}
+      return html%{<code {...idAttr}>{filename}</code>}
 
   toTeX := none
 

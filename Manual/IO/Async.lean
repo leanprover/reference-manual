@@ -1198,6 +1198,8 @@ done
 :::leanSection
 ```lean -show
 open Std.Async.IO
+open Std (Channel Broadcast)
+variable {α : Type} [Inhabited α]
 ```
 The type classes {name}`AsyncRead`, {name}`AsyncWrite`, and {name}`AsyncStream` provide buffered asynchronous I/O.
 The main {name}`AsyncRead` instances are {inst}`AsyncRead (Channel α) α`, {inst}`AsyncRead (CloseableChannel α) (Option α)`, and {inst}`AsyncRead (Broadcast.Receiver α) (Option α)`.

@@ -170,9 +170,8 @@ div.TODO::before {
 }
 "#]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ goB _ _ content => do
-      pure {{<div class="TODO">{{← content.mapM goB}}</div>}}
+      pure html%{<div class="TODO">{← content.mapM goB}</div>}
 
 @[inline_extension TODO]
 def TODO.inlineDescr : InlineDescr where
@@ -195,9 +194,8 @@ span.TODO {
 }
 "#]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun go _ _ content => do
-      pure {{<span class="TODO">{{← content.mapM go}}</span>}}
+      pure html%{<span class="TODO">{← content.mapM go}</span>}
 
 def Block.warn : Block where
   name := `Manual.warn
@@ -219,16 +217,15 @@ def warn.descr : BlockDescr where
 .namedocs.warn > .text { border-top: none; }
 "#]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ goB _ _ content => do
-      pure {{
+      pure html%{
         <div class="namedocs warn">
-          <span class="label">"Warning"</span>
+          <span class="label">Warning</span>
           <div class="text">
-            {{← content.mapM goB}}
+            {← content.mapM goB}
           </div>
         </div>
-      }}
+      }
 
 def Inline.noVale : Inline where
   name := `Manual.noVale
@@ -254,8 +251,8 @@ meta def noVale : RoleExpander
 def noVale.descr : InlineDescr where
   traverse _ _ _ := pure none
   toTeX := none
-  toHtml := some <| fun go _ _ content => open Verso.Output.Html in do
-    pure {{<span class="no-vale">{{← content.mapM go}}</span>}}
+  toHtml := some <| fun go _ _ content => do
+    pure html%{<span class="no-vale">{← content.mapM go}</span>}
 
 structure PlannedConfig where
   issue : Option Nat
@@ -310,7 +307,6 @@ div.planned .label {
 }
 "#]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ goB _ data content => do
       let issue : Option Nat ←
         match FromJson.fromJson? (α := Option Nat × Option (Nat × String)) data with
@@ -318,21 +314,21 @@ div.planned .label {
         | .error e =>
           reportError s!"Failed to deserialize issue number from {data}: {e}"
           pure none
-      pure {{
+      pure html%{
         <div class="planned">
-          <div class="label">"Planned Content"</div>
-          {{← content.mapM goB}}
-          {{if let some issue := issue then {{
+          <div class="label">Planned Content</div>
+          {← content.mapM goB}
+          {if let some issue := issue then html%{
             <p>
-              "Tracked at issue "
-                <a href=s!"https://github.com/leanprover/reference-manual/issues/{issue}">
-                  s!"#{issue}"
+              {"Tracked at issue "}
+                <a href={s!"https://github.com/leanprover/reference-manual/issues/{issue}"}>
+                  {s!"#{issue}"}
                 </a>
             </p>
-            }} else .empty
-          }}
+            } else .empty
+          }
         </div>
-      }}
+      }
 
 @[role_expander versionString]
 meta def versionString : RoleExpander
@@ -410,8 +406,8 @@ meta def ckw : RoleExpander
 def ckw.descr : InlineDescr where
   traverse _ _ _ := pure none
   toTeX := none
-  toHtml := some fun goI _ _ content => open Verso.Output.Html in do
-    return {{<span class="c-keyword">{{← content.mapM goI}}</span>}}
+  toHtml := some fun goI _ _ content => do
+    return html%{<span class="c-keyword">{← content.mapM goI}</span>}
   extraCss :=
     [".c-keyword code { font-weight: 600; }"]
 
@@ -443,30 +439,29 @@ def ffi.descr : BlockDescr where
     pure none
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let .ok (_name, ffiType, signature) := FromJson.fromJson? (α := String × FFIDocType × String) info
         | do reportError "Failed to deserialize FFI doc data"; pure .empty
-      let sig : Html := {{<pre>{{signature}}</pre>}}
+      let sig : Html := html%{<pre>{signature}</pre>}
 
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
 
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          <span class="label">"FFI " {{ffiType.describe}}</span>
-          <pre class="signature">{{sig}}</pre>
+      return html%{
+        <div class="namedocs" {...idAttr}>
+          <span class="label">FFI {ffiType.describe}</span>
+          <pre class="signature">{sig}</pre>
           <div class="text">
-            {{← contents.mapM goB}}
+            {← contents.mapM goB}
           </div>
         </div>
-      }}
+      }
   toTeX := some <| fun _goI goB _ _ contents =>
     contents.mapM goB -- TODO
 
-open Verso.Output.Html in
 inline_extension Inline.multiCode where
   traverse _ _ _ := pure none
-  toHtml := some <| fun goI _id _data contents => do return {{<span class="multi-code">{{← contents.mapM goI}}</span>}}
+  toHtml := some <| fun goI _id _data contents => do return html%{<span class="multi-code">{← contents.mapM goI}</span>}
   toTeX := none
 
 @[role]

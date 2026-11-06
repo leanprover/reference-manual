@@ -118,7 +118,7 @@ def keywordOf.descr : InlineDescr := withHighlighting {
     pure none
   toTeX := none
   toHtml :=
-    open Verso.Output Html in
+    open Verso.Output in
     some <| fun goI _ info content => do
       match FromJson.fromJson? (α := (String × Option Name × Name × Option String)) info with
       | .ok (kw, cat, kind, kindDoc) =>
@@ -132,20 +132,20 @@ def keywordOf.descr : InlineDescr := withHighlighting {
           match tgt[0]? with
           | none => html
           | some l =>
-            {{<a href={{l.href}}>{{html}}</a>}}
-        pure {{
+            html%{<a href={l.href}>{html}</a>}
+        pure html%{
           <span class="hl lean keyword-of">
             <code class="hover-info">
-              <code>{{kind.toString}} {{cat.map (" : " ++ toString ·) |>.getD ""}}</code>
-              {{if let some doc := kindDoc then
-                  {{ <span class="sep"/> <code class="docstring">{{doc}}</code>}}
+              <code>{kind.toString}{cat.map (" : " ++ toString ·) |>.getD ""}</code>
+              {if let some doc := kindDoc then
+                  html%{<span class="sep"/><code class="docstring">{doc}</code>}
                 else
                   .empty
-              }}
+              }
             </code>
-            {{addLink {{<code class="kw">{{kw}}</code>}} }}
+            {addLink html%{<code class="kw">{kw}</code>}}
           </span>
-        }}
+        }
       | .error e =>
         reportError s!"Couldn't deserialized keywordOf data: {e}"
         content.mapM goI
@@ -218,11 +218,11 @@ def keyword.descr : InlineDescr where
     pure none
   toTeX := none
   toHtml :=
-    open Verso.Output Html in
+    open Verso.Output in
     some <| fun goI _ info content => do
       let .str kw := info
         | reportError s!"Expected a JSON string for a plain keyword, got {info}"; content.mapM goI
-      pure {{<code class="plain-keyword">{{kw}}</code>}}
+      pure html%{<code class="plain-keyword">{kw}</code>}
 
   extraCss := [
 r#".plain-keyword {
@@ -462,7 +462,7 @@ def syntax.descr : BlockDescr where
       pure none
   toTeX := none
   toHtml :=
-    open Verso.Output.Html Verso.Doc.Html in
+    open Verso.Doc.Html in
     some <| fun goI goB id data content => do
       let (titleString, label) ←
         match FromJson.fromJson? (α := Option String × Name × String × Option Tag × Array Name) data with
@@ -480,17 +480,17 @@ def syntax.descr : BlockDescr where
           pure (#[], content)
 
       let titleHtml ←  descr.mapM goI
-      let titleHtml := if titleHtml.isEmpty then .empty else {{<span class="title">{{titleHtml}}</span>}}
+      let titleHtml := if titleHtml.isEmpty then .empty else html%{<span class="title">{titleHtml}</span>}
 
-      pure {{
-        <div class="namedocs" {{attrs}}>
-          <span class="label">{{label}}</span>
-          {{titleHtml}}
+      pure html%{
+        <div class="namedocs" {...attrs}>
+          <span class="label">{label}</span>
+          {titleHtml}
           <div class="text">
-            {{← content.mapM goB}}
+            {← content.mapM goB}
           </div>
         </div>
-      }}
+      }
   extraCss := [
 r#"
 .namedocs .title {
@@ -596,7 +596,7 @@ window.addEventListener("load", () => {
 });
 "#
 
-open Verso.Output Html HtmlT in
+open Verso.Output Verso.Doc.Html HtmlT in
 private def nonTermHtmlOf (kind : Name) (doc? : Option String) (rendered : Html) : HtmlT Manual (ReaderT Multi.AllRemotes (ReaderT ExtensionImpls (BuildLogT IO))) Html := do
   let xref ← match (← state).resolveDomainObject syntaxKindDomain kind.toString with
     | .error _ =>
@@ -606,21 +606,21 @@ private def nonTermHtmlOf (kind : Name) (doc? : Option String) (rendered : Html)
   let addXref := fun html =>
     match xref with
     | none => html
-    | some tgt => {{<a href={{tgt}}>{{html}}</a>}}
+    | some tgt => html%{<a href={tgt}>{html}</a>}
 
   return addXref <|
     match doc? with
-    | some doc => {{
-        <span class="nonterminal documented" {{#[("data-kind", kind.toString)]}}>
-          <code class="hover-info"><code class="docstring">{{doc}}</code></code>
-          {{rendered}}
+    | some doc => html%{
+        <span class="nonterminal documented" data-kind={kind.toString}>
+          <code class="hover-info"><code class="docstring">{doc}</code></code>
+          {rendered}
         </span>
-      }}
-    | none => {{
-        <span class="nonterminal" {{#[("data-kind", kind.toString)]}}>
-          {{rendered}}
+      }
+    | none => html%{
+        <span class="nonterminal" data-kind={kind.toString}>
+          {rendered}
         </span>
-      }}
+      }
 
 
 structure GrammarHtmlContext where
@@ -642,7 +642,7 @@ def noLook (ctx : GrammarHtmlContext) : GrammarHtmlContext :=
 
 end GrammarHtmlContext
 
-open Verso.Output Html in
+open Verso.Output Verso.Doc.Html in
 abbrev GrammarHtmlM := ReaderT GrammarHtmlContext (HtmlT Manual (ReaderT Multi.AllRemotes (ReaderT ExtensionImpls (BuildLogT IO))))
 
 private def lookingAt (k : Name) : GrammarHtmlM α → GrammarHtmlM α := withReader (·.look k)
@@ -666,7 +666,7 @@ private def productionDomainMapper : DomainMapper where
     ref: value,
   }))"
 
-open Verso.Output Html in
+open Verso.Output Verso.Doc.Html in
 @[block_extension grammar]
 partial def grammar.descr : BlockDescr := withHighlighting {
   init s := s.addQuickJumpMapper productionDomain (productionDomainMapper.setFont { family := .code })
@@ -685,37 +685,36 @@ partial def grammar.descr : BlockDescr := withHighlighting {
     pure none
   toTeX := none
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _goI _goB id info _ => do
       match FromJson.fromJson? (α := Name × TaggedText GrammarTag × Json) info with
       | .ok (kind, bnf, _searchable) =>
         let t ← match (← read).traverseState.externalTags.get? id with
           | some dest => pure dest.htmlId.toString
           | _ => reportError s!"Couldn't get HTML ID for grammar of {kind}" *> pure ""
-        pure {{
-          <pre class="grammar hl lean" data-lean-context="--grammar" id={{t}}>
-            {{← bnfHtml bnf |>.run (GrammarHtmlContext.default.skip kind) }}
+        pure html%{
+          <pre class="grammar hl lean" data-lean-context="--grammar" id={t}>
+            {← bnfHtml bnf |>.run (GrammarHtmlContext.default.skip kind)}
           </pre>
-        }}
+        }
       | .error e =>
         reportError s!"Couldn't deserialize BNF: {e}"
         pure .empty
   extraCss := [grammarCss, "#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }"]
   extraJs := [grammarJs]
-  localContentItem _ json _ := open Verso.Output.Html in do
+  localContentItem _ json _ := do
     if let .arr #[_, .arr #[_, .arr toks]] := json then
       let toks ← toks.mapM fun v => do
           let Json.str str ← v.getObjVal? "string"
             | throw "Not a string"
           let .str k ← v.getObjVal? "kind"
             | throw "Not a string"
-          pure (str, {{<span class={{k}}>{{str}}</span>}})
+          pure (str, html%{<span class={k}>{str}</span>})
       let (strs, toks) := toks.unzip
       if strs == #["…"] || strs == #["..."] then
         -- Don't add the item if it'd be useless for navigating the page
         pure #[]
       else
-        pure #[(String.join strs.toList, {{<span class="syntax">{{toks}}</span>}})]
+        pure #[(String.join strs.toList, html%{<span class="syntax">{toks}</span>})]
     else throw s!"Expected a Json array shaped like [_, [_, [tok, ...]]], got {json}"
 }
 where
@@ -729,44 +728,44 @@ where
   tagHtml (t : GrammarTag) (go : GrammarHtmlM Html) : GrammarHtmlM Html :=
     match t with
     | .lhs | .rhs => go
-    | .bnf => ({{<span class="bnf">{{·}}</span>}}) <$> notLooking go
-    | .comment => ({{<span class="comment">{{·}}</span>}}) <$> notLooking go
-    | .error => ({{<span class="err">{{·}}</span>}}) <$> notLooking go
-    | .literalIdent => ({{<span class="literal-ident">{{·}}</span>}}) <$> notLooking go
+    | .bnf => (html%{<span class="bnf">{·}</span>}) <$> notLooking go
+    | .comment => (html%{<span class="comment">{·}</span>}) <$> notLooking go
+    | .error => (html%{<span class="err">{·}</span>}) <$> notLooking go
+    | .literalIdent => (html%{<span class="literal-ident">{·}</span>}) <$> notLooking go
     | .keyword => do
       let inner ← go
       if let some k := (← read).lookingAt then
         unless k == nullKind do
           if let some tgt := ((← HtmlT.state (genre := Manual) (m := ReaderT Multi.AllRemotes (ReaderT ExtensionImpls (BuildLogT IO)))).localTargets.keyword k none)[0]? then
-            return {{<a href={{tgt.href}}><span class="keyword">{{inner}}</span></a>}}
-      return {{<span class="keyword">{{inner}}</span>}}
+            return html%{<a href={tgt.href}><span class="keyword">{inner}</span></a>}
+      return html%{<span class="keyword">{inner}</span>}
     | .nonterminal k doc? => do
       let inner ← notLooking go
       nonTermHtmlOf k doc? inner
     | .fromNonterminal k none => do
       let inner ← lookingAt k go
-      return {{<span class="from-nonterminal" {{#[("data-kind", k.toString)]}}>{{inner}}</span>}}
+      return html%{<span class="from-nonterminal" data-kind={k.toString}>{inner}</span>}
     | .fromNonterminal k (some doc) => do
       let inner ← lookingAt k go
-      return {{
-        <span class="from-nonterminal documented" {{#[("data-kind", k.toString)]}}>
-          <code class="hover-info"><code class="docstring">{{doc}}</code></code>
-          {{inner}}
+      return html%{
+        <span class="from-nonterminal documented" data-kind={k.toString}>
+          <code class="hover-info"><code class="docstring">{doc}</code></code>
+          {inner}
         </span>
-      }}
+      }
     | .localName x n cat doc? => do
       let doc :=
         match doc? with
         | none => .empty
-        | some d => {{<span class="sep"/><code class="docstring">{{d}}</code>}}
+        | some d => html%{<span class="sep"/><code class="docstring">{d}</code>}
       let inner ← notLooking go
       -- The "token" class below triggers binding highlighting
-      return {{
-        <span class="local-name token documented" {{#[("data-kind", cat.toString)]}} data-binding=s!"grammar-var-{n}-{x}">
-          <code class="hover-info"><code>{{x.toString}} " : " {{cat.toString}}</code>{{doc}}</code>
-          {{inner}}
+      return html%{
+        <span class="local-name token documented" data-kind={cat.toString} data-binding={s!"grammar-var-{n}-{x}"}>
+          <code class="hover-info"><code>{x.toString} : {cat.toString}</code>{doc}</code>
+          {inner}
         </span>
-      }}
+      }
 
 
 def Inline.syntaxKind : Inline where
@@ -798,16 +797,15 @@ def syntaxKind.inlinedescr : InlineDescr := withHighlighting {
   extraCss := [grammarCss]
   extraJs := [grammarJs]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goI _ data inls => do
       match FromJson.fromJson? (α := Name × String × Option String) data with
       | .error e =>
         reportError s!"Couldn't deserialize syntax kind name: {e}"
-        return {{<code>{{← inls.mapM goI}}</code>}}
+        return html%{<code>{← inls.mapM goI}</code>}
       | .ok (k, showAs, doc?) =>
-        return {{
+        return html%{
           <code class="grammar">
-            {{← nonTermHtmlOf k doc? showAs}}
+            {← nonTermHtmlOf k doc? showAs}
           </code>
-        }}
+        }
 }

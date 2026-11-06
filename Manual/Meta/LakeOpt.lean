@@ -110,7 +110,6 @@ def lakeOptDef.descr : InlineDescr where
   toTeX := none
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goB id data content => do
       let .arr #[.str name, _jsonKind, metadata] := data
         | reportError s!"Failed to deserialize metadata for Lake option def: {data}"; content.mapM goB
@@ -121,13 +120,13 @@ def lakeOptDef.descr : InlineDescr where
         | reportError s!"Failed to deserialize argument metadata for Lake option def: {metadata}"; content.mapM goB
 
       if let some mv := metadata then
-        pure {{<code {{idAttr}} class="lake-opt">{{name}}"="{{mv}}</code>}}
+        pure html%{<code {...idAttr} class="lake-opt">{name}={mv}</code>}
       else
-        pure {{<code {{idAttr}} class="lake-opt">{{name}}</code>}}
+        pure html%{<code {...idAttr} class="lake-opt">{name}</code>}
 
-  localContentItem _ info _ := open Verso.Output.Html in do
+  localContentItem _ info _ := do
     if let .arr #[.str name, _jsonKind, _meta] := info then
-      pure #[(name, {{<code>{{name}}</code>}})]
+      pure #[(name, html%{<code>{name}</code>})]
     else throw s!"Expected three-element array with string first, got {info}"
 
 
@@ -154,7 +153,6 @@ def lakeOpt.descr : InlineDescr where
   extraCss := [lakeOptCss]
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goB _ data content => do
       let .arr #[.str name, .str original] := data
         | reportError s!"Failed to deserialize metadata for Lake option ref: {data}"; content.mapM goB
@@ -162,6 +160,6 @@ def lakeOpt.descr : InlineDescr where
       if let some obj := (← read).traverseState.getDomainObject? lakeOptDomain name then
         for id in obj.ids do
           if let some dest := (← read).traverseState.externalTags[id]? then
-            return {{<code class="lake-opt"><a href={{dest.link}} class="lake-command">{{name}}</a>{{original.drop name.length |>.copy}}</code>}}
+            return html%{<code class="lake-opt"><a href={dest.link} class="lake-command">{name}</a>{original.drop name.length |>.copy}</code>}
 
-      pure {{<code class="lake-opt">{{original}}</code>}}
+      pure html%{<code class="lake-opt">{original}</code>}

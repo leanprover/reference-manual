@@ -27,9 +27,8 @@ def Block.noVale.descr : BlockDescr where
   traverse _ _ _ := pure none
   toTeX := none
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ goB _ _ content => do
-      pure {{<div class="no-vale">{{← content.mapM goB}}</div>}}
+      pure html%{<div class="no-vale">{← content.mapM goB}</div>}
 
 meta section
 

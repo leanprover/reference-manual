@@ -114,7 +114,6 @@ def elanOptDef.descr : InlineDescr where
   toTeX := none
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goB id data content => do
       let .arr #[.str name, _jsonKind, metadata] := data
         | reportError s!"Failed to deserialize metadata for Elan option def: {data}"; content.mapM goB
@@ -125,13 +124,13 @@ def elanOptDef.descr : InlineDescr where
         | reportError s!"Failed to deserialize argument metadata for Elan option def: {metadata}"; content.mapM goB
 
       if let some mv := metadata then
-        pure {{<code {{idAttr}} class="elan-opt">{{name}}" "{{mv}}</code>}}
+        pure html%{<code {...idAttr} class="elan-opt">{name}{" "}{mv}</code>}
       else
-        pure {{<code {{idAttr}} class="elan-opt">{{name}}</code>}}
+        pure html%{<code {...idAttr} class="elan-opt">{name}</code>}
 
-  localContentItem _ info _ := open Verso.Output.Html in do
+  localContentItem _ info _ := do
     if let .arr #[.str name, _jsonKind, _meta] := info then
-      pure #[(name, {{<code>{{name}}</code>}})]
+      pure #[(name, html%{<code>{name}</code>})]
     else throw s!"Expected three-element array with string first, got {info}"
 
 
@@ -158,7 +157,6 @@ def elanOpt.descr : InlineDescr where
   extraCss := [elanOptCss]
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goB _id data content => do
       let .arr #[.str name, .str original] := data
         | reportError s!"Failed to deserialize metadata for Elan option ref: {data}"; content.mapM goB
@@ -166,6 +164,6 @@ def elanOpt.descr : InlineDescr where
       if let some obj := (← read).traverseState.getDomainObject? elanOptDomain name then
         for id in obj.ids do
           if let some dest := (← read).traverseState.externalTags[id]? then
-            return {{<code class="elan-opt"><a href={{dest.link}} class="elan-command">{{name}}</a>{{original.drop name.length |>.copy}}</code>}}
+            return html%{<code class="elan-opt"><a href={dest.link} class="elan-command">{name}</a>{original.drop name.length |>.copy}</code>}
 
-      pure {{<code class="elan-opt">{{original}}</code>}}
+      pure html%{<code class="elan-opt">{original}</code>}

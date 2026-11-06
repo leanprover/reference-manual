@@ -139,7 +139,7 @@ private def registerExportType (id : InternalId) (name : String) :
   Index.addEntry id {term := Verso.Doc.Inline.concat #[.text name, .text " (export format)"]}
   modify (·.saveDomainObject exportTypeDomain name id)
 
-open Verso.Output Html in
+open Verso.Output in
 /--
 Converts highlighted export format text to HTML, linking each type name that has a description.
 -/
@@ -148,9 +148,9 @@ private def exportFormatHtml (state : TraverseState) (text : LexedText) : Html :
     | (none, txt) => (txt : Html)
     | (some "type", txt) =>
       if let some url := exportTypeLink? state txt then
-        {{<span class="type"><a href={{url}}>{{txt}}</a></span>}}
-      else {{<span class="type">{{txt}}</span>}}
-    | (some cls, txt) => {{<span class={{cls}}>{{txt}}</span>}}
+        html%{<span class="type"><a href={url}>{txt}</a></span>}
+      else html%{<span class="type">{txt}</span>}
+    | (some cls, txt) => html%{<span class={cls}>{txt}</span>}
 
 block_extension Block.exportFormat (caption : String) (value : LexedText) where
   data := toJson (caption, value)
@@ -164,17 +164,17 @@ block_extension Block.exportFormat (caption : String) (value : LexedText) where
     return none
   toTeX := none
   extraCss := [exportFormat.css]
-  toHtml := some <| fun _ _ id info _ => open Verso.Output.Html Verso.Doc.Html in do
+  toHtml := some <| fun _ _ id info _ => open Verso.Doc.Html in do
     let .ok ((caption, v) : String × LexedText) := fromJson? info
       | reportError s!"Failed to deserialize {info} as a captioned export format description"; pure .empty
     let state ← HtmlT.state
-    pure {{
-      <figure class="export-format" {{state.htmlId id}}>
-        <figcaption>{{caption}}</figcaption>
-        <pre class="export-format">{{exportFormatHtml state v}}</pre>
+    pure html%{
+      <figure class="export-format" {...state.htmlId id}>
+        <figcaption>{caption}</figcaption>
+        <pre class="export-format">{exportFormatHtml state v}</pre>
       </figure>
-    }}
-  localContentItem _ info _ := open Verso.Output.Html in do
+    }
+  localContentItem _ info _ := do
     let .ok ((caption, _) : String × LexedText) := fromJson? info
       | throw s!"Expected a caption and highlighted text, got {info}"
     let withSuffix := s!"{caption} (Export Format)"
@@ -218,29 +218,29 @@ a.export-type:hover {
 }
 "#
   ]
-  toHtml := some <| fun goI id data contents => open Verso.Output.Html Verso.Doc.Html in do
+  toHtml := some <| fun goI id data contents => open Verso.Doc.Html in do
     let .ok ((name, isDef) : String × Bool) := fromJson? data
       | reportError s!"Failed to deserialize {data} as an export format type name"; contents.mapM goI
     let state ← HtmlT.state
     -- A type named by a code literal is styled like the type names in `exportFormat` blocks, while
     -- custom link text is styled like the surrounding prose.
     let isTypeName := contents matches #[.code _]
-    let typeName (body : Html) : Html := {{<code class="export-format"><span class="type">{{body}}</span></code>}}
+    let typeName (body : Html) : Html := html%{<code class="export-format"><span class="type">{body}</span></code>}
     if isDef then
       if isTypeName then
-        return {{<span class="export-type" {{state.htmlId id}}>{{typeName name}}</span>}}
-      return {{<span class="export-type" {{state.htmlId id}}>{{← contents.mapM goI}}</span>}}
+        return html%{<span class="export-type" {...state.htmlId id}>{typeName name}</span>}
+      return html%{<span class="export-type" {...state.htmlId id}>{← contents.mapM goI}</span>}
     let some url := exportTypeLink? state name
       | reportError s!"Unknown export format type '{name}'"; contents.mapM goI
     if isTypeName then
-      return typeName {{<a href={{url}}>{{name}}</a>}}
-    pure {{<a class="export-type" href={{url}}>{{← contents.mapM goI}}</a>}}
-  localContentItem _ data _ := open Verso.Output.Html in do
+      return typeName html%{<a href={url}>{name}</a>}
+    pure html%{<a class="export-type" href={url}>{← contents.mapM goI}</a>}
+  localContentItem _ data _ := do
     let .ok ((name, isDef) : String × Bool) := fromJson? data
       | throw s!"Expected an export format type name and a Boolean, got {data}"
     if isDef then
       let withSuffix := s!"{name} (Export Format)"
-      pure #[(name, {{<code>{{name}}</code>}}), (withSuffix, {{<code>{{name}}</code>" (Export Format)"}})]
+      pure #[(name, html%{<code>{name}</code>}), (withSuffix, html%{<code>{name}</code> (Export Format)})]
     else pure #[]
 
 structure ExportTypeConfig where
@@ -277,11 +277,11 @@ inline_extension Inline.exportField (name : String) where
   traverse _ _ _ := pure none
   toTeX := none
   extraCss := [exportFormat.css]
-  toHtml := some <| fun goI _ data contents => open Verso.Output.Html in do
+  toHtml := some <| fun goI _ data contents => do
     let .ok (name : String) := fromJson? data
       | reportError s!"Failed to deserialize {data} as an export format field name"; contents.mapM goI
     -- The text is directly inside `<code>` so that the prose linter skips it.
-    pure {{<code class="export-format key">s!"\"{name}\""</code>}}
+    pure html%{<code class="export-format key">{s!"\"{name}\""}</code>}
 
 /--
 Displays the name of a field in an export format object, in the style of field names in

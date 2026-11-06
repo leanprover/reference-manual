@@ -11,27 +11,24 @@ import Manual.ExtractExamples
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-open Verso.Output.Html in
-def plausible := {{
+def plausible := html%{
     <script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script>
-    <script>{{.raw r#"
+    <script>{.raw r#"
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
-    "#}}</script>
-  }}
+    "#}</script>
+  }
 
-open Verso.Output.Html in
-def staticJs := {{
+def staticJs := html%{
     <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
-    {{ if false then -- Flip this bit to test live links locally
-        {{ <script>"window.metadata = {'latest': true};"</script> }}
+    { if false then -- Flip this bit to test live links locally
+        html%{<script>{"window.metadata = {'latest': true};"}</script>}
       else
-        .empty }}
-  }}
+        .empty }
+  }
 
-open Verso.Output.Html in
-def staticCss := {{
+def staticCss := html%{
     <link rel="stylesheet" href="static/colors.css" />
     <link rel="stylesheet" href="static/theme.css" />
     <link rel="stylesheet" href="static/print.css" />
@@ -39,7 +36,7 @@ def staticCss := {{
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css" />
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css" />
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css" />
-  }}
+  }
 
 def main :=
   manualMain (%doc Manual) (config := config) (extraSteps := [extractExamples])

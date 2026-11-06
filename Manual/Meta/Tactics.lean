@@ -555,7 +555,6 @@ def proofState.descr : BlockDescr := withHighlighting {
   extraCss := [proofStateStyle]
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ id data _ => do
       match FromJson.fromJson? (α := Option Tag × Array (Highlighted.Goal Highlighted)) data with
       | .error err =>
@@ -565,16 +564,16 @@ def proofState.descr : BlockDescr := withHighlighting {
         let xref ← HtmlT.state
         let idAttr := xref.htmlId id
 
-        pure {{
+        pure html%{
           <div class="hl lean tactic-view">
-            <div class="tactic-state" {{idAttr}}>
-              {{← if goals.isEmpty then
-                  pure {{"All goals completed! 🐙"}}
+            <div class="tactic-state" {...idAttr}>
+              {← if goals.isEmpty then
+                  pure html%{All goals completed! 🐙}
                 else
-                  .seq <$> goals.mapIdxM fun i x => withCollapsedSubgoals (g := Verso.Genre.Manual) .never <| x.toHtml (·.toHtml) i}}
+                  .seq <$> goals.mapIdxM fun i x => withCollapsedSubgoals (g := Verso.Genre.Manual) .never <| x.toHtml (·.toHtml) i}
             </div>
           </div>
-        }}
+        }
 }
 
 structure StateConfig where
