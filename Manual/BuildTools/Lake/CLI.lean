@@ -1017,7 +1017,7 @@ HARDENING:
   network namespace.
 ```
 
-::::lake comparator "[\"--config=\" file] [\"--challenge-from-export=\" file] [\"--solution-from-export=\" file] [\"--paranoid\"] [\"--inadvisably-no-sandbox\"]"
+::::lake comparator "[\"--config=\" file] [\"--challenge-from-export=\" file] [\"--solution-from-export=\" file] [\"--paranoid\"] [\"--inadvisably-no-sandbox\"] [\"--json\"]"
 
 Judges a solution against a {deftech}_challenge_: a trusted configuration that states which theorems must be proved and which axioms are permitted.
 {lake}`comparator` establishes that every named theorem in the solution proves the same statement as the challenge, that the solution uses only permitted axioms, and that it is accepted by Lean's kernel as well as by every configured external kernel.
@@ -1052,6 +1052,9 @@ Some reasons to use exports include:
 The {lakeOptDef flag}`--inadvisably-no-sandbox` flag runs the build, the export, and the checkers directly, without `bubblewrap`.
 While this makes it possible to run {lake}`comparator` on platforms other than Linux, the untrusted project's code then runs with all of the invoking user's permissions, so the result is not trustworthy.
 It is intended only for experts who provide isolation by other means.
+
+The {lakeOptDef flag}`--json` flag replaces the human-readable output after each step with a single JSON report that is printed to standard output once the judgment is complete.
+The report records the outcome of each step (dependency resolution, builds, exports, statement comparison, axiom checks, and the replay of the solution by each kernel) along with the challenge configuration that was used and the overall judgment.
 
 The exit code distinguishes an accepted solution (`0`) and a rejected one (`1`) from an environment in which the judgment could not run at all (`2`).
 
@@ -1145,7 +1148,7 @@ HARDENING:
 See `lake help comparator` to judge a solution against a challenge instead.
 ```
 
-::::lake check "[\"--from-export=\" file] [\"--paranoid\"] [\"--inadvisably-no-sandbox\"]"
+::::lake check "[\"--from-export=\" file] [\"--paranoid\"] [\"--inadvisably-no-sandbox\"] [\"--json\"]"
 
 {lake}`check` builds the {tech}[root package]'s {tech}[default targets], exports them, and replays the result through Lean's kernel.
 It then reports the axioms that the checked code uses, and fails if any of them is not one of the {ref "standard-axioms"}[standard axioms].
@@ -1158,6 +1161,9 @@ Only expert users who are providing isolation by some other means should disable
 
 The {lakeOptDef option}`--from-export=FILE` option checks an existing `leanexport` export instead of building and exporting the project, and then no manifest is needed.
 This establishes only that the checkers accept the export, and says nothing about the project in the workspace.
+
+The {lakeOptDef flag}`--json` flag replaces the human-readable output after each step with a single JSON report that is printed to standard output once the check is complete.
+The report records the outcome of each step (dependency resolution, the build, the axiom check, and the replay of the export by each kernel) along with the overall judgment.
 
 The exit code is `0` when every checker accepts the project and only standard axioms are used, `1` when a checker rejects it, a non-standard axiom is used, or a build fails, and `2` when the check could not run at all.
 ::::
