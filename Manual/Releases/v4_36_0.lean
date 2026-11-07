@@ -7,11 +7,18 @@ Author: Joscha Mennicken
 import VersoManual
 import Manual.Meta
 import Manual.Meta.Markdown
+import Std.WP
+import Std.Tactic.BVDecide
 
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
+
+open Std.WP Lean.Order
+
+set_option experimental.intrinsic true
+set_option experimental.vcgen true
 
 #doc (Manual) "Lean 4.36.0-rc2 (2026-10-27)" =>
 %%%
@@ -32,6 +39,239 @@ there were 11 refactoring changes,
 30 performance improvements,
 3 improvements to the test suite,
 and 26 other changes.
+
+# Highlights
+
+Lean 4.36.0 is mostly a consolidation release.
+Function contracts can now state what happens when a function throws an exception, {tactic}`bv_decide` can reason about uninterpreted functions, and {tactic}`grind` proves more goals about bit vectors, characters and `Fin`.
+The library gains a type for HTML with its own syntax, `<` on `String` is now defined on UTF-8 bytes, and `min` and `max` on `Float` follow IEEE 754.
+Much of the remaining work went into performance: the type class cache is kept between commands, and several slowdowns that grew quadratically with the size of a file are gone.
+
+_This highlights section was contributed by Juanjo Madrigal._
+
+## Experimental: Exceptions in Contracts
+
+Until now, the `ensures` clause of a `def` contract could only describe the case in which the function returns normally.
+[#15091](https://github.com/leanprover/lean4/pull/15091) adds `throws` clauses, which state what holds when the function throws.
+They come after `ensures` and bind the exception just as `ensures` binds the result:
+
+```lean (name := safeDivSpec)
+def safeDiv (a b : Nat) : Except String Nat
+    ensures r => r = a / b
+    throws e => e = "division by zero" ∧ b = 0
+  := do
+  if b = 0 then throw "division by zero"
+  return a / b
+
+#check safeDiv.spec
+```
+```leanOutput safeDivSpec
+safeDiv.spec (a b : Nat) : ⦃ ⊤ ⦄ safeDiv a b ⦃ fun r => r = a / b; fun e => e = "division by zero" ∧ b = 0 ⦄
+```
+
+In a state monad, the clause also binds the state at the moment of the throw.
+This makes it possible to state that a failed operation leaves the state unchanged:
+
+```lean
+def push (x : Nat) : ExceptT String (StateM (List Nat)) Unit
+    given (xs : List Nat)
+    requires s => s = xs
+    ensures _ s => s = x :: xs
+    throws e s => e = "full" ∧ s = xs
+  := do
+  let s ← get
+  if s.length ≥ 3 then throw "full"
+  set (x :: s)
+```
+
+When a monad has several exception layers, such as `ExceptT String (Except Nat)`, a type ascription `throws (e : Nat) => ...` selects the layer the clause is about.
+A layer without a `throws` clause gets the postcondition `⊥`, which means that the function never throws there.
+In other words, leaving out `throws` promises that there are no exceptions, and {tactic}`vcgen` checks that promise:
+
+```lean (name := leaky) +error
+def leaky (n : Nat) : Except String Nat
+    ensures r => r = n
+  := do
+  if n > 100 then throw "too big"
+  return n
+```
+```leanOutput leaky
+unproved verification conditions for the contract of `leaky`; discharge them in a `where finally | spec => ...` section of the definition
+case vc1
+n : Nat
+h✝ : 100 < n
+⊢ ⊥ "too big"
+```
+
+The remaining goal asks for a proof that the exception `"too big"`, thrown when `100 < n`, satisfies `⊥`.
+This is impossible, so the contract needs a `throws` clause for it.
+
+Contracts and {tactic}`vcgen` are still experimental, and each use reports a warning.
+`set_option experimental.intrinsic true` and `set_option experimental.vcgen true` silence these warnings.
+
+Several smaller changes make {tactic}`vcgen` easier to use.
+`import Std.WP` now provides {tactic}`vcgen` on its own ([#15290](https://github.com/leanprover/lean4/pull/15290)), and the join points of `do` blocks are no longer shown in verification conditions ([#15322](https://github.com/leanprover/lean4/pull/15322)).
+More exception postconditions now lead to pointwise verification conditions such as `∀ e, e = "x" → ...` ([#14827](https://github.com/leanprover/lean4/pull/14827)).
+{tactic}`vcgen` also handles more forms of preconditions in specifications directly, such as conjunctions and `∃ h : i < xs.size, ...` ([#15487](https://github.com/leanprover/lean4/pull/15487), [#15491](https://github.com/leanprover/lean4/pull/15491), [#15515](https://github.com/leanprover/lean4/pull/15515)).
+
+## Uninterpreted Functions in `bv_decide`
+
+{tactic}`bv_decide` turns each operation on bit vectors into a circuit, but a function variable `f : BitVec 8 → BitVec 8` has no circuit.
+Every application `f x` is therefore replaced by an unrelated fresh variable, so by default {tactic}`bv_decide` does not even know that `x = y` implies `f x = f y`.
+[#15398](https://github.com/leanprover/lean4/pull/15398) adds the option `+uf`, with which {tactic}`bv_decide` adds such facts as they are needed and solves the problem again incrementally:
+
+```lean
+example (f : BitVec 8 → BitVec 8) (x y : BitVec 8)
+    (h₁ : x &&& y = x) (h₂ : y &&& x = y) : f x = f y := by
+  bv_decide +uf
+```
+
+For now, this only works for functions that return `Bool` or `BitVec`, and only for their non-dependent `Bool` and `BitVec` arguments.
+
+## More Goals for `grind`
+
+The {ref "grind-hom"}[homomorphisms] that {tactic}`grind` uses to translate bit vectors and fixed-width integers into {name}`Nat` and {name}`Int` arithmetic now cover many more operations, among them masks, concatenation, rotations, signed comparisons and shifts, and exponentiation.
+{tactic}`grind` also knows that a character literal is a number.
+It now also uses theorems such as `score_a` below, whose patterns contain a closed argument with a character literal, a negative integer or a `fun`.
+Previously, such theorems were only used when passed explicitly:
+
+```lean
+example (x : BitVec 8) :
+    (x &&& 0xe0).toNat = x.toNat / 32 % 8 * 32 := by grind
+example (x y : BitVec 8) :
+    (x ++ y).toNat = x.toNat * 2 ^ 8 + y.toNat := by grind
+example (x y z : BitVec 16) : x.slt y → y.sle z → x.slt z := by grind
+example (y : Char) : y = 'a' → y.toNat = 97 := by grind
+
+def score : Char → Nat := fun _ => 1
+@[grind =] theorem score_a : score 'a' = 1 := rfl
+example : score 'a' = 1 := by grind
+```
+
+PRs: [#15345](https://github.com/leanprover/lean4/pull/15345), [#15348](https://github.com/leanprover/lean4/pull/15348), [#15350](https://github.com/leanprover/lean4/pull/15350), [#15364](https://github.com/leanprover/lean4/pull/15364), [#15365](https://github.com/leanprover/lean4/pull/15365), [#15367](https://github.com/leanprover/lean4/pull/15367), [#15369](https://github.com/leanprover/lean4/pull/15369), [#15370](https://github.com/leanprover/lean4/pull/15370), [#15259](https://github.com/leanprover/lean4/pull/15259), [#15262](https://github.com/leanprover/lean4/pull/15262), [#15445](https://github.com/leanprover/lean4/pull/15445), [#15411](https://github.com/leanprover/lean4/pull/15411), [#15448](https://github.com/leanprover/lean4/pull/15448), [#15311](https://github.com/leanprover/lean4/pull/15311).
+
+Most of the other {tactic}`grind` changes in this release prepare a new normalizer based on `Sym.simp`, the simplifier of `sym =>` mode.
+It is not used by default yet, but it can be tried with `set_option backward.grind.normalizer false` ([#15464](https://github.com/leanprover/lean4/pull/15464)).
+
+## Faster Elaboration and Fewer Rebuilds
+
+[#14316](https://github.com/leanprover/lean4/pull/14316) keeps results of type class resolution between commands, so a query that mentions no metavariables, local variables or local instances is answered from the cache if it appeared in an earlier command.
+An entry is only reused while the instances, unification hints, reducibility settings and options that its search depended on are unchanged ([#15325](https://github.com/leanprover/lean4/pull/15325), [#15354](https://github.com/leanprover/lean4/pull/15354), [#15355](https://github.com/leanprover/lean4/pull/15355), [#15399](https://github.com/leanprover/lean4/pull/15399)).
+This reduces the time spent on type class resolution when building the standard library by about 14%.
+
+Several costs that grew with the size of the file, and thus made elaborating long files quadratic, were removed ([#15223](https://github.com/leanprover/lean4/pull/15223), [#15228](https://github.com/leanprover/lean4/pull/15228), [#15232](https://github.com/leanprover/lean4/pull/15232)).
+For example, on a file with 4,000 pairs of a recursive definition and a theorem that unfolds it with `simp only`, elaboration time drops from 99 s to 32 s.
+Outside the language server, importing modules that use the module system is faster and needs less memory, which reduces the time to import Mathlib by about 6% ([#15512](https://github.com/leanprover/lean4/pull/15512)).
+A `module` also no longer exports equation lemmas that were only needed inside a proof, or extension data of private declarations, so changing them does not cause downstream rebuilds ([#15558](https://github.com/leanprover/lean4/pull/15558), [#15559](https://github.com/leanprover/lean4/pull/15559)).
+
+## Other Language Improvements
+
+[#11386](https://github.com/leanprover/lean4/pull/11386) lets functions on nested inductive types recurse through {name}`List.any` and {name}`List.all`, as they already could through {name}`List.map`, without having to prove termination by hand:
+
+```lean
+inductive RoseTree where
+  | node : Nat → List RoseTree → RoseTree
+
+def RoseTree.contains (t : RoseTree) (k : Nat) : Bool :=
+  match t with
+  | .node v cs => v == k || cs.any (fun c => c.contains k)
+```
+
+[#15516](https://github.com/leanprover/lean4/pull/15516) removes the limit of 255 non-scalar fields per constructor, and thus per structure.
+The warning about a missing `since` in `@[deprecated]` now comes with a code action that inserts the current date ([#15572](https://github.com/leanprover/lean4/pull/15572)).
+
+## Lake and Toolchain
+
+[#12545](https://github.com/leanprover/lean4/pull/12545) adds `lake samply`, which records a CPU profile of a Lean executable with [samply](https://github.com/mstange/samply) and serves it to the [Firefox Profiler](https://profiler.firefox.com) with readable Lean names instead of mangled ones.
+samply itself has to be installed separately:
+
+```
+lake samply mergeSort -- -- 10   # arguments after the second `--` go to the executable
+```
+
+[#15630](https://github.com/leanprover/lean4/pull/15630) adds `--add-downstream <MODULE>` and `--add-public-downstream <MODULE>` to `lake shake`.
+They make sure that a module, such as one that registers a project's linters, is imported directly or transitively by every module of the project, adding the import where it is missing.
+Modules where the import would create a cycle are skipped.
+
+The Linux and macOS toolchains now include [Lean Beam](https://github.com/leanprover/lean-beam) ([#15665](https://github.com/leanprover/lean4/pull/15665)), a command-line tool and MCP server that lets AI agents and other tools work with Lean projects through the language server.
+
+## Library Highlights
+
+[#14935](https://github.com/leanprover/lean4/pull/14935) adds `Lean.Html`, a type for writing HTML, and [#15002](https://github.com/leanprover/lean4/pull/15002) adds syntax for it.
+Inside `html%{...}`, braces switch back to Lean, and text is escaped when rendered:
+
+```lean (name := htmlCard)
+open Lean in
+def card (title : String) (tags : List String) : Html :=
+  html%{
+    <div class="card">
+      <h2>{title}</h2>
+      <ul>{... tags.map fun (t : String) => html%{<li>{t}</li>}}</ul>
+    </div>}
+
+#eval (card "Lean & friends" ["fp", "<proofs>"]).render
+```
+```leanOutput htmlCard
+"<div class=\"card\"><h2>Lean &amp; friends</h2><ul><li>fp</li><li>&lt;proofs&gt;</li></ul></div>"
+```
+
+Malformed HTML, such as a mismatched end tag, is an error.
+
+[#15257](https://github.com/leanprover/lean4/pull/15257) adds {name}`Float.minimum` and {name}`Float.minimumNumber`, the minimum operations of the 2019 revision of IEEE 754, together with the corresponding {name}`Float.maximum` and {name}`Float.maximumNumber`.
+`min` and `max` on {name}`Float` are now {name}`Float.minimum` and {name}`Float.maximum`.
+Previously, both were defined using `≤`, so their result depended on the order of the arguments when one of them was NaN:
+
+```lean (name := floatMin)
+def notANumber : Float := 0.0 / 0.0
+
+#eval (min notANumber 1.0, min 1.0 notANumber,
+  Float.minimumNumber notANumber 1.0)
+```
+```leanOutput floatMin
+(NaN, NaN, 1.000000)
+```
+
+[#15581](https://github.com/leanprover/lean4/pull/15581) defines `<` on {name}`String` as the lexicographic order of the UTF-8 bytes, which is what the runtime computes.
+The order itself is unchanged, since this gives the same result as comparing the characters.
+[#15651](https://github.com/leanprover/lean4/pull/15651) adds {name}`String.fromUTF8Lossy`, which, unlike {name}`String.fromUTF8?`, never fails and replaces each invalid byte sequence with `�`:
+
+```lean (name := lossy)
+#eval String.fromUTF8Lossy ⟨#[104, 105, 0xFF, 33]⟩
+```
+```leanOutput lossy
+"hi�!"
+```
+
+Other changes add the missing order instances for `List`, `Array`, `Vector`, `BitVec` and `ByteArray` ([#15304](https://github.com/leanprover/lean4/pull/15304), [#15274](https://github.com/leanprover/lean4/pull/15274), [#15329](https://github.com/leanprover/lean4/pull/15329)), and fix a number of problems with timers, signals, sockets, cancellation and the HTTP server in the asynchronous I/O library ([#15523](https://github.com/leanprover/lean4/pull/15523), [#15192](https://github.com/leanprover/lean4/pull/15192), [#15174](https://github.com/leanprover/lean4/pull/15174), [#14795](https://github.com/leanprover/lean4/pull/14795), [#15469](https://github.com/leanprover/lean4/pull/15469), [#15443](https://github.com/leanprover/lean4/pull/15443)).
+
+## Breaking Changes
+
+- [#15257](https://github.com/leanprover/lean4/pull/15257) changes `min` and `max` on {name}`Float`, as described above.
+  Code that relied on `min` or `max` returning the other argument when one of them is NaN should use {name}`Float.minimumNumber` or {name}`Float.maximumNumber`.
+  The new operations also consider `-0.0` to be smaller than `0.0`.
+
+- [#15581](https://github.com/leanprover/lean4/pull/15581) changes the definition of `<` on {name}`String`.
+  Proofs that unfolded it to the order on character lists can use `String.toList_lt_toList_iff` instead.
+
+- [#15628](https://github.com/leanprover/lean4/pull/15628) makes `Lean.Json.parse` reject objects that contain the same key twice, instead of keeping the last value.
+
+- [#15064](https://github.com/leanprover/lean4/pull/15064) replaces the parser of Verso docstrings.
+  The syntax objects that it produces are completely different, so docstring extensions need to be adapted.
+The intended way to inspect them is through the new views, which represent Verso syntax as inductive types.
+  Tabs are no longer allowed for indentation in Verso docstrings, and link and footnote reference names can no longer contain `[`, `^` or tabs.
+
+- [#15290](https://github.com/leanprover/lean4/pull/15290) deprecates the tactics of the `Std.Do` proof mode, such as `mintro` and `mspec`, in favor of {tactic}`vcgen`.
+  Each call reports a single deprecation warning ([#15286](https://github.com/leanprover/lean4/pull/15286)).
+  [#15171](https://github.com/leanprover/lean4/pull/15171) renames several `Std.WP` declarations, for example `WP.wpTrans` to `WP.trans`, and keeps the old names as deprecated aliases.
+  [#15217](https://github.com/leanprover/lean4/pull/15217) renames the parameter `EPred` to `EPosts`; code that passes it by name keeps working with a deprecation warning.
+
+- [#15252](https://github.com/leanprover/lean4/pull/15252) and [#16253](https://github.com/leanprover/lean4/pull/16253) fix `withPtrEq`, which could lead to miscompilations when values of its type contained types or type formers, since these are erased at runtime.
+  The compiler now refuses to compile a use of `withPtrEq` unless it can check that this cannot happen.
+  *Migration:* in `unsafe` code, `withPtrEqUnsafe` can be used instead.
+
+- [#15204](https://github.com/leanprover/lean4/pull/15204) makes `simp [← p]` an error when `p` is a simproc or a simp extension, instead of silently ignoring the arrow.
+
+- [#14906](https://github.com/leanprover/lean4/pull/14906) deprecates the `leanArts` Lake facet in favor of `elabArts` and `irArts`; `leanArts` now means `irArts`.
 
 # Language
 
