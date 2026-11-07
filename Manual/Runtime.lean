@@ -524,4 +524,4 @@ The `precompileModules` {ref "lake-config"}[configuration option] instructs Lake
 
 It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each {attr}`extern` declaration.
 Thus it is not possible to interpret an {attr}`extern` declaration in the same file.
-The Lean source repository contains an example of this usage in [`tests/compiler/foreign`](https://github.com/leanprover/lean4/tree/master/tests/compiler/foreign/).
+The Lean source repository contains an example of this usage in [`tests/lake/tests/externLib`](https://github.com/leanprover/lean4/tree/master/tests/lake/tests/externLib/).
