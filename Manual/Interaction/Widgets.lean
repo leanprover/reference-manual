@@ -150,8 +150,8 @@ Lean can display widgets in two ways: within messages in the {tech}[message log]
   Finally, the {keywordOf Lean.Widget.widgetCmd}`#widget` command can be used to quickly render a panel widget.
 
   :::example "Using the `#widget` Command"
-  The panel widget is associated with the source line the command appears on.
-  Internally, this command invokes {name}`Widget.savePanelWidgetInfo`.
+  This example defines a minimal panel widget and uses the `#widget` command to display it.
+  Internally, the command invokes {name}`Widget.savePanelWidgetInfo` to associate the panel widget with the source line the command appears on.
 
   ```imports -show
   import Lean.Widget.Commands
