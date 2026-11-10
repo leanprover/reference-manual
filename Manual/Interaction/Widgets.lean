@@ -216,7 +216,7 @@ Instead, the client receives an opaque identifier that can later be used to retr
 ```lean -show
 variable (α : Type)
 ```
-For a {lean}`Server.RpcEncodable (Server.WithRpcRef α)` instance to synthesize, the type {lean}`α` must have a {name}`TypeName` instance.
+For a {lean}`Server.RpcEncodable (Server.WithRpcRef α)` instance to synthesize successfully, the type {lean}`α` must have a {name}`TypeName` instance.
 
 :::example "TypeName and Imported Constants"
 We discourage deriving {lean}`TypeName α` outside of the module where {lean}`α` is defined.
