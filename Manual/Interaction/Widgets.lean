@@ -82,7 +82,9 @@ The JavaScript environment in which widget modules execute is a standard browser
 ## Bundling
 
 A {tech}[widget module] must be a single, self-contained JavaScript module.
-In order to compile an [`npm`](https://www.npmjs.com/) package (with dependencies, TypeScript, and so on) into this format, one typically uses a _bundler_.
+Simple widgets can be written directly in this form.
+Beyond a certain complexity level, though, it becomes useful to define an [`npm`](https://www.npmjs.com/) package with dependencies, TypeScript, and so on.
+In order to compile such a package into a JavaScript module, one typically uses a _bundler_.
 The following bundler-specific instructions may be useful.
 
 : [Rollup.js](https://rollupjs.org/)
