@@ -485,15 +485,9 @@ variable (α : Type)
 ```
 For a {lean}`Server.RpcEncodable (Server.WithRpcRef α)` instance to synthesize successfully, the type {lean}`α` must have a {name}`TypeName` instance.
 
-:::example "TypeName and Imported Constants"
-We discourage deriving {lean}`TypeName α` outside of the module where {lean}`α` is defined.
-Instead, define a single-field structure (a “newtype”) wrapping {lean}`α`, and derive {lean}`TypeName` for that.
-```lean
-structure MyNat where
-  val : Nat
-  deriving TypeName
-```
-:::
+Deriving {lean}`TypeName α` outside of the module where {lean}`α` is defined can lead to conflicting instances downstream, so it is discouraged.
+Patching the defining module may not be possible.
+A workaround is to define a “newtype” structure containing a single field of type {lean}`α`, and to then derive {lean}`TypeName` for that structure.
 ::::
 
 Use {name}`Server.WithRpcRef.mk` to construct RPC references.
