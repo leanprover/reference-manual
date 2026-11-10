@@ -479,6 +479,15 @@ Instead, the client receives an opaque identifier that can later be used to retr
 
 {docstring +allowMissing Server.WithRpcRef}
 
+Use {name}`Server.WithRpcRef.mk` to construct RPC references.
+
+{docstring Server.WithRpcRef.mk}
+
+### {name}`TypeName` for References
+%%%
+tag := "widgets-typename-references"
+%%%
+
 ::::leanSection
 ```lean -show
 variable (α : Type)
@@ -486,13 +495,10 @@ variable (α : Type)
 For a {lean}`Server.RpcEncodable (Server.WithRpcRef α)` instance to synthesize successfully, the type {lean}`α` must have a {name}`TypeName` instance.
 
 Deriving {lean}`TypeName α` outside of the module where {lean}`α` is defined can lead to conflicting instances downstream, so it is discouraged.
-Patching the defining module may not be possible.
-A workaround is to define a “newtype” structure containing a single field of type {lean}`α`, and to then derive {lean}`TypeName` for that structure.
+Patching the defining module is preferred.
+When this is not possible, a workaround is to define a “newtype” structure containing a single field of type {lean}`α`.
+A {lean}`TypeName` instance can then be derived for that structure.
 ::::
-
-Use {name}`Server.WithRpcRef.mk` to construct RPC references.
-
-{docstring Server.WithRpcRef.mk}
 
 ## RPC Methods
 
@@ -520,6 +526,11 @@ The {name}`Server.RequestM.asTask` convenience function does exactly this.
 :::
 
 :::example "Registering an RPC Method"
+This example registers an {tech}[RPC method] with an {tech}[RPC reference] as the argument.
+
+First, the {ref "widgets-typename-references"}[{name}`TypeName` instance workaround] is applied: the basic {name}`String` type is wrapped in a structure called `Cell`.
+This structure will be kept server-side, with the client holding a reference to it.
+
 ```imports -show
 import Lean.Server.Rpc
 ```
@@ -530,7 +541,16 @@ open Lean
 structure Cell where
   str : String
 deriving TypeName
+```
 
+Then, an RPC method named `unwrapStr` is defined and registered.
+When invoked by a client later, its body would execute in the language server.
+
+Given a reference to a `Cell`, the method extracts the nested string and returns it directly.
+The helper {name}`Server.RequestM.asTask` wraps this computation in a concurrent task.
+From the client's perspective, this remote endpoint receives an opaque, numeric reference and sends back a JSON string.
+
+```lean
 /--
 Extracts a string from a server-side cell
 and sends it to the client.
