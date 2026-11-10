@@ -8,6 +8,7 @@ import VersoManual
 
 import Manual.Meta
 import Lean.Widget
+import Lake.Build
 
 open Verso.Genre Manual InlineLean
 open Lean Widget
@@ -97,6 +98,272 @@ The following bundler-specific instructions may be useful.
 : [esbuild](https://esbuild.github.io/)
 
   Does not work due to issue [evanw/esbuild#1944](https://github.com/evanw/esbuild/issues/1944).
+
+The output of a bundler is typically a JavaScript file on disk.
+To include the contents of such a file in a {name}`Widget.Module` definition, use the {keywordOf Lean.includeStr}`include_str` term elaborator.
+This elaborator reads a file and produces a string literal from its contents.
+By default, {keywordOf Lean.includeStr}`include_str` does not register a {ref "lake"}[Lake] dependency of the Lean file on the JS file, so changing the JS would not automatically rebuild the Lean module.
+The missing dependency can be added using the {tomlField Lake.LeanLibConfig}`needs` configuration option.
+
+::::example "Adding a JavaScript Target to a Lakefile"
+
+This example shows how to build an `npm` package as a dependency of a Lean library.
+The {ref "lake-config-lean"}[Lean configuration format] for Lake is necessary for this custom build job.
+
+In the `lakefile.lean` below, the [package-lock.json](https://docs.npmjs.com/cli/v9/configuring-npm/package-lock-json) file and the source directory `widget/src` are first registered as additional build inputs.
+The targets are named `widgetPackageLock` and `widgetDir`, respectively.
+Their existence ensures that changes to the input files trigger a rebuild.
+In order to normalize line endings, the `text` option is set.
+The example assumes that no other files influence the build; in real projects, additional files may need to be included: bundler configuration, TypeScript settings, etc.
+
+A `widgetJs` target that builds the JavaScript bundle is then defined.
+The bundle resides in `widget/dist/index.js` and is generated as the output of `npm run build`.
+By using {name}`Lake.buildFileUnlessUpToDate'`, this script only runs the build command if the input files have changed.
+
+Finally, the Lean library target takes `widgetJs` as an additional dependency via the {tomlField Lake.LeanLibConfig}`needs` array.
+
+:::lakeLean
+```lean
+import Lake
+open Lake DSL
+
+package MyPackage
+
+input_file widgetPackageLock where
+  path := "widget/package-lock.json"
+  text := true
+
+input_dir widgetDir where
+  path := "widget/src"
+  text := true
+
+target widgetJs pkg : Unit := do
+  let inputs := (← widgetPackageLock.fetch).mix (← widgetDir.fetch)
+  inputs.mapM fun _ => do
+    let bundlePath := pkg.dir / "widget" / "dist" / "index.js"
+    buildFileUnlessUpToDate' bundlePath (text := true) do
+      proc {
+        cmd := "npm"
+        args := #["run", "build"]
+        cwd := some (pkg.dir / "widget")
+      }
+
+@[default_target]
+lean_lib MyLibrary where
+  needs := #[widgetJs]
+```
+```expected
+{wsIdx := 0,
+  baseName := `MyPackage,
+  keyName := Lean.Name.mkNum `MyPackage 0,
+  origName := `MyPackage,
+  dir := FilePath.mk ".",
+  relDir := FilePath.mk ".",
+  config :=
+    {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
+      toLeanConfig :=
+        { buildType := Lake.BuildType.release,
+          leanOptions := #[],
+          moreLeanArgs := #[],
+          weakLeanArgs := #[],
+          moreLeancArgs := #[],
+          moreServerOptions := #[],
+          weakLeancArgs := #[],
+          moreLinkObjs := #[],
+          moreLinkLibs := #[],
+          moreLinkArgs := #[],
+          weakLinkArgs := #[],
+          backend := Lake.Backend.default,
+          platformIndependent := none,
+          precompileImports := false,
+          dynlibs := #[],
+          plugins := #[],
+          requiresModuleSystem := false,
+          allowNonModules := false },
+      bootstrap := false,
+      extraDepTargets := #[],
+      precompileModules := false,
+      moreGlobalServerArgs := #[],
+      srcDir := FilePath.mk ".",
+      buildDir := FilePath.mk ".lake/build",
+      leanLibDir := FilePath.mk "lib/lean",
+      nativeLibDir := FilePath.mk "lib",
+      binDir := FilePath.mk "bin",
+      irDir := FilePath.mk "ir",
+      releaseRepo := none,
+      buildArchive := ELIDED,
+      preferReleaseBuild := false,
+      testDriver := "",
+      testDriverArgs := #[],
+      lintDriver := "",
+      lintDriverArgs := #[],
+      version := { toSemVerCore := { major := 0, minor := 0, patch := 0 }, specialDescr := "" },
+      versionTags := { filter := #<fun>, name := `default, descr? := none},
+      description := "",
+      keywords := #[],
+      homepage := "",
+      license := "",
+      licenseFiles := #[FilePath.mk "LICENSE"],
+      readmeFile := FilePath.mk "README.md",
+      reservoir := true,
+      enableArtifactCache? := none,
+      restoreAllArtifacts? := none,
+      libPrefixOnWindows := false,
+      allowImportAll := false,
+      builtinLint? := none,
+      checks := #[],
+      fixedToolchain := false},
+  configFile := FilePath.mk "lakefile.lean",
+  relConfigFile := FilePath.mk "lakefile.lean",
+  relManifestFile := FilePath.mk "lake-manifest.json",
+  scope := "",
+  remoteUrl := "",
+  depConfigs := #[],
+  depIdxs := #[],
+  depPkgs := #[],
+  targetDecls :=
+    #[{toConfigDecl :=
+          {pkg := Lean.Name.mkNum `MyPackage 0,
+            name := `widgetPackageLock,
+            kind := `input_file,
+            config := Impossible!,
+            wf_data := …},
+        pkg_eq := …},
+      {toConfigDecl :=
+          {pkg := Lean.Name.mkNum `MyPackage 0,
+            name := `widgetDir,
+            kind := `input_dir,
+            config := Impossible!,
+            wf_data := …},
+        pkg_eq := …},
+      {toConfigDecl :=
+          {pkg := Lean.Name.mkNum `MyPackage 0,
+            name := `widgetJs,
+            kind := Lean.Name.anonymous,
+            config := #<opaque target>,
+            wf_data := …},
+        pkg_eq := …},
+      {toConfigDecl :=
+          {pkg := Lean.Name.mkNum `MyPackage 0,
+            name := `MyLibrary,
+            kind := `lean_lib,
+            config :=
+              {toLeanConfig :=
+                  { buildType := Lake.BuildType.release,
+                    leanOptions := #[],
+                    moreLeanArgs := #[],
+                    weakLeanArgs := #[],
+                    moreLeancArgs := #[],
+                    moreServerOptions := #[],
+                    weakLeancArgs := #[],
+                    moreLinkObjs := #[],
+                    moreLinkLibs := #[],
+                    moreLinkArgs := #[],
+                    weakLinkArgs := #[],
+                    backend := Lake.Backend.default,
+                    platformIndependent := none,
+                    precompileImports := false,
+                    dynlibs := #[],
+                    plugins := #[],
+                    requiresModuleSystem := false,
+                    allowNonModules := false },
+                srcDir := FilePath.mk ".",
+                roots := #[`MyLibrary],
+                globs := #[Lake.Glob.one `MyLibrary],
+                libName := "",
+                libPrefixOnWindows := false,
+                needs := #[Lake.BuildKey.packageTarget Lean.Name.anonymous `widgetJs],
+                extraDepTargets := #[],
+                precompileLibrary := false,
+                precompileModules := false,
+                defaultFacets := #[`lean_lib.leanArts],
+                nativeFacets := #<fun>,
+                allowImportAll := false},
+            wf_data := …},
+        pkg_eq := …}],
+  targetDeclMap :=
+    {`widgetJs ↦
+        {toPConfigDecl :=
+            {toConfigDecl :=
+                {pkg := Lean.Name.mkNum `MyPackage 0,
+                  name := `widgetJs,
+                  kind := Lean.Name.anonymous,
+                  config := #<opaque target>,
+                  wf_data := …},
+              pkg_eq := …},
+          name_eq := …},
+      `widgetDir ↦
+        {toPConfigDecl :=
+            {toConfigDecl :=
+                {pkg := Lean.Name.mkNum `MyPackage 0,
+                  name := `widgetDir,
+                  kind := `input_dir,
+                  config := Impossible!,
+                  wf_data := …},
+              pkg_eq := …},
+          name_eq := …},
+      `MyLibrary ↦
+        {toPConfigDecl :=
+            {toConfigDecl :=
+                {pkg := Lean.Name.mkNum `MyPackage 0,
+                  name := `MyLibrary,
+                  kind := `lean_lib,
+                  config :=
+                    {toLeanConfig :=
+                        { buildType := Lake.BuildType.release,
+                          leanOptions := #[],
+                          moreLeanArgs := #[],
+                          weakLeanArgs := #[],
+                          moreLeancArgs := #[],
+                          moreServerOptions := #[],
+                          weakLeancArgs := #[],
+                          moreLinkObjs := #[],
+                          moreLinkLibs := #[],
+                          moreLinkArgs := #[],
+                          weakLinkArgs := #[],
+                          backend := Lake.Backend.default,
+                          platformIndependent := none,
+                          precompileImports := false,
+                          dynlibs := #[],
+                          plugins := #[],
+                          requiresModuleSystem := false,
+                          allowNonModules := false },
+                      srcDir := FilePath.mk ".",
+                      roots := #[`MyLibrary],
+                      globs := #[Lake.Glob.one `MyLibrary],
+                      libName := "",
+                      libPrefixOnWindows := false,
+                      needs := #[Lake.BuildKey.packageTarget Lean.Name.anonymous `widgetJs],
+                      extraDepTargets := #[],
+                      precompileLibrary := false,
+                      precompileModules := false,
+                      defaultFacets := #[`lean_lib.leanArts],
+                      nativeFacets := #<fun>,
+                      allowImportAll := false},
+                  wf_data := …},
+              pkg_eq := …},
+          name_eq := …},
+      `widgetPackageLock ↦
+        {toPConfigDecl :=
+            {toConfigDecl :=
+                {pkg := Lean.Name.mkNum `MyPackage 0,
+                  name := `widgetPackageLock,
+                  kind := `input_file,
+                  config := Impossible!,
+                  wf_data := …},
+              pkg_eq := …},
+          name_eq := …},
+      },
+  defaultTargets := #[`MyLibrary],
+  scripts := {},
+  defaultScripts := #[],
+  postUpdateHooks := #[],
+  buildArchive := ELIDED,
+  testDriver := "",
+  lintDriver := ""}
+```
+:::
+::::
 
 # Displaying Widgets
 
