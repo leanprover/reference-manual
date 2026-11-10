@@ -113,14 +113,13 @@ The {ref "lake-config-lean"}[Lean configuration format] for Lake is necessary fo
 In the `lakefile.lean` below, the [package-lock.json](https://docs.npmjs.com/cli/v9/configuring-npm/package-lock-json) file and the source directory `widget/src` are first registered as additional build inputs.
 The targets are named `widgetPackageLock` and `widgetDir`, respectively.
 Their existence ensures that changes to the input files trigger a rebuild.
-In order to normalize line endings, the `text` option is set.
 The example assumes that no other files influence the build; in real projects, additional files may need to be included: bundler configuration, TypeScript settings, etc.
 
 A `widgetJs` target that builds the JavaScript bundle is then defined.
 The bundle resides in `widget/dist/index.js` and is generated as the output of `npm run build`.
 By using {name}`Lake.buildFileUnlessUpToDate'`, this script only runs the build command if the input files have changed.
 
-Finally, the Lean library target takes `widgetJs` as an additional dependency via the {tomlField Lake.LeanLibConfig}`needs` array.
+Finally, the Lean library target `MyLibrary` takes `widgetJs` as an additional dependency via the {tomlField Lake.LeanLibConfig}`needs` array.
 
 :::lakeLean
 ```lean
