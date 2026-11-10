@@ -40,8 +40,10 @@ In contrast, we use {deftech}_malicious_ to describe code that goes out of its w
 This includes un-reviewed AI-generated proofs and programs.
 
 Furthermore it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.
+Lean can only establish that a statement has been proven, but not whether it is the intended statement.
 
 Below, an escalating sequence of checks are presented, with instructions on how to perform them, an explanation of what they entail and the mistakes or attacks they guard against.
+For validating possibly {tech}[malicious] proof attempts, we recommend always using {ref "validating-comparator"}[`comparator`].
 
 # The Blue Double Check Marks
 %%%
@@ -178,18 +180,31 @@ This should only be necessary for high risk scenarios (proof marketplaces, high-
 
 ## Instructions
 
-In a trusted environment, write the theorem *statement* (the “challenge”), and then judge the proposed proof against it with {ref "lake-comparator"}[`lake comparator`], with external checkers enabled.
-This command is a frontend to the [`comparator`](https://github.com/leanprover/comparator) tool.
+A typical `comparator` workflow begins by authoring a so-called “challenge” file in a trusted environment.
+This file contains sorried theorems that should be proven.
+The contents of this file and everything it (transitively) imports must either be trusted or manually validated to have the intended meaning.
+Another, potentially {tech}[malicious], party can then submit a “solution” file which contains the same theorems with proofs (these proofs may rely on other imported results).
+The author of the challenge can then judge the solution against the challenge using {ref "lake-comparator"}[`lake comparator`].
+In a {tech}[malicious] situation it should always be invoked with the `--paranoid` flag to several shipped kernels, as opposed to just Lean's built-in kernel.
 
 ## Significance
 
-Comparator will build the proof in a sandboxed environment, to protect against {tech}[malicious] code in the build step.
-The proof term is exported to a serialized format.
-Outside the sandbox and out of the reach of possibly malicious code, it validates the exported format, replays the proofs using both Lean's kernel and/or an external checker and also ensures that the proved theorem statements match those in the trusted challenge file.
+If the invocation satisfies the requirements listed in the {ref "lake-comparator"}[`lake comparator`] help text, a positive judgment by `comparator` establishes the following facts:
+
+1. The theorem statements of the challenge and solution match exactly, including all transitively used definitions.
+   In particular, attempts at cheating in the solution by changing notation are caught.
+2. The proofs in the solution are accepted by all configured kernels.
+   In particular, tricks like injecting theorems without passing them by the kernel are caught.
+3. The proofs in the solution do not use any axioms other than the permitted ones.
+
+`comparator` builds the proof in a sandboxed environment to protect against {tech}[malicious] code in the build step.
+The proof term is then exported to a serialized format, which is validated outside the sandbox, out of the reach of possibly-{tech}[malicious] code.
+Thus, attempts to cheat by executing malicious metaprograms are prevented by design.
 
 ## Trust
 
-This check is meaningful if the theorem statement in the trusted challenge file is correct and the sandbox used to build the possibly-{tech}[malicious] code is safe.
+This check is meaningful if the invocation of {ref "lake-comparator"}[`lake comparator`] satisfies the requirements listed in its help text.
+In particular, the theorem statements in the challenge file and everything they (transitively) import must be correct and trusted, and the sandbox used to build the possibly-{tech}[malicious] code must be safe.
 
 ## Protection
 
@@ -202,17 +217,25 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 
 ## Comments
 
-At the time of writing, `comparator` supports using the official Lean kernel and the external checker [`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust. The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
+At the time of writing, `comparator` ships with:
+
+* The official Lean kernel.
+* The verified kernels [`con-leche`](https://github.com/leanprover/con-leche) and [`con-ron`](https://github.com/leanprover/con-ron), implemented in Lean and Rust, respectively.
+* The external, partially verified checker [`lean4lean`](https://github.com/digama0/lean4lean), which is developed independently and implemented in Lean.
+* The external checker [`nanoda`](https://github.com/ammkrn/nanoda_lib), which is developed independently and implemented in Rust.
+
+The [Lean Kernel Arena](https://arena.lean-lang.org/) features more external checkers that can be used manually for even more confidence.
 
 # Remaining Issues
 
-When following the gold standard of checking proofs using comparator, some assumptions remain:
+When following the gold standard of checking proofs using `comparator`, some assumptions remain:
 
 * The soundness of Lean’s logic.
 * The plumbing provided by the `comparator` tool is correct.
 * The sandbox used by `comparator` is secure.
 * There is no implementation bug affecting all of the used checkers simultaneously.
 * No human error or misleading presentation of the theorem statement in the trusted challenge file.
+* All requirements listed in the {ref "lake-comparator"}[`lake comparator`] help text have been met.
 
   If there are doubts that the theorem means what it appears to mean, its statement and all referenced definitions must be investigated carefully, in particular with regard to custom notation and type classes.
   Some external checkers offer raw pretty-printing capabilities that are not affected by changes to parser or notation in the source file.
