@@ -1168,6 +1168,36 @@ The report records the outcome of each step (dependency resolution, the build, t
 The exit code is `0` when every checker accepts the project and only standard axioms are used, `1` when a checker rejects it, a non-standard axiom is used, or a build fails, and `2` when the check could not run at all.
 ::::
 
+## Requirements
+%%%
+tag := "lake-comparator-requirements"
+%%%
+
+:::paragraph
+`comparator` establishes that each theorem in the {ref "lake-comparator-config"}[configuration] has the same statement in the challenge and the solution, that its proof in the solution uses only the permitted axioms, and that the proof is accepted by Lean's kernel.
+When the {lakeOpt}`--paranoid` option is provided or when the `external_kernels` field is set in the configuration, it also ensures that external kernels accept the proof.
+`comparator` is only able to provide these guarantees under the following assumptions:
+
+1. Everything (transitively) imported by the challenge file is trusted.
+   If the challenge relies on an incorrect definition or an incorrect problem statement, then an accepted proof is not very useful.
+
+2. The Lake configuration file `lakefile.toml` or `lakefile.lean`, along with the manifest file `lake-manifest.json` and all the {tech}[dependencies] they require, is trusted.
+
+3. The build starts from a clean state.
+   There is no pre-existing `.lake` directory.
+
+4. `bubblewrap` is available for {ref "lake-comparator-sandbox"}[sandboxing] the build of the solution.
+   Building code that was written by a {tech}[malicious] actor is potentially dangerous.
+   `bubblewrap` is only available on Linux systems; as a result, `comparator` can only be safely used on Linux.
+
+5. {lake}`comparator` is not running as a privileged user.
+
+6. The kernels used to check the proof do not have a soundness issue that causes them all to accept an incorrect proof.
+   Some of the {ref "external-kernels"}[kernels] that are included with Lean were independently implemented, and `con-leche` has a machine-checked proof that everything it accepts has a model in set theory; using them guards against both programming errors and unknown logical issues.
+
+7. The solution file does not make use of unknown exploits against other software or hardware on the machine on which verification is performed.
+:::
+
 ## Configuration
 %%%
 tag := "lake-comparator-config"
