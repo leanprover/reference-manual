@@ -410,7 +410,8 @@ Lean can display widgets in two ways: within messages in the {tech}[message log]
   When rendering a panel widget, the InfoView extends the props object obtained from the {name}`Widget.WidgetInstance` with additional, automatically computed properties that reflect the editor state (for instance the current cursor position).
   These additional props are documented as [`PanelWidgetProps`](https://leanprover.github.io/vscode-lean4/infoview/interfaces/index.PanelWidgetProps.html).
 
-  A panel widget should be collapsible (conventionally a [`<details>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details) element).
+  Panel widgets should be collapsible, so that users can easily hide them.
+  Conventionally, a [`<details>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details) element is used.
 
   A panel widget is re-rendered when the source position it describes is re-elaborated.
 
