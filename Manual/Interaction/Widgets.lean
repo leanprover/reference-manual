@@ -105,8 +105,12 @@ The InfoView is a React application and is capable of embedding these components
 A widget must be the [`default` export](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export#using_the_default_export) of its module.
 
 When registering a widget for display in Lean, you provide the [props](https://react.dev/learn/passing-props-to-a-component) that it will receive when it is rendered by the InfoView.
-In Lean, a {name}`Widget.WidgetInstance` bundles such an assignment of props with a reference to the widget module that exports the component.
-The assignment is stored as a {name}`Json` object—later decoded into a JavaScript object—and more generally a {lean}`StateM Server.RpcObjectStore Json` computation, in order to support {tech (key := "RPC reference")}[RPC references].
+A {name}`Widget.WidgetInstance` bundles such an assignment of props with a reference to the widget module that exports the component.
+
+In order to support {tech (key := "RPC reference")}[RPC references], the assignment is stored as a {lean}`StateM Server.RpcObjectStore Json` computation.
+The computation must produce a JSON object, which in the InfoView is decoded into a JavaScript object and passed to the widget.
+
+Many widgets do not need RPC references—these can simply use a {lean (type := "Json → StateM Server.RpcObjectStore Json")}`pure` computation.
 
 {docstring Widget.WidgetInstance}
 
