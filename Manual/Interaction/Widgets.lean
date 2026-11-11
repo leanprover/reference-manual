@@ -41,6 +41,8 @@ To register a widget module in Lean, tag its definition with the {attr}`widget_m
 It must be possible to convert the definition to a {name}`Widget.Module`, i.e., the definition's type must have a {name}`Widget.ToModule` instance.
 
 :::example "Registering a Widget Module"
+This example registers a {tech}[widget module] called `helloModule`.
+
 ```imports -show
 import Lean.Widget.UserWidget
 ```
@@ -49,7 +51,7 @@ open Lean
 ```
 ```lean
 @[widget_module]
-def foo : Widget.Module where
+def helloModule : Widget.Module where
   javascript := r#"
     export default function() { return "Hello, world!" }
   "#
@@ -411,14 +413,14 @@ Lean can display widgets in two ways: within messages in the {tech}[message log]
 
   Panel widgets should be collapsible, so that users can easily hide them.
   Conventionally, a [`<details>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details) element is used.
+  To match other InfoView components, the nested `<summary>` element typically has `mv2 pointer non-selectable` CSS classes, whereas content has the `ml1` class.
 
   A panel widget is re-rendered when the source position it describes is re-elaborated.
 
   Finally, the {keywordOf Lean.Widget.widgetCmd}`#widget` command can be used to quickly render a panel widget.
 
-  :::example "Using the `#widget` Command"
-  This example defines a minimal panel widget and uses the `#widget` command to display it.
-  Internally, the command invokes {name}`Widget.savePanelWidgetInfo` to associate the panel widget with the source line the command appears on.
+  :::example "Defining and Displaying a Panel Widget" (tag := "widgets-defining-displaying-panel-widget")
+  This example defines a minimal {tech}[InfoView panel widget] and uses the `#widget` command to display it.
 
   ```imports -show
   import Lean.Widget.Commands
@@ -426,22 +428,51 @@ Lean can display widgets in two ways: within messages in the {tech}[message log]
   ```lean -show
   open Lean
   ```
+
+  First, the widget's props are specified as a structure with a single {name}`String` prop called `name`.
+  This is not strictly necessary—props are transmitted as untyped {name}`Json` values—but describing the schema as a Lean type is good practice.
+
   ```lean
   structure Props where
     name : String
-    deriving FromJson, ToJson
+  deriving FromJson, ToJson
+  ```
 
+  Next, a widget module called `helloWidget` is defined and registered.
+  Its JavaScript implementation is inlined as a string literal.
+  It follows the styling conventions outlined above.
+
+  ```lean
   @[widget_module]
   def helloWidget : Widget.Module where
     javascript := "
       import * as React from 'react';
       export default function(props) {
         const name = props.name || 'world'
-        return React.createElement('b', {}, 'Hello, ' + name + '!')
-      }"
 
+        return React.createElement('details', {}, [
+          React.createElement('summary',
+            {'className': 'mv2 pointer non-selectable'},
+            'Hello Widget'
+          ),
+          React.createElement('b',
+            {'className': 'ml1'},
+            'Hello, ' + name + '!'
+          )
+        ])
+      }"
+  ```
+
+  Finally, the `#widget` command is used to display an instance of this widget.
+  Internally, this invokes {name}`Widget.savePanelWidgetInfo` to associate the instance with the source line the command appears on.
+
+  ```lean
   #widget helloWidget with { name := "Hexapus" : Props }
   ```
+
+  The following is rendered in the InfoView:
+
+  ![Screenshot of rendered HTML. A 'Hello Widget' header with bold 'Hello, Hexapus!' text under it.](static/screenshots/widgets-hello.png)
   :::
 
 # Remote Procedure Calls
@@ -458,6 +489,9 @@ Transfer may be impractical due to a slow network, and objects may not be easily
 The Remote Procedure Call (RPC) mechanism allows client-side widget code to manipulate {tech (key := "RPC reference")}[RPC references] to server-side data, and to execute {tech (key := "RPC method")}[RPC methods] in the server.
 
 ## Encoding and References
+%%%
+tag := "widgets-encoding-references"
+%%%
 
 The {name}`Server.RpcEncodable` type class marks client-server transferrable types.
 The wire format is {ref "JSON"}[JSON], and any type with both {name}`Lean.ToJson` and {name}`Lean.FromJson` instances is encodable.
@@ -525,10 +559,10 @@ Ideally, a method implementation returns immediately, doing most of its work in 
 The {name}`Server.RequestM.asTask` convenience function does exactly this.
 :::
 
-:::example "Registering an RPC Method"
+:::example "Registering an RPC Method" (tag := "widgets-registering-rpc-method")
 This example registers an {tech}[RPC method] with an {tech}[RPC reference] as the argument.
 
-First, the {ref "widgets-typename-references"}[{name}`TypeName` instance workaround] is applied: the basic {name}`String` type is wrapped in a structure called `Cell`.
+First, the {name}`TypeName` {ref "widgets-typename-references"}[instance workaround] is applied: the basic {name}`String` type is wrapped in a structure called `Cell`.
 This structure will be kept server-side, with the client holding a reference to it.
 
 ```imports -show
@@ -570,22 +604,21 @@ Any LSP client may create RPC sessions and invoke RPC methods.
 :::
 
 Any widget React component may invoke RPC methods.
-To do so, the component should first obtain an _RPC session_ handle via the [`useRpcSession`](https://leanprover.github.io/vscode-lean4/infoview/functions/index.useRpcSession.html) hook.
+To do so, the component should first obtain an _RPC session_ handle via the [`useRpcSession`](https://leanprover.github.io/vscode-lean4/infoview/functions/index.useRpcSession.html) [React hook](https://react.dev/learn/reusing-logic-with-custom-hooks).
 The handle may then be used to call RPC methods; for details, see [`RpcSessionAtPos.call`](https://leanprover.github.io/vscode-lean4/infoview/interfaces/index.RpcSessionAtPos.html#call) in the InfoView API documentation.
 Invoking RPC is an asynchronous operation that generally occurs in a [React effect](https://react.dev/reference/react/useEffect).
 RPC methods are identified in JavaScript by their fully qualified Lean names.
 
 :::example "Calling an RPC Method"
-Widgets can receive RPC references as props.
-This example demonstrates how to pass a reference as a prop and how to invoke an RPC method using the reference as an argument.
+This example builds on {ref "widgets-registering-rpc-method" (domain := Manual.examples)}[“Registering an RPC Method”].
+It demonstrates how to instantiate a widget with an RPC reference prop, and how to invoke an RPC method with a reference as the argument.
 
 ```imports -show
 import Lean.Widget
 ```
 ```lean -show
 open Lean
-```
-```lean
+
 structure Cell where
   str : String
 deriving TypeName
@@ -594,9 +627,23 @@ deriving TypeName
 def unwrapStr (cell : Server.WithRpcRef Cell) :
     Server.RequestM (Server.RequestTask String) :=
   Server.RequestM.asTask <| return cell.val.str
+```
 
+First, a widget module `rpcCallWidget` is defined.
+It behaves similarly to `helloWidget` in the {ref "widgets-defining-displaying-panel-widget" (domain := Manual.examples)}[“Defining and Displaying a Panel Widget”] example, but also exercises RPC functionality.
+
+The single prop, now called `cellRef`, is an RPC reference to a `Cell` value.
+Instead of deriving {name}`FromJson` and {name}`ToJson` instances for the `Props` structure, {name}`Server.RpcEncodable` is derived directly; as explained {ref "widgets-encoding-references"}[above], the former two would fail.
+In the render function, the client's RPC session is accessed via `useRpcSession`.
+Afterwards, a [React effect](https://react.dev/reference/react/useEffect) is declared.
+The effect runs when the component is [mounted](https://react.dev/learn/lifecycle-of-reactive-effects).
+It invokes `RpcSessionAtPos.call` with the fully qualified name of the RPC method, which in this case is just `'unwrapStr'`.
+The RPC call accesses the server-side `Cell`, sending back the wrapped value as a JavaScript string.
+The value is then stored in the component's state and eventually displayed.
+
+```lean
 structure Props where
-  cell : Server.WithRpcRef Cell
+  cellRef : Server.WithRpcRef Cell
 deriving Server.RpcEncodable
 
 @[widget_module]
@@ -605,21 +652,35 @@ def rpcCallWidget : Widget.Module where
     import * as React from 'react'
     import { useRpcSession } from '@leanprover/infoview'
 
-    export default function({ cell }) {
-      const rs = useRpcSession()
+    export default function({ cellRef }) {
       const [display, setDisplay] = React.useState()
+
+      const rs = useRpcSession()
       React.useEffect(() => {
-        rs.call('unwrapStr', cell).then(s => setDisplay(s))
+        rs.call('unwrapStr', cellRef).then(s => setDisplay(s))
       }, [])
-      return React.createElement('b', {}, [display])
+
+      return React.createElement('details', {}, [
+        React.createElement('summary',
+          {'className': 'mv2 pointer non-selectable'},
+          'RPC Widget'
+        ),
+        React.createElement('b', {'className': 'ml1'}, [display])
+      ])
     }
   "#
+```
 
+Having declared the widget, we call {name}`Widget.savePanelWidgetInfo` to instantiate it and associate it with the syntactic span of the {keywordOf Lean.runMeta}`run_meta` keyword.
+The RPC reference is initialized with a string literal value.
+
+```lean
 run_meta
-  let cell ← Server.WithRpcRef.mk { str := "Server-side hello!" }
-  Widget.addPanelWidgetLocal { rpcCallWidget with
-    id := .anonymous
-    props := Server.rpcEncode { cell : Props }
-  }
+  let stx ← getRef
+  let cellRef ← Server.WithRpcRef.mk { str := "Server-side hello!" }
+  Widget.savePanelWidgetInfo
+    rpcCallWidget.javascriptHash
+    (Server.rpcEncode { cellRef : Props })
+    stx
 ```
 :::
