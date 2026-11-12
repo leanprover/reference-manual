@@ -1,0 +1,30 @@
+name: Check Verso bump branch
+
+# On `nightly-testing`, ensure that Verso is required from a `bump/v4.X.Y`
+# branch, that `lean-toolchain` is using a nightly `4.X.Y-nightly-YYYY-MM-DD`,
+# and that the versions `v4.X.Y` agree with each other.
+
+on:
+    push:
+        branches: [nightly-testing]
+    pull_request:
+        branches: [nightly-testing]
+    workflow_dispatch:
+
+jobs:
+    check-verso-bump-branch:
+        name: "Check Verso bump branch"
+        runs-on: ubuntu-latest
+        steps:
+            - name: Install elan
+              run: |
+                  set -o pipefail
+                  curl -sSfL https://github.com/leanprover/elan/releases/download/v4.2.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+                  ./elan-init -y --default-toolchain none
+                  echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+            - uses: actions/checkout@v4
+
+            - name: Check Verso bump branch
+              run: |
+                  scripts/check-verso-bump-branch.sh
