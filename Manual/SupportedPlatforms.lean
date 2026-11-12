@@ -42,5 +42,4 @@ Issue reports and fixes are welcome.
 :::paragraph
 The Tier 2 platforms are:
 * `x86-64` macOS 14+
-* Emscripten WebAssembly
 :::
