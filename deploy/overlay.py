@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import os
+import re
 import urllib.request
 from release_utils import run_git_command, is_git_ancestor, find_latest_version, find_latest_stable_version
 from pathlib import Path
@@ -85,6 +87,141 @@ def replace_unicode_js(deploy_dir, verso_js):
                             print(f"Not found, skipping: {filepath}")
 
 
+# The Verso commit from which the permalink and search scripts are taken.
+VERSO_SCRIPTS_REF = "72f606748cc5f4e1ce9f6d0b7abbd37cf767c9fd"
+
+
+def fetch_verso_scripts():
+    """
+    Fetch Verso's permalink and search scripts at VERSO_SCRIPTS_REF.
+    Returns a dict mapping filename to text content.
+
+    If the environment variable VERSO_SCRIPTS_DIR is set, the files are read from that directory
+    instead, laid out as in Verso's static-web/ directory.
+    """
+    paths = {
+        "find.js": "find.js",
+        "search-highlight.js": "search/search-highlight.js",
+        "search-box.js": "search/search-box.js",
+    }
+    local_dir = os.environ.get("VERSO_SCRIPTS_DIR")
+    result = {}
+    for filename, path in paths.items():
+        if local_dir:
+            result[filename] = Path(local_dir, path).read_text(encoding="utf-8")
+        else:
+            url = f"https://raw.githubusercontent.com/leanprover/verso/{VERSO_SCRIPTS_REF}/static-web/{path}"
+            print(f"Fetching {url}")
+            with urllib.request.urlopen(url) as response:
+                result[filename] = response.read().decode("utf-8")
+    return result
+
+
+def update_find_page(version_dir, find_js):
+    """
+    Replace the script in a version's find/index.html with Verso's current find.js.
+
+    The page's cross-reference data is kept. Older pages declare it with `let xref`, and the
+    updated page declares it as `window.xref`. Here, we rewrite all to `window.xref`, which
+    is where the current script reads it from.
+
+    Args:
+        version_dir (Path): The version's directory
+        find_js (str): The contents of Verso's find.js
+    """
+    page = version_dir / "find" / "index.html"
+    if not page.is_file():
+        return
+    content = page.read_text(encoding="utf-8")
+    match = re.search(r"(?:let |window\.)xref = ", content)
+    if match is None:
+        print(f"No cross-reference data, skipping: {page}")
+        return
+    _, data_end = json.JSONDecoder().raw_decode(content, match.end())
+    script_end = content.find("</script>", data_end)
+    if script_end < 0:
+        print(f"Unexpected find page layout, skipping: {page}")
+        return
+    new_content = (
+        content[: match.start()]
+        + "window.xref = "
+        + content[match.end() : data_end]
+        + ";\n"
+        + find_js
+        + "\n"
+        + content[script_end:]
+    )
+    page.write_text(new_content, encoding="utf-8")
+    print(f"Updated: {page}")
+
+
+# The search-result snippet rendering in search-box.js: the snippet callback in highlightTextResult.
+SNIPPET_START = "const highlightedSnippets = limitedSnippets.map((snippet) => {"
+SNIPPET_END = re.compile(r"return elem;\s*\}\);")
+
+
+def snippet_code(search_box_js):
+    """Returns the start and end of the snippet rendering code in search-box.js, if present."""
+    start = search_box_js.find(SNIPPET_START)
+    if start < 0 or search_box_js.find(SNIPPET_START, start + 1) >= 0:
+        return None
+    end = SNIPPET_END.search(search_box_js, start)
+    if end is None:
+        return None
+    return start, end.end()
+
+
+def update_search_scripts(version_dir, verso_scripts):
+    """
+    Update a version's search scripts to Verso's current versions.
+
+    search-highlight.js is replaced. In search-box.js, the snippet rendering for search results is
+    replaced, because the rest of the file depends on the version of the search index.
+
+    Args:
+        version_dir (Path): The version's directory
+        verso_scripts (dict): Mapping from filename to text content, from fetch_verso_scripts
+    """
+    search_dir = version_dir / "-verso-search"
+    highlight = search_dir / "search-highlight.js"
+    if highlight.is_file():
+        highlight.write_text(verso_scripts["search-highlight.js"], encoding="utf-8")
+        print(f"Replaced: {highlight}")
+
+    box = search_dir / "search-box.js"
+    if box.is_file():
+        current = verso_scripts["search-box.js"]
+        new_range = snippet_code(current)
+        if new_range is None:
+            raise Exception("Snippet rendering not found in Verso's search-box.js")
+        content = box.read_text(encoding="utf-8")
+        old_range = snippet_code(content)
+        if old_range is None:
+            print(f"Snippet rendering not found, skipping: {box}")
+            return
+        new_content = (
+            content[: old_range[0]]
+            + current[new_range[0] : new_range[1]]
+            + content[old_range[1] :]
+        )
+        box.write_text(new_content, encoding="utf-8")
+        print(f"Updated: {box}")
+
+
+def update_verso_scripts(deploy_dir, verso_scripts):
+    """
+    Update the permalink and search scripts in every version directory.
+
+    Args:
+        deploy_dir (str): Directory containing all versions
+        verso_scripts (dict): Mapping from filename to text content, from fetch_verso_scripts
+    """
+    for inner in Path(deploy_dir).iterdir():
+        if inner.is_dir() and (inner / "index.html").is_file():
+            update_find_page(inner, verso_scripts["find.js"])
+            update_search_scripts(inner, verso_scripts)
+
+
 # This function is the right thing to change to change the
 # content of the overlays that are applied.
 #
@@ -104,6 +241,7 @@ def apply_overlays(deploy_dir, site_dir):
     print (f"overlay.py: the latest stable lean version is {latest_stable_version}")
     verso_js = fetch_verso_unicode_js()
     replace_unicode_js(deploy_dir, verso_js)
+    update_verso_scripts(deploy_dir, fetch_verso_scripts())
     header = "// This file was automatically generated by reference-manual/deploy/overlay.py"
     for inner in Path(deploy_dir).iterdir():
       # Check for index.html to identify version directories
