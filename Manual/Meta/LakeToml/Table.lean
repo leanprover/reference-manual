@@ -56,6 +56,33 @@ where
     | .target => mkCApp ``FieldType.target #[]
     | .other x y z => mkCApp ``FieldType.other #[quote x, quote y, quote z]
 
+/-- The location of a documented table in a TOML configuration file. -/
+inductive TableKey where
+  /-- The top level of the file, which has no header. -/
+  | root
+  /-- An array of tables, with the header `[[key]]`. -/
+  | array (key : String)
+  /-- A single table, with the header `[key]`. -/
+  | table (key : String)
+deriving Repr, ToJson, FromJson
+
+open Lean Syntax in
+instance : Quote TableKey where
+  quote
+    | .root => mkCApp ``TableKey.root #[]
+    | .array k => mkCApp ``TableKey.array #[quote k]
+    | .table k => mkCApp ``TableKey.table #[quote k]
+
+/-- Returns the key and the delimiters of the table's header, or `none` for the top level. -/
+def TableKey.header? : TableKey → Option (String × String × String)
+  | .root => none
+  | .array k => some ("[[", k, "]]")
+  | .table k => some ("[", k, "]")
+
+/-- Returns the table's header as text, or `none` for the top level. -/
+def TableKey.headerString? (k : TableKey) : Option String :=
+  k.header?.map fun (l, k, r) => l ++ k ++ r
+
 
 open Output in
 def FieldType.toHtml (plural : Bool := false) : FieldType → Html

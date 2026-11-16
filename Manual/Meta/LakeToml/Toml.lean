@@ -48,7 +48,7 @@ partial def Highlighted.toHtml (tableLink : Name → Option String) (keyLink : N
     match t with
     | .bool _ => html%{<span class="bool">{s}</span>}
     | .string _ => html%{<span class="string">{s}</span>}
-    | .num _ => html%{<span class="num">{s}</span>}
+    | .num => html%{<span class="num">{s}</span>}
   | .tableHeader hl =>
     html%{<span class="table-header">{hl.toHtml tableLink keyLink urlLinks}</span>}
   | .tableName n hl =>

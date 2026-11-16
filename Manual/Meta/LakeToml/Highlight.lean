@@ -27,16 +27,16 @@ namespace Highlighted
 inductive Token where
   | string : String → Token
   | bool : Bool → Token
-  | num : Nat → Token -- TODO other kinds of number?
+  /-- A numeric literal in any of TOML's formats. The token's text is the source. -/
+  | num : Token
 deriving DecidableEq, Repr, Ord, ToJson, FromJson
 
 open Lean.Syntax in
-open Token in
 instance : Quote Token where
   quote
-    | .string s => mkCApp ``string #[quote s]
+    | .string s => mkCApp ``Token.string #[quote s]
     | .bool b => mkCApp ``Token.bool #[quote b]
-    | .num n  => mkCApp ``num #[quote n]
+    | .num => mkCApp ``Token.num #[]
 
 end Highlighted
 
@@ -235,6 +235,18 @@ partial def highlightToml : Syntax → StateM (Option String) Highlighted := fun
     (srcInfoHl info ∘ .key none) <$> elts.mapM highlightToml
   | .node info ``Lake.Toml.simpleKey elts => srcInfoHl info <$> elts.mapM highlightToml
   | .node info ``Lake.Toml.unquotedKey elts => srcInfoHl info <$> elts.mapM highlightToml
+  -- String values are tokens. Quoted keys use the same literals outside of a `string` node, so
+  -- they are styled as keys.
+  | .node info ``Lake.Toml.string #[.node info' k #[.atom _ str]] => do
+    let tok : Highlighted := .token (.string str) str
+    let decoded? := if k == ``Lake.Toml.basicString then Lean.Syntax.decodeStrLit str else none
+    let hl :=
+      if let some str' := decoded? then
+        if (str'.startsWith "https://" || str'.startsWith "http://".toSlice) && !hasSubstring str' "example.com" then
+          .link str' tok
+        else tok
+      else tok
+    return srcInfoHl info <| srcInfoHl info' hl
   | .node info ``Lake.Toml.string elts =>
     srcInfoHl info <$> elts.mapM highlightToml
   | .node info ``Lake.Toml.basicString #[s@(.atom _ str)] =>
@@ -259,7 +271,21 @@ partial def highlightToml : Syntax → StateM (Option String) Highlighted := fun
       .tableDelim ((← highlightToml close1) ++ (← highlightToml close2))
   | .node info ``Lake.Toml.arrayTable elts =>
     srcInfoHl info <$> elts.mapM highlightToml
-  | .node info ``Lake.Toml.decInt #[.atom _ n] => pure <| srcInfoHl info <| .token (.num n.toNat!) n
+  | .node info ``Lake.Toml.stdTable #[open1, contents, close1] => do
+    let n := getKey ⟨contents⟩
+    set n
+    return srcInfoHl info <| .tableHeader <|
+      .tableDelim (← highlightToml open1) ++
+      (.tableName n (← highlightToml contents)) ++
+      .tableDelim (← highlightToml close1)
+  | .node info ``Lake.Toml.stdTable elts =>
+    srcInfoHl info <$> elts.mapM highlightToml
+  | .node info ``Lake.Toml.decInt #[.atom _ n]
+  | .node info ``Lake.Toml.float #[.atom _ n]
+  | .node info ``Lake.Toml.binNum #[.atom _ n]
+  | .node info ``Lake.Toml.octNum #[.atom _ n]
+  | .node info ``Lake.Toml.hexNum #[.atom _ n] => pure <| srcInfoHl info <| .token .num n
+  | .node info ``Lake.Toml.dateTime #[.atom _ d] => pure <| srcInfoHl info <| .text d
   | .node info ``Lake.Toml.array elts => srcInfoHl info <$> elts.mapM highlightToml
   | .node info ``Lake.Toml.inlineTable elts => do
     let x ← get
@@ -296,6 +322,28 @@ def tomlContent [Verso.Literal k] (str : TSyntax k) : DocElabM Toml.Highlighted 
   | some err =>
     throwErrorAt str "Couldn't parse TOML: {err}"
   | none =>
+    let #[stx] := s.stxStack.toSubarray.toArray
+      | throwErrorAt str s!"Internal error parsing TOML - expected one result, got {s.stxStack.toSubarray.toArray}"
+    return Toml.highlightToml stx |>.run' none |>.normalize
+
+open Lean.Parser in
+/-- Parses a code literal that contains a single TOML value and highlights it. -/
+def tomlValueContent [Verso.Literal k] (str : TSyntax k) : DocElabM Toml.Highlighted := do
+  let scope : Command.Scope := {header := ""}
+  -- Numbers are delimited by the character that follows them, so the input ends with a newline.
+  let inputCtx := Parser.mkInputContext ((← parserInputString str) ++ "\n") (← getFileName)
+  let pmctx : Parser.ParserModuleContext :=
+    { env := ← getEnv, options := scope.opts, currNamespace := scope.currNamespace, openDecls := scope.openDecls }
+  let pos := str.raw.getPos? |>.getD 0
+
+  let p := andthenFn whitespace (andthenFn Lake.Toml.val.fn whitespace)
+  let s := p.run inputCtx pmctx (getTokenTable pmctx.env) { cache := initCacheForInput inputCtx.inputString, pos }
+  match s.errorMsg with
+  | some err =>
+    throwErrorAt str "Couldn't parse TOML value: {err}"
+  | none =>
+    unless inputCtx.atEnd s.pos do
+      throwErrorAt str "Expected a single TOML value, but there is more text after it"
     let #[stx] := s.stxStack.toSubarray.toArray
       | throwErrorAt str s!"Internal error parsing TOML - expected one result, got {s.stxStack.toSubarray.toArray}"
     return Toml.highlightToml stx |>.run' none |>.normalize
