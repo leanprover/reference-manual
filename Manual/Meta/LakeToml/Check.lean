@@ -158,4 +158,49 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
 
     .ok <$> report pkg errs
 
+open Lean.Parser in
+open Lake Toml in
+/--
+Decodes a single TOML value as the type `α` and returns Lake's error messages.
+
+The result is empty when decoding succeeds.
+-/
+def tomlValueErrors (α : Type) [Inhabited α] [DecodeToml α] (value : String) : IO (Array String) := do
+  let ictx := mkInputContext s!"value = {value}\n" "<example TOML>"
+  match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
+  | .error err => err.unreported.toArray.mapM (·.toString)
+  | .ok tbl =>
+    let .ok (_ : α) errs := (tbl.tryDecode `value).run #[]
+    return errs.map (·.msg)
+
+open Lean.Parser in
+open Lake Toml in
+/--
+Decodes a system Lake configuration file and reports the result or the errors.
+
+A configuration that decodes is also loaded with Lake's loader, which validates it further.
+The loader's error messages are returned as an error.
+-/
+def checkTomlLakeConfig [Lean.MonadError m] (str : String) : m (Except String String) := do
+  let ictx := mkInputContext str "<example TOML>"
+  match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
+  | .error err =>
+    return .error <| toString (← err.unreported.toArray.mapM (·.toString))
+  | .ok tbl =>
+    let .ok (config : LakeConfig) errs := (LakeConfig.decodeToml tbl).run #[]
+    unless errs.isEmpty do
+      return .ok (← report config errs)
+    let .ok env ← EIO.toBaseIO <| Lake.Env.compute {home := ""} {sysroot := ""} none none
+      | throwError "Failed to make env"
+    let load : IO (Option LoadedLakeConfig × Log) :=
+      IO.FS.withTempFile fun h path => do
+        h.putStr str
+        h.flush
+        (loadLakeConfig {env with lakeConfig? := some path}).run? {}
+    match (← load.toBaseIO) with
+    | .error e => throwError "Failed to load the configuration: {e}"
+    | .ok (some _, _) => .ok <$> report config errs
+    | .ok (none, log) =>
+      return .error <| "\n".intercalate (log.entries.map (fun e => s!"{e.level.toString}: {e.message}")).toList
+
 end

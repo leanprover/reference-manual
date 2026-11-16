@@ -9,6 +9,7 @@ public import Lake.Toml.Decode
 
 public import ManualLakeTest.Test
 public import Lake.Config.Package
+import all Lake.Config.Cache
 
 public section
 
@@ -102,6 +103,26 @@ instance : Test (Lake.ConfigType kind pkg name) where
 
 instance : Test Lake.CacheRef where
   toString _ := "#<cacheref>"
+
+/-- Shows a cache service's name, kind, and endpoints. The upload key is omitted. -/
+instance : Test Lake.CacheService where
+  toString s := private
+    let i := s.impl
+    let str (x : String) : Format := .text (repr x).pretty
+    let name : Format := match i.name? with
+      | some n => "some " ++ str n.toString
+      | none => "none"
+    let fields : List Format :=
+      if i.isReservoir then
+        ["name? := " ++ name, "kind := reservoir", "apiEndpoint := " ++ str i.apiEndpoint]
+      else
+        ["name? := " ++ name, "kind := s3",
+          "artifactEndpoint := " ++ str i.artifactEndpoint,
+          "revisionEndpoint := " ++ str i.revisionEndpoint]
+    "{" ++ .group (.nest 1 (Format.joinSep fields ("," ++ .line))) ++ "}"
+
+deriving instance Test for Lake.CacheConfig
+deriving instance Test for Lake.LakeConfig
 
 def contains (fmt : Format) (c : Char) : Bool :=
   match fmt with

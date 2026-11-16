@@ -235,18 +235,39 @@ Lake itself can be configured with the following environment variables:
 *
   * {envVar +def}`LAKE_CACHE_KEY`
   * Defines an authentication key for the {ref "lake-cache-remote"}[remote artifact cache].
+    This key is always used for {lake}`cache put`, regardless of the selected {tech}[cache service].
 
 *
   * {envVar +def}`LAKE_CACHE_ARTIFACT_ENDPOINT`
   * The base URL for the {ref "lake-cache-remote"}[remote artifact cache] used for artifact uploads.
     If set, then {envVar}`LAKE_CACHE_REVISION_ENDPOINT` must also be set.
-    If neither of these are set, Lake will use Reservoir instead.
-
+    This environment variable is deprecated; instead, use {lakeOpt}`--service` to select a cache service.
 *
   * {envVar +def}`LAKE_CACHE_REVISION_ENDPOINT`
   * The base URL for the {ref "lake-cache-remote"}[remote artifact cache] used to upload the {tech (key := "mappings file")}[input/output mappings] for each artifact.
     If set, then {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT` must also be set.
-    If neither of these are set, Lake will use Reservoir instead.
+    This environment variable is deprecated; instead, use {lakeOpt}`--service` to select a cache service.
+
+*
+  * {envVar +def}`LAKE_CONFIG`
+  * The path to the {ref "lake-system-config"}[system Lake configuration file].
+    Defaults to `.lake/config.toml` in the user's home directory.
+
+*
+  * {envVar +def}`LAKE_CACHE_DIR`
+  * The directory of the {tech (key := "local cache")}[local artifact cache].
+    If it is set to the empty string, the system cache is disabled.
+    If it is not set, a shared per-toolchain directory in the Elan directory is used.
+
+*
+  * {envVar +def}`LAKE_RESTORE_ARTIFACTS`
+  * If true, artifacts are copied from the Lake artifact cache to the build directory instead of being used in place.
+    If possible, the files are hard linked instead.
+
+*
+  * {envVar +def}`LAKE_PKG_URL_MAP`
+  * If set, its value should e a JSON object that maps package names to Git URLs.
+    These URLs override the URL of any dependency with that name, including transitive dependencies.
 
 :::
 ::::
@@ -1700,6 +1721,9 @@ If {lakeMeta}`archive.tgz` is not specified, the package's `buildArchive` settin
 
 
 # Local Caches
+%%%
+tag := "lake-cli-cache"
+%%%
 
 {lake}`cache get`, {lake}`cache put`, and {lake}`cache add` are used to interact with remote cache servers.
 These commands are *experimental*, and are only useful if the {ref "lake-cache-local"}[local cache] is enabled.
@@ -1788,11 +1812,21 @@ package fails, Lake will report this and continue on to the next. Once done,
 if any download failed, Lake will exit with a nonzero status code.
 ```
 
-:::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--package=\" «name»] [\"--service=\" «name»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»] [\"--mappings-only\"] [\"--force-download\"]"
+::::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--package=\" «name»] [\"--service=\" «name»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»] [\"--mappings-only\"] [\"--force-download\"]"
 Downloads build outputs for packages in the workspace from a remote cache service to the local Lake {tech (key:="local cache")}[artifact cache].
 The cache service used can be specified via the {lakeOpt}`--service` option.
 Otherwise, Lake will use the system default, or, if none is configured, Reservoir.
 See {lake}`cache services` for more information on how to configure services.
+
+:::paragraph
+The cache service used can be specified via the {lakeOpt}`--service` option.
+Otherwise, Lake will use the system default, or, if none is configured, Reservoir.
+The service may be any of the following:
+* `reservoir`
+* a service {ref "lake-config-cache-services"}[provided by a dependency]
+* a service configured through the {ref "lake-system-config"}[Lake system configuration] (see {lake}`cache services` for details).
+:::
+
 
 By default, Lake will use Reservoir to download outputs for each package in the root's dependency tree in order.
 Non-Reservoir dependencies will be skipped.
@@ -1815,7 +1849,7 @@ Using {lakeOptDef option}`--force-download` will redownload existing files.
 
 While downloading, Lake will continue on when a download for an artifact fails or if the download process for a whole package fails.
 However, it will report this and exit with a nonzero status code in such cases.
-:::
+::::
 
 
 ```lakeCacheHelp put
@@ -1932,8 +1966,14 @@ Reads a list of input-to-output mappings from the provided file and adds them to
 Mappings already in the cache are overwritten unless {lakeOptDef flag}`--no-overwrite` is specified.
 The mappings are added for the root package unless {lakeOpt}`--package` is specified.
 
+:::paragraph
 If {lakeOpt}`--service` is provided, the output artifacts can then be fetched lazily from that service during a Lake build.
-The service must either be `reservoir` or be configured through the Lake system configuration (see {lake}`cache services` for details).
+The service may be any of the following:
+* `reservoir`
+* a service {ref "lake-config-cache-services"}[provided by a dependency]
+* a service configured through the {ref "lake-system-config"}[Lake system configuration] (see {lake}`cache services` for details).
+:::
+
 
 Since Lake does not currently use cryptographically secure hashes for artifacts and outputs, artifacts in a cache service are prefixed with a scope to avoid clashes.
 For Reservoir, this scope can either be a package (set via {lakeOpt}`--scope`) or a repository (set via {lakeOpt}`--repo`).
@@ -1984,7 +2024,8 @@ If no `cache.defaultService` is configured, Lake will use Reservoir by default.
 
 ::::lake cache services
 Prints the name of each configured remote cache service (one per line).
-Additional services can be added by modifying the system Lake configuration file, which is usually located at `~/.lake/config.toml` but can be set via the {envVar}`LAKE_CONFIG` environment variable.
+Services may be {ref "lake-config-cache-services"}[added by dependencies].
+They can also be added by modifying the {ref "lake-system-config"}[system Lake configuration file], which is usually located at `~/.lake/config.toml` but can be set via the {envVar}`LAKE_CONFIG` environment variable.
 
 :::paragraph
 The configuration of the system cache could look something like the following:

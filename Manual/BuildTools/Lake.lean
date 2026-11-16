@@ -18,6 +18,7 @@ import Manual.BuildTools.Lake.Builds
 import Manual.BuildTools.Lake.Cache
 import Manual.BuildTools.Lake.CLI
 import Manual.BuildTools.Lake.Config
+import Manual.BuildTools.Lake.SystemConfig
 import Manual.BuildTools.Lake.Drivers
 import Manual.BuildTools.Lake.PackageOverrides
 import Manual.BuildTools.Lake.Scripts
@@ -196,6 +197,8 @@ Scripts are defined in the {ref "lake-config-lean"}[Lean configuration format] a
 {include 2 Manual.BuildTools.Lake.Scripts}
 
 {include 0 Manual.BuildTools.Lake.CLI}
+
+{include 0 Manual.BuildTools.Lake.SystemConfig}
 
 {include 0 Manual.BuildTools.Lake.Config}
 

@@ -39,13 +39,18 @@ def Block.tomlField (sort : Option Nat) (inTable : Name) (field : Toml.Field Emp
   name := `Manual.Block.tomlField
   data := ToJson.toJson (sort, inTable, field)
 
-def Inline.tomlField (inTable : Name) (field : Name) : Inline where
-  name := `Manual.Inline.tomlField
-  data := ToJson.toJson (inTable, field)
+/--
+A reference to a documented TOML field.
 
-def Block.tomlTable (arrayKey : Option String) (name : String) (typeName : Name) : Block where
+The field is displayed as `show?` if it is provided, or otherwise as its name.
+-/
+def Inline.tomlField (inTable : Name) (field : Name) (show? : Option String := none) : Inline where
+  name := `Manual.Inline.tomlField
+  data := ToJson.toJson (inTable, field, show?)
+
+def Block.tomlTable (key : Toml.TableKey) (name : String) (typeName : Name) : Block where
   name := `Manual.Block.tomlTable
-  data := ToJson.toJson (arrayKey, name, typeName)
+  data := ToJson.toJson (key, name, typeName)
 
 
 structure TomlFieldOpts where
@@ -88,10 +93,10 @@ def tomlTableDomainMapper := {
   className := "lake-toml-table-domain",
   dataToSearchables := "(domainData) =>
   Object.entries(domainData.contents).map(([key, value]) => {
-    let arrayKey = value[0].data.arrayKey;
-    let arr = arrayKey ? `[[${arrayKey}]] — ` : '';
+    let header = value[0].data.header;
+    let prefix = header ? `${header} — ` : '';
     return {
-      searchKey: arr + value[0].data.description,
+      searchKey: prefix + value[0].data.description,
       address: `${value[0].address}#${value[0].id}`,
       domainId: 'Manual.lakeTomlTable',
       ref: value,
@@ -105,10 +110,10 @@ private def tomlFieldDomainMapper := {
   className := "lake-toml-field-domain",
   dataToSearchables := "(domainData) =>
     Object.entries(domainData.contents).map(([key, value]) => {
-      let tableArrayKey = value[0].data.tableArrayKey;
-      let arr = tableArrayKey ? `[[${tableArrayKey}]]` : 'package configuration';
+      let tableHeader = value[0].data.tableHeader;
+      let where = tableHeader ? tableHeader : 'package configuration';
       return {
-        searchKey: `${value[0].data.field} in ${arr}`,
+        searchKey: `${value[0].data.field} in ${where}`,
         address: `${value[0].address}#${value[0].id}`,
         domainId: 'Manual.lakeTomlField',
         ref: value,
@@ -123,15 +128,15 @@ def Block.tomlField.descr : BlockDescr where
     let .ok (_, inTable, field) := FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
       | do reportError "Failed to deserialize field doc data"; pure none
 
-    let tableArrayKey : Option Json := (← get).getDomainObject? tomlTableDomain inTable.toString |>.bind fun t =>
-      t.data.getObjVal? "arrayKey" |>.toOption
+    let tableHeader : Option Json := (← get).getDomainObject? tomlTableDomain inTable.toString |>.bind fun t =>
+      t.data.getObjVal? "header" |>.toOption
 
     modify fun s =>
       let name := s!"{inTable} {field.name}"
       s |>.saveDomainObject tomlFieldDomain name id
         |>.saveDomainObjectData tomlFieldDomain name (json%{
           "table": $inTable.toString,
-          "tableArrayKey": $(tableArrayKey.getD .null),
+          "tableHeader": $(tableHeader.getD .null),
           "field": $field.name.toString
         })
     discard <| externalTag id (← read).path s!"{inTable}-{field.name}"
@@ -231,12 +236,12 @@ def Block.tomlTable.descr : BlockDescr where
     s.addQuickJumpMapper tomlTableDomain tomlTableDomainMapper
 
   traverse id info _ := do
-    let .ok (arrayKey, humanName, typeName) := FromJson.fromJson? (α := Option String × String × Name) info
-        | do reportError "Failed to deserialize FFI doc data"; pure none
-    let arrayKeyJson := arrayKey.map Json.str |>.getD Json.null
+    let .ok (key, humanName, typeName) := FromJson.fromJson? (α := Toml.TableKey × String × Name) info
+        | do reportError "Failed to deserialize Lake TOML table doc data"; pure none
+    let headerJson := key.headerString?.map Json.str |>.getD Json.null
     modify fun s =>
       s |>.saveDomainObject tomlTableDomain typeName.toString id
-        |>.saveDomainObjectData tomlTableDomain typeName.toString (json%{"description": $humanName, "type": $typeName.toString, "arrayKey": $arrayKeyJson})
+        |>.saveDomainObjectData tomlTableDomain typeName.toString (json%{"description": $humanName, "type": $typeName.toString, "header": $headerJson})
 
     discard <| externalTag id (← read).path typeName.toString
     pure none
@@ -253,16 +258,16 @@ dl.toml-table-field-spec {
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
     open Verso.Output in do
-      let .ok (arrayKey, humanName, typeName) := FromJson.fromJson? (α := Option String × String × Name) info
+      let .ok (key, humanName, typeName) := FromJson.fromJson? (α := Toml.TableKey × String × Name) info
         | do reportError "Failed to deserialize Lake TOML table doc data"; pure .empty
 
-      let tableArrayName : Option Toml.Highlighted := arrayKey.map fun k =>
-        .tableHeader <| .tableDelim (.text "[[") ++ .tableName (some typeName.toString) (.key (some k) (.text k)) ++ .tableDelim (.text "]]")
+      let tableHeader : Option Toml.Highlighted := key.header?.map fun (l, k, r) =>
+        .tableHeader <| .tableDelim (.text l) ++ .tableName (some typeName.toString) (.key (some k) (.text k)) ++ .tableDelim (.text r)
 
       -- Don't include links here because they'd just be self-links anyway
-      let tableArrayName : Option Html := tableArrayName.map (Toml.Highlighted.toHtml (fun _ => none) (fun _ _ => none))
+      let tableHeader : Option Html := tableHeader.map (Toml.Highlighted.toHtml (fun _ => none) (fun _ _ => none))
 
-      let sig : Html := html%{{humanName}{tableArrayName.map (html%{ — <code class="toml">{·}</code>}) |>.getD .empty}}
+      let sig : Html := html%{{humanName}{tableHeader.map (html%{ — <code class="toml">{·}</code>}) |>.getD .empty}}
 
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
@@ -362,9 +367,9 @@ dl.toml-table-field-spec {
       }
 
   localContentItem _ info _ := open Verso.Output in do
-    let (arrayKey, humanName, typeName) ← FromJson.fromJson? (α := Option String × String × Name) info
-    if let some arrayKey := arrayKey then
-      pure #[(s!"[[{arrayKey}]]", html%{<code>{s!"[[{arrayKey}]]"}</code>})]
+    let (key, humanName, _typeName) ← FromJson.fromJson? (α := Toml.TableKey × String × Name) info
+    if let some header := key.headerString? then
+      pure #[(header, html%{<code>{header}</code>})]
     else
       pure #[(humanName, html%{{humanName}})]
 
@@ -375,27 +380,35 @@ def Field.toBlock (inTable : Name) (f : Field (Array (Block Genre.Manual))) : Bl
   let (f, docs?) := f.takeDocs
   .other (Block.tomlField none inTable f) (docs?.getD #[])
 
-def Table.toBlock (arrayKey : Option String) (docs : Array (Block Genre.Manual)) (t : Table (Array (Block Genre.Manual))) : Array (Block Genre.Manual) :=
+def Table.toBlock (key : TableKey) (docs : Array (Block Genre.Manual)) (t : Table (Array (Block Genre.Manual))) : Array (Block Genre.Manual) :=
   let (fieldBlocks, notFields) := docs.partition (fun b => b matches Block.other {name:=`Manual.Block.tomlField, .. : Genre.Manual.Block} ..)
+  -- A hand-written field block replaces the generated block for the same field
+  let written : Array Name := (flattenBlocks docs).filterMap fun
+    | .other {name := `Manual.Block.tomlField, data, .. : Genre.Manual.Block} _ =>
+      (FromJson.fromJson? (α := Option Nat × Name × Field Empty) data).toOption.map (·.2.2.name)
+    | _ => none
+  let generated := t.fields.filter (!written.contains ·.name)
 
-  #[.other (Block.tomlTable arrayKey t.name t.typeName) <| notFields ++ (fieldBlocks ++ t.fields.map (Field.toBlock t.typeName))]
+  #[.other (Block.tomlTable key t.name t.typeName) <| notFields ++ (fieldBlocks ++ generated.map (Field.toBlock t.typeName))]
 
 
 end Toml
 
 structure TomlTableOpts where
-  /--
-  `none` to describe the root of the configuration, or a key that points at a table array to
-  describe a nested entry.
-  -/
-  arrayKey : Option String
+  /-- The location of the documented table in the file. -/
+  key : Toml.TableKey
   description : String
   name : Name
   skip : List Name
 
 meta def TomlTableOpts.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m TomlTableOpts :=
-  TomlTableOpts.mk <$> .positional `key arrayKey <*> .positional `description .string <*> .positional `name .resolvedName <*> many (.named `skip .name false)
+  mk <$> .positional `key arrayKey <*> .flag `table false "If true, the key names a single table instead of an array of tables" <*> .positional `description .string <*> .positional `name .resolvedName <*> many (.named `skip .name false)
 where
+  mk (key? : Option String) (isTable : Bool) description name skip : TomlTableOpts :=
+    let key := match key? with
+      | none => .root
+      | some k => if isTable then .table k else .array k
+    {key, description, name, skip}
   arrayKey := {
     description := "'root' for the root table, or a string that contains a key for nested tables",
     signature := .Ident ∪ .String
@@ -411,14 +424,16 @@ where
 open Markdown in
 /--
 Interpret a structure type as a TOML table, and generate docs.
+
+The structure's docstring, if it has one, comes first, followed by the directive's contents.
 -/
 @[directive_expander tomlTableDocs]
 meta def tomlTableDocs : DirectiveExpander
   | args, contents => do
-    let {arrayKey, description, name, skip} ← TomlTableOpts.parse.run args
+    let {key, description, name, skip} ← TomlTableOpts.parse.run args
     let docsStx ←
       match ← Lean.findDocString? (← getEnv) name with
-      | none => throwError m!"No docs found for '{name}'"; pure #[]
+      | none => pure #[]
       | some docs =>
         let some ast := MD4Lean.parse docs
           | throwError "Failed to parse docstring as Markdown"
@@ -431,8 +446,9 @@ meta def tomlTableDocs : DirectiveExpander
     let tableStx ← Toml.asTable description name skip
 
     let userContents ← contents.mapM elabBlock
+    let blocks := docsStx ++ userContents
 
-    return #[← `(Block.concat (Toml.Table.toBlock $(quote arrayKey) #[$(docsStx),* , $userContents,*] $tableStx))]
+    return #[← `(Block.concat (Toml.Table.toBlock $(quote key) #[$blocks,*] $tableStx))]
 
 
 
@@ -441,13 +457,17 @@ structure LakeTomlOpts where
   type : Name
   /-- The field of the table to use -/
   field : Name
-  /-- Whether to keep the result -/
+  /-- Whether to display the TOML -/
   «show» : Bool
+  /-- Whether Lake is expected to reject the TOML -/
+  error : Bool
 
 meta section
 
 def LakeTomlOpts.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m LakeTomlOpts :=
-  LakeTomlOpts.mk <$> .positional `type .resolvedName <*> .positional `field .name <*> (.named `show .bool true <&> (·.getD true))
+  LakeTomlOpts.mk <$> .positional `type .resolvedName <*> .positional `field .name
+    <*> .flag `show true "If false, the TOML is checked but not displayed"
+    <*> .flag `error false "If true, Lake must reject the TOML, and the 'expected' block contains the error"
 
 
 
@@ -467,43 +487,90 @@ def lakeToml : DirectiveExpander
       else
         let tomlStr := toml[0]
         let tomlInput := tomlStr.getVersoCodeBlock ++ "\n"
-        let v ← match opts.field, opts.type with
-        | `_root_, ``Lake.PackageConfig =>
-          match (← checkTomlPackage ((← parserInputString tomlStr) ++ "\n")) with
-          | .error e => throwErrorAt tomlStr e
-          | .ok v => pure v
+        let input := (← parserInputString tomlStr) ++ "\n"
+        let result ← match opts.field, opts.type with
+        | `_root_, ``Lake.PackageConfig => checkTomlPackage input
+        | `_root_, ``Lake.LakeConfig => checkTomlLakeConfig input
         | `_root_, other =>
-          throwError "'_root_' can only be used with 'Lake.PackageConfig'"
-        | f, ``Lake.Dependency =>
-          match (← checkToml (Array Lake.Dependency) ((← parserInputString tomlStr) ++ "\n") f) with
-          | .error e => throwErrorAt tomlStr e
-          | .ok v => pure v
+          throwError "'_root_' can only be used with 'Lake.PackageConfig' or 'Lake.LakeConfig'"
+        | f, ``Lake.Dependency => checkToml (Array Lake.Dependency) input f
         | `lean_lib, ``Lake.LeanLibConfig =>
           -- TODO get the name first!
-          match (← checkToml (Array (Named Lake.LeanLibConfig)) ((← parserInputString tomlStr) ++ "\n") `lean_lib) with
-          | .error e => throwErrorAt tomlStr e
-          | .ok v => pure v
-        | `lean_exe, ``Lake.LeanExeConfig =>
-          match (← checkToml (Array (Named Lake.LeanExeConfig)) ((← parserInputString tomlStr) ++ "\n") `lean_exe) with
-          | .error e => throwErrorAt tomlStr e
-          | .ok v => pure v
+          checkToml (Array (Named Lake.LeanLibConfig)) input `lean_lib
+        | `lean_exe, ``Lake.LeanExeConfig => checkToml (Array (Named Lake.LeanExeConfig)) input `lean_exe
         | _, _ => throwError s!"Unsupported type {opts.type}"
 
-        discard <| expectString "elaborated configuration output" expectedStr v (useLine := (·.any (! Char.isWhitespace ·)))
+        let v ← match result, opts.error with
+          | .ok v, false => pure v
+          | .error e, false => throwErrorAt tomlStr e
+          | .error e, true => pure (e ++ "\n")
+          | .ok _, true => throwErrorAt tomlStr "Expected Lake to reject this configuration, but it was accepted"
 
-        contents.mapM (elabBlock ⟨·⟩)
+        let what := if opts.error then "configuration error" else "elaborated configuration output"
+        discard <| expectString what expectedStr v (useLine := (·.any (! Char.isWhitespace ·)))
+
+        if opts.show then contents.mapM (elabBlock ⟨·⟩) else pure #[]
 
 @[role_expander tomlField]
 def tomlFieldInline : RoleExpander
   | args, inlines => do
-    let table ← (ArgParse.positional `table .resolvedName).run args
+    let (table, (show? : Option String)) ← ((·, ·) <$> ArgParse.positional `table .resolvedName
+      <*> .named `show .string true "Text to display instead of the field name").run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
     let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the field name"
     let name := name.getVersoCode
 
-    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.tomlField $(quote table) $(quote name.toName)) #[Inline.code $(quote name)])]
+    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.tomlField $(quote table) $(quote name.toName) $(quote show?)) #[Inline.code $(quote (show?.getD name))])]
+
+/-- Accepts a Lean type, written either as an identifier or as a string of Lean code. -/
+def leanTypeArg : ValDesc DocElabM Term where
+  description := "a Lean type, as an identifier or a string of Lean code"
+  signature := { ident := true, string := true, num := false }
+  get
+    | .name x => pure x
+    | .str s => do
+      match Parser.runParserCategory (← getEnv) `term s.getString with
+      | .ok stx => pure ⟨stx⟩
+      | .error e => throwErrorAt s "Couldn't parse the type: {e}"
+    | .num n => throwErrorAt n "Expected a type, got a number"
+
+private unsafe def evalTomlValueErrorsImpl (e : Expr) : MetaM (IO (Array String)) :=
+  Meta.evalExpr (IO (Array String))
+    (mkApp (.const ``IO []) (mkApp (.const ``Array [0]) (.const ``String []))) e
+
+@[implemented_by evalTomlValueErrorsImpl]
+private def evalTomlValueErrors (_ : Expr) : MetaM (IO (Array String)) := pure (pure #[])
+
+/--
+Displays a single highlighted TOML value.
+
+The optional positional argument is a Lean type with a `DecodeToml` instance.
+When it is present, Lake must decode the value as that type.
+-/
+@[role_expander tomlValue]
+def tomlValue : RoleExpander
+  | args, inlines => do
+    let type? ← ((some <$> ArgParse.positional `type leanTypeArg) <|> pure none).run args
+    let #[arg] := inlines
+      | throwError "Expected exactly one argument"
+    let some { content := str, .. } := CodeView.of arg
+      | throwErrorAt arg "Expected code literal with a TOML value"
+    let hl ← tomlValueContent str
+    if let some type := type? then
+      let ty ← withRef type do
+        let ty ← Term.elabType type
+        Term.synthesizeSyntheticMVarsNoPostponing
+        instantiateMVars ty
+      let e ← withRef type <|
+        Meta.mkAppOptM ``Manual.tomlValueErrors #[some ty, none, none, some (toExpr str.getVersoCode)]
+      match ← (← evalTomlValueErrors e).toBaseIO with
+      | .error err => throwErrorAt str "Failed to check the TOML value: {err}"
+      | .ok errs =>
+        unless errs.isEmpty do
+          throwErrorAt str m!"Lake can't decode this TOML value as {ty}:\n{"\n".intercalate errs.toList}"
+    pure #[← ``(Inline.other (Inline.toml $(quote hl)) #[Inline.code $(quote str.getVersoCode)])]
 
 end
 
@@ -528,14 +595,15 @@ r#"
 
   toHtml :=
     some <| fun goB _id data content => do
-      let .ok (tableName, fieldName) := fromJson? (α := Name × Name) data
+      let .ok (tableName, fieldName, show?) := fromJson? (α := Name × Name × Option String) data
         | reportError s!"Failed to deserialize metadata for Lake option ref: {data}"; content.mapM goB
+      let shown := show?.getD fieldName.toString
 
       if let some obj := (← read).traverseState.getDomainObject? tomlFieldDomain s!"{tableName} {fieldName}" then
         for id in obj.ids do
           if let some dest := (← read).traverseState.externalTags[id]? then
-            return html%{<code class="toml-field"><a href={dest.link}>{fieldName.toString}</a></code>}
+            return html%{<code class="toml-field"><a href={dest.link}>{shown}</a></code>}
       else
         reportError s!"No link destination for TOML field {tableName}:{fieldName}"
 
-      pure html%{<code class="toml-field">{fieldName.toString}</code>}
+      pure html%{<code class="toml-field">{shown}</code>}
