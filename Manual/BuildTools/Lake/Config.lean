@@ -779,9 +779,9 @@ tag := "lake-config-cache-services"
 %%%
 
 Cache services for a package are declared by adding entries to the {toml}`[[cache_service]]` table array.
-Each entry in the array defines a remote cache service that is accessible both in the current workspace and in downstream dependencies.
+Each entry in the array defines a remote cache service that is accessible both in the current workspace and in downstream pakcages.
 This service can be used to provide cached {tech (key := "artifact")}[build artifacts] to users.
-Unlike cache services that are defined in the {ref "lake-system-config"}[local Lake configuration file], they are read-only; package developers who provide cache services to users should define the services in their Lake system configuration file to enable {ref "lake-cache-remote"}[pushing].
+Unlike cache services that are defined in the {ref "lake-system-config"}[Lake system configuration file], they are read-only; package developers who provide cache services to users should define the services in their Lake system configuration file to enable {ref "lake-cache-remote"}[pushing].
 
 
 ::::tomlTableDocs "cache_service" "Cache Services" Lake.CacheServiceConfig (skip := kind)

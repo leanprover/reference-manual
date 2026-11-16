@@ -266,7 +266,7 @@ Lake itself can be configured with the following environment variables:
 
 *
   * {envVar +def}`LAKE_PKG_URL_MAP`
-  * If set, its value should e a JSON object that maps package names to Git URLs.
+  * If set, its value should be a JSON object that maps package names to Git URLs.
     These URLs override the URL of any dependency with that name, including transitive dependencies.
 
 :::
@@ -2024,7 +2024,7 @@ If no `cache.defaultService` is configured, Lake will use Reservoir by default.
 
 ::::lake cache services
 Prints the name of each configured remote cache service (one per line).
-Services may be {ref "lake-config-cache-services"}[added by dependencies].
+Services may be {ref "lake-config-cache-services"}[added by the package configuration or by dependencies].
 They can also be added by modifying the {ref "lake-system-config"}[system Lake configuration file], which is usually located at `~/.lake/config.toml` but can be set via the {envVar}`LAKE_CONFIG` environment variable.
 
 :::paragraph
