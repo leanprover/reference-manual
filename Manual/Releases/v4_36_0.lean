@@ -20,25 +20,20 @@ open Std.WP Lean.Order
 set_option experimental.intrinsic true
 set_option experimental.vcgen true
 
-#doc (Manual) "Lean 4.36.0-rc2 (2026-10-27)" =>
+#doc (Manual) "Lean 4.36.0 (2026-11-16)" =>
 %%%
 tag := "release-v4.36.0"
 file := "v4.36.0"
 %%%
 
-:::warn
-These release notes describe a _release candidate_, not the final release.
-They may be incomplete and are subject to change.
-:::
-
-For this release, 219 changes landed.
-In addition to the 65 feature additions
-and 83 fixes listed below,
+For this release, 222 changes landed.
+In addition to the 66 feature additions
+and 84 fixes listed below,
 there were 11 refactoring changes,
 1 documentation improvement,
 30 performance improvements,
 3 improvements to the test suite,
-and 26 other changes.
+and 27 other changes.
 
 # Highlights
 
@@ -418,8 +413,14 @@ The intended way to inspect them is through the new views, which represent Verso
 - [#15517](https://github.com/leanprover/lean4/pull/15517)
   changes the index of `Lean.Order.iSup` and `Lean.Order.iInf` to `{ι : Sort v}`, so `⨆ h : P, f h` over a proposition `P` elaborates. The lemmas `le_iSup`, `iSup_le`, `iInf_le`, `le_iInf`, `iSup_apply` and `iInf_apply` take the same `Sort` index.
 
+- [#15002](https://github.com/leanprover/lean4/pull/15002)
+  adds HTML-like syntax to `Lean.Data.Html.Syntax`, together with an elaborator from the syntax into `Lean.Data.Html`.
+
 - [#15175](https://github.com/leanprover/lean4/pull/15175)
   stops `Loop.configure` from leaking and rejects `System.random` values above 2^31-1 before allocating a huge array.
+
+- [#14935](https://github.com/leanprover/lean4/pull/14935)
+  adds a type `Lean.Data.Html` of HTML forests — aimed primarily at authoring HTML (as opposed to internal representation in a web server, etc) — as well as a renderer that produces a `String` object.
 
 - [#15329](https://github.com/leanprover/lean4/pull/15329)
   adds efficient `LE` and `Ord` instances for `ByteArray` and deduces all other order instances from that.
@@ -774,6 +775,12 @@ The intended way to inspect them is through the new views, which represent Verso
 
 ```markdown
 
+- [#16210](https://github.com/leanprover/lean4/pull/16210)
+  stops enforcing a limit on the amount of ctors an inductive can have if that inductive is a proposition.
+
+- [#16253](https://github.com/leanprover/lean4/pull/16253)
+  adds a new safe version of `withPtrEq`, powered by a conservative check in the compiler to ensure that the invocation is safe.
+
 - [#15516](https://github.com/leanprover/lean4/pull/15516)
   removes the limit of 255 object fields per constructor, and thus per structure.
 
@@ -859,6 +866,9 @@ The intended way to inspect them is through the new views, which represent Verso
 
 ```markdown
 
+- [#16478](https://github.com/leanprover/lean4/pull/16478)
+  updates bundled `lean-beam` in Lean 4.36 with speculative profiling and improvements to Lean language server compatibility, cancellation, and error reporting.
+
 - [#15665](https://github.com/leanprover/lean4/pull/15665)
   adds Lean Beam's CLI, MCP server, daemon, and LSP plugin to Linux and macOS release toolchains.
 
@@ -876,17 +886,5 @@ The intended way to inspect them is through the new views, which represent Verso
 
 - [#15150](https://github.com/leanprover/lean4/pull/15150)
   ensures that `Lean.toolchain` includes a `v` for release versions, e.g. `"leanprover/lean4:v4.34.0-rc2"`, to match the standard format of toolchains in `lean-toolchain` files. (This also enables `ToolchainVer.ofString` to succeed on `Lean.toolchain`.)
-
-```
-
-# Uncategorised
-
-```markdown
-
-- [#15002](https://github.com/leanprover/lean4/pull/15002)
-  adds HTML-like syntax to `Lean.Data.Html.Syntax`, together with an elaborator from the syntax into `Lean.Data.Html`.
-
-- [#14935](https://github.com/leanprover/lean4/pull/14935)
-  adds a type `Lean.Data.Html` of HTML forests — aimed primarily at authoring HTML (as opposed to internal representation in a web server, etc) — as well as a renderer that produces a `String` object.
 
 ```
