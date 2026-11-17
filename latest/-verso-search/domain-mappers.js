@@ -210,6 +210,22 @@ const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tactic = {
 /**
  * @type {DomainMapper}
  */
+const Manual_DOT_exportType = {
+    dataToSearchables:
+      (domainData) =>
+        Object.entries(domainData.contents).map(([key, value]) => ({
+          searchKey: key,
+          address: `${value[0].address}#${value[0].id}`,
+          domainId: 'Manual.exportType',
+          ref: value,
+        })),
+    className: "export-type-domain",
+    displayName: "Export Format Type",
+    };
+
+/**
+ * @type {DomainMapper}
+ */
 const Manual_DOT_lakeTomlTable = {
     dataToSearchables:
       (domainData) =>
@@ -241,6 +257,22 @@ const Manual_DOT_lakeCommand = {
         })),
     className: "lake-command-domain",
     displayName: "Lake Command",
+    };
+
+/**
+ * @type {DomainMapper}
+ */
+const Manual_DOT_executable = {
+    dataToSearchables:
+      (domainData) =>
+        Object.entries(domainData.contents).map(([key, value]) => ({
+          searchKey: key,
+          address: `${value[0].address}#${value[0].id}`,
+          domainId: 'Manual.executable',
+          ref: value,
+        })),
+    className: "executable-domain",
+    displayName: "Executable",
     };
 
 /**
@@ -402,8 +434,10 @@ export const domainMappers = {"Verso.Genre.Manual.doc.suggestion":
     Verso_DOT_Genre_DOT_Manual_DOT_example,
   "Verso.Genre.Manual.doc.tactic":
     Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tactic,
+  "Manual.exportType": Manual_DOT_exportType,
   "Manual.lakeTomlTable": Manual_DOT_lakeTomlTable,
   "Manual.lakeCommand": Manual_DOT_lakeCommand,
+  "Manual.executable": Manual_DOT_executable,
   "Manual.elanOpt": Manual_DOT_elanOpt,
   "Verso.Genre.Manual.doc": Verso_DOT_Genre_DOT_Manual_DOT_doc,
   "Manual.tactic.grind": Manual_DOT_tactic_DOT_grind,
