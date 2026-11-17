@@ -17,6 +17,7 @@ open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
+open Verso.Code.External
 
 set_option guard_msgs.diff true
 
@@ -99,8 +100,8 @@ Running {lake}`cache get` with the {lakeOpt}`--service` option causes Lake to fe
 The {lakeOpt}`--mappings-only` flag causes it to fetch only the mappings file and record that the artifacts it describes are available from the service.
 If {lake}`build` discovers that a desired artifact is available on a service but not present, it downloads it when it is needed.
 To use an S3-based service instead of Reservoir, a {lake}`cache get` command should specify the following options:
-* {lakeOpt}`--service` to specify the service name (optional if {tomlField Lake.CacheConfig (show := "cache.defaultService")}`defaultService` is set)
-* {lakeOpt}`--scope` for the cache's {tech (key := "cache scope")}[scope], which the service provider should advertise to users
+* {lakeOpt}`--service` to specify the service name (optional if {tomlField Lake.CacheConfig (show := "cache.defaultService")}`defaultService` is set or if {lakeOpt}`--package` is provided for a package that configures a download cache service)
+* {lakeOpt}`--scope` for the cache's {tech (key := "cache scope")}[scope], which the service provider should advertise to users when the cache service uses scopes
 * optionally {lakeOpt}`--mappings-only`, which delays the download of artifacts until they are required for a build
 * optionally {lakeOpt}`--package`, to fetch mappings and artifacts for a package other than the {tech}[root package].
 :::
@@ -114,7 +115,7 @@ tag := "lake-cache-service-kinds"
 There are two kinds of remote cache services: those that implement the S3 endpoint protocol, and those that implement Reservoir's API.
 Both store {tech (key := "artifact")}[build artifacts], indexed by their content hashes, as well as {tech (key := "mappings file")}[mappings].
 The {lake}`cache put` command only supports uploading to S3-style cache services.
-The kind of a service is specified in the {tomlField Lake.CacheServiceConfig}`kind` field in a package or system configuration file.
+The kind of a service is specified in the {tomlField Lake.CacheServiceS3Config}`kind` field in a package or system configuration file.
 
 S3-style cache services require [S3-compatible](https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) buckets with two endpoints: one for artifacts, and one for {tech (key := "mappings file")}[mappings] associated with each Git revision.
 Both endpoints may point at the same bucket.
@@ -122,16 +123,29 @@ Lake fetches artifacts directly from the artifact endpoint, requesting files bas
 Mappings are fetched from the revision endpoint according to the Git revision.
 When uploading to S3-style cache services with {lake}`cache put`, the contents of {envVar}`LAKE_CACHE_KEY` are used for authentication over the [AWS Signature Version 4 protocol](https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html).
 
-For S3 endpoints, the configured {tech (key := "cache scope")}[scope] is used as a directory prefix.
-If an S3 endpoint has artifact endpoint `ARTS` and scope `SCOPE`, then an artifact with hash `HASH` would be requested from `ARTS/SCOPE/HASH.art`.
-Similarly, if the revision endpoint is `REVS` then the mappings for `COMMIT` would be requested from `REVS/SCOPE/COMMIT.jsonl`.
+The layout of an S3 endpoint depends on its {tomlField Lake.CacheServiceS3Config}`hasPackageScopes` field.
+If {lean}`true`, which is the default, the configured {tech (key := "cache scope")}[scope] is used as a directory prefix.
+If an S3 endpoint has artifact endpoint {lit}`ARTS` and scope {lit}`SCOPE`, then an artifact with hash {lit}`HASH` would be requested from {lit}`ARTS/SCOPE/HASH.art`.
+Likewise, if the revision endpoint is {lit}`REVS` then the mappings for {lit}`COMMIT` would be requested from {lit}`REVS/SCOPE/COMMIT.jsonl`.
 If the {lakeOpt}`--repo` option is provided instead of {lakeOpt}`--scope`, then mappings are stored in a directory that additionally encodes the platform and toolchain.
+If {tomlField Lake.CacheServiceS3Config}`hasPackageScopes` is {lean}`false`, then the cache service only contains artifacts and mappings for a single package and does not accept a scope.
+Its artifacts are requested from {lit}`ARTS/HASH.art`, and its mappings are stored in a directory that encodes the platform and toolchain.
+Unlike multi-package S3 services, these single-package services may be used for a package's download cache service, which is set in the {tomlField Lake.PackageConfig}`downloadCacheService` field.
 
 Reservoir itself is a Reservoir-style cache service.
 Organizations that need to carefully audit available packages or that for policy reasons cannot connect to Reservoir itself may implement their own.
 This requires implementing a compatible HTTP API.
 
+### Download Cache Services
+%%%
+tag := "lake-cache-download-services"
+%%%
 
+Each package may declare a {deftech}_download cache service_, which is a cache service that is used by default as a source of build artifacts for the package.
+When the workspace contains a dependency with a download cache service, Lake automatically fetches {tech (key := "mappings file")}[mappings] from the service prior to building the package for the first time.
+Once it has the mappings, Lake downloads available artifacts as it needs them.
+Additionally, {lake}`cache get` uses a configured download cache service as the default cache for a package.
+If a package has both {tomlField Lake.PackageConfig}`preferReleaseBuild` set to {lean}`true` and a configured download cache, the GitHub release build takes priority.
 
 # GitHub Release Builds
 %%%
