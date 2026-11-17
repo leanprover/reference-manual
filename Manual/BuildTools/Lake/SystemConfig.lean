@@ -52,7 +52,7 @@ It must refer to a service defined in this file.
 If unset, {lake}`cache put` requires a {lakeOpt}`--service` option.
 :::
 
-:::tomlField Lake.CacheConfig service "Cache service" "Cache services" Lake.CacheServiceConfig
+:::tomlField Lake.CacheConfig service "Cache service" "Cache services" Lake.CacheService
 Cache services are specified using the same format as in a TOML-format {ref "lake-config-cache-services"}[package configuration file].
 Cache services defined in the system configuration file may be used for uploads with {lake}`cache put`.
 :::

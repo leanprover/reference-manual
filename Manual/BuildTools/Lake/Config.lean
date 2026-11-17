@@ -177,6 +177,7 @@ name = "example-package"
       releaseRepo := none,
       buildArchive := ELIDED,
       preferReleaseBuild := false,
+      downloadCacheService? := none,
       testDriver := "",
       testDriverArgs := #[],
       lintDriver := "",
@@ -271,6 +272,7 @@ name = "Sorting"
       releaseRepo := none,
       buildArchive := ELIDED,
       preferReleaseBuild := false,
+      downloadCacheService? := none,
       testDriver := "",
       testDriverArgs := #[],
       lintDriver := "",
@@ -784,29 +786,45 @@ This service can be used to provide cached {tech (key := "artifact")}[build arti
 Unlike cache services that are defined in the {ref "lake-system-config"}[Lake system configuration file], they are read-only; package developers who provide cache services to users should define the services in their Lake system configuration file to enable {ref "lake-cache-remote"}[pushing].
 
 
-::::tomlTableDocs "cache_service" "Cache Services" Lake.CacheServiceConfig (skip := kind)
+::::tomlTableDocs "cache_service" "S3 Cache Services" Lake.CacheServiceS3Config (variant := "S3")
 
-:::tomlField Lake.CacheServiceConfig name "The service name" "Service names" String
+:::tomlField Lake.CacheServiceS3Config name "The service name" "Service names" String
 The service's name, as passed to {lakeOpt}`--service`. Required.
 :::
 
-:::tomlField Lake.CacheServiceConfig kind "Service kind" "Service kinds" Lake.CacheServiceKind
-The service kind, which may be either {tomlValue Lake.CacheServiceKind}`"reservoir"` or {tomlValue Lake.CacheServiceKind}`"s3"`. Required.
+:::tomlField Lake.CacheServiceS3Config kind "Service kind" "Service kinds" Lake.CacheServiceKind
+For S3 cache services, this field's value is always {tomlValue Lake.CacheServiceKind}`"s3"`.
+Use {tomlValue Lake.CacheServiceKind}`"reservoir"` for Reservoir-style cache services' {tomlField Lake.CacheServiceReservoirConfig}`kind` field.
+This field is required.
 :::
 
-:::tomlField Lake.CacheServiceConfig apiEndpoint "API endpoint" "API endpoints" String
-The base URL of the service's Reservoir-compatible API.
-Required for {ref "lake-cache-service-kinds"}[Reservoir services], and ignored for S3 services.
-:::
-
-:::tomlField Lake.CacheServiceConfig artifactEndpoint "Artifact endpoint" "Artifact endpoints" String
+:::tomlField Lake.CacheServiceS3Config artifactEndpoint "Artifact endpoint" "Artifact endpoints" String
 The base URL from which {tech (key := "artifact")}[build artifacts] are downloaded.
-Required for {ref "lake-cache-service-kinds"}[S3 services], and ignored for Reservoir services.
+Required.
 :::
 
-:::tomlField Lake.CacheServiceConfig revisionEndpoint "Revision endpoint" "Revision endpoints" String
+:::tomlField Lake.CacheServiceS3Config revisionEndpoint "Revision endpoint" "Revision endpoints" String
 The base URL from which each Git commit's {tech (key := "mappings file")}[mappings] are downloaded.
-Required for {ref "lake-cache-service-kinds"}[S3 services], and ignored for Reservoir services.
+Required.
+:::
+
+::::
+
+::::tomlTableDocs "cache_service" "Reservoir Cache Services" Lake.CacheServiceReservoirConfig (variant := "Reservoir")
+
+:::tomlField Lake.CacheServiceReservoirConfig name "The service name" "Service names" String
+The service's name, as passed to {lakeOpt}`--service`. Required.
+:::
+
+:::tomlField Lake.CacheServiceReservoirConfig kind "Service kind" "Service kinds" Lake.CacheServiceKind
+For Reservoir-style cache services, this field's value is always {tomlValue Lake.CacheServiceKind}`"reservoir"`.
+Use {tomlValue Lake.CacheServiceKind}`"s3"` for S3 cache services' {tomlField Lake.CacheServiceS3Config}`kind` field.
+This field is required.
+:::
+
+:::tomlField Lake.CacheServiceReservoirConfig apiEndpoint "API endpoint" "API endpoints" String
+The base URL of the service's Reservoir-compatible API.
+Required.
 :::
 
 ::::
