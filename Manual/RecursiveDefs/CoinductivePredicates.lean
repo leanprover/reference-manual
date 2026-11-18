@@ -73,7 +73,7 @@ variable {R : α → α → Prop} (a : α) {pred : α → Prop}
 
 The coinductive reasoning principle takes a predicate {lean}`pred`.
 To prove that {lean}`a` is the start of an infinite {lean}`R`-sequence, it suffices to show that {lean}`R` relates each element that satisfies {lean}`pred` to some other such element.
-In other words, it that the presence of an infinite sequence can be demonstrated by providing one:
+In other words, the presence of an infinite sequence can be demonstrated by providing one:
 ```signature
 InfSeq.coinduct (R : α → α → Prop) (pred : α → Prop) :
   (∀ (a : α), pred a → ∃ y, R a y ∧ pred y) →
