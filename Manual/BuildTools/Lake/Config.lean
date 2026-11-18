@@ -96,7 +96,7 @@ These options control the top-level directory layout of the package and its buil
 Further paths specified by libraries, executables, and targets within the package are relative to these directories.
 :::
 
-:::tomlFieldCategory "Building and Running" defaultTargets leanLibDir platformIndependent precompileModules precompileImports moreServerOptions moreGlobalServerArgs buildType leanOptions moreLeanArgs weakLeanArgs moreLeancArgs weakLeancArgs moreLinkArgs weakLinkArgs extraDepTargets
+:::tomlFieldCategory "Building and Running" defaultTargets platformIndependent fixedToolchain enableArtifactCache restoreAllArtifacts precompileModules precompileImports moreServerOptions moreGlobalServerArgs buildType leanOptions moreLeanArgs weakLeanArgs moreLeancArgs weakLeancArgs moreLinkArgs weakLinkArgs extraDepTargets
 
 These options configure how code is built and run in the package.
 Libraries, executables, and other {tech}[targets] within a package can further add to parts of this configuration.
