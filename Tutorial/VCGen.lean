@@ -806,13 +806,14 @@ Each case of {name}`Result` determines the precondition directly:
 ::::
 ```lean
 instance : WP (Result α) α Prop (Error → Prop) where
-  trans
-    | .ok v => ⟨fun post _ => post v⟩
-    | .fail e => ⟨fun _ epost => epost e⟩
-    | .div => ⟨fun _ _ => False⟩
-  trans_monotone x := by
-    intro post post' epost epost' hepost hpost
-    cases x <;> simp_all [PartialOrder.rel]
+  trans x := PredTrans.mk
+    (apply := fun post epost =>
+      match x with
+      | .ok v => post v
+      | .fail e => epost e
+      | .div => False)
+    (apply_mono := fun hpost hepost => by
+      cases x <;> simp_all [PartialOrder.rel])
 ```
 :::::
 
@@ -822,7 +823,7 @@ For {name}`bind`, both the definition of {name}`wp` and the definition of {name}
 ```lean
 instance Result.instWPMonad : WPMonad Result Prop (Error → Prop) where
   toWP _ := inferInstance
-  pure_le_wp_pure x post epost := PartialOrder.rel_refl
+  pure_le_wp_pure x post epost := by simp [wp, WP.trans, pure]
   bind_le_wp_bind x f post epost := by
     cases x <;> simp [wp, WP.trans, bind, PartialOrder.rel]
 ```
@@ -874,7 +875,7 @@ There are two relevant specification lemmas to register:
 theorem Result.throw_spec {α} {post : α → Prop}
     {epost : Error → Prop} (e : Error) :
     ⦃epost e⦄ throw (m := Result) (α := α) e ⦃post; epost⦄ :=
-  ⟨PartialOrder.rel_refl⟩
+  ⟨by simp [wp, WP.trans, throw]⟩
 
 @[spec]
 theorem addOp_ok_spec {x y} (h : x.toNat + y.toNat < UInt32.size) :
