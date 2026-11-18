@@ -49,6 +49,7 @@ They can be combined flexibly to achieve the necessary results:
  * {ref "notations"}[Notations] allow the simultaneous definition of a parser extension, a macro, and a pretty printer.
    When defining infix, prefix, or postfix operators, {ref "operators"}[custom operators] automatically take care of precedence and associativity.
  * Low-level parser extensions allow the parser to be extended in ways that modify its rules for tokens and whitespace, or that even completely replace Lean's syntax. This is an advanced topic that requires familiarity with Lean internals; nevertheless, the possibility of doing this without modifying the compiler is important. This reference manual is written using a language extension that replaces Lean's concrete syntax with a Markdown-like language for writing documents, but the source files are still Lean files.
+   Low-level parsers must produce syntax trees that satisfy the {ref "parser-syntax-invariants"}[parser invariants].
 
 {include 0 Manual.NotationsMacros.Operators}
 
