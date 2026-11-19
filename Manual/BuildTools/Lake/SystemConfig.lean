@@ -81,7 +81,7 @@ error: the configured default cache upload service `elsewhere` is not defined; p
 This system configuration file specifies a cache service named `my-service`.
 The custom cache service is set to be the default for both {lake}`cache get` and {lake}`cache put`.
 Use {lakeOpt}`--service reservoir` to select Reservoir's cache.
-Reservoir does not suport {lake}`cache put`.
+Reservoir does not support {lake}`cache put`.
 
 :::lakeToml Lake.LakeConfig _root_
 ```toml

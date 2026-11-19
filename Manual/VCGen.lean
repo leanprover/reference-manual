@@ -658,7 +658,7 @@ Generation proceeds as follows:
 VC generation stops early after {name Lean.Elab.Tactic.Do.VCGen.Config.stepLimit}`stepLimit` program steps.
 An {keywordOf Lean.Parser.Tactic.vcgen}`until` clause stops VC generation at the first program that matches the given pattern.
 A {keywordOf Lean.Parser.Tactic.vcgen}`with` clause runs the given {tactic}`grind`-mode step on every remaining verification condition.
-During generation, cerification conditions are simplified with the theorems in the {attr}`vcgen_simp` simp set and by evaluating ground arithmetic expressions and checking decidable equalities.
+During generation, verification conditions are simplified with the theorems in the {attr}`vcgen_simp` simp set and by evaluating ground arithmetic expressions and checking decidable equalities.
 The clause {keywordOf Lean.Parser.Tactic.vcgen}`simp` `[h₁, h₂]` adds `h₁` and `h₂` as further rewrite rules, and setting {name Lean.Elab.Tactic.Do.VCGen.Config.simp}`simp` to {lean}`false` disables the rewriting altogether.
 This keeps the intermediate goals in a normal form that the user chooses: for example, a sequence of state updates can fold into one constructor application, so that the goals do not grow with the number of updates.
 Simplified hypotheses also help {tactic}`grind` to detect contradictory goals.
