@@ -210,7 +210,7 @@ the overall steps to get it working the first time:
 $ cd .vale/scripts
 $ python3 -m venv venv
 $ . ./venv/bin/activate # or the appropriate script for your shell, e.g. activate.fish
-$ pip install beautifulsoup4
+$ pip install -r requirements.txt
 ```
 
 After that, just run
