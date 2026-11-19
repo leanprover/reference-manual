@@ -855,7 +855,7 @@ open Lean Syntax
 ```
 
 List comprehensions are a notation for writing lists that is inspired by standard set builder notation.
-A list comprehension consists of square brackets that contain a result term followed by some nubmer of _qualifiers_; each qualifier either introduces a variable from some other list or imposes a condition that must be satisfied.
+A list comprehension consists of square brackets that contain a result term followed by some number of _qualifiers_; each qualifier either introduces a variable from some other list or imposes a condition that must be satisfied.
 Qualifiers are nested: each new variable's value is evaluated for every prior value.
 
 ```lean

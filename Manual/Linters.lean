@@ -43,7 +43,7 @@ When using Lean interactively, linters are run after each {tech}[command] is {te
 Linters run on a separate thread, so their warnings may arrive after the command has been processed and elaboration has proceeded to the next command.
 
 :::paragraph
-Linter warnings have a standarized format.
+Linter warnings have a standardized format.
 Each ends with instructions for disabling the linter.
 For example, the unused variable linter issues a warning on this code:
 ```lean (name := lintWarn)

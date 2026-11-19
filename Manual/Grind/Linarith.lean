@@ -81,7 +81,7 @@ import Std
 ```lean -show
 open Lean.Grind
 ```
-For types that are commmutative rings (that is, types in which the multiplication operator is commutative) with {name}`CommRing` instances, `linarith` has more capabilities.
+For types that are commutative rings (that is, types in which the multiplication operator is commutative) with {name}`CommRing` instances, `linarith` has more capabilities.
 
 ```lean
 variable [LE R] [LT R] [Std.IsLinearOrder R] [Std.LawfulOrderLT R]

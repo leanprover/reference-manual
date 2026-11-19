@@ -411,12 +411,12 @@ local macro "..." : term => ``(«...»)
 
 In the {tech (key := "application binary interface")}[ABI], Lean types are translated to C types as follows:
 
-* The integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`USize` are represented by the C types {C}`uint8_t`, ..., {C}`uint64_t`, {C}`size_t`, respectively.
+* The integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`USize` are represented by the C types {C}`uint8_t`, …, {C}`uint64_t`, {C}`size_t`, respectively.
   If their {ref "fixed-int-runtime"}[run-time representation] requires {tech (key := "boxed")}[boxing], then they are unboxed at the FFI boundary.
 * {lean}`Char` is represented by {C}`uint32_t`.
 * {lean}`Float` is represented by {C}`double`.
 * {name}`Nat` and {name}`Int` are represented by {C}`lean_object *`.
-  Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the “pointer” is 1 ({C}`lean_is_scalar`), an encoded natural number or integer ({C}`lean_box`/{C}`lean_unbox`).
+  Their runtime values is either a pointer to an opaque arbitrary-precision integer object or, if the lowest bit of the “pointer” is 1 ({C}`lean_is_scalar`), an encoded natural number or integer ({C}`lean_box`/{C}`lean_unbox`).
 * A universe {lean}`Sort u`, type constructor {lean}`... → Sort u`, or proposition {lean}`p`​` :`{lean}` Prop` is {tech}[irrelevant] and is either statically erased (see above) or represented as a {C}`lean_object *` with the runtime value {C}`lean_box(0)`
 * The ABI for other inductive types that don't have special compiler support depends on the specifics of the type.
   It is the same as the {ref "run-time-inductives"}[run-time representation] of these types.

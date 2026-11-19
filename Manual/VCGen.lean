@@ -96,7 +96,7 @@ The workflow of {tactic}`vcgen` consists of the following:
 1. Programs are re-interpreted according to a {tech}[predicate transformer semantics].
    An instance of {name}`WP` for the program type determines the interpretation.
    The program type can be a monadic computation, such as a {keywordOf Lean.Parser.Term.do}`do`-block in {lean}`StateM Nat`.
-   Non-monadic types, such as the syntax trees of a small imperative langauge, are also supported.
+   Non-monadic types, such as the syntax trees of a small imperative language, are also supported.
    Each program is interpreted as a mapping from arbitrary {tech}[postconditions] to the {tech}[weakest precondition] that would ensure the postcondition.
    This step is invisible to most users, but library authors who want to enable their program types to work with {tactic}`vcgen` need to understand it.
 2. Programs are composed from smaller programs.
@@ -627,7 +627,7 @@ Generation proceeds as follows:
 1. The goal is brought into the form of an entailment {lean}`P ⊑ R` between assertions.
    Binders are introduced, {tech}[Hoare triples] are unfolded to {lean}`P ⊑ wp e Q E`, and goals of the form {lean}`wp e Q E` become {lean}`⊤ ⊑ wp e Q E`.
 2. The precondition {lean}`P` is moved into the local context: a pure assertion {lean (type := "Pred")}`⌜φ⌝` becomes a hypothesis {lean}`φ`, an {ref "vcgen-assertion-lattices"}[existential] {name Lean.Order.iSup}`⨆` becomes a variable, and the arguments of a state predicate become variables.
-3. The assertion {lean}`R` is recursively decomposed into goals based on its connectives: meets {name Lean.Order.meet}`⊓` are split into one goal per conjunct, the antecedents of {name Lean.Order.himp}`⇨` are mvoed into the precondition, pure assertions {lean (type := "Pred")}`⌜φ⌝` are transformed into the proposition {lean}`φ`, and {name Lean.Order.top}`⊤` goals are closed immediately.
+3. The assertion {lean}`R` is recursively decomposed into goals based on its connectives: meets {name Lean.Order.meet}`⊓` are split into one goal per conjunct, the antecedents of {name Lean.Order.himp}`⇨` are moved into the precondition, pure assertions {lean (type := "Pred")}`⌜φ⌝` are transformed into the proposition {lean}`φ`, and {name Lean.Order.top}`⊤` goals are closed immediately.
 4. If {lean}`R` is {lean}`wp e Q E`, then the program {lean}`e` is decomposed:
    1. A {keywordOf Lean.Parser.Term.«let»}`let`-binding is introduced, becoming a hypothesis.
    2. An application of an {tech}[auxiliary matching function] whose {tech (key := "match discriminant")}[discriminant] is a constructor application is reduced; any other conditional or match is split into one goal per branch.
@@ -658,7 +658,7 @@ Generation proceeds as follows:
 VC generation stops early after {name Lean.Elab.Tactic.Do.VCGen.Config.stepLimit}`stepLimit` program steps.
 An {keywordOf Lean.Parser.Tactic.vcgen}`until` clause stops VC generation at the first program that matches the given pattern.
 A {keywordOf Lean.Parser.Tactic.vcgen}`with` clause runs the given {tactic}`grind`-mode step on every remaining verification condition.
-During generation, cerification conditions are simplified with the theorems in the {attr}`vcgen_simp` simp set and by evaluating ground arithmetic expressions and checking decidable equalities.
+During generation, verification conditions are simplified with the theorems in the {attr}`vcgen_simp` simp set and by evaluating ground arithmetic expressions and checking decidable equalities.
 The clause {keywordOf Lean.Parser.Tactic.vcgen}`simp` `[h₁, h₂]` adds `h₁` and `h₂` as further rewrite rules, and setting {name Lean.Elab.Tactic.Do.VCGen.Config.simp}`simp` to {lean}`false` disables the rewriting altogether.
 This keeps the intermediate goals in a normal form that the user chooses: for example, a sequence of state updates can fold into one constructor application, so that the goals do not grow with the number of updates.
 Simplified hypotheses also help {tactic}`grind` to detect contradictory goals.

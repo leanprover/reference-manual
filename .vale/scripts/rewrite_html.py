@@ -39,11 +39,19 @@ def process_html_file(filepath, output_filepath):
         if code_tag.next_sibling and code_tag.next_sibling.string and code_tag.next_sibling.string.startswith('th'):
             # Replace <code>XYZ</code>th with '5th'
             code_tag.replace_with("5")
-        elif code_tag.attrs and 'class' in code_tag.attrs and 'hl' in code_tag['class'] and 'lean' in code_tag['class']:
+        elif code_tag.attrs and 'class' in code_tag.attrs and 'hl' in code_tag['class'] and 'lean' in code_tag['class'] and 'block' in code_tag['class']:
             code_tag.decompose()
         # Inline TOML nests its text in spans, which Vale's IgnoredScopes doesn't reach
         elif code_tag.attrs and 'class' in code_tag.attrs and 'toml' in code_tag['class']:
             code_tag.decompose()
+        elif code_tag.find(True):
+            # Vale ignores the text of a code element, but it checks the text
+            # of elements that are nested in it.
+            code_tag.string = code_tag.get_text()
+
+    # Delete figures
+    for element in soup.find_all('svg'):
+        element.decompose()
 
     # Delete all content in error explanation pages. This comes from the lean4 repo
     # and shouldn't be linted here.
@@ -51,6 +59,11 @@ def process_html_file(filepath, output_filepath):
         in_sections = element.find_parents('section')
         if in_sections:
             in_sections[-1].decompose()
+
+    # Delete the table of error explanations. Its summaries come from the
+    # lean4 repo.
+    for element in soup.find_all(id='error-explanation-table'):
+        element.decompose()
 
     # Delete docstring content (for now)
     for element in soup.find_all(class_="namedocs"):

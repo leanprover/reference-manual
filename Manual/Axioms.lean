@@ -72,7 +72,7 @@ theorem two_eq_five : 2 = 5 := false_is_true.elim
 
 Inconsistency may also arise from axioms that are incompatible with other properties of Lean.
 For example, parametricity is a powerful reasoning technique when used in languages that support it, but it is not compatible with Lean's standard axioms.
-If parametricity held, then the “free theorem” from the introduction to Wadler's [_Theorems for Free_](https://dl.acm.org/doi/pdf/10.1145/99370.99404) (1989), which describes a technique for using parametricity to derive theorems about polymorphic functions, would be true.
+If parametricity held, then the “free theorem” from the introduction to Wadler's [{title}[Theorems for Free]](https://dl.acm.org/doi/pdf/10.1145/99370.99404) (1989), which describes a technique for using parametricity to derive theorems about polymorphic functions, would be true.
 As an axiom, it reads:
 ```lean
 axiom List.free_theorem {α β}
