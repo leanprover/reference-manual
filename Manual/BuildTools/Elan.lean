@@ -79,6 +79,11 @@ If specified, an origin should precede the channel, with a colon, so `stable` is
 When installing nightly releases, `-nightly` is appended to the origin, so `leanprover/lean4:nightly-2025-03-25` consults the [`leanprover/lean4-nightly`](https://github.com/leanprover/lean4-nightly/releases) repository to download releases.
 Origins are not used for custom toolchain names.
 
+If the {envVar +def}`GH_TOKEN` or {envVar +def}`GITHUB_TOKEN` environment variable is set, Elan uses its value as a GitHub access token when it looks up or installs toolchains from origins other than the default.
+A token is required to access origins that are private repositories.
+Using a token also avoids the rate limits that GitHub applies to unauthenticated requests.
+If both variables are set, then {envVar}`GH_TOKEN` takes precedence.
+
 ## Determining the Current Toolchain
 %%%
 tag := "elan-toolchain-config"
