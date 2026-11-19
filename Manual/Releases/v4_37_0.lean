@@ -24,9 +24,9 @@ These release notes describe a _release candidate_, not the final release.
 They may be incomplete and are subject to change.
 :::
 
-For this release, 374 changes landed.
-In addition to the 73 feature additions
-and 161 fixes listed below,
+For this release, 370 changes landed.
+In addition to the 71 feature additions
+and 159 fixes listed below,
 there were 7 refactoring changes,
 1 documentation improvement,
 108 performance improvements,
@@ -207,9 +207,6 @@ and 20 other changes.
 
 - [#15371](https://github.com/leanprover/lean4/pull/15371)
   expands the condition for which the major of a recursor can be eta-expanded. Namely, subsingleton structures such as `And` should be eta-expanded in this situation.
-
-- [#15372](https://github.com/leanprover/lean4/pull/15372)
-  expands the unit-like criteria to handle pi-types whose codomain are unit-like, and structures whose fields are all unit-like or proof-irrelevant.
 
 - [#15103](https://github.com/leanprover/lean4/pull/15103)
   ensures `is_def_eq_proof_irrel` runs before reducing any potential proofs in `is_def_eq_core` rather than after. This is already the order in which things run in the elaborator, so no need for any changes there.
@@ -976,9 +973,6 @@ and 20 other changes.
 - [#15779](https://github.com/leanprover/lean4/pull/15779)
   makes `IO.appPath` work in PID namespaces that share their parent's `/proc` mount, such as sandboxes and rootless containers.
 
-- [#16253](https://github.com/leanprover/lean4/pull/16253)
-  adds a new safe version of `withPtrEq`, powered by a conservative check in the compiler to ensure that the invocation is safe.
-
 - [#16251](https://github.com/leanprover/lean4/pull/16251)
   makes violations of linearity markers optionally print backtraces.
 
@@ -990,9 +984,6 @@ and 20 other changes.
 
 - [#16211](https://github.com/leanprover/lean4/pull/16211)
   fixes compilation of pattern matching on USize.
-
-- [#16210](https://github.com/leanprover/lean4/pull/16210)
-  stops enforcing a limit on the amount of ctors an inductive can have if that inductive is a proposition.
 
 - [#16137](https://github.com/leanprover/lean4/pull/16137)
   fixes the exit code of `lean` on 32-bit targets such as WebAssembly (wasm32) and i386 after options like `--version`, `--help` and `--deps`, after an unknown option or an invalid argument, when called without a file name, and after `--run`. In these cases `lean` exited with a code derived from a heap address instead of 0, 1 or the exit code of the program's `main`; a run that processes a file without `--run` was not affected, because it ends with `IO.Process.exit`.
@@ -1044,9 +1035,6 @@ and 20 other changes.
 
 - [#16314](https://github.com/leanprover/lean4/pull/16314)
   replaces the earlier distinction between text tokens found in docstring and non-docstring Verso content with the consistent use of the `documentation` modifer for _all_ markup tokens that occur in docstrings. This makes it easier for editors to match a wider variety of themes.
-
-- [#16237](https://github.com/leanprover/lean4/pull/16237)
-  fixes `WorkspaceEdit`s targeting unopened files. Breaking change: the `version? : Option Nat` field of `VersionedTextDocumentIdentifier` is now `version : Option Nat`, as LSP requires `"version": null` from the JSON in the `version := none` case instead of an omitted `version` field.
 
 - [#15550](https://github.com/leanprover/lean4/pull/15550)
   adds an `#html` command that displays HTML values in the infoview (as widget messages).
