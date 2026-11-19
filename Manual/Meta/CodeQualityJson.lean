@@ -27,7 +27,7 @@ deriving instance FromJson for Lean.Linter.CodeQuality.Entry
 private def parseJsonStream (s : String) : Except String (Array Json) :=
   let p : Std.Internal.Parsec.String.Parser (Array Json) := do
     Std.Internal.Parsec.String.ws
-    let values ← Std.Internal.Parsec.many Json.Parser.anyCore
+    let values ← Std.Internal.Parsec.many (Json.Parser.anyCore Json.Parser.maxDepth)
     Std.Internal.Parsec.eof
     return values
   p.run s

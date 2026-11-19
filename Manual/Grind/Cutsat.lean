@@ -89,7 +89,7 @@ example (a b : Int) :
     2 ∣ a + 1 →
     2 ∣ b + a →
     ¬ 2 ∣ b + 2 * a := by
-  grind -lia
+  grind +verbose -lia
 ```
 ```leanOutput noLia
 `grind` failed
@@ -135,7 +135,7 @@ example {x y : Int} :
     13 * x + 11 * y ≤ 30 →
     -10 ≤ 9 * x - 7 * y →
     9 * x - 7 * y > 4 := by
-  grind +qlia
+  grind +verbose +qlia
 ```
 ```leanOutput withqlia (expandTrace := cutsat)
 `grind` failed
@@ -166,7 +166,7 @@ The linear integer arithmetic solver fails to prove this theorem:
 
 ```lean +error (name := nonlinear)
 example (x : Int) : x * x ≥ 0 := by
-  grind
+  grind +verbose
 ```
 ```leanOutput nonlinear
 `grind` failed
@@ -270,7 +270,7 @@ example (f : Int → Int) (x y : Int) :
     f x = 0 →
     0 ≤ y → y ≤ 1 → y ≠ 1 →
     f (x + y) = 0 := by
-  grind -mbtc
+  grind +verbose -mbtc
 ```
 ```leanOutput noMbtc
 `grind` failed

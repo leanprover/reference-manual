@@ -1546,13 +1546,11 @@ none
 ## Cancellation Contexts
 
 {name}`ContextAsync` is a {ref "reader-monad"}[reader] on top of {name}`Async` that provides access to a cancellation context.
-This context contains an ID and a cancellation token along with a mutex-guarded mutable state that encodes a tree of IDs, each with a cancellation token, and a source of unique ID values.
-When child tasks are created, they are assigned new IDs and associated with the current task.
-When tasks are canceled, the tree in the state is used to cancel their children.
+This context contains an ID and a cancellation token.
+When child tasks are created, they are assigned new IDs and recorded as children of the current task.
+When tasks are canceled, the state is used to cancel their children.
 
 {docstring Std.CancellationContext +allowMissing}
-
-{docstring Std.CancellationContext.State +allowMissing}
 
 {docstring Std.CancellationContext.new}
 
@@ -1572,11 +1570,8 @@ When tasks are canceled, the tree in the state is used to cancel their children.
 
 ## Cancellation Tokens
 
-A cancellation token is a mutex-guarded piece of shared mutable state that tracks whether the token has been canceled along with a set of consumers that have requested notification when cancellation occurs.
+A cancellation token tracks whether the cancellation has been requested.
+When a request arrives, consumers that are waiting for the cancellation are notified.
 Behind the scenes, {name}`ContextAsync.isCancelled` checks the current context's cancellation token, then checks whether the cancellation reason is {name}`some` or {name}`none`.
 
 {docstring Std.CancellationToken +allowMissing}
-
-{docstring Std.CancellationToken.State}
-
-{docstring Std.CancellationToken.Consumer +allowMissing}

@@ -41,6 +41,9 @@ def process_html_file(filepath, output_filepath):
             code_tag.replace_with("5")
         elif code_tag.attrs and 'class' in code_tag.attrs and 'hl' in code_tag['class'] and 'lean' in code_tag['class']:
             code_tag.decompose()
+        # Inline TOML nests its text in spans, which Vale's IgnoredScopes doesn't reach
+        elif code_tag.attrs and 'class' in code_tag.attrs and 'toml' in code_tag['class']:
+            code_tag.decompose()
 
     # Delete all content in error explanation pages. This comes from the lean4 repo
     # and shouldn't be linted here.

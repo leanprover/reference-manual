@@ -349,7 +349,7 @@ theorem toNat_add_eq_add (x y : Tiny) :
 ```
 Given these definitions, we might expect the following example to succeed, but it does not:
 ```lean +error (name := noLits)
-example : (2 : Tiny) + (1 : Tiny) = (3 : Tiny) := by grind
+example : (2 : Tiny) + (1 : Tiny) = (3 : Tiny) := by grind +verbose
 ```
 Examining {tactic}`grind`'s output, the problem is that it does not successfully register the contradiction that arises from the fact that {lean}`(2 : Tiny) + (1 : Tiny) = (3 : Tiny)` is negated.
 This is because the rewriting process does not rewrite literals like {lean (type := "Tiny")}`2` (that is, {lean}`OfNat.ofNat (α := Tiny) 2`), which are left alone:
@@ -530,20 +530,20 @@ example (h : a.toList = []) : a = .nil := by grind
 
 ```lean -show
 -- The examples fail without hom
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : (a ++ b) ++ c = a ++ (b ++ c) := by grind -hom
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : a ++ .nil = a := by grind -hom
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : .nil ++ a = a := by grind -hom
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example (h₁ : a.toList = [1,2]) (h₂ : b.toList = [3]) :
     (a ++ b).toList = [1,2,3] := by grind -hom
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example (h : a.toList = []) : a = .nil := by grind -hom
 ```

@@ -157,10 +157,91 @@ example (x y : Int) :
 tag := "grind-errors"
 %%%
 
-When {tactic}`grind` fails, it prints the remaining subgoal followed by all the information returned by its subsystems—the contents of the “shared whiteboard.”
+When {tactic}`grind` fails, its error message reports any search thresholds that were reached on the way.
+This is typically not enough information to diagnose why {tactic}`grind` failed, however.
+Enabling the {name Lean.Grind.Config.verbose}`verbose` flag causes the error message to show the subgoal that could not be solved, along with all the information returned by {tactic}`grind`'s subsystems—the contents of the “shared whiteboard.”
 In particular, it presents equivalence classes of terms that it has determined to be equal.
 The two largest classes are shown as `True propositions` and `False propositions`, listing every literal currently known to be provable or refutable.
 Inspect these lists to spot missing facts or contradictory assumptions.
+
+:::example "Verbose Failure Messages"
+This example uses {tactic}`grind` in a situation where there is not sufficient information for it to prove the theorem.
+```lean +error (name := quietFail)
+example (f : Nat → Nat) (h : f 0 = 1) : f 1 = 1 := by
+  grind
+```
+The resulting error message includes almost no information:
+```leanOutput quietFail
+`grind` has failed, use `+verbose` to obtain diagnostic information
+```
+Enabling the {name Lean.Grind.Config.verbose}`verbose` flag makes the error message much more informative:
+```lean +error (name := verboseFail)
+example (f : Nat → Nat) (h : f 0 = 1) : f 1 = 1 := by
+  grind +verbose
+```
+```leanOutput verboseFail (expandTrace := grind) (expandTrace := eqc) (expandTrace := cutsat)
+`grind` failed
+case grind
+f : Nat → Nat
+h : f 0 = 1
+h_1 : ¬f 1 = 1
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] False propositions
+    [prop] f 1 = 1
+  [eqc] Equivalence classes
+    [eqc] {f 0, 1}
+  [cutsat] Assignment satisfying linear constraints
+    [assign] f 0 := 1
+    [assign] f 1 := 2
+```
+:::
+
+:::example "Threshold Messages"
+This attempted proof leads to an infinite chain of instantiates of the hypothesis:
+```lean +error (name := ematchLimit)
+example (f : Nat → Nat) (h : ∀ n, f n = f (n + 1)) : f 0 = 1 := by
+  grind
+```
+{tactic}`grind` fails after too much {ref "e-matching"}[E-matching]:
+```leanOutput ematchLimit
+`grind` has failed after reaching the threshold `(ematch := 5)`, use `+verbose` to obtain diagnostic information
+```
+To see which hypothesis reached the limit, add the {name Lean.Grind.Config.verbose}`verbose` flag:
+
+```lean +error (name := ematchLimit2)
+example (f : Nat → Nat) (h : ∀ n, f n = f (n + 1)) : f 0 = 1 := by
+  grind +verbose
+```
+The resulting message demonstrates that `h` is instantiated five times:
+```leanOutput ematchLimit2 (expandTrace := grind) (expandTrace := limits) (expandTrace := ematch) (expandTrace := thm)
+`grind` failed
+case grind
+f : Nat → Nat
+h : ∀ (n : Nat), f n = f (n + 1)
+h_1 : ¬f 0 = 1
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] True propositions
+  [eqc] False propositions
+  [eqc] Equivalence classes
+  [ematch] E-matching patterns
+    [thm] h: [f #0]
+    [thm] h: [f (@HAdd.hAdd `[Nat] `[Nat] `[Nat] `[instHAdd] #0 `[1])]
+  [cutsat] Assignment satisfying linear constraints
+  [limits] Thresholds reached
+    [limit] maximum number of E-matching rounds has been reached, threshold: `(ematch := 5)`
+
+[grind] Diagnostics
+  [ematch] E-matching Diagnostics
+    [thm] Theorem Instance Count
+      [thm] h ↦ 5
+```
+
+
+:::
 
 # Minimizing `grind` calls
 %%%
@@ -186,7 +267,7 @@ They are enabled by default, but duplicating the local definition's value can le
   If it is disabled, the term is not reduced.
   ```lean -show
   example : (let x := 5; x + x) = 10 := by grind
-  /-- `grind` failed -/
+  /-- `grind` has failed -/
   #guard_msgs (substring := true) in
   example : (let x := 5; x + x) = 10 := by grind -zeta
   ```
@@ -211,7 +292,7 @@ They are enabled by default, but duplicating the local definition's value can le
   :::
   ```lean -show
   example : let x := 5; (x + x = 10) := by intro x; grind
-  /-- `grind` failed -/
+  /-- `grind` has failed -/
   #guard_msgs (substring := true) in
   example : let x := 5; (x + x = 10) := by intro x; grind -zetaDelta
   ```
@@ -248,7 +329,7 @@ def one := 1
 ```
 This means that {tactic}`grind` does not unfold it:
 ```lean +error (name := noUnfold)
-example : one = 1 := by grind
+example : one = 1 := by grind +verbose
 ```
 ```leanOutput noUnfold
 `grind` failed

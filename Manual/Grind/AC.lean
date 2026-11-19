@@ -155,19 +155,19 @@ example : union (union a b) a = union a (union b none) := by grind
 
 ```lean -show
 -- check solver
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : union a (union b c) = union (union c a) b := by grind -ac
 
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : union (union a b) a = union a b := by grind -ac
 
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example : union a none = a := by grind -ac
 
-/-- error: `grind` failed -/
+/-- error: `grind` has failed -/
 #guard_msgs (substring := true) in
 example :
     union (union a b) (union none (union b c))
@@ -244,7 +244,7 @@ example (h₁ : a ++ b = x) (h₂ : x ++ c = y) :
 ```
 Because appending difference lists is not commutative, order still matters:
 ```lean +error (name := grindErr)
-example : a ++ b = b ++ a := by grind
+example : a ++ b = b ++ a := by grind +verbose
 ```
 ```leanOutput grindErr
 `grind` failed
