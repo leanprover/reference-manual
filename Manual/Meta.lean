@@ -68,6 +68,7 @@ public import Manual.Meta.SpliceContents
 public import Manual.Meta.Syntax
 public import Manual.Meta.Syntax.Grammar
 public import Manual.Meta.Tactics
+public import Manual.Meta.Title
 
 public section
 

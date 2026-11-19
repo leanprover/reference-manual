@@ -926,20 +926,20 @@ open Lean Lean.Meta.Sym.Simp
 ```
 The body must have type {name}`Simproc` (that is, {lean}`Expr → SimpM Result`).
 The pattern is an expression with holes (`_`) that determines which subexpressions trigger the procedure.
-Patterns are matched agains subexpressions structurally after unfolding reducible definitions and applying {tech (key := "β")}[β]-, {tech (key := "η-equivalence")}[η]-, and {tech (key := "ζ")}[ζ]-reduction to both sides.
+Patterns are matched against subexpressions structurally after unfolding reducible definitions and applying {tech (key := "β")}[β]-, {tech (key := "η-equivalence")}[η]-, and {tech (key := "ζ")}[ζ]-reduction to both sides.
 Matching is modulo α-equivalence (bound variable names are ignored), and proof and instance arguments in the pattern are treated as wildcards.
 An optional phase specifier controls when the procedure fires during normalization.
-When no phase is specified, the default is `↑` (post).
+When no phase is specified, the default is `↑` ({name Lean.Meta.Tactic.Cbv.CbvSimprocPhase.post}`post`).
 
-: `↓` (pre)
+: `↓` ({name Lean.Meta.Tactic.Cbv.CbvSimprocPhase.pre}`pre`)
 
    Fires on each subexpression _before_ {tactic}`cbv` reduces it. The arguments are still unreduced. Use this phase to override {tactic}`cbv`'s default call-by-value evaluation order. A typical use case would be to evaluate arguments lazily or to short-circuit evaluation (as the built-in {name}`ite` and {name}`Or` procedures do).
 
-: `cbv_eval` (eval)
+: `cbv_eval` ({name Lean.Meta.Tactic.Cbv.CbvSimprocPhase.eval}`eval`)
 
   Fires _after_ arguments have been reduced to values, but _before_ the function is unfolded. Use this phase to provide efficient ground evaluation procedures.
 
-: `↑` (post, default)
+: `↑` ({name Lean.Meta.Tactic.Cbv.CbvSimprocPhase.post}`post`, default)
 
   Fires _after_ {tactic}`cbv` has attempted standard reduction (equation lemmas, unfolding, kernel matching). Use this phase when standard reduction should be tried first.
 
@@ -1067,7 +1067,7 @@ of_eq_true
 :::paragraph
 Lean includes a number of built-in simplification procedures for {tactic}`cbv`.
 These handle control flow (`ite`, `dite`, `cond`, `Decidable.decide`, `Decidable.rec`), logical connectives (`Or`, `And`), and data structure operations (array indexing, string operations).
-The control flow procedures use the `↓` (pre) phase to enable short-circuit evaluation, while the array and string procedures use the `cbv_eval` phase to reduce ground applications directly.
+The control flow procedures use the `↓` phase, before their arguments are reduced, to enable short-circuit evaluation, while the array and string procedures use the `cbv_eval` phase to reduce ground applications directly.
 :::
 
 ## Options

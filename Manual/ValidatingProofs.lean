@@ -217,7 +217,7 @@ In particular, the theorem statements in the challenge file and everything they 
 (In addition to the list above)
 
 * Actively {tech}[malicious] proofs
-* Implementation bugs present in some (but not simulatenously in all) of the used checkers.
+* Implementation bugs present in some (but not simultaneously in all) of the used checkers.
 :::
 
 ## Comments
