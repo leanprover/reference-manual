@@ -83,14 +83,14 @@ When a monad has several exception layers, such as `ExceptT String (Except Nat)`
 A layer without a `throws` clause gets the postcondition `⊥`, which means that the function never throws there.
 In other words, leaving out `throws` promises that there are no exceptions, and {tactic}`vcgen` checks that promise:
 
-```lean (name := leaky) +error
+```
 def leaky (n : Nat) : Except String Nat
     ensures r => r = n
   := do
   if n > 100 then throw "too big"
   return n
 ```
-```leanOutput leaky
+```
 unproved verification conditions for the contract of `leaky`; discharge them in a `where finally | spec => ...` section of the definition
 case vc1
 n : Nat
