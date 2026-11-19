@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,44 +3036,7 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
-    </script><script src="static/metadata.js"></script><script src="static/print.js"></script><link rel="stylesheet" href="static/colors.css"/><link rel="stylesheet" href="static/theme.css"/><link rel="stylesheet" href="static/print.css"/><link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css"/><link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css"/><link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css"/><link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css"/></head><body><header><div class="header-logo-wrapper"><a href id="logo"><img src="static/lean_logo.svg"/></a></div><div class="header-title-wrapper"><a href class="header-title"><h1>The Lean Language Reference</h1></a></div></header><label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc"><div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div><nav id="toc"><input type="checkbox" id="toggle-toc"/><div class="first"><a href class="toc-title"><h1>The Lean Language Reference</h1></a><div class="split-tocs"><div class="split-toc book"><div class="title"><label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"/></label><span class>Table of Contents</span></div><table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--vcgen--tactic/#vcgen-tactic">The <code>vcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">25.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="numbered"><td class="num">26.</td><td><a href="Linters-and-Code-Quality/#linters">Linters and Code Quality</a></td></tr><tr class="numbered"><td class="num">27.</td><td><a href="External-Kernels/#external-kernels">External Kernels</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="current unnumbered"><td class="num"></td><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div><div class="split-toc"><div class="title"><label for="--verso-manual-toc-release-notes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-notes" checked="checked"/></label><span class="unnumbered"></span><span class><a href="releases/#release-notes">Release Notes</a></span></div><table><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.36.0/#release-v4___36___0">Lean 4.36.0 (2026-11-16)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.35.0/#release-v4___35___0">Lean 4.35.0 (2026-10-12)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.34.1/#release-v4___34___1">Lean 4.34.1 (2026-09-24)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.34.0/#release-v4___34___0">Lean 4.34.0 (2026-09-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.33.1/#release-v4___33___1">Lean 4.33.1 (2026-08-21)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.33.0/#release-v4___33___0">Lean 4.33.0 (2026-08-10)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.32.2/#release-v4___32___2">Lean 4.32.2 (2026-07-28)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.32.1/#release-v4___32___1">Lean 4.32.1 (2026-07-22)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.32.0/#release-v4___32___0">Lean 4.32.0 (2026-07-13)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.31.0/#release-v4___31___0">Lean 4.31.0 (2026-06-13)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.30.0/#release-v4___30___0">Lean 4.30.0 (2026-05-26)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.29.1/#release-v4___29___1">Lean 4.29.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.29.0/#release-v4___29___0">Lean 4.29.0 (2026-03-27)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.28.1/#release-v4___28___1">Lean 4.28.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.28.0/#release-v4___28___0">Lean 4.28.0 (2026-02-17)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.27.0/#release-v4___27___0">Lean 4.27.0 (2026-01-24)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.26.0/#release-v4___26___0">Lean 4.26.0 (2025-12-13)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.25.1/#release-v4___25___1">Lean 4.25.1 (2025-11-18)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="current unnumbered"><td class="num"></td><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div><div class="split-toc"><div class="title"><span class="no-toggle"></span><span class="unnumbered"></span><span class="current"><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></span></div></div></div></div><div class="last"><ul id="meta-links"><li><a href="https://github.com/leanprover/reference-manual">Source Code</a></li><li><a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li></ul></div></nav><div class="toc-resize-handle"></div><main><div class="content-wrapper"><nav class="prev-next-buttons"><a class="local-button active" href="releases/v4.0.0-m3/#release-v4___0___0-m3" rel="prev" title="Lean 4.0.0-m3 (2022-01-31)"><span class="arrow">←</span><span class="where">Lean 4.0.0-m3 (2022-01-31)</span></a><a class="local-button active" href="releases/v4.0.0-m1/#release-v4___0___0-m1" rel="next" title="Lean 4.0.0-m1 (2021-01-04)"><span class="where">Lean 4.0.0-m1 (2021-01-04)</span><span class="arrow">→</span></a></nav><section><h1 id="release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4.0.0-m2" title="Permalink">🔗</a></span></h1><p>This is the second milestone release of Lean 4. With too many improvements and bug fixes in almost all parts of the system to list, we would like to single out major improvements to <code>simp</code> and other built-in tactics as well as support for a goal view that make the proving experience more comfortable.</p></section><nav class="prev-next-buttons"><a class="local-button active" href="releases/v4.0.0-m3/#release-v4___0___0-m3" rel="prev" title="Lean 4.0.0-m3 (2022-01-31)"><span class="arrow">←</span><span class="where">Lean 4.0.0-m3 (2022-01-31)</span></a><a class="local-button active" href="releases/v4.0.0-m1/#release-v4___0___0-m1" rel="next" title="Lean 4.0.0-m1 (2021-01-04)"><span class="where">Lean 4.0.0-m1 (2021-01-04)</span><span class="arrow">→</span></a></nav></div></main></div></body></html>
+    </script><script src="static/metadata.js"></script><script src="static/print.js"></script><link rel="stylesheet" href="static/colors.css"/><link rel="stylesheet" href="static/theme.css"/><link rel="stylesheet" href="static/print.css"/><link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css"/><link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css"/><link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css"/><link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css"/></head><body><header><div class="header-logo-wrapper"><a href id="logo"><img src="static/lean_logo.svg"/></a></div><div class="header-title-wrapper"><a href class="header-title"><h1>The Lean Language Reference</h1></a></div></header><label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc"><div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div><nav id="toc"><input type="checkbox" id="toggle-toc"/><div class="first"><a href class="toc-title"><h1>The Lean Language Reference</h1></a><div class="split-tocs"><div class="split-toc book"><div class="title"><label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"/></label><span class>Table of Contents</span></div><table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--vcgen--tactic/#vcgen-tactic">The <code>vcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">25.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="numbered"><td class="num">26.</td><td><a href="Linters-and-Code-Quality/#linters">Linters and Code Quality</a></td></tr><tr class="numbered"><td class="num">27.</td><td><a href="External-Kernels/#external-kernels">External Kernels</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="current unnumbered"><td class="num"></td><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div><div class="split-toc"><div class="title"><label for="--verso-manual-toc-release-notes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-notes" checked="checked"/></label><span class="unnumbered"></span><span class><a href="releases/#release-notes">Release Notes</a></span></div><table><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.37.0/#release-v4___37___0">Lean 4.37.0-rc1 (2026-11-18)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.36.0/#release-v4___36___0">Lean 4.36.0 (2026-11-16)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.35.0/#release-v4___35___0">Lean 4.35.0 (2026-10-12)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.34.1/#release-v4___34___1">Lean 4.34.1 (2026-09-24)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.34.0/#release-v4___34___0">Lean 4.34.0 (2026-09-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.33.1/#release-v4___33___1">Lean 4.33.1 (2026-08-21)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.33.0/#release-v4___33___0">Lean 4.33.0 (2026-08-10)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.32.2/#release-v4___32___2">Lean 4.32.2 (2026-07-28)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.32.1/#release-v4___32___1">Lean 4.32.1 (2026-07-22)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.32.0/#release-v4___32___0">Lean 4.32.0 (2026-07-13)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.31.0/#release-v4___31___0">Lean 4.31.0 (2026-06-13)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.30.0/#release-v4___30___0">Lean 4.30.0 (2026-05-26)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.29.1/#release-v4___29___1">Lean 4.29.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.29.0/#release-v4___29___0">Lean 4.29.0 (2026-03-27)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.28.1/#release-v4___28___1">Lean 4.28.1 (2026-04-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.28.0/#release-v4___28___0">Lean 4.28.0 (2026-02-17)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.27.0/#release-v4___27___0">Lean 4.27.0 (2026-01-24)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.26.0/#release-v4___26___0">Lean 4.26.0 (2025-12-13)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.25.1/#release-v4___25___1">Lean 4.25.1 (2025-11-18)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="current unnumbered"><td class="num"></td><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div><div class="split-toc"><div class="title"><span class="no-toggle"></span><span class="unnumbered"></span><span class="current"><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></span></div></div></div></div><div class="last"><ul id="meta-links"><li><a href="https://github.com/leanprover/reference-manual">Source Code</a></li><li><a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li></ul></div></nav><div class="toc-resize-handle"></div><main><div class="content-wrapper"><nav class="prev-next-buttons"><a class="local-button active" href="releases/v4.0.0-m3/#release-v4___0___0-m3" rel="prev" title="Lean 4.0.0-m3 (2022-01-31)"><span class="arrow">←</span><span class="where">Lean 4.0.0-m3 (2022-01-31)</span></a><a class="local-button active" href="releases/v4.0.0-m1/#release-v4___0___0-m1" rel="next" title="Lean 4.0.0-m1 (2021-01-04)"><span class="where">Lean 4.0.0-m1 (2021-01-04)</span><span class="arrow">→</span></a></nav><section><h1 id="release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4.0.0-m2" title="Permalink">🔗</a></span></h1><p>This is the second milestone release of Lean 4. With too many improvements and bug fixes in almost all parts of the system to list, we would like to single out major improvements to <code>simp</code> and other built-in tactics as well as support for a goal view that make the proving experience more comfortable.</p></section><nav class="prev-next-buttons"><a class="local-button active" href="releases/v4.0.0-m3/#release-v4___0___0-m3" rel="prev" title="Lean 4.0.0-m3 (2022-01-31)"><span class="arrow">←</span><span class="where">Lean 4.0.0-m3 (2022-01-31)</span></a><a class="local-button active" href="releases/v4.0.0-m1/#release-v4___0___0-m1" rel="next" title="Lean 4.0.0-m1 (2021-01-04)"><span class="where">Lean 4.0.0-m1 (2021-01-04)</span><span class="arrow">→</span></a></nav></div></main></div></body></html>

@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,50 +3036,13 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
     </script><script src="static/metadata.js"></script><script src="static/print.js"></script><link rel="stylesheet" href="static/colors.css"/><link rel="stylesheet" href="static/theme.css"/><link rel="stylesheet" href="static/print.css"/><link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css"/><link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css"/><link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css"/><link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css"/></head><body><header><div class="header-logo-wrapper"><a href id="logo"><img src="static/lean_logo.svg"/></a></div><div class="header-title-wrapper"><a href class="header-title"><h1>The Lean Language Reference</h1></a></div></header><label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc"><div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div><nav id="toc"><input type="checkbox" id="toggle-toc"/><div class="first"><a href class="toc-title"><h1>The Lean Language Reference</h1></a><div class="split-tocs"><div class="split-toc book"><div class="title"><label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"/></label><span class>Table of Contents</span></div><table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="current numbered"><td class="num">15.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--vcgen--tactic/#vcgen-tactic">The <code>vcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">25.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="numbered"><td class="num">26.</td><td><a href="Linters-and-Code-Quality/#linters">Linters and Code Quality</a></td></tr><tr class="numbered"><td class="num">27.</td><td><a href="External-Kernels/#external-kernels">External Kernels</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div><div class="split-toc"><div class="title"><label for="--verso-manual-toc-the-simplifier" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-the-simplifier" checked="checked"/></label><span class="number">15.</span> <span class><a href="The-Simplifier/#the-simplifier">The Simplifier</a></span></div><table><tr class="current numbered"><td class="num">15.1.</td><td><a href="The-Simplifier/Invoking-the-Simplifier/#simp-tactic-naming">Invoking the Simplifier</a></td></tr><tr class="numbered"><td class="num">15.2.</td><td><a href="The-Simplifier/Rewrite-Rules/#simp-rewrites">Rewrite Rules</a></td></tr><tr class="numbered"><td class="num">15.3.</td><td><a href="The-Simplifier/Simp-sets/#simp-sets">Simp sets</a></td></tr><tr class="numbered"><td class="num">15.4.</td><td><a href="The-Simplifier/Simp-Normal-Forms/#simp-normal-forms">Simp Normal Forms</a></td></tr><tr class="numbered"><td class="num">15.5.</td><td><a href="The-Simplifier/Terminal-vs-Non-Terminal-Positions/#terminal-simp">Terminal vs Non-Terminal Positions</a></td></tr><tr class="numbered"><td class="num">15.6.</td><td><a href="The-Simplifier/Configuring-Simplification/#simp-config">Configuring Simplification</a></td></tr><tr class="numbered"><td class="num">15.7.</td><td><a href="The-Simplifier/Simplification-vs-Rewriting/#simp-vs-rw">Simplification vs Rewriting</a></td></tr></table></div><div class="split-toc"><div class="title"><label for="--verso-manual-toc-simp-tactic-naming" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-simp-tactic-naming" checked="checked"/></label><span class="number">15.1.</span> <span class="current"><a href="The-Simplifier/Invoking-the-Simplifier/#simp-tactic-naming">Invoking the Simplifier</a></span></div><ol><li><span class="header head-1"><span class="level-num">1.</span> <a href="The-Simplifier/Invoking-the-Simplifier/#simp-tactic-params">Parameters</a></span></li><li><a href="The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp"><span class="syntax"><span class="keyword">simp</span><span class="ws"> </span><span class="meta">…</span><span class="ws"> </span><span class="keyword">only</span><span class="meta">?</span><span class="ws"> </span><span class="meta">(</span><span class="keyword">[</span><span class="ws"> </span><span class="meta">…</span><span class="ws"> </span><span class="keyword">]</span><span class="ws"> </span><span class="meta">)?</span><span class="ws"> </span><span class="meta">(</span><span class="keyword">at</span><span class="ws"> </span><span class="meta">…</span><span class="meta">)?</span></span></a></li></ol></div></div></div><div class="last"><ul id="meta-links"><li><a href="https://github.com/leanprover/reference-manual">Source Code</a></li><li><a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li></ul></div></nav><div class="toc-resize-handle"></div><main><div class="content-wrapper"><nav class="prev-next-buttons"><a class="local-button active" href="The-Simplifier/#the-simplifier" rel="prev" title="15. The Simplifier"><span class="arrow">←</span><span class="where">15. The Simplifier</span></a><a class="local-button active" href="The-Simplifier/Rewrite-Rules/#simp-rewrites" rel="next" title="15.2. Rewrite Rules"><span class="where">15.2. Rewrite Rules</span><span class="arrow">→</span></a></nav><section><h1 id="simp-tactic-naming">15.1. Invoking the Simplifier<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=simp-tactic-naming" title="Permalink">🔗</a></span></h1><p>Lean's simplifier can be invoked in a variety of ways.
 The most common patterns are captured in a set of tactics.
 The <a href="Tactic-Proofs/Tactic-Reference/#simp-tactics">tactic reference</a> contains a complete list of simplification tactics.</p><p>Simplification tactics all contain <code>simp</code> in their name.
-Aside from that, they are named according to a system of prefixes and suffixes that describe their functionality:</p><dl><dt><code>-!</code> suffix</dt><dd><p>Sets the <code class="hl lean inline" data-lean-context="examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config.autoUnfold"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.autoUnfold" data-verso-hover="3154">autoUnfold</span></a></code> configuration option to <code>true</code>, causing the simplifier to unfold all definitions</p></dd><dt><code>-?</code> suffix</dt><dd><p>Causes the simplifier to keep track of which rules it employed during simplification and suggest a minimal <a class="technical-term" href="The-Simplifier/Simp-sets/#--tech-term-simp-set">simp set</a> as an edit to the tactic script</p></dd><dt><code>-_arith</code> suffix</dt><dd><p>Enables the use of linear arithmetic simplification rules</p></dd><dt><code>d-</code> prefix</dt><dd><p>Causes the simplifier to simplify only with rewrites that hold definitionally</p></dd><dt><code>-_all</code> suffix</dt><dd><p>Causes the simplifier to repeatedly simplify all assumptions and the conclusion of the goal, taking as many hypotheses into account as possible, until no further simplification is possible</p></dd></dl><p>There are two further simplification tactics, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simpa" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1428">simpa</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simpa___" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1428">simpa!</span></a></code>, which are used to simultaneously simplify a goal and either a proof term or an assumption before discharging the goal.
+Aside from that, they are named according to a system of prefixes and suffixes that describe their functionality:</p><dl><dt><code>-!</code> suffix</dt><dd><p>Sets the <code class="hl lean inline" data-lean-context="examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config.autoUnfold"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.autoUnfold" data-verso-hover="3153">autoUnfold</span></a></code> configuration option to <code>true</code>, causing the simplifier to unfold all definitions</p></dd><dt><code>-?</code> suffix</dt><dd><p>Causes the simplifier to keep track of which rules it employed during simplification and suggest a minimal <a class="technical-term" href="The-Simplifier/Simp-sets/#--tech-term-simp-set">simp set</a> as an edit to the tactic script</p></dd><dt><code>-_arith</code> suffix</dt><dd><p>Enables the use of linear arithmetic simplification rules</p></dd><dt><code>d-</code> prefix</dt><dd><p>Causes the simplifier to simplify only with rewrites that hold definitionally</p></dd><dt><code>-_all</code> suffix</dt><dd><p>Causes the simplifier to repeatedly simplify all assumptions and the conclusion of the goal, taking as many hypotheses into account as possible, until no further simplification is possible</p></dd></dl><p>There are two further simplification tactics, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simpa" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1426">simpa</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simpa___" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1426">simpa!</span></a></code>, which are used to simultaneously simplify a goal and either a proof term or an assumption before discharging the goal.
 This simultaneous simplification makes proofs more robust to changes in the <a class="technical-term" href="The-Simplifier/Simp-sets/#--tech-term-simp-set">simp set</a>.</p><section><h2 id="simp-tactic-params">15.1.1. Parameters<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=simp-tactic-params" title="Permalink">🔗</a></span></h2><p>The simplification tactics have the following grammar:</p><div class="namedocs" id="tactic-next-next"><span class="label">syntax</span><span class="title">Simplification Tactics</span><div class="text"><pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Tactic___simp"><span class="nonterminal" data-kind="tactic">tactic</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal documented" data-kind="Lean.Parser.Tactic.simp"><code class="hover-info"><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
 non-dependent hypotheses. It has many variants:
@@ -2993,7 +3071,7 @@ hypotheses or the goal. It can have one of the forms:
 * `at h₁ ... hₙ`: target the hypotheses `h₁`, ..., `hₙ`
 * `at h₁ h₂ ⊢`: target the hypotheses `h₁` and `h₂`, and the goal
 * `at *`: target all hypotheses and the goal</code></code><span class="keyword">at</span> <span class="from-nonterminal documented" data-kind="Lean.Parser.Tactic.locationHyp"><code class="hover-info"><code class="docstring">A sequence of one or more locations at which a tactic should operate. These can include local
-hypotheses and `⊢`, which denotes the goal.</code></code><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="nonterminal" data-kind="term.pseudo">term</span> <span class="bnf">|</span> <span class="nonterminal documented" data-kind="Lean.Parser.Tactic.locationType"><code class="hover-info"><code class="docstring">The `⊢` location refers to the current goal.</code></code>locationType</span><span class="bnf">)</span></span><span class="bnf">*</span></span></span></span></span><span class="bnf">)?</span></span></span></pre></div></div><p>In other words, an invocation of a simplification tactic takes the following modifiers, in order, all of which are optional:</p><ul><li><p>A set of <a href="Tactic-Proofs/The-Tactic-Language/#tactic-config">configuration options</a>, which should include the fields of <code class="hl lean inline" data-lean-context="examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config"><span class="const token" data-binding="const-Lean.Meta.Simp.Config" data-verso-hover="3155">Lean.Meta.Simp.Config</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___DSimp___Config___mk" title="Documentation for Lean.Meta.DSimp.Config"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config" data-verso-hover="3156">Lean.Meta.DSimp.Config</span></a></code>, depending on whether the simplifier being invoked is a version of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding data-verso-hover="41">simp</span></a></code> or a version of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="956">dsimp</span></a></code>.</p></li><li><p>The <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
+hypotheses and `⊢`, which denotes the goal.</code></code><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="nonterminal" data-kind="term.pseudo">term</span> <span class="bnf">|</span> <span class="nonterminal documented" data-kind="Lean.Parser.Tactic.locationType"><code class="hover-info"><code class="docstring">The `⊢` location refers to the current goal.</code></code>locationType</span><span class="bnf">)</span></span><span class="bnf">*</span></span></span></span></span><span class="bnf">)?</span></span></span></pre></div></div><p>In other words, an invocation of a simplification tactic takes the following modifiers, in order, all of which are optional:</p><ul><li><p>A set of <a href="Tactic-Proofs/The-Tactic-Language/#tactic-config">configuration options</a>, which should include the fields of <code class="hl lean inline" data-lean-context="examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config"><span class="const token" data-binding="const-Lean.Meta.Simp.Config" data-verso-hover="3154">Lean.Meta.Simp.Config</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___DSimp___Config___mk" title="Documentation for Lean.Meta.DSimp.Config"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config" data-verso-hover="3155">Lean.Meta.DSimp.Config</span></a></code>, depending on whether the simplifier being invoked is a version of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding data-verso-hover="41">simp</span></a></code> or a version of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="956">dsimp</span></a></code>.</p></li><li><p>The <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
 non-dependent hypotheses. It has many variants:
 - `simp` simplifies the main goal target using lemmas tagged with the attribute `[simp]`.
 - `simp [h₁, h₂, ..., hₙ]` simplifies the main goal target using the lemmas tagged
@@ -3010,7 +3088,7 @@ non-dependent hypotheses. It has many variants:
   `hᵢ` is introduced, but the old one remains in the local context.
 - `simp at *` simplifies all the hypotheses and the target.
 - `simp [*] at *` simplifies target and all (propositional) hypotheses using the
-  other hypotheses.</code></code><a href="Tactic-Proofs/Tactic-Reference/#simp"><code class="kw">only</code></a></span> modifier excludes the default simp set, instead beginning with an empty<span class="marginalia-reference"><span class="marginalia-marker marginalia-marker-desktop" aria-details="--marginalia-Technically___-the-simp-set-alwa"><span class="marginalia-accessible-label">Marginal note</span></span><button class="marginalia-marker marginalia-marker-mobile" type="button" aria-details="--marginalia-Technically___-the-simp-set-alwa" popovertarget="--marginalia-Technically___-the-simp-set-alwa"><span class="marginalia-accessible-label">Show marginal note</span></button></span><span class="marginalia-note" id="--marginalia-Technically___-the-simp-set-alwa" role="note" popover="auto">Technically, the simp set always includes <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-eq_self" data-verso-hover="3037">eq_self</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-iff_self" data-verso-hover="3157">iff_self</span></code> in order to discharge reflexive cases.</span> simp set.</p></li><li><p>The lemma list adds or removes lemmas from the simp set. There are three ways to specify lemmas in the lemma list:</p><ul><li><p><code>*</code>, which adds all assumptions in the proof state to the simp set</p></li><li><p><code>-</code> followed by a lemma, which removes the lemma from the simp set</p></li><li><p>A lemma specifier, consisting of the following in sequence:</p><ul><li><p>An optional <code>↓</code> or <code>↑</code>, which respectively cause the lemma to be applied before or after entering a subterm (<code>↑</code> is the default). The simplifier typically simplifies subterms before attempting to simplify parent terms, as simplified arguments often make more rules applicable; <code>↓</code> causes the parent term to be simplified with the rule prior to the simplification of subterms.</p></li><li><p>An optional <code>←</code>, which causes equational lemmas to be used from right to left rather than from left to right.</p></li><li><p>A mandatory lemma, which can be a simp set name, a lemma name, or a term. Terms are treated as if they were named lemmas with fresh names.</p></li></ul></li></ul></li><li><p>A location specifier, preceded by <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
+  other hypotheses.</code></code><a href="Tactic-Proofs/Tactic-Reference/#simp"><code class="kw">only</code></a></span> modifier excludes the default simp set, instead beginning with an empty<span class="marginalia-reference"><span class="marginalia-marker marginalia-marker-desktop" aria-details="--marginalia-Technically___-the-simp-set-alwa"><span class="marginalia-accessible-label">Marginal note</span></span><button class="marginalia-marker marginalia-marker-mobile" type="button" aria-details="--marginalia-Technically___-the-simp-set-alwa" popovertarget="--marginalia-Technically___-the-simp-set-alwa"><span class="marginalia-accessible-label">Show marginal note</span></button></span><span class="marginalia-note" id="--marginalia-Technically___-the-simp-set-alwa" role="note" popover="auto">Technically, the simp set always includes <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-eq_self" data-verso-hover="3036">eq_self</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-iff_self" data-verso-hover="3156">iff_self</span></code> in order to discharge reflexive cases.</span> simp set.</p></li><li><p>The lemma list adds or removes lemmas from the simp set. There are three ways to specify lemmas in the lemma list:</p><ul><li><p><code>*</code>, which adds all assumptions in the proof state to the simp set</p></li><li><p><code>-</code> followed by a lemma, which removes the lemma from the simp set</p></li><li><p>A lemma specifier, consisting of the following in sequence:</p><ul><li><p>An optional <code>↓</code> or <code>↑</code>, which respectively cause the lemma to be applied before or after entering a subterm (<code>↑</code> is the default). The simplifier typically simplifies subterms before attempting to simplify parent terms, as simplified arguments often make more rules applicable; <code>↓</code> causes the parent term to be simplified with the rule prior to the simplification of subterms.</p></li><li><p>An optional <code>←</code>, which causes equational lemmas to be used from right to left rather than from left to right.</p></li><li><p>A mandatory lemma, which can be a simp set name, a lemma name, or a term. Terms are treated as if they were named lemmas with fresh names.</p></li></ul></li></ul></li><li><p>A location specifier, preceded by <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
 non-dependent hypotheses. It has many variants:
 - `simp` simplifies the main goal target using lemmas tagged with the attribute `[simp]`.
 - `simp [h₁, h₂, ..., hₙ]` simplifies the main goal target using the lemmas tagged
@@ -3027,4 +3105,4 @@ non-dependent hypotheses. It has many variants:
   `hᵢ` is introduced, but the old one remains in the local context.
 - `simp at *` simplifies all the hypotheses and the target.
 - `simp [*] at *` simplifies target and all (propositional) hypotheses using the
-  other hypotheses.</code></code><a href="Tactic-Proofs/Tactic-Reference/#simp"><code class="kw">at</code></a></span>, which consists of a sequence of locations. Locations may be:</p><ul><li><p>The name of an assumption, indicating that its type should be simplified</p></li><li><p>An asterisk <code>*</code>, indicating that all assumptions and the conclusion should be simplified</p></li><li><p>A turnstile <code>⊢</code>, indicating that the conclusion should be simplified</p></li></ul><p>By default, only the conclusion is simplified.</p></li></ul><details class="example" id="Location-specifiers-for--simp"><summary class="description">Location specifiers for <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding data-verso-hover="41">simp</span></a></code></summary><div class="example-content"><p></p><p>In this proof state,</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2661" data-verso-hover="3158">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2664" data-verso-hover="3159">h'</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>6</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></div></div><p>the tactic <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-75059080759119396-4784-4795-1233"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-4784" data-verso-hover="41">simp</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.posConfigItem-4789">+</span><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config.arith"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.arith" data-verso-hover="847">arith</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-75059080759119396-4784-4795-1233"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2661" data-verso-hover="3158">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2664" data-verso-hover="3159">h'</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></span></span></code> simplifies only the goal:</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2661" data-verso-hover="3158">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2664" data-verso-hover="3159">h'</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.2655" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2658" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></div></div><p></p><p>Invoking <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-10915132640831625028-5185-5201-1236"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-5185" data-verso-hover="41">simp</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.posConfigItem-5190">+</span><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config.arith"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.arith" data-verso-hover="847">arith</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.location-5197" data-verso-hover="880">at</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2975" data-verso-hover="3158">h</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10915132640831625028-5185-5201-1236"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2969" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2972" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2978" data-verso-hover="3159">h'</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2969" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2972" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3006" data-verso-hover="3160">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2969" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2972" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2969" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>6</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2972" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></span></span></code> yields a goal in which the hypothesis <code>h</code> has been simplified:</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2969" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2972" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2978" data-verso-hover="3159">h'</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2969" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2972" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3006" data-verso-hover="3160">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2969" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2972" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.2969" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>6</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2972" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></div></div><p></p><p>The conclusion can be additionally simplified by adding <code>⊢</code>, that is, <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-2652548422452914408-5691-5711-1239"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-5691" data-verso-hover="41">simp</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.posConfigItem-5696">+</span><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config.arith"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.arith" data-verso-hover="847">arith</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.location-5703" data-verso-hover="880">at</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3286" data-verso-hover="3158">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-token.«⊢»-5708">⊢</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2652548422452914408-5691-5711-1239"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3280" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3283" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3289" data-verso-hover="3159">h'</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3280" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3283" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3318" data-verso-hover="3160">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3280" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3283" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3280" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3283" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></span></span></code>:</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3280" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3283" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3289" data-verso-hover="3159">h'</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3280" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3283" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3318" data-verso-hover="3160">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3280" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3283" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3280" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3283" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></div></div><p></p><p>Using <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-9139411144032763699-6069-6085-1242"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-6069" data-verso-hover="41">simp</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.posConfigItem-6074">+</span><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config.arith"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.arith" data-verso-hover="847">arith</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.location-6081" data-verso-hover="880">at</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.locationWildcard-6084">*</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9139411144032763699-6069-6085-1242"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3592" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3595" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3630" data-verso-hover="3160">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3592" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3595" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3631" data-verso-hover="3161">h'</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3592" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3595" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>12</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3592" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3595" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></span></span></code> simplifies all assumptions together with the conclusion:</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3592" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3595" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3630" data-verso-hover="3160">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3592" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3595" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3631" data-verso-hover="3161">h'</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3592" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3595" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>12</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3592" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3595" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></div></div></div></details></section></section><nav class="prev-next-buttons"><a class="local-button active" href="The-Simplifier/#the-simplifier" rel="prev" title="15. The Simplifier"><span class="arrow">←</span><span class="where">15. The Simplifier</span></a><a class="local-button active" href="The-Simplifier/Rewrite-Rules/#simp-rewrites" rel="next" title="15.2. Rewrite Rules"><span class="where">15.2. Rewrite Rules</span><span class="arrow">→</span></a></nav></div></main></div></body></html>
+  other hypotheses.</code></code><a href="Tactic-Proofs/Tactic-Reference/#simp"><code class="kw">at</code></a></span>, which consists of a sequence of locations. Locations may be:</p><ul><li><p>The name of an assumption, indicating that its type should be simplified</p></li><li><p>An asterisk <code>*</code>, indicating that all assumptions and the conclusion should be simplified</p></li><li><p>A turnstile <code>⊢</code>, indicating that the conclusion should be simplified</p></li></ul><p>By default, only the conclusion is simplified.</p></li></ul><details class="example" id="Location-specifiers-for--simp"><summary class="description">Location specifiers for <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding data-verso-hover="41">simp</span></a></code></summary><div class="example-content"><p></p><p>In this proof state,</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2293" data-verso-hover="3157">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2296" data-verso-hover="3158">h'</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>6</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></div></div><p>the tactic <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-2823505814384629620-4784-4795-1233"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-4784" data-verso-hover="41">simp</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.posConfigItem-4789">+</span><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config.arith"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.arith" data-verso-hover="847">arith</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2823505814384629620-4784-4795-1233"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2293" data-verso-hover="3157">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2296" data-verso-hover="3158">h'</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></span></span></code> simplifies only the goal:</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2293" data-verso-hover="3157">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2296" data-verso-hover="3158">h'</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.2287" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2290" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></div></div><p></p><p>Invoking <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-8770871736560998969-5185-5201-1236"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-5185" data-verso-hover="41">simp</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.posConfigItem-5190">+</span><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config.arith"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.arith" data-verso-hover="847">arith</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.location-5197" data-verso-hover="880">at</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2543" data-verso-hover="3157">h</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-8770871736560998969-5185-5201-1236"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2537" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2540" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2546" data-verso-hover="3158">h'</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2537" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2540" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2574" data-verso-hover="3159">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2537" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2540" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2537" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>6</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2540" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></span></span></code> yields a goal in which the hypothesis <code>h</code> has been simplified:</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2537" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2540" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2546" data-verso-hover="3158">h'</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2537" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2540" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2574" data-verso-hover="3159">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2537" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2540" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.2537" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>6</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2540" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></div></div><p></p><p>The conclusion can be additionally simplified by adding <code>⊢</code>, that is, <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-10401138668782878671-5691-5711-1239"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-5691" data-verso-hover="41">simp</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.posConfigItem-5696">+</span><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config.arith"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.arith" data-verso-hover="847">arith</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.location-5703" data-verso-hover="880">at</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2793" data-verso-hover="3157">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-token.«⊢»-5708">⊢</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10401138668782878671-5691-5711-1239"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2787" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2790" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2796" data-verso-hover="3158">h'</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2787" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2790" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2825" data-verso-hover="3159">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2787" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2790" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2787" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2790" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></span></span></code>:</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2787" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2790" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2796" data-verso-hover="3158">h'</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2787" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2790" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>9</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2825" data-verso-hover="3159">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.2787" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2790" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.2787" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2790" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></div></div><p></p><p>Using <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-8536491598827416900-6069-6085-1242"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-6069" data-verso-hover="41">simp</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.posConfigItem-6074">+</span><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk" title="Documentation for Lean.Meta.Simp.Config.arith"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.arith" data-verso-hover="847">arith</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.location-6081" data-verso-hover="880">at</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.locationWildcard-6084">*</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-8536491598827416900-6069-6085-1242"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3038" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3041" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3076" data-verso-hover="3159">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3038" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3041" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3077" data-verso-hover="3160">h'</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3038" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3041" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>12</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3038" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3041" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></span></span></code> simplifies all assumptions together with the conclusion:</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3038" data-verso-hover="1081">p</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3041" data-verso-hover="12">x</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3076" data-verso-hover="3159">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3038" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3041" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3077" data-verso-hover="3160">h'</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3038" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3041" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>12</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3038" data-verso-hover="1081">p</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.3041" data-verso-hover="12">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>7</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span></div></div></div></details></section></section><nav class="prev-next-buttons"><a class="local-button active" href="The-Simplifier/#the-simplifier" rel="prev" title="15. The Simplifier"><span class="arrow">←</span><span class="where">15. The Simplifier</span></a><a class="local-button active" href="The-Simplifier/Rewrite-Rules/#simp-rewrites" rel="next" title="15.2. Rewrite Rules"><span class="where">15.2. Rewrite Rules</span><span class="arrow">→</span></a></nav></div></main></div></body></html>

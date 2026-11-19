@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,43 +3036,6 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
@@ -3183,10 +3261,10 @@ use `(_)` to inhibit this and have it be solved for by unification instead, like
 They are also in scope in the declaration's body, while names bound in the type itself are only in scope in the type.
 Thus, parameter names are used twice:</p><ul><li><p>As names in the declaration's function type, bound as part of a <a class="technical-term" href="The-Type-System/Functions/#--tech-term-Dependent">dependent function type</a>.</p></li><li><p>As names in the declaration's body.
 In function definitions, they are bound by a <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.fun : term</code></code><code class="kw">fun</code></span>.</p></li></ul><details class="example" id="Parameter-Scope"><summary class="description">Parameter Scope</summary><div class="example-content"><p>The signature of <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#add-_LPAR_in-Parameter-Scope_RPAR_" title="Definition of example"><span class="const token" data-binding="const-add" data-verso-hover="1092">add</span></a></code> contains one parameter, <code>n</code>.
-Additionally, the signature's type is <code class="hl lean inline" data-lean-context="examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9756">(</span><span class="var token" data-binding="var-_uniq.9073" data-verso-hover="12">k</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9756">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9756">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.depArrow-9756">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></code>, which is a function type that includes <code>k</code>.
+Additionally, the signature's type is <code class="hl lean inline" data-lean-context="examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9756">(</span><span class="var token" data-binding="var-_uniq.8052" data-verso-hover="12">k</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9756">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9756">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.depArrow-9756">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></code>, which is a function type that includes <code>k</code>.
 The parameter <code>n</code> is in scope in the function's body, but <code>k</code> is not.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-9899">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-add" data-verso-hover="1092" id="add-_LPAR_in-Parameter-Scope_RPAR_">add</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9907">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9907">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9907">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-9917">:</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9919">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">k</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9919">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-9919">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.depArrow-9919">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-9939">|</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">0</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-9939">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="12">n</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-9939">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.108" data-verso-hover="12">k'</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-9952">+</span><span class="inter-text"> </span><span class="literal number token" data-binding>1</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-9939">=&gt;</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-9962">+</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#add-_LPAR_in-Parameter-Scope_RPAR_" title="Definition of example"><span class="const token" data-binding="const-add" data-verso-hover="1092">add</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.108" data-verso-hover="12">k'</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-9939">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.92" data-verso-hover="12">k'</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-9952">+</span><span class="inter-text"> </span><span class="literal number token" data-binding>1</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-9939">=&gt;</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-9962">+</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#add-_LPAR_in-Parameter-Scope_RPAR_" title="Definition of example"><span class="const token" data-binding="const-add" data-verso-hover="1092">add</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.92" data-verso-hover="12">k'</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><p>Like <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#add-_LPAR_in-Parameter-Scope_RPAR_" title="Definition of example"><span class="const token" data-binding="const-add" data-verso-hover="1092">add</span></a></code>, the signature of <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#mustBeEqual-_LPAR_in-Parameter-Scope_RPAR_" title="Definition of example"><span class="const token" data-binding="const-mustBeEqual" data-verso-hover="1093">mustBeEqual</span></a></code> contains one parameter, <code>n</code>.
 It is in scope both in the type, where it occurs in a proposition, and in the body, where it occurs as part of the message.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-10196">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-mustBeEqual" data-verso-hover="1093" id="mustBeEqual-_LPAR_in-Parameter-Scope_RPAR_">mustBeEqual</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10212">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10212">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10212">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-10222">:</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10224">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">k</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10224">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10224">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.depArrow-10224">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-10238">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">k</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-10238">→</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-10255">:=</span><span class="inter-text">
   </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-10260">fun</span><span class="inter-text"> </span><span class="wildcard token" data-binding>_</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-10264">=&gt;</span><span class="inter-text">
@@ -3198,14 +3276,14 @@ These parameters are called <span id="--tech-term-automatic-implicit-parameters"
 This is possible when they are not in the function position of an application and when there is sufficient information available in the signature to infer their type and any ordering constraints on them.
 This process is iterated: if the inferred type for the freshly-inserted implicit parameter has dependencies that are not uniquely determined, then these dependencies are replaced with further implicit parameters.</p><p>Implicit parameters that don't correspond to names written in signatures are assigned names akin to those of <a class="technical-term" href="Tactic-Proofs/Reading-Proof-States/#--tech-term-inaccessible">inaccessible</a> hypotheses in proofs, which cannot be referred to.
 They show up in signatures with a trailing dagger (<code>'✝'</code>).
-This prevents an arbitrary choice of name by Lean from becoming part of the API by being usable as a <a class="technical-term" href="Terms/Function-Application/#--tech-term-named-arguments">named argument</a>.</p><details class="example" id="Automatic-Implicit-Parameters"><summary class="description">Automatic Implicit Parameters</summary><div class="example-content"><p>In this definition of <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#map-_LPAR_in-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-map" data-verso-hover="1094">map</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.10716" data-verso-hover="61">α</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.10722" data-verso-hover="418">β</span></code> are not explicitly bound.
+This prevents an arbitrary choice of name by Lean from becoming part of the API by being usable as a <a class="technical-term" href="Terms/Function-Application/#--tech-term-named-arguments">named argument</a>.</p><details class="example" id="Automatic-Implicit-Parameters"><summary class="description">Automatic Implicit Parameters</summary><div class="example-content"><p>In this definition of <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#map-_LPAR_in-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-map" data-verso-hover="1094">map</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.9399" data-verso-hover="61">α</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.9405" data-verso-hover="418">β</span></code> are not explicitly bound.
 Rather than this being an error, they are converted into implicit parameters.
 Because they must be types, but nothing constrains their universes, the universe parameters <code>u</code> and <code>v</code> are also inserted.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-12056">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="1094" id="map-_LPAR_in-Automatic-Implicit-Parameters_RPAR_">map</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12064">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="347">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12064">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-12069">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="418">β</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12064">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12080">:</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12082">(</span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12082">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12082">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.depArrow-12082">→</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="418">β</span><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-12111">|</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-12113">[</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-12113">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-12111">=&gt;</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-12119">[</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-12119">]</span><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-12111">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.51" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-12126">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.52" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-12111">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="347">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.51" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-12137">::</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#map-_LPAR_in-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-map" data-verso-hover="1094">map</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="347">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.52" data-verso-hover="57">xs</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><p>The full signature of <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#map-_LPAR_in-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-map" data-verso-hover="1094">map</span></a></code> is:</p><code class="hl lean block" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#map-_LPAR_in-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-map" data-verso-hover="1094">map</span></a><span class="unknown token" data-binding>.{</span><span class="unknown token" data-binding>u</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Command.declId-12209">,</span><span class="inter-text"> </span><span class="unknown token" data-binding>v</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.declId-12209">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-12220">{</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-12220">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="62">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-12220">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-12234">{</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="418">β</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-12234">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-v" data-verso-hover="419">v</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-12234">}</span><span class="inter-text">
   </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12250">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="347">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12250">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-12255">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="418">β</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12250">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12266">(</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12266">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12266">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12281">:</span><span class="inter-text">
-  </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="418">β</span></code><div class="live-link"><a href="javascript:openLiveLink(&quot;CYUwZgBAtghgDhAFJAXBQjcAUEmEFBNwASgjUQA8BnIiAGQEsyAXDQnWhvAKAggB8IBtALoQAvAD5+AzjwgkiaciPGRZKNLATKyQA&quot;)">Live ↪</a></div></div></details><details class="example" id="No-Automatic-Implicit-Parameters"><summary class="description">No Automatic Implicit Parameters</summary><div class="example-content"><p>In this definition, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11167" data-verso-hover="61">α</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11173" data-verso-hover="418">β</span></code> are not explicitly bound.
+  </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="418">β</span></code><div class="live-link"><a href="javascript:openLiveLink(&quot;CYUwZgBAtghgDhAFJAXBQjcAUEmEFBNwASgjUQA8BnIiAGQEsyAXDQnWhvAKAggB8IBtALoQAvAD5+AzjwgkiaciPGRZKNLATKyQA&quot;)">Live ↪</a></div></div></details><details class="example" id="No-Automatic-Implicit-Parameters"><summary class="description">No Automatic Implicit Parameters</summary><div class="example-content"><p>In this definition, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.9786" data-verso-hover="61">α</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.9792" data-verso-hover="418">β</span></code> are not explicitly bound.
 Because <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="421">autoImplicit</span></a></code> is disabled, this is an error:</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-12621" data-verso-hover="103">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="421">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-12621" data-verso-hover="103">false</span><span class="inter-text">
 
 </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-12652">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="1095">map</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12660">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="1096">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12660">:</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Unknown </span><span class="text">identifier</span><span class="text"> `</span><span class="text">α</span><span class="text">`</span><span class="text">
@@ -3237,19 +3315,19 @@ The type parameters' universes can be inferred, and the appropriate universe par
     </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13689">(</span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13689">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="49">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13689">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.depArrow-13689">→</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="354">β</span><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-13718">|</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-13720">[</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-13720">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-13718">=&gt;</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-13726">[</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-13726">]</span><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-13718">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.59" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-13733">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.60" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-13718">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="347">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.59" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-13744">::</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="1097">map</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="347">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.60" data-verso-hover="57">xs</span><span class="inter-text">
-</span><span class="unknown token" data-binding></span></code></div></details><details class="example" id="Iterated-Automatic-Implicit-Parameters"><summary class="description">Iterated Automatic Implicit Parameters</summary><div class="example-content"><p>Given a number bounded by <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11798" data-verso-hover="12">n</span></code>, represented by the type <code>Fin n</code>, an <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.11806" data-verso-hover="1099">i</span></code> is a natural number paired with a proof that it is at least as large as <code>i</code>.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-14062">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098" id="AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_">AtLeast</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-14080">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="1099">i</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-14080">:</span><span class="inter-text"> </span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="12">n</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-14080">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-14062">where</span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code></div></details><details class="example" id="Iterated-Automatic-Implicit-Parameters"><summary class="description">Iterated Automatic Implicit Parameters</summary><div class="example-content"><p>Given a number bounded by <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.10292" data-verso-hover="12">n</span></code>, represented by the type <code>Fin n</code>, an <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10300" data-verso-hover="1099">i</span></code> is a natural number paired with a proof that it is at least as large as <code>i</code>.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-14062">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098" id="AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_">AtLeast</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-14080">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="1099">i</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-14080">:</span><span class="inter-text"> </span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="12">n</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-14080">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-14062">where</span><span class="inter-text">
   </span><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100" id="AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_">val</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-14104">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text">
   </span><span class="const token" data-binding="const-AtLeast.val_gt_i" data-verso-hover="1101" id="AtLeast___val_gt_i-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_">val_gt_i</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-14121">:</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≥_»-14123">≥</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="1099">i</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin.val"><span class="const token" data-binding="const-Fin.val" data-verso-hover="1102">val</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><p>These numbers can be added:</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-14178">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.add" data-verso-hover="1103" id="AtLeast___add-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_">AtLeast.add</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-14194">(</span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="1104">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1104">y</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-14194">:</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1105">i</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-14194">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-14212">:</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1105">i</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-14224">:=</span><span class="inter-text">
   </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">AtLeast.mk</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-14240">(</span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="1104">x</span><span class="built-in delim token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-14241">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1104">y</span><span class="built-in delim token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-14240">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_<|_»-14229">&lt;|</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-12513726113387149659-14259-14261-244"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-14259" data-verso-hover="15">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-12513726113387149659-14259-14261-244"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.9" data-verso-hover="1104">x</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1104">y</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="1104">x</span><span class="inter-text"></span><span class="unknown token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1104">y</span><span class="unknown token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span></span></span><span class="inter-text">
-    </span><span class="tactic"><label for="tactic-state-5218492352602942786-14266-14273-246"><a href="Tactic-Proofs/Tactic-Reference/#cases" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.cases-14266" data-verso-hover="570">cases</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="1104">x</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-5218492352602942786-14266-14273-246"/><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-247" checked="checked"/><span for="--verso-unique-247" class="goal-name">mk</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1104">y</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="12">val✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.88" data-verso-hover="1109">val_gt_i✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="12">val✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">{</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="12">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="12">val✝</span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">,</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val_gt_i-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val_gt_i" data-verso-hover="1109">val_gt_i</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.88" data-verso-hover="1109">val_gt_i✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">}</span><span class="unknown token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1104">y</span><span class="unknown token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span></span></span></span><span class="inter-text">
-    </span><span class="tactic"><label for="tactic-state-16520628247356510569-14278-14285-248"><a href="Tactic-Proofs/Tactic-Reference/#cases" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.cases-14278" data-verso-hover="570">cases</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1104">y</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-16520628247356510569-14278-14285-248"/><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-249" checked="checked"/><span for="--verso-unique-249" class="goal-name">mk.mk</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="12">val✝¹</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.88" data-verso-hover="1110">val_gt_i✝¹</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="12">val✝¹</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.127" data-verso-hover="12">val✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.128" data-verso-hover="1109">val_gt_i✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.127" data-verso-hover="12">val✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">{</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="12">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="12">val✝¹</span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">,</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val_gt_i-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val_gt_i" data-verso-hover="1110">val_gt_i</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.88" data-verso-hover="1110">val_gt_i✝¹</span><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">}</span><span class="unknown token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">{</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="12">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.127" data-verso-hover="12">val✝</span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">,</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val_gt_i-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val_gt_i" data-verso-hover="1109">val_gt_i</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.128" data-verso-hover="1109">val_gt_i✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">}</span><span class="unknown token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span></span></span></span><span class="inter-text">
-    </span><span class="tactic"><label for="tactic-state-6191820672753287708-14290-14300-250"><a href="Tactic-Proofs/Tactic-Reference/#dsimp" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-14290" data-verso-hover="956">dsimp</span></a><span class="inter-text"> </span><a href="Tactic-Proofs/Tactic-Reference/#dsimp" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-14290" data-verso-hover="956">only</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-6191820672753287708-14290-14300-250"/><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-251" checked="checked"/><span for="--verso-unique-251" class="goal-name">mk.mk</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="12">val✝¹</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.88" data-verso-hover="1110">val_gt_i✝¹</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="12">val✝¹</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.127" data-verso-hover="12">val✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.128" data-verso-hover="1109">val_gt_i✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.127" data-verso-hover="12">val✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="12">val✝¹</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.127" data-verso-hover="12">val✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span></span></span></span><span class="inter-text">
+    </span><span class="tactic"><label for="tactic-state-13163769461798921773-14266-14273-246"><a href="Tactic-Proofs/Tactic-Reference/#cases" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.cases-14266" data-verso-hover="570">cases</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="1104">x</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-13163769461798921773-14266-14273-246"/><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-247" checked="checked"/><span for="--verso-unique-247" class="goal-name">mk</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1104">y</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.83" data-verso-hover="12">val✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.84" data-verso-hover="1109">val_gt_i✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.83" data-verso-hover="12">val✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">{</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="12">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.83" data-verso-hover="12">val✝</span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">,</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val_gt_i-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val_gt_i" data-verso-hover="1109">val_gt_i</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.84" data-verso-hover="1109">val_gt_i✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">}</span><span class="unknown token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1104">y</span><span class="unknown token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span></span></span></span><span class="inter-text">
+    </span><span class="tactic"><label for="tactic-state-853168820904361382-14278-14285-248"><a href="Tactic-Proofs/Tactic-Reference/#cases" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.cases-14278" data-verso-hover="570">cases</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="1104">y</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-853168820904361382-14278-14285-248"/><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-249" checked="checked"/><span for="--verso-unique-249" class="goal-name">mk.mk</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.83" data-verso-hover="12">val✝¹</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.84" data-verso-hover="1110">val_gt_i✝¹</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.83" data-verso-hover="12">val✝¹</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.123" data-verso-hover="12">val✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.124" data-verso-hover="1109">val_gt_i✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.123" data-verso-hover="12">val✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">{</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="12">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.83" data-verso-hover="12">val✝¹</span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">,</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val_gt_i-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val_gt_i" data-verso-hover="1110">val_gt_i</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.84" data-verso-hover="1110">val_gt_i✝¹</span><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">}</span><span class="unknown token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">{</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="12">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.123" data-verso-hover="12">val✝</span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">,</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___val_gt_i-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val_gt_i" data-verso-hover="1109">val_gt_i</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.124" data-verso-hover="1109">val_gt_i✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-AtLeast.mk" data-verso-hover="1106">}</span><span class="unknown token" data-binding>.</span><a href="Definitions/Headers-and-Signatures/#AtLeast___val-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.val" data-verso-hover="1100">val</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span></span></span></span><span class="inter-text">
+    </span><span class="tactic"><label for="tactic-state-14421425546083032663-14290-14300-250"><a href="Tactic-Proofs/Tactic-Reference/#dsimp" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-14290" data-verso-hover="956">dsimp</span></a><span class="inter-text"> </span><a href="Tactic-Proofs/Tactic-Reference/#dsimp" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-14290" data-verso-hover="956">only</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-14421425546083032663-14290-14300-250"/><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-251" checked="checked"/><span for="--verso-unique-251" class="goal-name">mk.mk</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="12">n✝</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.83" data-verso-hover="12">val✝¹</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.84" data-verso-hover="1110">val_gt_i✝¹</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.83" data-verso-hover="12">val✝¹</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.123" data-verso-hover="12">val✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.124" data-verso-hover="1109">val_gt_i✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.123" data-verso-hover="12">val✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.83" data-verso-hover="12">val✝¹</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.123" data-verso-hover="12">val✝</span><span class="inter-text"> </span><span class="const token" data-binding="const-GE.ge" data-verso-hover="1108">≥</span><span class="inter-text"> </span><span class="unknown token" data-binding>↑</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="1107">i</span></span></span></span></span></span></span><span class="inter-text">
     </span><span class="tactic"><label for="tactic-state-7-14305-14310-252"><a href="Tactic-Proofs/Tactic-Reference/#omega" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.omega-14305" data-verso-hover="574">omega</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-14305-14310-252"/><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><div class="paragraph"><p>The signature of <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#AtLeast___add-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.add" data-verso-hover="1103">AtLeast.add</span></a></code> requires multiple rounds of automatic implicit parameter insertion.
-First, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11823" data-verso-hover="1099">i</span></code> is inserted; but its type depends on the upper bound <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11827" data-verso-hover="12">n</span></code> of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.11833" data-verso-hover="12">n</span></code>.
-In the second round, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11839" data-verso-hover="12">n</span></code> is inserted, using a machine-chosen name.
-Because <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11845" data-verso-hover="12">n</span></code>'s type is <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></code>, which has no dependencies, the process terminates.
+First, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.10317" data-verso-hover="1099">i</span></code> is inserted; but its type depends on the upper bound <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.10321" data-verso-hover="12">n</span></code> of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10327" data-verso-hover="12">n</span></code>.
+In the second round, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.10333" data-verso-hover="12">n</span></code> is inserted, using a machine-chosen name.
+Because <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.10339" data-verso-hover="12">n</span></code>'s type is <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></code>, which has no dependencies, the process terminates.
 The final signature can be seen with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.check : command</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><code class="kw">#check</code></a></span>:</p><code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Definitions/Headers-and-Signatures/#AtLeast___add-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.add" data-verso-hover="1103">AtLeast.add</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n✝</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="1107">i</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n✝</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="1104">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="1104">y</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="1107">i</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="1107">i</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-14867">#check</span></a></span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast___add-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.add" data-verso-hover="1103">AtLeast.add</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Definitions/Headers-and-Signatures/#AtLeast___add-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast.add" data-verso-hover="1103">AtLeast.add</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n✝</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="1107">i</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="477">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n✝</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="1104">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="1104">y</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="1107">i</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#AtLeast-_LPAR_in-Iterated-Automatic-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AtLeast" data-verso-hover="1098">AtLeast</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="1107">i</span></span></span></pre></div><div class="live-link"><a href="javascript:openLiveLink(&quot;M4FwTgrgxiFgpgAgIIgDLwIakQCgJaIBciAYvgHaIUCUiA7gBbwIBQiiAbpgDbGIA5TCHZdeAfQDmIcYRLc+gUyJE+AHQLWrACbwAZinRZQqzFq14AHogCe/VBmwgVdEvaNO5AXlFvHqgLYA1pbqvIgA1DahPHQAPAA+iABG1qIcUNjwwIgWaYgZwFk2eVrA+P4ADogA9hQ8qRwc1f7wkphAA&quot;)">Live ↪</a></div></div></details><p>Automatic implicit parameter insertion takes place after the insertion of parameters due to <a class="technical-term" href="Namespaces-and-Sections/#--tech-term-Section-variables">section variables</a>.
 Parameters that correspond to section variables have the same name as the corresponding variable, even when they do not correspond to a name written directly in the signature, and disabling automatic implicit parameters has no effect the parameters that correspond to section variables.
@@ -3261,12 +3339,12 @@ Setting the option <code class="hl lean inline" data-lean-context="examples"><a 
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-16365">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Answer.no" data-verso-hover="1115" id="Answer___no-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_">no</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16418">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-select" data-verso-hover="1116">select</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16429">(</span><span class="var token" data-binding="var-_uniq.23" data-verso-hover="1117">choices</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16429">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="49">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_×_»-16440">×</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="49">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_×_»-16446">×</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="49">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-16429">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-16456">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.17" data-verso-hover="369">Asnwer</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-16458">→</span><span class="inter-text">  </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="49">α</span><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-16475">|</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Invalid dotted identifier notation: The expected type of `.</span><span class="text">yes</span><span class="text">`</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.37" data-verso-hover="1118">Asnwer</span><span class="inter-text"></span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.41" data-verso-hover="1118">Asnwer</span><span class="inter-text"></span></span><span class="text"></span><span class="text">
 </span><span class="text">is not of the form `C ...` or `... → C ...` where C is a constant</span><span class="text"></span></code></span></span><span class="unknown token" data-binding>.yes</span></span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-16475">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding>choices</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-16485">.</span><span class="unknown token" data-binding>1</span><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-16475">|</span><span class="inter-text"> </span><span class="unknown token" data-binding>.maybe</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-16475">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding>choices</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-16509">.</span><span class="unknown token" data-binding>2</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-16509">.</span><span class="unknown token" data-binding>1</span><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-16475">|</span><span class="inter-text"> </span><span class="unknown token" data-binding>.no</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-16475">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding>choices</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-16532">.</span><span class="unknown token" data-binding>2</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-16532">.</span><span class="unknown token" data-binding>2</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><p>The resulting error message states that the argument's type is not a constant, so dot notation cannot be used in the pattern:</p><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Invalid dotted identifier notation: The expected type of `.</span><span class="text">yes</span><span class="text">`</span><span class="text">
-  </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.37" data-verso-hover="1118">Asnwer</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.41" data-verso-hover="1118">Asnwer</span></span><span class="text"></span><span class="text">
 </span><span class="text">is not of the form `C ...` or `... → C ...` where C is a constant</span><span class="text"></span></span></pre><p>This is because the signature is:</p><code class="hl lean block" data-lean-context="examples"><span class="const token" data-binding="const-select" data-verso-hover="1116">select</span><span class="unknown token" data-binding>.{</span><span class="unknown token" data-binding>u_1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Command.declId-16887">,</span><span class="inter-text"> </span><span class="unknown token" data-binding>u_2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.declId-16887">}</span><span class="inter-text">
   </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-16907">{</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="49">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-16907">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u_1" data-verso-hover="56">u_1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-16907">}</span><span class="inter-text">
   </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-16925">{</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="369">Asnwer</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-16925">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u_2" data-verso-hover="1119">u_2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-16925">}</span><span class="inter-text">

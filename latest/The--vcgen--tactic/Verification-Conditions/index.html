@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,51 +3036,14 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
     </script><script src="static/metadata.js"></script><script src="static/print.js"></script><link rel="stylesheet" href="static/colors.css"/><link rel="stylesheet" href="static/theme.css"/><link rel="stylesheet" href="static/print.css"/><link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css"/><link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css"/><link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css"/><link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css"/></head><body><header><div class="header-logo-wrapper"><a href id="logo"><img src="static/lean_logo.svg"/></a></div><div class="header-title-wrapper"><a href class="header-title"><h1>The Lean Language Reference</h1></a></div></header><label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc"><div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div><nav id="toc"><input type="checkbox" id="toggle-toc"/><div class="first"><a href class="toc-title"><h1>The Lean Language Reference</h1></a><div class="split-tocs"><div class="split-toc book"><div class="title"><label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"/></label><span class>Table of Contents</span></div><table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="current numbered"><td class="num">17.</td><td><a href="The--vcgen--tactic/#vcgen-tactic">The <code>vcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">25.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="numbered"><td class="num">26.</td><td><a href="Linters-and-Code-Quality/#linters">Linters and Code Quality</a></td></tr><tr class="numbered"><td class="num">27.</td><td><a href="External-Kernels/#external-kernels">External Kernels</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div><div class="split-toc"><div class="title"><label for="--verso-manual-toc-vcgen-tactic" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-vcgen-tactic" checked="checked"/></label><span class="number">17.</span> <span class><a href="The--vcgen--tactic/#vcgen-tactic">The <code>vcgen</code> tactic</a></span></div><table><tr class="numbered"><td class="num">17.1.</td><td><a href="The--vcgen--tactic/Overview/#The-Lean-Language-Reference--The--vcgen--tactic--Overview">Overview</a></td></tr><tr class="numbered"><td class="num">17.2.</td><td><a href="The--vcgen--tactic/Predicate-Transformers/#The-Lean-Language-Reference--The--vcgen--tactic--Predicate-Transformers">Predicate Transformers</a></td></tr><tr class="current numbered"><td class="num">17.3.</td><td><a href="The--vcgen--tactic/Verification-Conditions/#vcgen-verification-conditions">Verification Conditions</a></td></tr><tr class="numbered"><td class="num">17.4.</td><td><a href="The--vcgen--tactic/Enabling--vcgen--For-Monads/#The-Lean-Language-Reference--The--vcgen--tactic--Enabling--vcgen--For-Monads">Enabling <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#vcgen" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="4">vcgen</span></a></code> For Monads</a></td></tr><tr class="numbered"><td class="num">17.5.</td><td><a href="The--vcgen--tactic/Discharging-Verification-Conditions/#vcgen-discharging">Discharging Verification Conditions</a></td></tr></table></div><div class="split-toc"><div class="title"><span class="no-toggle"></span><span class="number">17.3.</span> <span class="current"><a href="The--vcgen--tactic/Verification-Conditions/#vcgen-verification-conditions">Verification Conditions</a></span></div></div></div></div><div class="last"><ul id="meta-links"><li><a href="https://github.com/leanprover/reference-manual">Source Code</a></li><li><a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li></ul></div></nav><div class="toc-resize-handle"></div><main><div class="content-wrapper"><nav class="prev-next-buttons"><a class="local-button active" href="The--vcgen--tactic/Predicate-Transformers/#The-Lean-Language-Reference--The--vcgen--tactic--Predicate-Transformers" rel="prev" title="17.2. Predicate Transformers"><span class="arrow">←</span><span class="where">17.2. Predicate Transformers</span></a><a class="local-button active" href="The--vcgen--tactic/Enabling--vcgen--For-Monads/#The-Lean-Language-Reference--The--vcgen--tactic--Enabling--vcgen--For-Monads" rel="next" title="17.4. Enabling vcgen For Monads"><span class="where">17.4. Enabling vcgen For Monads</span><span class="arrow">→</span></a></nav><section><h1 id="vcgen-verification-conditions">17.3. Verification Conditions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=vcgen-verification-conditions" title="Permalink">🔗</a></span></h1><p>The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#vcgen" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="4">vcgen</span></a></code> tactic converts a goal that's expressed in terms of weakest preconditions to a set of invariants and verification conditions that, together, suffice to prove the original goal.
 In particular, <a class="technical-term" href="The--vcgen--tactic/Predicate-Transformers/#--tech-term-Hoare-triple">Hoare triples</a> are defined in terms of weakest preconditions, so <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#vcgen" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="4">vcgen</span></a></code> can be used to prove them.</p><p>
 The verification conditions for a goal are generated using the same machinery as <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="3">grind</span></a></code>.
-Generation proceeds as follows:</p><ol start="1"><li><p>The goal is brought into the form of an entailment <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.46694" data-verso-hover="3970">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.46698" data-verso-hover="3970">R</span></code> between assertions.
-Binders are introduced, <a class="technical-term" href="The--vcgen--tactic/Predicate-Transformers/#--tech-term-Hoare-triple">Hoare triples</a> are unfolded to <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.46813" data-verso-hover="3970">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.46809" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.46821" data-verso-hover="3979">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.46827" data-verso-hover="3985">E</span></code>, and goals of the form <code class="hl lean inline" data-lean-context="examples"><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.46981" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.46993" data-verso-hover="3979">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.46999" data-verso-hover="3985">E</span></code> become <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding>⊤</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.47103" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.47115" data-verso-hover="3979">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.47121" data-verso-hover="3985">E</span></code>.</p></li><li><p>The precondition <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.47263" data-verso-hover="3970">P</span></code> is moved into the local context: a pure assertion <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding>⌜</span><span class="var token" data-binding="var-_uniq.47388" data-verso-hover="377">φ</span><span class="unknown token" data-binding>⌝</span></code> becomes a hypothesis <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.47511" data-verso-hover="377">φ</span></code>, an <a href="The--vcgen--tactic/Predicate-Transformers/#vcgen-assertion-lattices">existential</a> <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Order.iSup" data-verso-hover="3967">⨆</span></code> becomes a variable, and the arguments of a state predicate become variables.</p></li><li><p>The assertion <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.47610" data-verso-hover="3970">R</span></code> is recursively decomposed into goals based on its connectives: meets <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Order.meet" data-verso-hover="3963">⊓</span></code> are split into one goal per conjunct, the antecedents of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Order.himp" data-verso-hover="3969">⇨</span></code> are mvoed into the precondition, pure assertions <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding>⌜</span><span class="var token" data-binding="var-_uniq.47741" data-verso-hover="377">φ</span><span class="unknown token" data-binding>⌝</span></code> are transformed into the proposition <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.47864" data-verso-hover="377">φ</span></code>, and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Order.top" data-verso-hover="3965">⊤</span></code> goals are closed immediately.</p></li><li><p>If <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.47960" data-verso-hover="3970">R</span></code> is <code class="hl lean inline" data-lean-context="examples"><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48059" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48071" data-verso-hover="3979">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48077" data-verso-hover="3985">E</span></code>, then the program <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.48181" data-verso-hover="416">e</span></code> is decomposed:</p><ol start="1"><li><p>A <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.let : term</code><span class="sep"></span><code class="docstring">`let` is used to declare a local definition. Example:
+Generation proceeds as follows:</p><ol start="1"><li><p>The goal is brought into the form of an entailment <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.36332" data-verso-hover="3946">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36336" data-verso-hover="3946">R</span></code> between assertions.
+Binders are introduced, <a class="technical-term" href="The--vcgen--tactic/Predicate-Transformers/#--tech-term-Hoare-triple">Hoare triples</a> are unfolded to <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.36449" data-verso-hover="3946">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36445" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36457" data-verso-hover="3955">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36463" data-verso-hover="3961">E</span></code>, and goals of the form <code class="hl lean inline" data-lean-context="examples"><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36613" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36625" data-verso-hover="3955">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36631" data-verso-hover="3961">E</span></code> become <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding>⊤</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36735" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36747" data-verso-hover="3955">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36753" data-verso-hover="3961">E</span></code>.</p></li><li><p>The precondition <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.36884" data-verso-hover="3946">P</span></code> is moved into the local context: a pure assertion <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding>⌜</span><span class="var token" data-binding="var-_uniq.37009" data-verso-hover="377">φ</span><span class="unknown token" data-binding>⌝</span></code> becomes a hypothesis <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.37127" data-verso-hover="377">φ</span></code>, an <a href="The--vcgen--tactic/Predicate-Transformers/#vcgen-assertion-lattices">existential</a> <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Order.iSup" data-verso-hover="3943">⨆</span></code> becomes a variable, and the arguments of a state predicate become variables.</p></li><li><p>The assertion <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.37226" data-verso-hover="3946">R</span></code> is recursively decomposed into goals based on its connectives: meets <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Order.meet" data-verso-hover="3939">⊓</span></code> are split into one goal per conjunct, the antecedents of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Order.himp" data-verso-hover="3945">⇨</span></code> are mvoed into the precondition, pure assertions <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding>⌜</span><span class="var token" data-binding="var-_uniq.37357" data-verso-hover="377">φ</span><span class="unknown token" data-binding>⌝</span></code> are transformed into the proposition <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.37475" data-verso-hover="377">φ</span></code>, and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Order.top" data-verso-hover="3941">⊤</span></code> goals are closed immediately.</p></li><li><p>If <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.37571" data-verso-hover="3946">R</span></code> is <code class="hl lean inline" data-lean-context="examples"><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.37670" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.37682" data-verso-hover="3955">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.37688" data-verso-hover="3961">E</span></code>, then the program <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.37792" data-verso-hover="416">e</span></code> is decomposed:</p><ol start="1"><li><p>A <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.let : term</code><span class="sep"></span><code class="docstring">`let` is used to declare a local definition. Example:
 ```
 let x := 1
 let y := x + 1
@@ -2987,21 +3065,21 @@ x + y
 
 The *anaphoric let* `let := v` defines a variable called `this`.</code></code><code class="kw">let</code></span>-binding is introduced, becoming a hypothesis.</p></li><li><p>An application of an <a class="technical-term" href="Elaboration-and-Compilation/#--tech-term-auxiliary-matching-functions">auxiliary matching function</a> whose <a class="technical-term" href="Terms/Pattern-Matching/#--tech-term-match-discriminants">discriminant</a> is a constructor application is reduced; any other conditional or match is split into one goal per branch.</p></li><li><p>An application of a function is handled by the first applicable specification lemma in priority order.
 Hypotheses that are Hoare triples also count as specification lemmas.
-Lean includes specification lemmas for <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Bind___mk" title="Documentation for Bind.bind"><span class="const token" data-binding="const-Bind.bind" data-verso-hover="1389">bind</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1012">pure</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Syntax/#ForIn___mk" title="Documentation for ForIn.forIn"><span class="const token" data-binding="const-ForIn.forIn" data-verso-hover="4056">ForIn.forIn</span></a></code> and the other functions that result from desugaring <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.do : term</code></code><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><code class="kw">do</code></a></span>-notation.
-If no specification lemma applies, then <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#vcgen" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="4">vcgen</span></a></code> reports an error.</p><p>A specification lemma <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.48323" data-verso-hover="3970">P'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48319" data-verso-hover="416">e'</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48333" data-verso-hover="3979">Q'</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48337" data-verso-hover="3985">E'</span></code> is applied by transitivity of <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Recursive-Definitions/#Lean___Order___PartialOrder___mk" title="Documentation for Lean.Order.PartialOrder.rel"><span class="const token" data-binding="const-Lean.Order.PartialOrder.rel" data-verso-hover="1434">⊑</span></a></code>: the goal <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.48454" data-verso-hover="3970">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48450" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48462" data-verso-hover="3979">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48468" data-verso-hover="3985">E</span></code> follows from <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.48579" data-verso-hover="3970">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48581" data-verso-hover="3970">P'</span></code> and <code class="hl lean inline" data-lean-context="examples"><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48687" data-verso-hover="416">e'</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48701" data-verso-hover="3979">Q'</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48705" data-verso-hover="3985">E'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48685" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48697" data-verso-hover="3979">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48703" data-verso-hover="3985">E</span></code>.
-The second entailment holds when <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.48827" data-verso-hover="416">e'</span></code> unifies with <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.48932" data-verso-hover="416">e</span></code>, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.49055" data-verso-hover="3979">Q'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49051" data-verso-hover="3979">Q</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.49198" data-verso-hover="3985">E'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49196" data-verso-hover="3985">E</span></code>.
-In effect, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#vcgen" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="4">vcgen</span></a></code> replaces the weakest precondition in the goal by the precondition of the lemma, which gives the new goal <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.49301" data-verso-hover="3970">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49303" data-verso-hover="3970">P'</span></code>.</p></li><li><p>The variables in the lemma that occur in the program are instantiated using unification.
-The universally quantified postcondition of an <a class="technical-term" href="The--vcgen--tactic/Predicate-Transformers/#--tech-term-auto-framing-specification">auto-framing specification</a> becomes <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.49419" data-verso-hover="3979">Q</span></code>, so <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.49531" data-verso-hover="3979">Q'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49527" data-verso-hover="3979">Q</span></code> holds by reflexivity and no goal for the postcondition remains.
-Otherwise, the entailments <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.49644" data-verso-hover="3979">Q'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49640" data-verso-hover="3979">Q</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.49761" data-verso-hover="3985">E'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49759" data-verso-hover="3985">E</span></code> become new goals.
-Assumptions of a type registered with <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding data-verso-hover="4130">spec_invariant_type</span></code> become invariant goals.
+Lean includes specification lemmas for <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Bind___mk" title="Documentation for Bind.bind"><span class="const token" data-binding="const-Bind.bind" data-verso-hover="1387">bind</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1012">pure</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Syntax/#ForIn___mk" title="Documentation for ForIn.forIn"><span class="const token" data-binding="const-ForIn.forIn" data-verso-hover="4031">ForIn.forIn</span></a></code> and the other functions that result from desugaring <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.do : term</code></code><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><code class="kw">do</code></a></span>-notation.
+If no specification lemma applies, then <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#vcgen" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="4">vcgen</span></a></code> reports an error.</p><p>A specification lemma <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.37934" data-verso-hover="3946">P'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.37930" data-verso-hover="416">e'</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.37944" data-verso-hover="3955">Q'</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.37948" data-verso-hover="3961">E'</span></code> is applied by transitivity of <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Recursive-Definitions/#Lean___Order___PartialOrder___mk" title="Documentation for Lean.Order.PartialOrder.rel"><span class="const token" data-binding="const-Lean.Order.PartialOrder.rel" data-verso-hover="1432">⊑</span></a></code>: the goal <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.38065" data-verso-hover="3946">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38061" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38073" data-verso-hover="3955">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38079" data-verso-hover="3961">E</span></code> follows from <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.38190" data-verso-hover="3946">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38192" data-verso-hover="3946">P'</span></code> and <code class="hl lean inline" data-lean-context="examples"><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38298" data-verso-hover="416">e'</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38312" data-verso-hover="3955">Q'</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38316" data-verso-hover="3961">E'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38296" data-verso-hover="416">e</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38308" data-verso-hover="3955">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38314" data-verso-hover="3961">E</span></code>.
+The second entailment holds when <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.38438" data-verso-hover="416">e'</span></code> unifies with <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.38543" data-verso-hover="416">e</span></code>, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.38666" data-verso-hover="3955">Q'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38662" data-verso-hover="3955">Q</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.38805" data-verso-hover="3961">E'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38803" data-verso-hover="3961">E</span></code>.
+In effect, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#vcgen" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="4">vcgen</span></a></code> replaces the weakest precondition in the goal by the precondition of the lemma, which gives the new goal <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.38906" data-verso-hover="3946">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.38908" data-verso-hover="3946">P'</span></code>.</p></li><li><p>The variables in the lemma that occur in the program are instantiated using unification.
+The universally quantified postcondition of an <a class="technical-term" href="The--vcgen--tactic/Predicate-Transformers/#--tech-term-auto-framing-specification">auto-framing specification</a> becomes <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.39024" data-verso-hover="3955">Q</span></code>, so <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.39136" data-verso-hover="3955">Q'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39132" data-verso-hover="3955">Q</span></code> holds by reflexivity and no goal for the postcondition remains.
+Otherwise, the entailments <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.39249" data-verso-hover="3955">Q'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39245" data-verso-hover="3955">Q</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.39366" data-verso-hover="3961">E'</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39364" data-verso-hover="3961">E</span></code> become new goals.
+Assumptions of a type registered with <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding data-verso-hover="4112">spec_invariant_type</span></code> become invariant goals.
 The <a class="technical-term" href="The--vcgen--tactic/Predicate-Transformers/#--tech-term-logical-variable">logical variables</a> of the lemma appear as metavariables in all of these new goals.</p></li></ol></li><li><p>Each new goal is processed again from step 1.
-For example, the specification lemma <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Std.WP.Spec.bind" data-verso-hover="4113">Spec.bind</span></code> is auto-framing and has the precondition <code class="hl lean inline" data-lean-context="examples"><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49942" data-verso-hover="4029">x</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-33118">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-33119">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49969" data-verso-hover="351">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-33123">=&gt;</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-33131">(</span><span class="var token" data-binding="var-_uniq.49946" data-verso-hover="4131">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49969" data-verso-hover="351">a</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-33131">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49930" data-verso-hover="3979">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49936" data-verso-hover="3985">E</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-33118">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49936" data-verso-hover="3985">E</span></code>.
-For a goal <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.50061" data-verso-hover="3970">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-33176">(</span><span class="var token" data-binding="var-_uniq.50081" data-verso-hover="4029">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_>>=_»-33177">&gt;&gt;=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50085" data-verso-hover="4131">f</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-33176">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50069" data-verso-hover="3979">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50075" data-verso-hover="3985">E</span></code>, the new goal is <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.50214" data-verso-hover="3970">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50234" data-verso-hover="4029">x</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-33226">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-33227">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50264" data-verso-hover="351">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-33231">=&gt;</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-33239">(</span><span class="var token" data-binding="var-_uniq.50238" data-verso-hover="4131">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50264" data-verso-hover="351">a</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-33239">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50222" data-verso-hover="3979">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50228" data-verso-hover="3985">E</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-33226">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50228" data-verso-hover="3985">E</span></code>.
-When a specification lemma for <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.50376" data-verso-hover="4029">x</span></code> applies to this goal, the entailment between the postconditions has <code class="hl lean inline" data-lean-context="examples"><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="4002">wp</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-33376">(</span><span class="var token" data-binding="var-_uniq.50487" data-verso-hover="4131">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50489" data-verso-hover="351">a</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-33376">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50471" data-verso-hover="3979">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50477" data-verso-hover="3985">E</span></code> on the right, so the rest of the program is decomposed in the same way.
+For example, the specification lemma <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Std.WP.Spec.bind" data-verso-hover="4095">Spec.bind</span></code> is auto-framing and has the precondition <code class="hl lean inline" data-lean-context="examples"><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39547" data-verso-hover="4005">x</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-33890">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-33891">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39574" data-verso-hover="351">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-33895">=&gt;</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-33903">(</span><span class="var token" data-binding="var-_uniq.39551" data-verso-hover="4113">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39574" data-verso-hover="351">a</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-33903">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39535" data-verso-hover="3955">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39541" data-verso-hover="3961">E</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-33890">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39541" data-verso-hover="3961">E</span></code>.
+For a goal <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.39666" data-verso-hover="3946">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-33948">(</span><span class="var token" data-binding="var-_uniq.39686" data-verso-hover="4005">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_>>=_»-33949">&gt;&gt;=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39690" data-verso-hover="4113">f</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-33948">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39674" data-verso-hover="3955">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39680" data-verso-hover="3961">E</span></code>, the new goal is <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.39817" data-verso-hover="3946">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>⊑</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39837" data-verso-hover="4005">x</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-33998">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-33999">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39867" data-verso-hover="351">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-34003">=&gt;</span><span class="inter-text"> </span><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-34011">(</span><span class="var token" data-binding="var-_uniq.39841" data-verso-hover="4113">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39867" data-verso-hover="351">a</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-34011">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39825" data-verso-hover="3955">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39831" data-verso-hover="3961">E</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-33998">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39831" data-verso-hover="3961">E</span></code>.
+When a specification lemma for <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.39979" data-verso-hover="4005">x</span></code> applies to this goal, the entailment between the postconditions has <code class="hl lean inline" data-lean-context="examples"><a href="The--vcgen--tactic/Predicate-Transformers/#Std___WP___WP___wp" title="Documentation for Std.WP.WP.wp"><span class="const token" data-binding="const-Std.WP.WP.wp" data-verso-hover="3977">wp</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-34148">(</span><span class="var token" data-binding="var-_uniq.40090" data-verso-hover="4113">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.40092" data-verso-hover="351">a</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-34148">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.40074" data-verso-hover="3955">Q</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.40080" data-verso-hover="3961">E</span></code> on the right, so the rest of the program is decomposed in the same way.
 Before a new goal is processed, its hypotheses are <a class="technical-term" href="The--grind--tactic/Interactive-Mode/#--tech-term-internalization">internalized</a> into <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="3">grind</span></a></code>'s “whiteboard”, and a goal whose hypotheses are contradictory is dropped.</p></li><li><p>The verification conditions are the remaining goals that cannot be further decomposed by these steps.
-Before each verification condition is emitted, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#vcgen" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="4">vcgen</span></a></code> solves its conjuncts that are either <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="435">True</span></a></code> or an equality <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.50722" data-verso-hover="1236">e₁</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-33920">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50724" data-verso-hover="1236">e₂</span></code> where <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.50832" data-verso-hover="1236">e₁</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.50941" data-verso-hover="1236">e₂</span></code> can be made definitionally equal by unification..
+Before each verification condition is emitted, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#vcgen" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="4">vcgen</span></a></code> solves its conjuncts that are either <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="435">True</span></a></code> or an equality <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.40325" data-verso-hover="1236">e₁</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-34692">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.40327" data-verso-hover="1236">e₂</span></code> where <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.40435" data-verso-hover="1236">e₁</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.40544" data-verso-hover="1236">e₂</span></code> can be made definitionally equal by unification..
 Solving an equality can assign a metavariable, so some logical variables become assigned: a conjunct <code>s = ?n</code> assigns <code>?n := s</code>.
-The unsolved conjuncts remain as the verification condition.</p></li><li><p>The resulting subgoals receive the names <code>inv1</code>, <code>inv2</code>, … for invariants and <code>vc1</code>, <code>vc2</code>, … for verification conditions, in the order of generation.</p></li></ol><p>VC generation stops early after <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Tactic.Do.VCGen.Config.stepLimit" data-verso-hover="4132">stepLimit</span></code> program steps.
+The unsolved conjuncts remain as the verification condition.</p></li><li><p>The resulting subgoals receive the names <code>inv1</code>, <code>inv2</code>, … for invariants and <code>vc1</code>, <code>vc2</code>, … for verification conditions, in the order of generation.</p></li></ol><p>VC generation stops early after <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Tactic.Do.VCGen.Config.stepLimit" data-verso-hover="4114">stepLimit</span></code> program steps.
 An <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.vcgen : tactic</code><span class="sep"></span><code class="docstring">`vcgen` will break down a Hoare triple proof goal like `⦃P⦄ prog ⦃Q⦄` into verification conditions,
 provided that all functions used in `prog` have specifications registered with `@[spec]`.
 
@@ -3060,7 +3138,7 @@ vcgen [...] invariants
 | _ =&gt; I2
 ```
 
-`vcgen` has two further clauses.
+`vcgen` has three further clauses.
 
 ```
 vcgen until f a _ c
@@ -3086,6 +3164,18 @@ vcgen frames
 ```
 carries `s.2 = 7` past the call, and `vcgen` proves that `mkFreshNat` preserves it. The named binders
 are in scope in the frame, bound to the matched arguments.
+
+```
+vcgen simp [Nat.add_assoc, h]
+```
+adds theorems to the simp set of `vcgen`. `vcgen` rewrites the hypotheses it introduces, the state
+arguments of the program and the verification conditions with the theorems tagged
+`@[vcgen_simp]`, the theorems of the clause, and the evaluation of ground terms such as `41 + 1`
+and `"x" = "y"`. An argument is a theorem or definition name, a local hypothesis, a proof term, or
+`*` for every local hypothesis. A theorem with hypotheses, such as
+`wrap_of_lt (h : n &lt; 2 ^ w) : wrap w n = n`, rewrites only if the same simplification proves each
+hypothesis.
+`vcgen -simp` turns this simplification off.
 
 ### Invariant suggestions
 
@@ -3149,7 +3239,7 @@ vcgen [...] invariants
 | _ =&gt; I2
 ```
 
-`vcgen` has two further clauses.
+`vcgen` has three further clauses.
 
 ```
 vcgen until f a _ c
@@ -3176,11 +3266,24 @@ vcgen frames
 carries `s.2 = 7` past the call, and `vcgen` proves that `mkFreshNat` preserves it. The named binders
 are in scope in the frame, bound to the matched arguments.
 
+```
+vcgen simp [Nat.add_assoc, h]
+```
+adds theorems to the simp set of `vcgen`. `vcgen` rewrites the hypotheses it introduces, the state
+arguments of the program and the verification conditions with the theorems tagged
+`@[vcgen_simp]`, the theorems of the clause, and the evaluation of ground terms such as `41 + 1`
+and `"x" = "y"`. An argument is a theorem or definition name, a local hypothesis, a proof term, or
+`*` for every local hypothesis. A theorem with hypotheses, such as
+`wrap_of_lt (h : n &lt; 2 ^ w) : wrap w n = n`, rewrites only if the same simplification proves each
+hypothesis.
+`vcgen -simp` turns this simplification off.
+
 ### Invariant suggestions
 
 `vcgen [...] invariants?` warns that invariant suggestions are not available in `vcgen` and that
 the keyword is slated for removal. Alternatives after `invariants?` elaborate like `invariants`.</code></code><a href="The--vcgen--tactic/#Lean___Parser___Tactic___vcgen"><code class="kw">with</code></a></span> clause runs the given <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="3">grind</span></a></code>-mode step on every remaining verification condition.
-A clause <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.vcgen : tactic</code><span class="sep"></span><code class="docstring">`vcgen` will break down a Hoare triple proof goal like `⦃P⦄ prog ⦃Q⦄` into verification conditions,
+During generation, cerification conditions are simplified with the theorems in the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding data-verso-hover="3932">vcgen_simp</span></code> simp set and by evaluating ground arithmetic expressions and checking decidable equalities.
+The clause <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.vcgen : tactic</code><span class="sep"></span><code class="docstring">`vcgen` will break down a Hoare triple proof goal like `⦃P⦄ prog ⦃Q⦄` into verification conditions,
 provided that all functions used in `prog` have specifications registered with `@[spec]`.
 
 `vcgen` is experimental and subject to change. `set_option experimental.vcgen true` acknowledges
@@ -3238,7 +3341,7 @@ vcgen [...] invariants
 | _ =&gt; I2
 ```
 
-`vcgen` has two further clauses.
+`vcgen` has three further clauses.
 
 ```
 vcgen until f a _ c
@@ -3265,9 +3368,21 @@ vcgen frames
 carries `s.2 = 7` past the call, and `vcgen` proves that `mkFreshNat` preserves it. The named binders
 are in scope in the frame, bound to the matched arguments.
 
+```
+vcgen simp [Nat.add_assoc, h]
+```
+adds theorems to the simp set of `vcgen`. `vcgen` rewrites the hypotheses it introduces, the state
+arguments of the program and the verification conditions with the theorems tagged
+`@[vcgen_simp]`, the theorems of the clause, and the evaluation of ground terms such as `41 + 1`
+and `"x" = "y"`. An argument is a theorem or definition name, a local hypothesis, a proof term, or
+`*` for every local hypothesis. A theorem with hypotheses, such as
+`wrap_of_lt (h : n &lt; 2 ^ w) : wrap w n = n`, rewrites only if the same simplification proves each
+hypothesis.
+`vcgen -simp` turns this simplification off.
+
 ### Invariant suggestions
 
 `vcgen [...] invariants?` warns that invariant suggestions are not available in `vcgen` and that
-the keyword is slated for removal. Alternatives after `invariants?` elaborate like `invariants`.</code></code><a href="The--vcgen--tactic/#Lean___Parser___Tactic___vcgen"><code class="kw">simplifying_assumptions</code></a></span> <code>[h₁, h₂]</code> rewrites the hypotheses that binders and branches introduce, and the state arguments of each weakest precondition, with <code>h₁</code> and <code>h₂</code> as additional rewrite rules.
+the keyword is slated for removal. Alternatives after `invariants?` elaborate like `invariants`.</code></code><a href="The--vcgen--tactic/#Lean___Parser___Tactic___vcgen"><code class="kw">simp</code></a></span> <code>[h₁, h₂]</code> adds <code>h₁</code> and <code>h₂</code> as further rewrite rules, and setting <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Tactic.Do.VCGen.Config.simp" data-verso-hover="3933">simp</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="45">false</span></a></code> disables the rewriting altogether.
 This keeps the intermediate goals in a normal form that the user chooses: for example, a sequence of state updates can fold into one constructor application, so that the goals do not grow with the number of updates.
 Simplified hypotheses also help <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="3">grind</span></a></code> to detect contradictory goals.</p></section><nav class="prev-next-buttons"><a class="local-button active" href="The--vcgen--tactic/Predicate-Transformers/#The-Lean-Language-Reference--The--vcgen--tactic--Predicate-Transformers" rel="prev" title="17.2. Predicate Transformers"><span class="arrow">←</span><span class="where">17.2. Predicate Transformers</span></a><a class="local-button active" href="The--vcgen--tactic/Enabling--vcgen--For-Monads/#The-Lean-Language-Reference--The--vcgen--tactic--Enabling--vcgen--For-Monads" rel="next" title="17.4. Enabling vcgen For Monads"><span class="where">17.4. Enabling vcgen For Monads</span><span class="arrow">→</span></a></nav></div></main></div></body></html>

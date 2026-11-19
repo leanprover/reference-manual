@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,43 +3036,6 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
@@ -3047,10 +3125,10 @@ In the following example, it is not necessary to annotate the type as <code clas
   </span><a href="The-Type-System/Universes/#Codec___type-_LPAR_in-Universe-level-expressions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Codec.type" data-verso-hover="271">type</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-12612">:=</span><span class="inter-text"> </span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="293">Char</span></a><span class="inter-text">
   </span><a href="The-Type-System/Universes/#Codec___encode-_LPAR_in-Universe-level-expressions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Codec.encode" data-verso-hover="396">encode</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="397">buf</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="398">ch</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-12636">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="397">buf</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="399">push</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="398">ch</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char.val"><span class="const token" data-binding="const-Char.val" data-verso-hover="400">val</span></a><span class="inter-text">
   </span><a href="The-Type-System/Universes/#Codec___decode-_LPAR_in-Universe-level-expressions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Codec.decode" data-verso-hover="401">decode</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.34" data-verso-hover="397">buf</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.37" data-verso-hover="12">i</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.structInstFieldDef-12670">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-12673">do</span></a><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-12680">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.110" data-verso-hover="402">v</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIdDecl-12684">←</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.34" data-verso-hover="397">buf</span><span class="punctuation bracket token" data-binding="kw-occ-«term__[_]_?»-12690">[</span><span class="var token" data-binding="var-_uniq.37" data-verso-hover="12">i</span><span class="punctuation bracket token" data-binding="kw-occ-«term__[_]_?»-12690">]</span><span class="punctuation operator token" data-binding="kw-occ-«term__[_]_?»-12690">?</span><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-12702">if</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.140" data-verso-hover="403">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIfProp-12705">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.110" data-verso-hover="402">v</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Fixed-Precision-Integers/#UInt32___isValidChar" title="Documentation for UInt32.isValidChar"><span class="const token" data-binding="const-UInt32.isValidChar" data-verso-hover="404">isValidChar</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-12702">then</span><span class="inter-text">
-      </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-12734">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.144" data-verso-hover="398">ch</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12741">:</span><span class="inter-text"> </span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="293">Char</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-12738">:=</span><span class="inter-text"> </span><span class="const anon-ctor token" data-binding="const-Char.mk" data-verso-hover="405">⟨</span><span class="var token" data-binding="var-_uniq.110" data-verso-hover="402">v</span><span class="const anon-ctor token" data-binding="const-Char.mk" data-verso-hover="405">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.140" data-verso-hover="403">h</span><span class="const anon-ctor token" data-binding="const-Char.mk" data-verso-hover="405">⟩</span><span class="inter-text">
-      </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-12768" data-verso-hover="406">return</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12775">(</span><span class="var token" data-binding="var-_uniq.144" data-verso-hover="398">ch</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-12775">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.37" data-verso-hover="12">i</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-12780">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-12775">)</span><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-12680">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="402">v</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIdDecl-12684">←</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.34" data-verso-hover="397">buf</span><span class="punctuation bracket token" data-binding="kw-occ-«term__[_]_?»-12690">[</span><span class="var token" data-binding="var-_uniq.37" data-verso-hover="12">i</span><span class="punctuation bracket token" data-binding="kw-occ-«term__[_]_?»-12690">]</span><span class="punctuation operator token" data-binding="kw-occ-«term__[_]_?»-12690">?</span><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-12702">if</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.111" data-verso-hover="403">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIfProp-12705">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="402">v</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Fixed-Precision-Integers/#UInt32___isValidChar" title="Documentation for UInt32.isValidChar"><span class="const token" data-binding="const-UInt32.isValidChar" data-verso-hover="404">isValidChar</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-12702">then</span><span class="inter-text">
+      </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-12734">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="398">ch</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-12741">:</span><span class="inter-text"> </span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="293">Char</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-12738">:=</span><span class="inter-text"> </span><span class="const anon-ctor token" data-binding="const-Char.mk" data-verso-hover="405">⟨</span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="402">v</span><span class="const anon-ctor token" data-binding="const-Char.mk" data-verso-hover="405">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.111" data-verso-hover="403">h</span><span class="const anon-ctor token" data-binding="const-Char.mk" data-verso-hover="405">⟩</span><span class="inter-text">
+      </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-12768" data-verso-hover="406">return</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12775">(</span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="398">ch</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-12775">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.37" data-verso-hover="12">i</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-12780">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-12775">)</span><span class="inter-text">
     </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-12702">else</span><span class="inter-text">
       </span><span class="const token" data-binding="const-Alternative.failure" data-verso-hover="407">failure</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><div class="live-link"><a href="javascript:openLiveLink(&quot;M4FwTgrgxiFgpgAgMIHsAm8oDoDeEBfRALkQBUBPAByQAoJEBqRARgEpEB3AC3gQChEiENSSlKNRBEGJ4AOygYxiAIJgwAQwqIAqgEk5IAMwAmRICTCYaIur1W3QeMmZmRZhK3N2/YdM2AchogNgDyVCAAlqhyiLQikgDriIEgbPz8mABmKEo4UNwaYB5orly8AkLxYgC8KAVgMvJuSABGENn5JLVtmdhUEMDciPnYAG4aADYuWEqIPYgRXYjoqDJCE/DBo4iACYRz7QDaEQC6APxrC9lDpKPYEcAAapMR6Mj1wrxyF+ubw9d1hSWgAvyUYAGkQ3EAl+TfRAIWBgGK0fLgxbMdgXeATYDwGGZDQRCZweBAA&quot;)">Live ↪</a></div></div></details><p>Universe-polymorphic definitions in fact create a <em>schematic definition</em> that can be instantiated at a variety of levels, and different instantiations of universes create incompatible values.</p><details class="example" id="Universe-polymorphism-and-definitional-equality"><summary class="description">Universe polymorphism and definitional equality</summary><div class="example-content"><p>This can be seen in the following example, in which <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Universes/#T-_LPAR_in-Universe-polymorphism-and-definitional-equality_RPAR_" title="Definition of example"><span class="const token" data-binding="const-T" data-verso-hover="408">T</span></a></code> is a gratuitously-universe-polymorphic function that always returns <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="46">true</span></a></code>.
@@ -3069,15 +3147,15 @@ Both instantiations of <code class="hl lean inline" data-lean-context="examples"
   </span><span class="highlighted"><span class="inter-text"></span><a href="The-Type-System/Universes/#T-_LPAR_in-Universe-polymorphism-and-definitional-equality_RPAR_" title="Definition of example"><span class="const token" data-binding="const-T" data-verso-hover="408">T.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></span><span class="text"></span><span class="text">
 </span><span class="text">is not definitionally equal to the right-hand side</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><a href="The-Type-System/Universes/#T-_LPAR_in-Universe-polymorphism-and-definitional-equality_RPAR_" title="Definition of example"><span class="const token" data-binding="const-T" data-verso-hover="408">T.{v}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></span></code></span></span><span class="const token" data-binding="const-test" id="test-_LPAR_in-Universe-polymorphism-and-definitional-equality_RPAR_">test</span></span><span class="unknown token" data-binding>.{</span><span class="unknown token" data-binding>u</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Command.declId-13655">,</span><span class="inter-text"> </span><span class="unknown token" data-binding>v</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Command.declId-13655">}</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-13667">:</span><span class="inter-text"> </span><a href="The-Type-System/Universes/#T-_LPAR_in-Universe-polymorphism-and-definitional-equality_RPAR_" title="Definition of example"><span class="const token" data-binding="const-T" data-verso-hover="408">T</span></a><span class="unknown token" data-binding>.{</span><span class="unknown token" data-binding>u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitUniv-13669">}</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">0</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-13669">=</span><span class="inter-text"> </span><a href="The-Type-System/Universes/#T-_LPAR_in-Universe-polymorphism-and-definitional-equality_RPAR_" title="Definition of example"><span class="const token" data-binding="const-T" data-verso-hover="408">T</span></a><span class="unknown token" data-binding>.{</span><span class="unknown token" data-binding>v</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitUniv-13679">}</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">0</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-13687">:=</span><span class="inter-text"> </span><span class="has-info error" data-verso-hover="411"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Type mismatch</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="411">rfl.{?u.5}</span></a><span class="inter-text"></span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="411">rfl.{?u.3}</span></a><span class="inter-text"></span></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">has type</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">Eq.{?u.5}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>?m.7</span><span class="inter-text"> </span><span class="unknown token" data-binding>?m.7</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">Eq.{?u.3}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>?m.5</span><span class="inter-text"> </span><span class="unknown token" data-binding>?m.5</span></span><span class="text"></span><span class="text">
 </span><span class="text">but is expected to have type</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">Eq.{1}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><a href="The-Type-System/Universes/#T-_LPAR_in-Universe-polymorphism-and-definitional-equality_RPAR_" title="Definition of example"><span class="const token" data-binding="const-T" data-verso-hover="408">T.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><a href="The-Type-System/Universes/#T-_LPAR_in-Universe-polymorphism-and-definitional-equality_RPAR_" title="Definition of example"><span class="const token" data-binding="const-T" data-verso-hover="408">T.{v}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="unknown token" data-binding>)</span></span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl">rfl</span></a></span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Type mismatch</span><span class="text">
-  </span><span class="highlighted"><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="411">rfl.{?u.5}</span></a></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="411">rfl.{?u.3}</span></a></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">has type</span><span class="text">
-  </span><span class="highlighted"><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">Eq.{?u.5}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>?m.7</span><span class="inter-text"> </span><span class="unknown token" data-binding>?m.7</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">Eq.{?u.3}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>?m.5</span><span class="inter-text"> </span><span class="unknown token" data-binding>?m.5</span></span><span class="text"></span><span class="text">
 </span><span class="text">but is expected to have type</span><span class="text">
   </span><span class="highlighted"><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">Eq.{1}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><a href="The-Type-System/Universes/#T-_LPAR_in-Universe-polymorphism-and-definitional-equality_RPAR_" title="Definition of example"><span class="const token" data-binding="const-T" data-verso-hover="408">T.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><a href="The-Type-System/Universes/#T-_LPAR_in-Universe-polymorphism-and-definitional-equality_RPAR_" title="Definition of example"><span class="const token" data-binding="const-T" data-verso-hover="408">T.{v}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="unknown token" data-binding>)</span></span><span class="text"></span><span class="text"></span><span class="text"></span></span></pre></div></details><p>Auto-bound implicit arguments are as universe-polymorphic as possible.
 Defining the identity function as follows:</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-13978">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-id'" data-verso-hover="412" id="id___">id'</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13986">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13986">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="153">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-13986">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-13995">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="51">x</span><span class="inter-text">
@@ -3183,8 +3261,8 @@ structure Pair (α : Type u) (β : Type v) : Type (max u v) where
 </span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-L" data-verso-hover="429">L</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type 1</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-20081">#check</span></a></span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="429">L</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><div class="live-link"><a href="javascript:openLiveLink(&quot;K4OwlgbgpgTgzlABMAUAEygM0QGUQLgF5cw4AXRACgBUBPAByQAYBKFAYgGMALKTga1xA&quot;)">Live ↪</a></div></div></details></section><section><h3 id="The-Lean-Language-Reference--The-Type-System--Universes--Polymorphism--Universe-Lifting">4.3.2.3. Universe Lifting<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--The-Type-System--Universes--Polymorphism--Universe-Lifting" title="Permalink">🔗</a></span></h3><p>When a type's universe is smaller than the one expected in some context, <span id="--tech-term-universe-lifting" class="def-technical-term"><em>universe lifting</em></span> operators can bridge the gap.
 These are wrappers around terms of a given type that are in larger universes than the wrapped type.
-There are two lifting operators:</p><ul><li><p><code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a></code> can lift any type, including <a class="technical-term" href="The-Type-System/Propositions/#--tech-term-Propositions">propositions</a>, by one level. It can be used to include proofs in data structures such as lists.</p></li><li><p><code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a></code> can lift any non-proposition type by any number of levels.</p></li></ul><div class="namedocs" id="PLift___up"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=PLift.up" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block"><div class="wide-only"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.13266" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type u</span></div><div class="narrow-only"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.13266" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type u</span></div></pre><div class="text"><p>Lifts a proposition or type to a higher universe level.</p><p><code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.13214" data-verso-hover="331">α</span></code> wraps a proof or value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.13214" data-verso-hover="331">α</span></code>. The resulting type is in the next largest universe
-after that of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.13214" data-verso-hover="331">α</span></code>. In particular, propositions become data.</p><p>The related type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a></code> can be used to lift a non-proposition type by any number of levels.</p><p>Examples:</p><ul><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="14">False</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="14">False</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1">[</span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift.up"><span class="const token" data-binding="const-PLift.up" data-verso-hover="432">.up</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-7" data-verso-hover="15">by</span><span class="inter-text"> </span><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-10" data-verso-hover="433">trivial</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-6">)</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1">,</span><span class="inter-text"> </span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift.up"><span class="const token" data-binding="const-PLift.up" data-verso-hover="432">.up</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-24">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-25" data-verso-hover="15">by</span><span class="inter-text"> </span><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-28" data-verso-hover="41">simp</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-24">)</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1">,</span><span class="inter-text"> </span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift.up"><span class="const token" data-binding="const-PLift.up" data-verso-hover="432">.up</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-39">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-40" data-verso-hover="15">by</span><span class="inter-text"> </span><a href="Tactic-Proofs/Tactic-Reference/#decide" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.decide-43" data-verso-hover="434">decide</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-39">)</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-59">(</span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="435">True</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-59">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-0" data-verso-hover="380">0</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-1" data-verso-hover="384">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li></ul><div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructor"><p class="docstring-section-label" id="docstring-section-Constructor">Constructor</p><section class="subdocs"><pre class="name-and-type hl lean"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift.up"><span class="const token" data-binding="const-PLift.up" data-verso-hover="432">PLift.up</span></a><span class="unknown token" data-binding>.{u}</span></pre><div class="docs"><p>Wraps a proof or value to increase its type's universe level by 1.</p></div></section></div><div class="docstring-section" role="group" aria-labelledby="docstring-section-Fields"><p class="docstring-section-label" id="docstring-section-Fields">Fields</p><section class="subdocs"><pre class="name-and-type hl lean"><span class="const token" data-binding="const-PLift.down" data-verso-hover="436">down</span> : <span class="var token" data-binding="var-_uniq.13262" data-verso-hover="331">α</span></pre><div class="docs"><p>Extracts a wrapped proof or value from a universe-lifted proposition or type.</p></div></section></div></div></div><div class="namedocs" id="ULift___up"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=ULift" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block"><div class="wide-only"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift.{r, s}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.14011" data-verso-hover="437">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type s</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type (max s r)</span></div><div class="narrow-only"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift.{r, s}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.14011" data-verso-hover="437">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type s</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type (max s r)</span></div></pre><div class="text"><p>Lifts a type to a higher universe level.</p><p><code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.13983" data-verso-hover="437">α</span></code> wraps a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.13983" data-verso-hover="437">α</span></code>. Instead of occupying the same universe as <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.13983" data-verso-hover="437">α</span></code>, which would be
+There are two lifting operators:</p><ul><li><p><code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a></code> can lift any type, including <a class="technical-term" href="The-Type-System/Propositions/#--tech-term-Propositions">propositions</a>, by one level. It can be used to include proofs in data structures such as lists.</p></li><li><p><code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a></code> can lift any non-proposition type by any number of levels.</p></li></ul><div class="namedocs" id="PLift___up"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=PLift.up" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block"><div class="wide-only"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.10997" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type u</span></div><div class="narrow-only"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.10997" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type u</span></div></pre><div class="text"><p>Lifts a proposition or type to a higher universe level.</p><p><code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10945" data-verso-hover="331">α</span></code> wraps a proof or value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10945" data-verso-hover="331">α</span></code>. The resulting type is in the next largest universe
+after that of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10945" data-verso-hover="331">α</span></code>. In particular, propositions become data.</p><p>The related type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a></code> can be used to lift a non-proposition type by any number of levels.</p><p>Examples:</p><ul><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="14">False</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="14">False</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1">[</span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift.up"><span class="const token" data-binding="const-PLift.up" data-verso-hover="432">.up</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-7" data-verso-hover="15">by</span><span class="inter-text"> </span><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-10" data-verso-hover="433">trivial</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-6">)</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1">,</span><span class="inter-text"> </span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift.up"><span class="const token" data-binding="const-PLift.up" data-verso-hover="432">.up</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-24">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-25" data-verso-hover="15">by</span><span class="inter-text"> </span><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;short&quot;:&quot;doc&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-28" data-verso-hover="41">simp</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-24">)</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1">,</span><span class="inter-text"> </span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift.up"><span class="const token" data-binding="const-PLift.up" data-verso-hover="432">.up</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-39">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-40" data-verso-hover="15">by</span><span class="inter-text"> </span><a href="Tactic-Proofs/Tactic-Reference/#decide" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.decide-43" data-verso-hover="434">decide</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-39">)</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-59">(</span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="435">True</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-59">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-0" data-verso-hover="380">0</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-1" data-verso-hover="384">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li></ul><div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructor"><p class="docstring-section-label" id="docstring-section-Constructor">Constructor</p><section class="subdocs"><pre class="name-and-type hl lean"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift.up"><span class="const token" data-binding="const-PLift.up" data-verso-hover="432">PLift.up</span></a><span class="unknown token" data-binding>.{u}</span></pre><div class="docs"><p>Wraps a proof or value to increase its type's universe level by 1.</p></div></section></div><div class="docstring-section" role="group" aria-labelledby="docstring-section-Fields"><p class="docstring-section-label" id="docstring-section-Fields">Fields</p><section class="subdocs"><pre class="name-and-type hl lean"><span class="const token" data-binding="const-PLift.down" data-verso-hover="436">down</span> : <span class="var token" data-binding="var-_uniq.10993" data-verso-hover="331">α</span></pre><div class="docs"><p>Extracts a wrapped proof or value from a universe-lifted proposition or type.</p></div></section></div></div></div><div class="namedocs" id="ULift___up"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=ULift" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block"><div class="wide-only"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift.{r, s}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.11709" data-verso-hover="437">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type s</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type (max s r)</span></div><div class="narrow-only"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift.{r, s}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.11709" data-verso-hover="437">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type s</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type (max s r)</span></div></pre><div class="text"><p>Lifts a type to a higher universe level.</p><p><code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.11681" data-verso-hover="437">α</span></code> wraps a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.11681" data-verso-hover="437">α</span></code>. Instead of occupying the same universe as <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.11681" data-verso-hover="437">α</span></code>, which would be
 the minimal level, it takes a further level parameter and occupies their maximum. The resulting type
-may occupy any universe that's at least as large as that of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.13983" data-verso-hover="437">α</span></code>.</p><p>The resulting universe of the lifting operator is the first parameter, and may be written explicitly
-while allowing <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.13986" data-verso-hover="437">α</span></code>'s level to be inferred.</p><p>The related type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a></code> can be used to lift a proposition or type by one level.</p><p>Examples:</p><ul><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-0" data-verso-hover="380">0</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-0" data-verso-hover="380">0</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-1" data-verso-hover="384">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-5" data-verso-hover="381">5</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a><span class="unknown token" data-binding>.{</span><span class="literal number token" data-binding>7</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitUniv-1">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-11">(</span><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit"><span class="const token" data-binding="const-PUnit" data-verso-hover="310">PUnit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-11">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-3" data-verso-hover="385">3</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-11">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-7" data-verso-hover="438">7</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li></ul><div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructor-next"><p class="docstring-section-label" id="docstring-section-Constructor-next">Constructor</p><section class="subdocs"><pre class="name-and-type hl lean"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift.up"><span class="const token" data-binding="const-ULift.up" data-verso-hover="439">ULift.up</span></a><span class="unknown token" data-binding>.{r,</span><span class="inter-text"> </span><span class="unknown token" data-binding>s}</span></pre><div class="docs"><p>Wraps a value to increase its type's universe level.</p></div></section></div><div class="docstring-section" role="group" aria-labelledby="docstring-section-Fields-next"><p class="docstring-section-label" id="docstring-section-Fields-next">Fields</p><section class="subdocs"><pre class="name-and-type hl lean"><span class="const token" data-binding="const-ULift.down" data-verso-hover="440">down</span> : <span class="var token" data-binding="var-_uniq.14007" data-verso-hover="437">α</span></pre><div class="docs"><p>Extracts a wrapped value from a universe-lifted type.</p></div></section></div></div></div></section></section></section><nav class="prev-next-buttons"><a class="local-button active" href="The-Type-System/Propositions/#propositions" rel="prev" title="4.2. Propositions"><span class="arrow">←</span><span class="where">4.2. Propositions</span></a><a class="local-button active" href="The-Type-System/Inductive-Types/#inductive-types" rel="next" title="4.4. Inductive Types"><span class="where">4.4. Inductive Types</span><span class="arrow">→</span></a></nav></div></main></div></body></html>
+may occupy any universe that's at least as large as that of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.11681" data-verso-hover="437">α</span></code>.</p><p>The resulting universe of the lifting operator is the first parameter, and may be written explicitly
+while allowing <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.11684" data-verso-hover="437">α</span></code>'s level to be inferred.</p><p>The related type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Universes/#PLift___up" title="Documentation for PLift"><span class="const token" data-binding="const-PLift" data-verso-hover="430">PLift</span></a></code> can be used to lift a proposition or type by one level.</p><p>Examples:</p><ul><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-0" data-verso-hover="380">0</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-0" data-verso-hover="380">0</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-1" data-verso-hover="384">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-5" data-verso-hover="381">5</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li><li><p><code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-0">(</span><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift"><span class="const token" data-binding="const-ULift" data-verso-hover="431">ULift</span></a><span class="unknown token" data-binding>.{</span><span class="literal number token" data-binding>7</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitUniv-1">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-11">(</span><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit"><span class="const token" data-binding="const-PUnit" data-verso-hover="310">PUnit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-11">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-3" data-verso-hover="385">3</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-11">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-7" data-verso-hover="438">7</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-0">)</span></code></p></li></ul><div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructor-next"><p class="docstring-section-label" id="docstring-section-Constructor-next">Constructor</p><section class="subdocs"><pre class="name-and-type hl lean"><a href="The-Type-System/Universes/#ULift___up" title="Documentation for ULift.up"><span class="const token" data-binding="const-ULift.up" data-verso-hover="439">ULift.up</span></a><span class="unknown token" data-binding>.{r,</span><span class="inter-text"> </span><span class="unknown token" data-binding>s}</span></pre><div class="docs"><p>Wraps a value to increase its type's universe level.</p></div></section></div><div class="docstring-section" role="group" aria-labelledby="docstring-section-Fields-next"><p class="docstring-section-label" id="docstring-section-Fields-next">Fields</p><section class="subdocs"><pre class="name-and-type hl lean"><span class="const token" data-binding="const-ULift.down" data-verso-hover="440">down</span> : <span class="var token" data-binding="var-_uniq.11705" data-verso-hover="437">α</span></pre><div class="docs"><p>Extracts a wrapped value from a universe-lifted type.</p></div></section></div></div></div></section></section></section><nav class="prev-next-buttons"><a class="local-button active" href="The-Type-System/Propositions/#propositions" rel="prev" title="4.2. Propositions"><span class="arrow">←</span><span class="where">4.2. Propositions</span></a><a class="local-button active" href="The-Type-System/Inductive-Types/#inductive-types" rel="next" title="4.4. Inductive Types"><span class="where">4.4. Inductive Types</span><span class="arrow">→</span></a></nav></div></main></div></body></html>

@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,50 +3036,13 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
     </script><script src="static/metadata.js"></script><script src="static/print.js"></script><link rel="stylesheet" href="static/colors.css"/><link rel="stylesheet" href="static/theme.css"/><link rel="stylesheet" href="static/print.css"/><link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css"/><link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css"/><link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css"/><link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css"/></head><body><header><div class="header-logo-wrapper"><a href id="logo"><img src="static/lean_logo.svg"/></a></div><div class="header-title-wrapper"><a href class="header-title"><h1>The Lean Language Reference</h1></a></div></header><label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc"><div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div><nav id="toc"><input type="checkbox" id="toggle-toc"/><div class="first"><a href class="toc-title"><h1>The Lean Language Reference</h1></a><div class="split-tocs"><div class="split-toc book"><div class="title"><label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot" checked="checked"/></label><span class>Table of Contents</span></div><table><tr class="current numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--vcgen--tactic/#vcgen-tactic">The <code>vcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">25.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="numbered"><td class="num">26.</td><td><a href="Linters-and-Code-Quality/#linters">Linters and Code Quality</a></td></tr><tr class="numbered"><td class="num">27.</td><td><a href="External-Kernels/#external-kernels">External Kernels</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div><div class="split-toc"><div class="title"><label for="--verso-manual-toc-introduction" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-introduction" checked="checked"/></label><span class="number">1.</span> <span class="current"><a href="Introduction/#introduction">Introduction</a></span></div><ol><li><span class="header head-1"><span class="level-num">1.</span> <a href="Introduction/#history-of-lean">History</a></span></li><li><span class="header head-1"><span class="level-num">2.</span> <a href="Introduction/#typographical-conventions">Typographical Conventions</a></span></li><li><span class="header head-2"><span class="level-num">2.1.</span> <a href="Introduction/#code-samples">Lean Code</a></span></li><li><span class="header head-2"><span class="level-num">2.2.</span> <a href="Introduction/#example-boxes">Examples</a></span></li><li><span class="header head-2"><span class="level-num">2.3.</span> <a href="Introduction/#technical-terms">Technical Terminology</a></span></li><li><span class="header head-2"><span class="level-num">2.4.</span> <a href="Introduction/#reference-boxes">Constant, Syntax, and Tactic References</a></span></li><li><a href="Introduction/#Even___zero-next"><code>Even</code></a></li><li><span class="header head-1"><span class="level-num">3.</span> <a href="Introduction/#The-Lean-Language-Reference--Introduction--How-to-Cite-This-Work">How to Cite This Work</a></span></li><li><span class="header head-1"><a href="Introduction/#dependency-licenses">Open-Source Licenses</a></span></li></ol></div></div></div><div class="last"><ul id="meta-links"><li><a href="https://github.com/leanprover/reference-manual">Source Code</a></li><li><a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li></ul></div></nav><div class="toc-resize-handle"></div><main><div class="content-wrapper"><nav class="prev-next-buttons"><a class="local-button active" href="#" rel="prev" title=" The Lean Language Reference"><span class="arrow">←</span><span class="where"> The Lean Language Reference</span></a><a class="local-button active" href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation" rel="next" title="2. Elaboration and Compilation"><span class="where">2. Elaboration and Compilation</span><span class="arrow">→</span></a></nav><section><h1 id="introduction">1. Introduction<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=introduction" title="Permalink">🔗</a></span></h1><p>The <em>Lean Language Reference</em> is intended as a comprehensive, precise description of Lean.
 It is a reference work in which Lean users can look up detailed information, rather than a tutorial for new users.
 At the moment, this reference manual is a public preview.
-For tutorials and learning materials, please visit <a href="https://lean-lang.org/documentation/">the Lean documentation page</a>.</p><p>This document describes version <code>4.36.0</code> of Lean.</p><section><h2 id="history-of-lean">1.1. History<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=history-of-lean" title="Permalink">🔗</a></span></h2><p>Leonardo de Moura launched the Lean project when he was at Microsoft Research in 2013, and Lean 0.1 was officially released on June 16, 2014.
+For tutorials and learning materials, please visit <a href="https://lean-lang.org/documentation/">the Lean documentation page</a>.</p><p>This document describes version <code>4.37.0-rc1</code> of Lean.</p><section><h2 id="history-of-lean">1.1. History<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=history-of-lean" title="Permalink">🔗</a></span></h2><p>Leonardo de Moura launched the Lean project when he was at Microsoft Research in 2013, and Lean 0.1 was officially released on June 16, 2014.
 The goal of the Lean project is to combine the high level of trust provided by a small, independently-implementable logical kernel with the convenience and automation of tools like SMT solvers, while scaling to large problems.
 This vision still guides the development of Lean, as we invest in improved automation, improved performance, and user-friendliness; the trusted core proof checker is still minimal and independent implementations exist.</p><p>The initial versions of Lean were primarily configured as C++ libraries in which client code could carry out trustworthy proofs that were independently checkable.
 In these early years, the design of Lean rapidly evolved towards traditional interactive provers, first with tactics written in Lua, and later with a dedicated front-end syntax.
@@ -3025,7 +3103,7 @@ See also: `#reduce e` for evaluation by term reduction.</code></code><a href="In
 </span><span class="unknown token" data-binding></span></code><p>Proof states may also be shown on their own.
 When attempting to prove that <code class="hl lean inline" data-lean-context="examples"><span class="literal number token" data-binding data-verso-hover="24">2</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-5301">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="25">2</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-5301">=</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="26">4</span></code>, the initial proof state is:</p><div class="hl lean tactic-view"><div class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="unknown token" data-binding>2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>4</span></span></span></span></div></div><p>After using <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-7-5391-5394-7"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-5391" data-verso-hover="21">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5391-5394-7"/><span class="tactic-state">All goals completed! 🐙</span></span></code>, the resulting state is:</p><div class="hl lean tactic-view"><div class="tactic-state">All goals completed! 🐙</div></div><p>Identifiers in code examples are hyperlinked to their documentation.</p><p>Examples of code with syntax errors are shown with an indicator of where the parser error occurred, along with the error message:</p><pre class="syntax-error hl lean"><code class="line">def f : Option Nat → Type</code><code class="line">  | some 0 =&gt; Unit</code><code class="line">  |<span class="parse-message has-info error"><code class="hover-info">unexpected token '=&gt;'; expected term</code> =&gt;</span> Option (f t)</code><code class="line">  | none =&gt; Empty</code></pre><pre class="hl lean lean-output error"><span class="verso-message"><span class="text">&lt;example&gt;:3:3-3:6: unexpected token '=&gt;'; expected term</span></span></pre></section><section><h3 id="example-boxes">1.2.2. Examples<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=example-boxes" title="Permalink">🔗</a></span></h3><p>Illustrative examples are in callout boxes, as below:</p><details class="example" id="Even-Numbers"><summary class="description">Even Numbers</summary><div class="example-content"><p>This is an example of an example.</p><p>One way to define even numbers is via an inductive predicate:</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6092" data-verso-hover="27">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even" data-verso-hover="28" id="Even-_LPAR_in-Even-Numbers_RPAR_">Even</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6107">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-6109">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6092" data-verso-hover="27">where</span><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-6130">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even.zero" data-verso-hover="30" id="Even___zero-_LPAR_in-Even-Numbers_RPAR_">zero</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6137">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even-_LPAR_in-Even-Numbers_RPAR_&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="28">Even</span></a><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">0</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-6148">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="31" id="Even___plusTwo-_LPAR_in-Even-Numbers_RPAR_">plusTwo</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6158">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even-_LPAR_in-Even-Numbers_RPAR_&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="28">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-6160">→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even-_LPAR_in-Even-Numbers_RPAR_&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="28">Even</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6176">(</span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-6177">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-6176">)</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-6148">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="31" id="Even___plusTwo-_LPAR_in-Even-Numbers_RPAR_">plusTwo</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6158">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even-_LPAR_in-Even-Numbers_RPAR_&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="28">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-6160">→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even-_LPAR_in-Even-Numbers_RPAR_&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="28">Even</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6176">(</span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-6177">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-6176">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><div class="live-link"><a href="javascript:openLiveLink(&quot;JYOwJgrgxgLsBuBTABAUSSZAuZA5AhjMoEmEyACgE4D2ADsgO4AWiFiAUMsgD7IBeLVbGgzIADB27IaAGwgBnACr1BOdIkyZSazAApMAamQAmAJRA&quot;)">Live ↪</a></div></div></details></section><section><h3 id="technical-terms">1.2.3. Technical Terminology<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=technical-terms" title="Permalink">🔗</a></span></h3><p><span id="--tech-term-Technical-terminology" class="def-technical-term"><em>Technical terminology</em></span> refers to terms used in a very specific sense when writing technical material, such as this reference.
 Uses of <a class="technical-term" href="Introduction/#--tech-term-Technical-terminology">technical terminology</a> are frequently hyperlinked to their definition sites, using links like this one.</p></section><section><h3 id="reference-boxes">1.2.4. Constant, Syntax, and Tactic References<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=reference-boxes" title="Permalink">🔗</a></span></h3><p>Definitions, inductive types, syntax formers, and tactics have specific descriptions.
 These descriptions are marked as follows:</p><code class="hl lean block" data-lean-context="examples"><span class="doc-comment token" data-binding>/--
@@ -3035,6 +3113,6 @@ Evenness: a number is even if it can be evenly divided by two.
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-6849">|</span><span class="inter-text"> </span><span class="doc-comment token" data-binding>/-- 0 is considered even here -/</span><span class="inter-text">
     </span><span class="const token" data-binding="const-Even.zero" data-verso-hover="33" id="Even___zero">zero</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6893">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">0</span><span class="inter-text">
   </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-6904">|</span><span class="inter-text"> </span><span class="doc-comment token" data-binding>/-- If `n` is even, then so is `n + 2`. -/</span><span class="inter-text">
-    </span><span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="34" id="Even___plusTwo">plusTwo</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6961">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-6963">→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6979">(</span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-6980">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-6979">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding></span></code><div class="namedocs" id="Even___zero-next"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Even.zero" title="Permalink">🔗</a></span><span class="label">inductive predicate</span><pre class="signature hl lean block"><div class="wide-only"><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></div><div class="narrow-only"><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></div></pre><div class="text"><p>Evenness: a number is even if it can be evenly divided by two.</p><div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructors"><p class="docstring-section-label" id="docstring-section-Constructors">Constructors</p><div class="constructor"><pre class="name-and-type hl lean"><a href="Introduction/#Even___zero-next" title="Documentation for Even.zero" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even.zero&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even___zero&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even.zero" data-verso-hover="33">Even.zero</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></pre><div class="docs"><p>0 is considered even here</p></div></div><div class="constructor"><pre class="name-and-type hl lean"><a href="Introduction/#Even___zero-next" title="Documentation for Even.plusTwo" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even.plusTwo&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even___plusTwo&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="34">Even.plusTwo</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.2315" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2315" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.2315" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></pre><div class="docs"><p>If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2323" data-verso-hover="12">n</span></code> is even, then so is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2323" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-0">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">2</span></code>.</p></div></div></div></div></div></section></section><section><h2 id="The-Lean-Language-Reference--Introduction--How-to-Cite-This-Work">1.3. How to Cite This Work<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Introduction--How-to-Cite-This-Work" title="Permalink">🔗</a></span></h2><p>In formal citations, please cite this work as <em>The Lean Language Reference</em> by The Lean Developers.
-Additionally, please include the corresponding version of Lean in the citation, which is <code>4.36.0</code>.</p></section><section><h2 id="dependency-licenses">Open-Source Licenses<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=dependency-licenses" title="Permalink">🔗</a></span></h2><section class="license-info"><h3>Editable Combobox With Both List and Inline Autocomplete Example, from the W3C's ARIA Authoring Practices Guide (APG)</h3><a class="link" href="https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/">https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/</a><p>The search box component includes code derived from the example code in the linked article from the W3C's ARIA Authoring Practices Guide (APG).</p><code class="spdx">W3C-20150513</code><section><h4>Software and Document License - 2023 Version</h4><p>Permission to copy, modify, and distribute this work, with or without modification, for any purpose and without fee or royalty is hereby granted, provided that you include the following on ALL copies of the work or portions thereof, including modifications:</p><p> * The full text of this NOTICE in a location viewable to users of the redistributed or derivative work.</p><p> * Any pre-existing intellectual property disclaimers, notices, or terms and conditions. If none exist, the W3C software and document short notice should be included.</p><p> * Notice of any changes or modifications, through a copyright statement on the new code or document such as "This software or document includes material copied from or derived from "Editable Combobox With Both List and Inline Autocomplete Example" at https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/. Copyright © 2024 World Wide Web Consortium. https://www.w3.org/copyright/software-license-2023/"</p></section></section><section class="license-info"><h3>elasticlunr.js</h3><a class="link" href="http://elasticlunr.com/">http://elasticlunr.com/</a><p>Elasticlunr.js is used for full-text search</p><code class="spdx">MIT</code><section><h4>The MIT License</h4><p>Copyright (C) 2017 by Wei Song</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></section></section><section class="license-info"><h3>fuzzysort v3.1.0</h3><a class="link" href="https://github.com/farzher/fuzzysort">https://github.com/farzher/fuzzysort</a><p>The fuzzysort library is used in the search box to quickly filter results.</p><code class="spdx">MIT</code><section><h4>The MIT License</h4><p>Copyright (c) 2018 Stephen Kamenar</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></section></section><section class="license-info"><h3>KaTeX</h3><a class="link" href="https://katex.org/">https://katex.org/</a><p>KaTeX is used to render mathematical notation.</p><code class="spdx">MIT</code><section><h4>The MIT License</h4><p>Copyright (c) 2013-2020 Khan Academy and other contributors</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></section></section><section class="license-info"><h3>Popper.js</h3><a class="link" href="https://popper.js.org/docs/v2/">https://popper.js.org/docs/v2/</a><p>Popper.js is used (as a dependency of Tippy.js) to show information (primarily in Lean code) when hovering the mouse over an item of interest.</p><code class="spdx">MIT</code><section><h4>The MIT License</h4><p>Copyright (c) 2019 Federico Zivolo</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></section></section><section class="license-info"><h3>Tippy.js</h3><a class="link" href="https://atomiks.github.io/tippyjs/">https://atomiks.github.io/tippyjs/</a><p>Tippy.js is used together with Popper.js to show information (primarily in Lean code) when hovering the mouse over an item of interest.</p><code class="spdx">MIT</code><section><h4>The MIT License</h4><p>Copyright (c) 2017-present atomiks</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></section></section></section></section><nav class="prev-next-buttons"><a class="local-button active" href="#" rel="prev" title=" The Lean Language Reference"><span class="arrow">←</span><span class="where"> The Lean Language Reference</span></a><a class="local-button active" href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation" rel="next" title="2. Elaboration and Compilation"><span class="where">2. Elaboration and Compilation</span><span class="arrow">→</span></a></nav></div></main></div></body></html>
+    </span><span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="34" id="Even___plusTwo">plusTwo</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6961">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-6963">→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-6979">(</span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-6980">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-6979">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><div class="namedocs" id="Even___zero-next"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Even.zero" title="Permalink">🔗</a></span><span class="label">inductive predicate</span><pre class="signature hl lean block"><div class="wide-only"><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></div><div class="narrow-only"><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></div></pre><div class="text"><p>Evenness: a number is even if it can be evenly divided by two.</p><div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructors"><p class="docstring-section-label" id="docstring-section-Constructors">Constructors</p><div class="constructor"><pre class="name-and-type hl lean"><a href="Introduction/#Even___zero-next" title="Documentation for Even.zero" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even.zero&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even___zero&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even.zero" data-verso-hover="33">Even.zero</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></pre><div class="docs"><p>0 is considered even here</p></div></div><div class="constructor"><pre class="name-and-type hl lean"><a href="Introduction/#Even___zero-next" title="Documentation for Even.plusTwo" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even.plusTwo&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even___plusTwo&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="34">Even.plusTwo</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.1891" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1891" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;short&quot;:&quot;doc&quot;},{&quot;href&quot;:&quot;/Introduction/#Even&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;short&quot;:&quot;def&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="32">Even</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_uniq.1891" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></pre><div class="docs"><p>If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1899" data-verso-hover="12">n</span></code> is even, then so is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1899" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-0">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">2</span></code>.</p></div></div></div></div></div></section></section><section><h2 id="The-Lean-Language-Reference--Introduction--How-to-Cite-This-Work">1.3. How to Cite This Work<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Introduction--How-to-Cite-This-Work" title="Permalink">🔗</a></span></h2><p>In formal citations, please cite this work as <em>The Lean Language Reference</em> by The Lean Developers.
+Additionally, please include the corresponding version of Lean in the citation, which is <code>4.37.0-rc1</code>.</p></section><section><h2 id="dependency-licenses">Open-Source Licenses<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=dependency-licenses" title="Permalink">🔗</a></span></h2><section class="license-info"><h3>Editable Combobox With Both List and Inline Autocomplete Example, from the W3C's ARIA Authoring Practices Guide (APG)</h3><a class="link" href="https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/">https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/</a><p>The search box component includes code derived from the example code in the linked article from the W3C's ARIA Authoring Practices Guide (APG).</p><code class="spdx">W3C-20150513</code><section><h4>Software and Document License - 2023 Version</h4><p>Permission to copy, modify, and distribute this work, with or without modification, for any purpose and without fee or royalty is hereby granted, provided that you include the following on ALL copies of the work or portions thereof, including modifications:</p><p> * The full text of this NOTICE in a location viewable to users of the redistributed or derivative work.</p><p> * Any pre-existing intellectual property disclaimers, notices, or terms and conditions. If none exist, the W3C software and document short notice should be included.</p><p> * Notice of any changes or modifications, through a copyright statement on the new code or document such as "This software or document includes material copied from or derived from "Editable Combobox With Both List and Inline Autocomplete Example" at https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/. Copyright © 2024 World Wide Web Consortium. https://www.w3.org/copyright/software-license-2023/"</p></section></section><section class="license-info"><h3>elasticlunr.js</h3><a class="link" href="http://elasticlunr.com/">http://elasticlunr.com/</a><p>Elasticlunr.js is used for full-text search</p><code class="spdx">MIT</code><section><h4>The MIT License</h4><p>Copyright (C) 2017 by Wei Song</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></section></section><section class="license-info"><h3>fuzzysort v3.1.0</h3><a class="link" href="https://github.com/farzher/fuzzysort">https://github.com/farzher/fuzzysort</a><p>The fuzzysort library is used in the search box to quickly filter results.</p><code class="spdx">MIT</code><section><h4>The MIT License</h4><p>Copyright (c) 2018 Stephen Kamenar</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></section></section><section class="license-info"><h3>KaTeX</h3><a class="link" href="https://katex.org/">https://katex.org/</a><p>KaTeX is used to render mathematical notation.</p><code class="spdx">MIT</code><section><h4>The MIT License</h4><p>Copyright (c) 2013-2020 Khan Academy and other contributors</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></section></section><section class="license-info"><h3>Popper.js</h3><a class="link" href="https://popper.js.org/docs/v2/">https://popper.js.org/docs/v2/</a><p>Popper.js is used (as a dependency of Tippy.js) to show information (primarily in Lean code) when hovering the mouse over an item of interest.</p><code class="spdx">MIT</code><section><h4>The MIT License</h4><p>Copyright (c) 2019 Federico Zivolo</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></section></section><section class="license-info"><h3>Tippy.js</h3><a class="link" href="https://atomiks.github.io/tippyjs/">https://atomiks.github.io/tippyjs/</a><p>Tippy.js is used together with Popper.js to show information (primarily in Lean code) when hovering the mouse over an item of interest.</p><code class="spdx">MIT</code><section><h4>The MIT License</h4><p>Copyright (c) 2017-present atomiks</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></section></section></section></section><nav class="prev-next-buttons"><a class="local-button active" href="#" rel="prev" title=" The Lean Language Reference"><span class="arrow">←</span><span class="where"> The Lean Language Reference</span></a><a class="local-button active" href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation" rel="next" title="2. Elaboration and Compilation"><span class="where">2. Elaboration and Compilation</span><span class="arrow">→</span></a></nav></div></main></div></body></html>

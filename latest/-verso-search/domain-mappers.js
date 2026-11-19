@@ -39,10 +39,12 @@ const Manual_DOT_lakeTomlField = {
     dataToSearchables:
       (domainData) =>
           Object.entries(domainData.contents).map(([key, value]) => {
-            let tableArrayKey = value[0].data.tableArrayKey;
-            let arr = tableArrayKey ? `[[${tableArrayKey}]]` : 'package configuration';
+            let tableHeader = value[0].data.tableHeader;
+            let where = tableHeader ? tableHeader : 'package configuration';
+            let variant = value[0].data.tableVariant;
+            let suffix = variant ? ` (${variant})` : '';
             return {
-              searchKey: `${value[0].data.field} in ${arr}`,
+              searchKey: `${value[0].data.field} in ${where}${suffix}`,
               address: `${value[0].address}#${value[0].id}`,
               domainId: 'Manual.lakeTomlField',
               ref: value,
@@ -230,10 +232,10 @@ const Manual_DOT_lakeTomlTable = {
     dataToSearchables:
       (domainData) =>
         Object.entries(domainData.contents).map(([key, value]) => {
-          let arrayKey = value[0].data.arrayKey;
-          let arr = arrayKey ? `[[${arrayKey}]] — ` : '';
+          let header = value[0].data.header;
+          let prefix = header ? `${header} — ` : '';
           return {
-            searchKey: arr + value[0].data.description,
+            searchKey: prefix + value[0].data.description,
             address: `${value[0].address}#${value[0].id}`,
             domainId: 'Manual.lakeTomlTable',
             ref: value,

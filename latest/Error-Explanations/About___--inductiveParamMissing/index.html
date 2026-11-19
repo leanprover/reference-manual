@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,43 +3036,6 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
@@ -2967,40 +3045,40 @@ all parameters of an inductive type be specified everywhere that type is referen
 definition, including in the types of its constructors.</p><p>If it is necessary to allow the type constructor to be partially applied, without specifying a given
 type parameter, that parameter must be converted to an index. See the manual section on
 <a href="The-Type-System/Inductive-Types/#inductive-types">Inductive Types</a> for further explanation of the difference between indices
-and parameters.</p><section><h2 id="The-Lean-Language-Reference--Error-Explanations--About___--inductiveParamMissing--Examples">Examples<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Error-Explanations--About___--inductiveParamMissing--Examples" title="Permalink">🔗</a></span></h2><details class="example" id="Omitting-Parameter-in-Argument-to-Higher-Order-Predicate" open><summary class="description">Omitting Parameter in Argument to Higher-Order Predicate</summary><div class="example-content"><div class="error-example-container"><div class="error-example-tab-list" role="tablist" aria-label="Code Samples"><button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-panel-1">Fixed</button></div><div class="error-example-tab-view"><div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-button-0"><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-1150" data-verso-hover="27">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">List.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1169">{</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1169">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="62">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1169">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1183">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1183">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1188">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1183">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1201">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1203">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-1222">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All.nil" data-verso-hover="10905">nil</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1228">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1236">[</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1236">]</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-1241">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All.cons" data-verso-hover="10906">cons</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1248">{</span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1248">}</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1255">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1257">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1265">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1284">(</span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-1285">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1284">)</span><span class="inter-text">
+and parameters.</p><section><h2 id="The-Lean-Language-Reference--Error-Explanations--About___--inductiveParamMissing--Examples">Examples<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Error-Explanations--About___--inductiveParamMissing--Examples" title="Permalink">🔗</a></span></h2><details class="example" id="Omitting-Parameter-in-Argument-to-Higher-Order-Predicate" open><summary class="description">Omitting Parameter in Argument to Higher-Order Predicate</summary><div class="example-content"><div class="error-example-container"><div class="error-example-tab-list" role="tablist" aria-label="Code Samples"><button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-panel-1">Fixed</button></div><div class="error-example-tab-view"><div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-button-0"><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-1150" data-verso-hover="27">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">List.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1169">{</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1169">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="62">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1169">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1183">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1183">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1188">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1183">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1201">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1203">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-1222">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All.nil" data-verso-hover="10869">nil</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1228">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1236">[</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1236">]</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-1241">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All.cons" data-verso-hover="10870">cons</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1248">{</span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1248">}</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1255">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1257">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1265">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1284">(</span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-1285">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1284">)</span><span class="inter-text">
 
 </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-1295">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-RoseTree" data-verso-hover="929" id="RoseTree">RoseTree</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1314">(</span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1314">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="62">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1314">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-1295">where</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-RoseTree.val" data-verso-hover="10907">val</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1340">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="61">α</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10908">children</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1356">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1363">(</span><span class="const token" data-binding="const-RoseTree" data-verso-hover="929">RoseTree</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="61">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1363">)</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-RoseTree.val" data-verso-hover="10871">val</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1340">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="61">α</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10872">children</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1356">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1363">(</span><span class="const token" data-binding="const-RoseTree" data-verso-hover="929">RoseTree</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="61">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1363">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-1378" data-verso-hover="27">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-All" data-verso-hover="10909">RoseTree.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1401">(</span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1401">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.764" data-verso-hover="2258">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1406">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1401">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1419">(</span><span class="var token" data-binding="var-_uniq.771" data-verso-hover="10910">t</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1419">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-RoseTree" data-verso-hover="929">RoseTree</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.764" data-verso-hover="2258">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1419">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1437">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-1378" data-verso-hover="27">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-All" data-verso-hover="10873">RoseTree.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1401">(</span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1401">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.738" data-verso-hover="2256">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1406">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1401">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1419">(</span><span class="var token" data-binding="var-_uniq.745" data-verso-hover="10874">t</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1419">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-RoseTree" data-verso-hover="929">RoseTree</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.738" data-verso-hover="2256">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1419">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1437">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="inter-text">
   </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Missing parameter(s) in occurrence of inductive type: In the expression</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">List.All</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="const token" data-binding="const-All" data-verso-hover="10909">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.771" data-verso-hover="10910">t</span><span class="unknown token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10908">children</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">List.All</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="const token" data-binding="const-All" data-verso-hover="10873">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.745" data-verso-hover="10874">t</span><span class="unknown token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10872">children</span></span><span class="text"></span><span class="text">
 </span><span class="text">found</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-All" data-verso-hover="10909">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-All" data-verso-hover="10873">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span></span><span class="text"></span><span class="text">
 </span><span class="text">but expected all parameters to be specified:</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-All" data-verso-hover="10909">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.771" data-verso-hover="10910">t</span></span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-All" data-verso-hover="10873">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.745" data-verso-hover="10874">t</span></span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">All occurrences of an inductive type in the types of its constructors must specify its fixed parameters. Only indices can be omitted in a partial application of the type constructor.</span><span class="text"></span></code></span></span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-1446">|</span><span class="inter-text"> </span><span class="unknown token" data-binding>intro</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1454">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.771" data-verso-hover="10910">t</span><span class="built-in delim token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.val" data-verso-hover="10907">val</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1456">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">List.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1477">(</span><span class="const token" data-binding="const-All" data-verso-hover="10909">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1477">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.771" data-verso-hover="10910">t</span><span class="built-in delim token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10908">children</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1468">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-All" data-verso-hover="10909">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.771" data-verso-hover="10910">t</span></span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">All occurrences of an inductive type in the types of its constructors must specify its fixed parameters. Only indices can be omitted in a partial application of the type constructor.</span><span class="text"></span></code></span></span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-1446">|</span><span class="inter-text"> </span><span class="unknown token" data-binding>intro</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1454">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.745" data-verso-hover="10874">t</span><span class="built-in delim token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.val" data-verso-hover="10871">val</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1456">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">List.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1477">(</span><span class="const token" data-binding="const-All" data-verso-hover="10873">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1477">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.745" data-verso-hover="10874">t</span><span class="built-in delim token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10872">children</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1468">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-All" data-verso-hover="10873">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.745" data-verso-hover="10874">t</span></span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Missing parameter(s) in occurrence of inductive type: In the expression</span><span class="text">
-  </span><span class="highlighted"><span class="const token" data-binding="const-List.All" data-verso-hover="10904">List.All</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.776" data-verso-hover="10909">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.774" data-verso-hover="661">P</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.775" data-verso-hover="10910">t</span><span class="unknown token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10908">children</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="const token" data-binding="const-List.All" data-verso-hover="10868">List.All</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.750" data-verso-hover="10873">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.748" data-verso-hover="661">P</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.749" data-verso-hover="10874">t</span><span class="unknown token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10872">children</span></span><span class="text"></span><span class="text">
 </span><span class="text">found</span><span class="text">
-  </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.776" data-verso-hover="10909">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.774" data-verso-hover="661">P</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.750" data-verso-hover="10873">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.748" data-verso-hover="661">P</span></span><span class="text"></span><span class="text">
 </span><span class="text">but expected all parameters to be specified:</span><span class="text">
-  </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.776" data-verso-hover="10909">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.774" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.775" data-verso-hover="10910">t</span></span><span class="text">
+  </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.750" data-verso-hover="10873">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.748" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.749" data-verso-hover="10874">t</span></span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">All occurrences of an inductive type in the types of its constructors must specify its fixed parameters. Only indices can be omitted in a partial application of the type constructor.</span><span class="text"></span></span></pre></div><div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-button-1"><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-1898" data-verso-hover="27">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">List.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1917">{</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1917">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="62">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1917">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1931">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1931">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1936">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1931">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1949">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1951">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-1970">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All.nil" data-verso-hover="10905">nil</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1976">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1984">[</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1984">]</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-1989">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All.cons" data-verso-hover="10906">cons</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1996">{</span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1996">}</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2003">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2005">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2013">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2032">(</span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-2033">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2032">)</span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">All occurrences of an inductive type in the types of its constructors must specify its fixed parameters. Only indices can be omitted in a partial application of the type constructor.</span><span class="text"></span></span></pre></div><div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-button-1"><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-1898" data-verso-hover="27">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">List.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1917">{</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1917">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="62">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1917">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1931">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1931">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1936">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1931">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1949">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-1951">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-1970">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All.nil" data-verso-hover="10869">nil</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1976">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1984">[</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1984">]</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-1989">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All.cons" data-verso-hover="10870">cons</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1996">{</span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1996">}</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2003">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2005">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2013">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">All</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2032">(</span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-2033">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="57">xs</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2032">)</span><span class="inter-text">
 
 </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-2043">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-RoseTree" data-verso-hover="929" id="RoseTree">RoseTree</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2062">(</span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2062">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="62">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2062">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structure-2043">where</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-RoseTree.val" data-verso-hover="10907">val</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2088">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="61">α</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10908">children</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2104">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2111">(</span><span class="const token" data-binding="const-RoseTree" data-verso-hover="929">RoseTree</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="61">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2111">)</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-RoseTree.val" data-verso-hover="10871">val</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2088">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="61">α</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10872">children</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2104">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="48">List</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2111">(</span><span class="const token" data-binding="const-RoseTree" data-verso-hover="929">RoseTree</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="61">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2111">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-2126" data-verso-hover="27">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-RoseTree.All" data-verso-hover="10911" id="RoseTree___All-_LPAR_in-Omitting-Parameter-in-Argument-to-Higher-Order-Predicate_RPAR_">RoseTree.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2149">(</span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2149">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.764" data-verso-hover="49">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2154">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2149">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2167">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-RoseTree" data-verso-hover="929">RoseTree</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.764" data-verso-hover="49">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2169">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="inter-text">
-  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-2192">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-RoseTree.All.intro" data-verso-hover="10912" id="RoseTree___All___intro-_LPAR_in-Omitting-Parameter-in-Argument-to-Higher-Order-Predicate_RPAR_">intro</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2200">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.804" data-verso-hover="10910">t</span><span class="built-in delim token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.val" data-verso-hover="10907">val</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2202">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10904">List.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2223">(</span><a href="Error-Explanations/About___--inductiveParamMissing/#RoseTree___All-_LPAR_in-Omitting-Parameter-in-Argument-to-Higher-Order-Predicate_RPAR_" title="Definition of example"><span class="const token" data-binding="const-RoseTree.All" data-verso-hover="10911">All</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2223">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.804" data-verso-hover="10910">t</span><span class="built-in delim token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10908">children</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2214">→</span><span class="inter-text"> </span><a href="Error-Explanations/About___--inductiveParamMissing/#RoseTree___All-_LPAR_in-Omitting-Parameter-in-Argument-to-Higher-Order-Predicate_RPAR_" title="Definition of example"><span class="const token" data-binding="const-RoseTree.All" data-verso-hover="10911">All</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.768" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.804" data-verso-hover="10910">t</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-2126" data-verso-hover="27">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-RoseTree.All" data-verso-hover="10875" id="RoseTree___All-_LPAR_in-Omitting-Parameter-in-Argument-to-Higher-Order-Predicate_RPAR_">RoseTree.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2149">(</span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2149">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.738" data-verso-hover="49">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2154">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2149">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2167">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-RoseTree" data-verso-hover="929">RoseTree</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.738" data-verso-hover="49">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2169">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="inter-text">
+  </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.ctor-2192">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-RoseTree.All.intro" data-verso-hover="10876" id="RoseTree___All___intro-_LPAR_in-Omitting-Parameter-in-Argument-to-Higher-Order-Predicate_RPAR_">intro</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2200">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.778" data-verso-hover="10874">t</span><span class="built-in delim token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.val" data-verso-hover="10871">val</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2202">→</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.All" data-verso-hover="10868">List.All</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2223">(</span><a href="Error-Explanations/About___--inductiveParamMissing/#RoseTree___All-_LPAR_in-Omitting-Parameter-in-Argument-to-Higher-Order-Predicate_RPAR_" title="Definition of example"><span class="const token" data-binding="const-RoseTree.All" data-verso-hover="10875">All</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2223">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.778" data-verso-hover="10874">t</span><span class="built-in delim token" data-binding>.</span><span class="const token" data-binding="const-RoseTree.children" data-verso-hover="10872">children</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-2214">→</span><span class="inter-text"> </span><a href="Error-Explanations/About___--inductiveParamMissing/#RoseTree___All-_LPAR_in-Omitting-Parameter-in-Argument-to-Higher-Order-Predicate_RPAR_" title="Definition of example"><span class="const token" data-binding="const-RoseTree.All" data-verso-hover="10875">All</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.742" data-verso-hover="661">P</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.778" data-verso-hover="10874">t</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code></div></div></div><p>Because the <code>RoseTree.All</code> type constructor must be partially applied in the argument to <code>List.All</code>,
 the unspecified argument (<code>t</code>) must not be a parameter of the <code>RoseTree.All</code> predicate. Making it an
 index to the right of the colon in the header of <code>RoseTree.All</code> allows this partial application to

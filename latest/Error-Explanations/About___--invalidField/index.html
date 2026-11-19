@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,43 +3036,6 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
@@ -2973,21 +3051,21 @@ and be a calling a function on the value <code>color</code> with
   </span><span class="highlighted"><span class="unknown token" data-binding>4</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>2</span></span><span class="text"></span><span class="text">
 </span><span class="text">of type</span><span class="text"> `</span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span><span class="text">`</span><span class="text"></span><span class="text"></span></span></pre></div><div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1"><code class="hl lean block" data-lean-context="examples"><span class="has-info information" data-verso-hover="10"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding>6</span><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-1168">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1174">(</span><span class="literal number token" data-binding data-verso-hover="12">4</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-1175">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1174">)</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="17">succ</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code></div></div></div><p>The simplest reason for an invalid field error is that the function being sought, like <code>Nat.suc</code>,
-does not exist.</p></div></details><details class="example" id="Projecting-from-the-Wrong-Expression" open><summary class="description">Projecting from the Wrong Expression</summary><div class="example-content"><div class="error-example-container"><div class="error-example-tab-list" role="tablist" aria-label="Code Samples"><button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1">Fixed</button></div><div class="error-example-tab-view"><div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0"><code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-1376" data-verso-hover="10">#eval</span></a><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="10930">'&gt;'</span><span class="built-in delim token" data-binding>.</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Invalid field `</span><span class="text">leftpad</span><span class="text">`: The environment does not contain `</span><span class="text">Char.leftpad</span><span class="text">`, so it is not possible to project the field `</span><span class="text">leftpad</span><span class="text">` from an expression</span><span class="text">
+does not exist.</p></div></details><details class="example" id="Projecting-from-the-Wrong-Expression" open><summary class="description">Projecting from the Wrong Expression</summary><div class="example-content"><div class="error-example-container"><div class="error-example-tab-list" role="tablist" aria-label="Code Samples"><button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1">Fixed</button></div><div class="error-example-tab-view"><div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0"><code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-1376" data-verso-hover="10">#eval</span></a><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="10894">'&gt;'</span><span class="built-in delim token" data-binding>.</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Invalid field `</span><span class="text">leftpad</span><span class="text">`: The environment does not contain `</span><span class="text">Char.leftpad</span><span class="text">`, so it is not possible to project the field `</span><span class="text">leftpad</span><span class="text">` from an expression</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding>'&gt;'</span><span class="inter-text"></span></span><span class="text"></span><span class="text">
-</span><span class="text">of type</span><span class="text"> `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="293">Char</span></a><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding>leftpad</span></span><span class="inter-text"> </span><span class="literal number token" data-binding>10</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1397">[</span><span class="literal char token" data-binding data-verso-hover="4520">'a'</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1397">,</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="4521">'b'</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1397">,</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="4940">'c'</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1397">]</span><span class="inter-text">
+</span><span class="text">of type</span><span class="text"> `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="293">Char</span></a><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text"></span></code></span></span><span class="unknown token" data-binding>leftpad</span></span><span class="inter-text"> </span><span class="literal number token" data-binding>10</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1397">[</span><span class="literal char token" data-binding data-verso-hover="4495">'a'</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1397">,</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="4496">'b'</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1397">,</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="4915">'c'</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1397">]</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Invalid field `</span><span class="text">leftpad</span><span class="text">`: The environment does not contain `</span><span class="text">Char.leftpad</span><span class="text">`, so it is not possible to project the field `</span><span class="text">leftpad</span><span class="text">` from an expression</span><span class="text">
   </span><span class="highlighted"><span class="unknown token" data-binding>'&gt;'</span></span><span class="text"></span><span class="text">
-</span><span class="text">of type</span><span class="text"> `</span><span class="highlighted"><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="293">Char</span></a></span><span class="text">`</span><span class="text"></span><span class="text"></span></span></pre></div><div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1"><code class="hl lean block" data-lean-context="examples"><span class="has-info information" data-verso-hover="10"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">[</span></a><span class="inter-text"></span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'a'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'b'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'c'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">]</span></a></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-1607">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1613">[</span><span class="literal char token" data-binding data-verso-hover="4520">'a'</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1613">,</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="4521">'b'</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1613">,</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="4940">'c'</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1613">]</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Linked-Lists/#List___leftpad" title="Documentation for List.leftpad"><span class="const token" data-binding="const-List.leftpad" data-verso-hover="6650">leftpad</span></a><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">10</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="10930">'&gt;'</span><span class="inter-text">
+</span><span class="text">of type</span><span class="text"> `</span><span class="highlighted"><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="293">Char</span></a></span><span class="text">`</span><span class="text"></span><span class="text"></span></span></pre></div><div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1"><code class="hl lean block" data-lean-context="examples"><span class="has-info information" data-verso-hover="10"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">[</span></a><span class="inter-text"></span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'&gt;'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'a'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'b'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>'c'</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="118">]</span></a></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-1607">#eval</span></a></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1613">[</span><span class="literal char token" data-binding data-verso-hover="4495">'a'</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1613">,</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="4496">'b'</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1613">,</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="4915">'c'</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1613">]</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Linked-Lists/#List___leftpad" title="Documentation for List.leftpad"><span class="const token" data-binding="const-List.leftpad" data-verso-hover="6620">leftpad</span></a><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">10</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="10894">'&gt;'</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code></div></div></div><p>The type of the expression before the dot entirely determines the function being called by the field
 projection. There is no <code>Char.leftpad</code>, and the only way to invoke <code>List.leftpad</code> with generalized
 field notation is to have the list come before the dot.</p></div></details><details class="example" id="Type-is-Not-Specific" open><summary class="description">Type is Not Specific</summary><div class="example-content"><div class="error-example-container"><div class="error-example-tab-list" role="tablist" aria-label="Code Samples"><button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1">Fixed</button></div><div class="error-example-tab-view"><div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0"><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-1959">def</span><span class="inter-text"> </span><span class="unknown token" data-binding>double_plus_one</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1979">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="49">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-1979">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.instBinder-1984">[</span><a href="Type-Classes/Basic-Classes/#Add___mk" title="Documentation for Add"><span class="const token" data-binding="const-Add" data-verso-hover="285">Add</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="49">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.instBinder-1984">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1993">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1993">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="49">α</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1993">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2002">:=</span><span class="inter-text">
    </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Invalid field notation: Field projection operates on types of the form `C ...` where C is a constant. The expression</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">x</span></span><span class="text"></span><span class="text">
-</span><span class="text">has type</span><span class="text"> `</span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="2630">α</span><span class="inter-text"></span></span><span class="text">` </span><span class="text">which does not have the necessary form.</span><span class="text"></span></code></span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2008">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-2009">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">x</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2008">)</span><span class="built-in delim token" data-binding>.</span><span class="unknown token" data-binding>succ</span></span><span class="inter-text">
+</span><span class="text">has type</span><span class="text"> `</span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="2628">α</span><span class="inter-text"></span></span><span class="text">` </span><span class="text">which does not have the necessary form.</span><span class="text"></span></code></span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2008">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-2009">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">x</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2008">)</span><span class="built-in delim token" data-binding>.</span><span class="unknown token" data-binding>succ</span></span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Invalid field notation: Field projection operates on types of the form `C ...` where C is a constant. The expression</span><span class="text">
   </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.15" data-verso-hover="51">x</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.15" data-verso-hover="51">x</span></span><span class="text"></span><span class="text">
-</span><span class="text">has type</span><span class="text"> `</span><span class="highlighted"><span class="var token" data-binding="var-_uniq.13" data-verso-hover="2630">α</span></span><span class="text">` </span><span class="text">which does not have the necessary form.</span><span class="text"></span></span></pre></div><div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1"><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2227">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-double_plus_one" data-verso-hover="10931" id="double_plus_one-_LPAR_in-Type-is-Not-Specific_RPAR_">double_plus_one</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2247">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="12">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2247">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2247">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2257">:=</span><span class="inter-text">
+</span><span class="text">has type</span><span class="text"> `</span><span class="highlighted"><span class="var token" data-binding="var-_uniq.13" data-verso-hover="2628">α</span></span><span class="text">` </span><span class="text">which does not have the necessary form.</span><span class="text"></span></span></pre></div><div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1"><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2227">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-double_plus_one" data-verso-hover="10895" id="double_plus_one-_LPAR_in-Type-is-Not-Specific_RPAR_">double_plus_one</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2247">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="12">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2247">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2247">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2257">:=</span><span class="inter-text">
    </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2263">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="12">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-2264">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="12">x</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2263">)</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="17">succ</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code></div></div></div><p>The <code>Add</code> type class is sufficient for performing the addition <code>x + x</code>, but the <code>.succ</code> field notation
 cannot operate without knowing more about the actual type from which <code>succ</code> is being projected.</p></div></details><details class="example" id="Insufficient-Type-Information-next" open><summary class="description">Insufficient Type Information</summary><div class="example-content"><div class="error-example-container"><div class="error-example-tab-list" role="tablist" aria-label="Code Samples"><button type="button" role="tab" aria-selected="true" tabindex="0" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0">Original</button><button type="button" role="tab" aria-selected="false" tabindex="-1" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1" aria-controls="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1">Fixed</button></div><div class="error-example-tab-view"><div role="tabpanel" class="error-example-tabpanel" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-0" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-0"><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2544">example</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2552">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2555">fun</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2559">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="24">n</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2559">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-2559">=&gt;</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Invalid field notation: Type of</span><span class="text">
@@ -2995,22 +3073,22 @@ cannot operate without knowing more about the actual type from which <code>succ<
 </span><span class="text">is not known; cannot resolve field `</span><span class="text">succ</span><span class="text">`</span><span class="text">
 </span><span class="text">
 </span><span class="text">Hint: </span><span class="text">Consider replacing the field projection with a call to one of the following:</span><span class="text">
-  </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___succ" title="Documentation for Fin.succ"><span class="const token" data-binding="const-Fin.succ" data-verso-hover="2938">Fin.succ</span></a><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text">
+  </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___succ" title="Documentation for Fin.succ"><span class="const token" data-binding="const-Fin.succ" data-verso-hover="2937">Fin.succ</span></a><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text">
   </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="17">Nat.succ</span></a><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text">
-  </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-Lean.Level.succ" data-verso-hover="10932">Lean.Level.succ</span><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text">
-  </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-Std.PRange.UpwardEnumerable.succ" data-verso-hover="10933">Std.PRange.succ</span><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text">
-  </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-Lean.Level.PP.Result.succ" data-verso-hover="10934">Lean.Level.PP.Result.succ</span><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text">
-  </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-Std.Time.Internal.Bounded.LE.succ" data-verso-hover="10935">Std.Time.Internal.Bounded.LE.succ</span><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span></code></span></span><span class="unknown token" data-binding>n.succ.succ</span></span><span class="inter-text">
+  </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-Lean.Level.succ" data-verso-hover="10896">Lean.Level.succ</span><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text">
+  </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-Std.PRange.UpwardEnumerable.succ" data-verso-hover="10897">Std.PRange.succ</span><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text">
+  </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-Lean.Level.PP.Result.succ" data-verso-hover="10898">Lean.Level.PP.Result.succ</span><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span><span class="text">
+  </span><span class="text">• `</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-Std.Time.Internal.Bounded.LE.succ" data-verso-hover="10899">Std.Time.Internal.Bounded.LE.succ</span><span class="inter-text"></span></span><span class="text">`</span><span class="text"></span></code></span></span><span class="unknown token" data-binding>n.succ.succ</span></span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Invalid field notation: Type of</span><span class="text">
   </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.6" data-verso-hover="24">n</span></span><span class="text"></span><span class="text">
 </span><span class="text">is not known; cannot resolve field `</span><span class="text">succ</span><span class="text">`</span><span class="text">
 </span><span class="text">
 </span><span class="text">Hint: </span><span class="text">Consider replacing the field projection with a call to one of the following:</span><span class="text">
-  </span><span class="text">• `</span><span class="highlighted"><a href="Basic-Types/Finite-Natural-Numbers/#Fin___succ" title="Documentation for Fin.succ"><span class="const token" data-binding="const-Fin.succ" data-verso-hover="2938">Fin.succ</span></a></span><span class="text">`</span><span class="text"></span><span class="text">
+  </span><span class="text">• `</span><span class="highlighted"><a href="Basic-Types/Finite-Natural-Numbers/#Fin___succ" title="Documentation for Fin.succ"><span class="const token" data-binding="const-Fin.succ" data-verso-hover="2937">Fin.succ</span></a></span><span class="text">`</span><span class="text"></span><span class="text">
   </span><span class="text">• `</span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="17">Nat.succ</span></a></span><span class="text">`</span><span class="text"></span><span class="text">
-  </span><span class="text">• `</span><span class="highlighted"><span class="const token" data-binding="const-Lean.Level.succ" data-verso-hover="10932">Lean.Level.succ</span></span><span class="text">`</span><span class="text"></span><span class="text">
-  </span><span class="text">• `</span><span class="highlighted"><span class="const token" data-binding="const-Std.PRange.UpwardEnumerable.succ" data-verso-hover="10933">Std.PRange.succ</span></span><span class="text">`</span><span class="text"></span><span class="text">
-  </span><span class="text">• `</span><span class="highlighted"><span class="const token" data-binding="const-Lean.Level.PP.Result.succ" data-verso-hover="10934">Lean.Level.PP.Result.succ</span></span><span class="text">`</span><span class="text"></span><span class="text">
-  </span><span class="text">• `</span><span class="highlighted"><span class="const token" data-binding="const-Std.Time.Internal.Bounded.LE.succ" data-verso-hover="10935">Std.Time.Internal.Bounded.LE.succ</span></span><span class="text">`</span><span class="text"></span></span></pre></div><div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1"><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2925">example</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2933">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2936">fun</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2940">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-2940">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-2940">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-2940">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">n</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="17">succ</span></a><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="17">succ</span></a><span class="inter-text">
+  </span><span class="text">• `</span><span class="highlighted"><span class="const token" data-binding="const-Lean.Level.succ" data-verso-hover="10896">Lean.Level.succ</span></span><span class="text">`</span><span class="text"></span><span class="text">
+  </span><span class="text">• `</span><span class="highlighted"><span class="const token" data-binding="const-Std.PRange.UpwardEnumerable.succ" data-verso-hover="10897">Std.PRange.succ</span></span><span class="text">`</span><span class="text"></span><span class="text">
+  </span><span class="text">• `</span><span class="highlighted"><span class="const token" data-binding="const-Lean.Level.PP.Result.succ" data-verso-hover="10898">Lean.Level.PP.Result.succ</span></span><span class="text">`</span><span class="text"></span><span class="text">
+  </span><span class="text">• `</span><span class="highlighted"><span class="const token" data-binding="const-Std.Time.Internal.Bounded.LE.succ" data-verso-hover="10899">Std.Time.Internal.Bounded.LE.succ</span></span><span class="text">`</span><span class="text"></span></span></pre></div><div role="tabpanel" class="error-example-tabpanel error-example-tabpanel-hidden" id="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-panel-1" aria-labelledby="error-example-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-button-1"><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2925">example</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2933">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2936">fun</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2940">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-2940">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.typeAscription-2940">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-2940">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">n</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="17">succ</span></a><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="17">succ</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code></div></div></div><p>Generalized field notation can only be used when it is possible to determine the type that is being
 projected. Type annotations may need to be added to make generalized field notation work.</p></div></details></section></section><nav class="prev-next-buttons"><a class="local-button active" href="Error-Explanations/About___--invalidDottedIdent/#The-Lean-Language-Reference--Error-Explanations--About___--invalidDottedIdent" rel="prev" title="About: invalidDottedIdent"><span class="arrow">←</span><span class="where">About: invalidDottedIdent</span></a><a class="local-button active" href="Error-Explanations/About___--projNonPropFromProp/#The-Lean-Language-Reference--Error-Explanations--About___--projNonPropFromProp" rel="next" title="About: projNonPropFromProp"><span class="where">About: projNonPropFromProp</span><span class="arrow">→</span></a></nav></div></main></div></body></html>

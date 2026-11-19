@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,43 +3036,6 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
@@ -3024,35 +3102,35 @@ See also `?m` syntax (synthetic holes).</code></code>hole</span></a> <span class
 The identifiers may also be <code>_</code>.
 With parenthesized type annotations, multiple bound variables may have different types, while the unparenthesized variant requires that all have the same type.</p></div></div><p>Even though universal quantifiers are represented by functions, their proofs should not be thought of as computations.
 Because of proof irrelevance and the elimination restriction for propositions, there's no way to actually compute data using these proofs.
-As a result, they are free to use reasoning principles that are not readily computed, such as the classical Axiom of Choice.</p><p>Existential quantification is implemented as a structure that is similar to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="659">Subtype</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk" title="Documentation for Sigma"><span class="const token" data-binding="const-Sigma" data-verso-hover="4788">Sigma</span></a></code>: it contains a <span id="--tech-term-witness" class="def-technical-term"><em>witness</em></span>, which is a value that satisfies the predicate, along with a proof that the witness does in fact satisfy the predicate.
+As a result, they are free to use reasoning principles that are not readily computed, such as the classical Axiom of Choice.</p><p>Existential quantification is implemented as a structure that is similar to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="659">Subtype</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk" title="Documentation for Sigma"><span class="const token" data-binding="const-Sigma" data-verso-hover="4763">Sigma</span></a></code>: it contains a <span id="--tech-term-witness" class="def-technical-term"><em>witness</em></span>, which is a value that satisfies the predicate, along with a proof that the witness does in fact satisfy the predicate.
 In other words, it is a form of dependent pair type.
-Unlike both <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="659">Subtype</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk" title="Documentation for Sigma"><span class="const token" data-binding="const-Sigma" data-verso-hover="4788">Sigma</span></a></code>, it is a <a class="technical-term" href="The-Type-System/Propositions/#--tech-term-Propositions">proposition</a>; this means that programs cannot in general use a proof of an existential statement to obtain a value that satisfies the predicate.</p><p>When writing a proof, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#exists" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1707">exists</span></a></code> tactic allows one (or more) witness(es) to be specified for a (potentially nested) existential statement.
-The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#constructor" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1652">constructor</span></a></code> tactic, on the other hand, creates a <a class="technical-term" href="Tactic-Proofs/Reading-Proof-States/#--tech-term-metavariables">metavariable</a> for the witness; providing a proof of the predicate may solve the metavariable as well.
-The components of an existential assumption can be made available individually by pattern matching with <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#let" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1639">let</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#match" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="2727">match</span></a></code>, as well as by using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#cases" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="570">cases</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rcases" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="2772">rcases</span></a></code>.</p><details class="example" id="Proving-Existential-Statements"><summary class="description">Proving Existential Statements</summary><div class="example-content"><p>When proving that there exists some natural number that is the sum of four and five, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#exists" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1707">exists</span></a></code> tactic expects the sum to be provided, constructing the equality proof using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="433">trivial</span></a></code>:</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-10799">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-ex_four_plus_five" data-verso-hover="4789" id="ex_four_plus_five-_LPAR_in-Proving-Existential-Statements_RPAR_">ex_four_plus_five</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-10825">:</span><span class="inter-text"> </span><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="12">n</span><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-10827">,</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">4</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-10834">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">5</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-10834">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-10844">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-530884243738683874-10847-10849-2440"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-10847" data-verso-hover="15">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-530884243738683874-10847-10849-2440"/><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">∃</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>4</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span></span></span></span></span></span><span class="inter-text">
-  </span><span class="tactic"><label for="tactic-state-7-10852-10860-2442"><a href="Tactic-Proofs/Tactic-Reference/#exists" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.«tacticExists_,,»-10852" data-verso-hover="1707">exists</span></a><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">9</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-10852-10860-2442"/><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
-</span><span class="unknown token" data-binding></span></code><p>The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#constructor" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1652">constructor</span></a></code> tactic, on the other hand, expects a proof.
-The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="21">rfl</span></a></code> tactic causes the sum to be determined as a side effect of checking definitional equality.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-11054">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-ex_four_plus_five'" data-verso-hover="4790" id="ex_four_plus_five___-_LPAR_in-Proving-Existential-Statements_RPAR_">ex_four_plus_five'</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-11081">:</span><span class="inter-text"> </span><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="12">n</span><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-11083">,</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">4</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-11090">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">5</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-11090">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-11100">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-530884243738683874-11103-11105-2443"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-11103" data-verso-hover="15">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-530884243738683874-11103-11105-2443"/><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">∃</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>4</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span></span></span></span></span></span><span class="inter-text">
-  </span><span class="tactic"><label for="tactic-state-9665473057915032107-11108-11119-2445"><a href="Tactic-Proofs/Tactic-Reference/#constructor" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.constructor-11108" data-verso-hover="1652">constructor</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9665473057915032107-11108-11119-2445"/><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-2446" checked="checked"/><span for="--verso-unique-2446" class="goal-name">h</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="unknown token" data-binding>4</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>?w</span></span></span></span></span><span class="goal"><span class="labeled-case"><label class="case-label"><input type="checkbox" id="--verso-unique-2447"/><span for="--verso-unique-2447" class="goal-name">w</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span></span></span></span></span><span class="inter-text">
-  </span><span class="tactic"><label for="tactic-state-7-11122-11125-2448"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-11122" data-verso-hover="21">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-11122-11125-2448"/><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
-</span><span class="unknown token" data-binding></span></code><div class="live-link"><a href="javascript:openLiveLink(&quot;C4Cwpg9gTmC2AEYAeB9AZhArlFAHANpgM7oCWAbmPAFzyDARPAHYA08ALPANTwCs8AvExqCARgE8AUPERJSRYEXgBOCRNCQYCZOiw4CxMpQDkNek1YdufQY2HxxU+AGMIjeVExPg0R1DT4gA&quot;)">Live ↪</a></div></div></details><div class="namedocs" id="Exists___intro"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Exists.intro" title="Permalink">🔗</a></span><span class="label">inductive predicate</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">Exists.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.14518" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.14520" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14518" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></div><div class="narrow-only"><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">Exists.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.14518" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.14520" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14518" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text">
-  </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></div></pre><div class="text"><p>Existential quantification. If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.14442" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Verso.Genre.Manual.docMetavar-0">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14441" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-4">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></code> is a predicate, then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14473" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.unbracketedExplicitBinders-4">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14441" data-verso-hover="331">α</span><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-0">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14442" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14473" data-verso-hover="51">x</span></code>
-asserts that there is some <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.14465" data-verso-hover="75">x</span></code> of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.14441" data-verso-hover="331">α</span></code> such that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.14442" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14465" data-verso-hover="51">x</span></code> holds.
-To create an existential proof, use the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#exists" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1707">exists</span></a></code> tactic,
+Unlike both <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="659">Subtype</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk" title="Documentation for Sigma"><span class="const token" data-binding="const-Sigma" data-verso-hover="4763">Sigma</span></a></code>, it is a <a class="technical-term" href="The-Type-System/Propositions/#--tech-term-Propositions">proposition</a>; this means that programs cannot in general use a proof of an existential statement to obtain a value that satisfies the predicate.</p><p>When writing a proof, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#exists" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1705">exists</span></a></code> tactic allows one (or more) witness(es) to be specified for a (potentially nested) existential statement.
+The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#constructor" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1650">constructor</span></a></code> tactic, on the other hand, creates a <a class="technical-term" href="Tactic-Proofs/Reading-Proof-States/#--tech-term-metavariables">metavariable</a> for the witness; providing a proof of the predicate may solve the metavariable as well.
+The components of an existential assumption can be made available individually by pattern matching with <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#let" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1637">let</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#match" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="2725">match</span></a></code>, as well as by using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#cases" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="570">cases</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rcases" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="2770">rcases</span></a></code>.</p><details class="example" id="Proving-Existential-Statements"><summary class="description">Proving Existential Statements</summary><div class="example-content"><p>When proving that there exists some natural number that is the sum of four and five, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#exists" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1705">exists</span></a></code> tactic expects the sum to be provided, constructing the equality proof using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="433">trivial</span></a></code>:</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-10799">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-ex_four_plus_five" data-verso-hover="4764" id="ex_four_plus_five-_LPAR_in-Proving-Existential-Statements_RPAR_">ex_four_plus_five</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-10825">:</span><span class="inter-text"> </span><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="12">n</span><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-10827">,</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">4</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-10834">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">5</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-10834">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-10844">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-530884243738683874-10847-10849-2453"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-10847" data-verso-hover="15">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-530884243738683874-10847-10849-2453"/><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">∃</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>4</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-10852-10860-2455"><a href="Tactic-Proofs/Tactic-Reference/#exists" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.«tacticExists_,,»-10852" data-verso-hover="1705">exists</span></a><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">9</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-10852-10860-2455"/><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><p>The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#constructor" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1650">constructor</span></a></code> tactic, on the other hand, expects a proof.
+The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="21">rfl</span></a></code> tactic causes the sum to be determined as a side effect of checking definitional equality.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-11054">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-ex_four_plus_five'" data-verso-hover="4765" id="ex_four_plus_five___-_LPAR_in-Proving-Existential-Statements_RPAR_">ex_four_plus_five'</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-11081">:</span><span class="inter-text"> </span><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="12">n</span><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-11083">,</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">4</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-11090">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">5</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-11090">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-11100">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-530884243738683874-11103-11105-2456"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-11103" data-verso-hover="15">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-530884243738683874-11103-11105-2456"/><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">∃</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>4</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-9665473057915032107-11108-11119-2458"><a href="Tactic-Proofs/Tactic-Reference/#constructor" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.constructor-11108" data-verso-hover="1650">constructor</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9665473057915032107-11108-11119-2458"/><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-2459" checked="checked"/><span for="--verso-unique-2459" class="goal-name">h</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="unknown token" data-binding>4</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>5</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>?w</span></span></span></span></span><span class="goal"><span class="labeled-case"><label class="case-label"><input type="checkbox" id="--verso-unique-2460"/><span for="--verso-unique-2460" class="goal-name">w</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-11122-11125-2461"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-11122" data-verso-hover="21">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-11122-11125-2461"/><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><div class="live-link"><a href="javascript:openLiveLink(&quot;C4Cwpg9gTmC2AEYAeB9AZhArlFAHANpgM7oCWAbmPAFzyDARPAHYA08ALPANTwCs8AvExqCARgE8AUPERJSRYEXgBOCRNCQYCZOiw4CxMpQDkNek1YdufQY2HxxU+AGMIjeVExPg0R1DT4gA&quot;)">Live ↪</a></div></div></details><div class="namedocs" id="Exists___intro"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Exists.intro" title="Permalink">🔗</a></span><span class="label">inductive predicate</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">Exists.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.12100" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.12102" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12100" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></div><div class="narrow-only"><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">Exists.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.12100" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.12102" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12100" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text">
+  </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></div></pre><div class="text"><p>Existential quantification. If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.12024" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Verso.Genre.Manual.docMetavar-0">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12023" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-4">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span></code> is a predicate, then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12055" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.unbracketedExplicitBinders-4">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12023" data-verso-hover="331">α</span><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-0">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12024" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12055" data-verso-hover="51">x</span></code>
+asserts that there is some <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.12047" data-verso-hover="75">x</span></code> of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.12023" data-verso-hover="331">α</span></code> such that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.12024" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12047" data-verso-hover="51">x</span></code> holds.
+To create an existential proof, use the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#exists" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="1705">exists</span></a></code> tactic,
 or the anonymous constructor notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-0">⟨</span><span class="unknown token" data-binding>x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-0">,</span><span class="inter-text"> </span><span class="unknown token" data-binding>h</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-0">⟩</span></code>.
-To unpack an existential, use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#cases" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.cases-0" data-verso-hover="570">cases</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>h</span></code> where <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding>h</span></code> is a proof of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14500" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.unbracketedExplicitBinders-4">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14441" data-verso-hover="331">α</span><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-0">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14442" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14500" data-verso-hover="51">x</span></code>,
-or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/The-Tactic-Language/#let" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticLet__-0" data-verso-hover="1639">let</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-4">⟨</span><span class="unknown token" data-binding>x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-4">,</span><span class="inter-text"> </span><span class="unknown token" data-binding>hx</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-4">⟩</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letPatDecl-4">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding>h</span></code>.</p><p>Because Lean has proof irrelevance, any two proofs of an existential are
+To unpack an existential, use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#cases" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.cases-0" data-verso-hover="570">cases</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>h</span></code> where <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding>h</span></code> is a proof of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12082" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.unbracketedExplicitBinders-4">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12023" data-verso-hover="331">α</span><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-0">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12024" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12082" data-verso-hover="51">x</span></code>,
+or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/The-Tactic-Language/#let" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticLet__-0" data-verso-hover="1637">let</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-4">⟨</span><span class="unknown token" data-binding>x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-4">,</span><span class="inter-text"> </span><span class="unknown token" data-binding>hx</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-4">⟩</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letPatDecl-4">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding>h</span></code>.</p><p>Because Lean has proof irrelevance, any two proofs of an existential are
 definitionally equal. One consequence of this is that it is impossible to recover the
 witness of an existential from the mere fact of its existence.
 For example, the following does not compile:</p><pre>example (h : ∃ x : Nat, x = x) : Nat :=
   let ⟨x, _⟩ := h  -- fail, because the goal is `Nat : Type`
   x
 </pre><p>The error message <code>recursor 'Exists.casesOn' can only eliminate into Prop</code> means
-that this only works when the current goal is another proposition:</p><code class="hl lean block" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-0">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-8">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="4791">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-8">:</span><span class="inter-text"> </span><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.unbracketedExplicitBinders-17">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-13">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-26">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">x</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-8">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-33">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="435">True</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-40">:=</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-45" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-49">⟨</span><span class="var token" data-binding="var-_uniq.41" data-verso-hover="12">x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-49">,</span><span class="inter-text"> </span><span class="wildcard token" data-binding>_</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-49">⟩</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letPatDecl-49">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="4791">h</span><span class="inter-text">  </span><span class="comment delimiter token" data-binding>--</span><span class="comment line token" data-binding> ok, because the goal is `True : Prop`</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-trivial" data-verso-hover="2766">trivial</span><span class="inter-text">
-</span><span class="unknown token" data-binding></span></code><div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructors-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"><p class="docstring-section-label" id="docstring-section-Constructors-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">Constructors</p><div class="constructor"><pre class="name-and-type hl lean"><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists.intro"><span class="const token" data-binding="const-Exists.intro" data-verso-hover="1598">Exists.intro.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.14511" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.14513" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14511" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.14514" data-verso-hover="51">w</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14511" data-verso-hover="331">α</span><span class="unknown token" data-binding>)</span><span class="inter-text">
-  </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.14515" data-verso-hover="4792">h</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14513" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14514" data-verso-hover="51">w</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">Exists</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14513" data-verso-hover="661">p</span></pre><div class="docs"><p>Existential introduction. If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.14530" data-verso-hover="51">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Verso.Genre.Manual.docMetavar-0">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14523" data-verso-hover="331">α</span></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding>h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding>:</span><span class="inter-text"> </span><span class="unknown token" data-binding>p</span><span class="inter-text"> </span><span class="unknown token" data-binding>a</span></code>,
-then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-0">⟨</span><span class="unknown token" data-binding>a</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-0">,</span><span class="inter-text"> </span><span class="unknown token" data-binding>h</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-0">⟩</span></code> is a proof that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14656" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.unbracketedExplicitBinders-4">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14523" data-verso-hover="331">α</span><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-0">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14524" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14656" data-verso-hover="51">x</span></code>.</p></div></div></div></div></div><div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"><span class="label">syntax</span><span class="title">Existential Quantification</span><div class="text"><pre class="grammar hl lean" data-lean-context="--grammar" id="_FLQQ_term_________FLQQ_"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
+that this only works when the current goal is another proposition:</p><code class="hl lean block" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-0">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-8">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="4766">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-8">:</span><span class="inter-text"> </span><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.unbracketedExplicitBinders-17">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-13">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">x</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-26">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="12">x</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-8">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-33">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="435">True</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-40">:=</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-45" data-verso-hover="129">let</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-49">⟨</span><span class="var token" data-binding="var-_uniq.41" data-verso-hover="12">x</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-49">,</span><span class="inter-text"> </span><span class="wildcard token" data-binding>_</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-49">⟩</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letPatDecl-49">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="4766">h</span><span class="inter-text">  </span><span class="comment delimiter token" data-binding>--</span><span class="comment line token" data-binding> ok, because the goal is `True : Prop`</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-trivial" data-verso-hover="2764">trivial</span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><div class="docstring-section" role="group" aria-labelledby="docstring-section-Constructors-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"><p class="docstring-section-label" id="docstring-section-Constructors-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">Constructors</p><div class="constructor"><pre class="name-and-type hl lean"><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists.intro"><span class="const token" data-binding="const-Exists.intro" data-verso-hover="1596">Exists.intro.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.12093" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.12095" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12093" data-verso-hover="331">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.12096" data-verso-hover="51">w</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12093" data-verso-hover="331">α</span><span class="unknown token" data-binding>)</span><span class="inter-text">
+  </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.12097" data-verso-hover="4767">h</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12095" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12096" data-verso-hover="51">w</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">Exists</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12095" data-verso-hover="661">p</span></pre><div class="docs"><p>Existential introduction. If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.12112" data-verso-hover="51">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Verso.Genre.Manual.docMetavar-0">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12105" data-verso-hover="331">α</span></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding>h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding>:</span><span class="inter-text"> </span><span class="unknown token" data-binding>p</span><span class="inter-text"> </span><span class="unknown token" data-binding>a</span></code>,
+then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-0">⟨</span><span class="unknown token" data-binding>a</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-0">,</span><span class="inter-text"> </span><span class="unknown token" data-binding>h</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-0">⟩</span></code> is a proof that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding>∃</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12238" data-verso-hover="51">x</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.unbracketedExplicitBinders-4">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12105" data-verso-hover="331">α</span><span class="punctuation separator token" data-binding="kw-occ-«term∃_,_»-0">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12106" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12238" data-verso-hover="51">x</span></code>.</p></div></div></div></div></div><div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"><span class="label">syntax</span><span class="title">Existential Quantification</span><div class="text"><pre class="grammar hl lean" data-lean-context="--grammar" id="_FLQQ_term_________FLQQ_"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal" data-kind="«term∃_,_»"><span class="keyword">∃</span> <span class="from-nonterminal" data-kind="Lean.explicitBinders"><span class="from-nonterminal" data-kind="Lean.unbracketedExplicitBinders"><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal documented" data-kind="Lean.binderIdent"><code class="hover-info"><code class="docstring">`binderIdent` matches an `ident` or a `_`. It is used for identifiers in binding
 position, where `_` means that the value should be left unnamed and inaccessible.</code></code><span class="nonterminal" data-kind="ident">ident</span> </span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal documented" data-kind="Lean.binderIdent"><code class="hover-info"><code class="docstring">`binderIdent` matches an `ident` or a `_`. It is used for identifiers in binding
 position, where `_` means that the value should be left unnamed and inaccessible.</code></code><span class="nonterminal" data-kind="ident">ident</span></span></span><span class="bnf">*</span> </span><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="from-nonterminal" data-kind="null"><span class="keyword">:</span> <span class="nonterminal" data-kind="term.pseudo">term</span></span><span class="bnf">)?</span></span></span></span><span class="keyword">,</span> <span class="nonterminal" data-kind="term.pseudo">term</span></span></pre><pre class="grammar hl lean" data-lean-context="--grammar" id="_FLQQ_termExists______FLQQ_"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
@@ -3063,5 +3141,5 @@ position, where `_` means that the value should be left unnamed and inaccessible
     <span class="bnf">|</span> <span class="from-nonterminal" data-kind="«termExists_,_»"><span class="keyword">exists</span> <span class="from-nonterminal" data-kind="Lean.explicitBinders"><span class="from-nonterminal" data-kind="null"><span class="nonterminal" data-kind="Lean.bracketedExplicitBinders">bracketedExplicitBinders</span> <span class="from-nonterminal" data-kind="null"><span class="nonterminal" data-kind="Lean.bracketedExplicitBinders">bracketedExplicitBinders</span></span><span class="bnf">*</span></span></span><span class="keyword">,</span> <span class="nonterminal" data-kind="term.pseudo">term</span></span></pre><p>Existential quantifiers bind one or more variables, which are then in scope in the final term.
 The identifiers may also be <code>_</code>.
 With parenthesized type annotations, multiple bound variables may have different types, while the unparenthesized variant requires that all have the same type.
-If more than one variable is bound, then the result is multiple instances of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">Exists</span></a></code>, nested to the right.</p></div></div><div class="namedocs" id="Exists___choose"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Exists.choose" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Propositions/Quantifiers/#Exists___choose" title="Documentation for Exists.choose"><span class="const token" data-binding="const-Exists.choose" data-verso-hover="4793">Exists.choose.{u_1}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.16801" data-verso-hover="153">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u_1</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.16803" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16801" data-verso-hover="153">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.16805" data-verso-hover="4794">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">∃</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16804" data-verso-hover="51">a</span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">,</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16803" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16804" data-verso-hover="51">a</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16801" data-verso-hover="153">α</span></div><div class="narrow-only"><a href="Basic-Propositions/Quantifiers/#Exists___choose" title="Documentation for Exists.choose"><span class="const token" data-binding="const-Exists.choose" data-verso-hover="4793">Exists.choose.{u_1}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.16801" data-verso-hover="153">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u_1</span><span class="unknown token" data-binding>}</span><span class="inter-text">
-  </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.16803" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16801" data-verso-hover="153">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.16805" data-verso-hover="4794">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">∃</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16804" data-verso-hover="51">a</span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1406">,</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16803" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16804" data-verso-hover="51">a</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16801" data-verso-hover="153">α</span></div></pre><div class="text"><p>Extract an element from an existential statement, using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Classical.choose" data-verso-hover="4795">Classical.choose</span></code>.</p></div></div></section><nav class="prev-next-buttons"><a class="local-button active" href="Basic-Propositions/Logical-Connectives/#The-Lean-Language-Reference--Basic-Propositions--Logical-Connectives" rel="prev" title="20.2. Logical Connectives"><span class="arrow">←</span><span class="where">20.2. Logical Connectives</span></a><a class="local-button active" href="Basic-Propositions/Propositional-Equality/#propositional-equality" rel="next" title="20.4. Propositional Equality"><span class="where">20.4. Propositional Equality</span><span class="arrow">→</span></a></nav></div></main></div></body></html>
+If more than one variable is bound, then the result is multiple instances of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">Exists</span></a></code>, nested to the right.</p></div></div><div class="namedocs" id="Exists___choose"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Exists.choose" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="Basic-Propositions/Quantifiers/#Exists___choose" title="Documentation for Exists.choose"><span class="const token" data-binding="const-Exists.choose" data-verso-hover="4768">Exists.choose.{u_1}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.14151" data-verso-hover="153">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u_1</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.14153" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14151" data-verso-hover="153">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.14155" data-verso-hover="4769">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">∃</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14154" data-verso-hover="51">a</span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">,</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14153" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14154" data-verso-hover="51">a</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14151" data-verso-hover="153">α</span></div><div class="narrow-only"><a href="Basic-Propositions/Quantifiers/#Exists___choose" title="Documentation for Exists.choose"><span class="const token" data-binding="const-Exists.choose" data-verso-hover="4768">Exists.choose.{u_1}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.14151" data-verso-hover="153">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-8211241366509957426" data-verso-hover="332">Sort u_1</span><span class="unknown token" data-binding>}</span><span class="inter-text">
+  </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.14153" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14151" data-verso-hover="153">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7173780969340099554" data-verso-hover="29">Prop</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.14155" data-verso-hover="4769">P</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">∃</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14154" data-verso-hover="51">a</span><a href="Basic-Propositions/Quantifiers/#Exists___intro" title="Documentation for Exists"><span class="const token" data-binding="const-Exists" data-verso-hover="1404">,</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14153" data-verso-hover="661">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14154" data-verso-hover="51">a</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.14151" data-verso-hover="153">α</span></div></pre><div class="text"><p>Extract an element from an existential statement, using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Classical.choose" data-verso-hover="4770">Classical.choose</span></code>.</p></div></div></section><nav class="prev-next-buttons"><a class="local-button active" href="Basic-Propositions/Logical-Connectives/#The-Lean-Language-Reference--Basic-Propositions--Logical-Connectives" rel="prev" title="20.2. Logical Connectives"><span class="arrow">←</span><span class="where">20.2. Logical Connectives</span></a><a class="local-button active" href="Basic-Propositions/Propositional-Equality/#propositional-equality" rel="next" title="20.4. Propositional Equality"><span class="where">20.4. Propositional Equality</span><span class="arrow">→</span></a></nav></div></main></div></body></html>

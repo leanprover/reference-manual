@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,43 +3036,6 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
@@ -2971,7 +3049,7 @@ As long as they hold the only reference to the value being modified, many operat
 This can lead to substantial performance benefits.
 Carefully-written <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="322">Array</span></a></code> code avoids the performance overhead of immutable data structures while maintaining the ease of reasoning provided by pure functions.</p></dd><dt>Predictability</dt><dd><p>Reference counts are decremented at predictable times.
 As a result, reference-counted objects can be used to manage other resources, such as file handles.
-In Lean, a <code class="hl lean inline" data-lean-context="examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle" title="Documentation for IO.FS.Handle"><span class="const token" data-binding="const-IO.FS.Handle" data-verso-hover="2527">Handle</span></a></code> does not need to be explicitly closed because it is closed immediately when it is no longer accessible.</p></dd><dt>Simpler FFI</dt><dd><p>Objects managed with reference counting don't need to be relocated as part of reclaiming unused memory.
+In Lean, a <code class="hl lean inline" data-lean-context="examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle" title="Documentation for IO.FS.Handle"><span class="const token" data-binding="const-IO.FS.Handle" data-verso-hover="2525">Handle</span></a></code> does not need to be explicitly closed because it is closed immediately when it is no longer accessible.</p></dd><dt>Simpler FFI</dt><dd><p>Objects managed with reference counting don't need to be relocated as part of reclaiming unused memory.
 This greatly simplifies interaction with code written in other languages, such as C.</p></dd></dl></div><p>The traditional drawbacks of reference counting include the performance overhead due to updating reference counts along with the inability to recognize and deallocate cyclic data.
 The former drawback is minimized by an analysis based on <em>borrowing</em> that allows many reference count updates to be elided.
 Nevertheless, multi-threaded code requires that reference count updates are synchronized between threads, which also imposes a substantial overhead.
@@ -2980,9 +3058,9 @@ Single-threaded reference counts can be updated much faster than multi-threaded 
 Together, these techniques greatly reduce the performance overhead of reference counting.
 Because the verifiable fragment of Lean cannot create cyclic data, the Lean runtime does not have a technique to detect it.
 Ullrich and de Moura (2019)<span class="marginalia-reference"><span class="marginalia-marker marginalia-marker-desktop" aria-details="--citation-Sebastian-UllrichLeonardo-de-Moura-2019-0"><span class="marginalia-accessible-label">Marginal note</span></span><button class="marginalia-marker marginalia-marker-mobile" type="button" aria-details="--citation-Sebastian-UllrichLeonardo-de-Moura-2019-0" popovertarget="--citation-Sebastian-UllrichLeonardo-de-Moura-2019-0"><span class="marginalia-accessible-label">Show marginal note</span></button></span><span class="marginalia-note" id="--citation-Sebastian-UllrichLeonardo-de-Moura-2019-0" role="note" popover="auto"><span class="citation">Sebastian Ullrich and Leonardo de Moura, 2019. <a href="https://arxiv.org/abs/1908.05647">“Counting Immutable Beans: Reference Counting Optimized for Purely Functional Programming”</a>. In <em>Proceedings of the 31st Symposium on Implementation and Application of Functional Languages (IFL 2019).</em></span></span> provide more details on the implementation of reference counting in Lean.</p><section><h2 id="The-Lean-Language-Reference--Run-Time-Code--Reference-Counting--Observing-Uniqueness">12.2.1. Observing Uniqueness<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Run-Time-Code--Reference-Counting--Observing-Uniqueness" title="Permalink">🔗</a></span></h2><p>Ensuring that arrays and strings are uniquely referenced is key to writing fast code in Lean.
-The primitive <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2528">dbgTraceIfShared</span></a></code> can be used to check whether a data structure is aliased.
-When called, it returns its argument unchanged, printing the provided trace message if the argument's reference count is greater than one.</p><div class="namedocs" id="dbgTraceIfShared"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=dbgTraceIfShared" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2528">dbgTraceIfShared.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.2233" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type u</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.2234" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.2235" data-verso-hover="51">a</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2233" data-verso-hover="61">α</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2233" data-verso-hover="61">α</span></div><div class="narrow-only"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2528">dbgTraceIfShared.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.2233" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type u</span><span class="unknown token" data-binding>}</span><span class="inter-text">
-  </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.2234" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.2235" data-verso-hover="51">a</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2233" data-verso-hover="61">α</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2233" data-verso-hover="61">α</span></div></pre><div class="text"><p>Display the given message if <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2232" data-verso-hover="51">a</span></code> is shared, that is, RC(a) &gt; 1</p></div></div><p>Due to the specifics of how <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.eval : command</code><span class="sep"></span><code class="docstring">`#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
+The primitive <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2526">dbgTraceIfShared</span></a></code> can be used to check whether a data structure is aliased.
+When called, it returns its argument unchanged, printing the provided trace message if the argument's reference count is greater than one.</p><div class="namedocs" id="dbgTraceIfShared"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=dbgTraceIfShared" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2526">dbgTraceIfShared.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.1835" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type u</span><span class="unknown token" data-binding>}</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.1836" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.1837" data-verso-hover="51">a</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1835" data-verso-hover="61">α</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1835" data-verso-hover="61">α</span></div><div class="narrow-only"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2526">dbgTraceIfShared.{u}</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>{</span><span class="var token" data-binding="var-_uniq.1835" data-verso-hover="61">α</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-4270320377459421588" data-verso-hover="55">Type u</span><span class="unknown token" data-binding>}</span><span class="inter-text">
+  </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.1836" data-verso-hover="168">s</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_uniq.1837" data-verso-hover="51">a</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1835" data-verso-hover="61">α</span><span class="unknown token" data-binding>)</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1835" data-verso-hover="61">α</span></div></pre><div class="text"><p>Display the given message if <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1834" data-verso-hover="51">a</span></code> is shared, that is, RC(a) &gt; 1</p></div></div><p>Due to the specifics of how <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.eval : command</code><span class="sep"></span><code class="docstring">`#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
 prints the resulting value.
 
 * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
@@ -3004,7 +3082,7 @@ Options:
 * If `eval.derive.repr` is true (default: true) then attempts to auto-derive a `Repr` instance
   when there is no other way to print the result.
 
-See also: `#reduce e` for evaluation by term reduction.</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><code class="kw">#eval</code></a></span> is implemented, using <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2528">dbgTraceIfShared</span></a></code> with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.eval : command</code><span class="sep"></span><code class="docstring">`#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
+See also: `#reduce e` for evaluation by term reduction.</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><code class="kw">#eval</code></a></span> is implemented, using <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2526">dbgTraceIfShared</span></a></code> with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.eval : command</code><span class="sep"></span><code class="docstring">`#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
 prints the resulting value.
 
 * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
@@ -3029,29 +3107,29 @@ Options:
 See also: `#reduce e` for evaluation by term reduction.</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><code class="kw">#eval</code></a></span> can be misleading.
 Instead, it should be used in code that's explicitly compiled and run.</p><details class="example" id="Observing-Uniqueness"><summary class="description">Observing Uniqueness</summary><div class="example-content"><p>This program reads a line of input from the user, printing it after replacing its first character with a space.
 Replacing characters in a string uses an in-place update if the string is not shared and the characters are both contained in the 7-bit ASCII subset of Unicode.
-The <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2528">dbgTraceIfShared</span></a></code> call does nothing, indicating that the string will indeed be updated in place rather than copied.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-process" data-verso-hover="2529">process</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="2530">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2531">startPos</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≠_»-32">≠</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___endPos" title="Documentation for String.endPos"><span class="const token" data-binding="const-String.endPos" data-verso-hover="2532">endPos</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-61">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="5">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="7">Unit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-71">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-74">do</span></a><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="8">IO.println</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-90">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-91">(</span><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2528">dbgTraceIfShared</span></a><span class="inter-text"> </span><span class="literal string token" data-binding data-verso-hover="2533">"String update"</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-91">)</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2531">startPos</span></a><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___Pos___set" title="Documentation for String.Pos.set"><span class="const token" data-binding="const-String.Pos.set" data-verso-hover="2534">set</span></a><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="2535">' '</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="2530">h</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-90">)</span><span class="inter-text">
+The <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2526">dbgTraceIfShared</span></a></code> call does nothing, indicating that the string will indeed be updated in place rather than copied.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-process" data-verso-hover="2527">process</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="2528">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2529">startPos</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≠_»-32">≠</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___endPos" title="Documentation for String.endPos"><span class="const token" data-binding="const-String.endPos" data-verso-hover="2530">endPos</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-61">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="5">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="7">Unit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-71">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-74">do</span></a><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="8">IO.println</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-90">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-91">(</span><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2526">dbgTraceIfShared</span></a><span class="inter-text"> </span><span class="literal string token" data-binding data-verso-hover="2531">"String update"</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-91">)</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2529">startPos</span></a><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___Pos___set" title="Documentation for String.Pos.set"><span class="const token" data-binding="const-String.Pos.set" data-verso-hover="2532">set</span></a><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="2533">' '</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="2528">h</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-90">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-151">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-main" data-verso-hover="2536" id="main">main</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-160">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="5">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="7">Unit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-170">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-173">do</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-178">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.138" data-verso-hover="168">line</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-182">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-190">(</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.nestedAction-191">←</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-195">(</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.nestedAction-196">←</span><span class="inter-text"> </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdin" title="Documentation for IO.getStdin"><span class="const token" data-binding="const-IO.getStdin" data-verso-hover="2537">IO.getStdin</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-195">)</span><span class="built-in delim token" data-binding>.</span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk" title="Documentation for IO.FS.Stream.getLine"><span class="const token" data-binding="const-IO.FS.Stream.getLine" data-verso-hover="2538">getLine</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-190">)</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___trimAscii" title="Documentation for String.trimAscii"><span class="const token" data-binding="const-String.trimAscii" data-verso-hover="2539">trimAscii</span></a><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___Slice___copy" title="Documentation for String.Slice.copy"><span class="const token" data-binding="const-String.Slice.copy" data-verso-hover="2540">copy</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-239">if</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.155" data-verso-hover="2541">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIfProp-242">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.138" data-verso-hover="168">line</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2531">startPos</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≠_»-246">≠</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.138" data-verso-hover="168">line</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___endPos" title="Documentation for String.endPos"><span class="const token" data-binding="const-String.endPos" data-verso-hover="2532">endPos</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-239">then</span><span class="inter-text">
-    </span><span class="const token" data-binding="const-process" data-verso-hover="2529">process</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.138" data-verso-hover="168">line</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.155" data-verso-hover="2541">h</span><span class="inter-text">
-</span><span class="unknown token" data-binding></span></code><p>When run with this input:</p><div class="example-file"><code>stdin</code><code class="line">Here is input.</code></div><p>the program emits:</p><div class="example-file"><code>stdout</code><code class="line"> ere is input.</code></div><p>with an empty standard error output:</p><div class="example-file"><code>stderr</code><code class="empty">&lt;empty&gt;</code></div><p>This version of the program retains a reference to the original string, which necessitates copying the string in the call to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-String.set" data-verso-hover="2542">String.set</span></code>.
-This fact is visible in its standard error output.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-process" data-verso-hover="2529">process</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="2530">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2531">startPos</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≠_»-32">≠</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___endPos" title="Documentation for String.endPos"><span class="const token" data-binding="const-String.endPos" data-verso-hover="2532">endPos</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-61">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="5">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="7">Unit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-71">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-74">do</span></a><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="8">IO.println</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-90">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-91">(</span><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2528">dbgTraceIfShared</span></a><span class="inter-text"> </span><span class="literal string token" data-binding data-verso-hover="2533">"String update"</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-91">)</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2531">startPos</span></a><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___Pos___set" title="Documentation for String.Pos.set"><span class="const token" data-binding="const-String.Pos.set" data-verso-hover="2534">set</span></a><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="2535">' '</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="2530">h</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-90">)</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-151">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-main" data-verso-hover="2534" id="main">main</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-160">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="5">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="7">Unit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-170">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-173">do</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-178">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="168">line</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-182">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-190">(</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.nestedAction-191">←</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-195">(</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.nestedAction-196">←</span><span class="inter-text"> </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdin" title="Documentation for IO.getStdin"><span class="const token" data-binding="const-IO.getStdin" data-verso-hover="2535">IO.getStdin</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-195">)</span><span class="built-in delim token" data-binding>.</span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk" title="Documentation for IO.FS.Stream.getLine"><span class="const token" data-binding="const-IO.FS.Stream.getLine" data-verso-hover="2536">getLine</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-190">)</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___trimAscii" title="Documentation for String.trimAscii"><span class="const token" data-binding="const-String.trimAscii" data-verso-hover="2537">trimAscii</span></a><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___Slice___copy" title="Documentation for String.Slice.copy"><span class="const token" data-binding="const-String.Slice.copy" data-verso-hover="2538">copy</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-239">if</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.132" data-verso-hover="2539">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIfProp-242">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="168">line</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2529">startPos</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≠_»-246">≠</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="168">line</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___endPos" title="Documentation for String.endPos"><span class="const token" data-binding="const-String.endPos" data-verso-hover="2530">endPos</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-239">then</span><span class="inter-text">
+    </span><span class="const token" data-binding="const-process" data-verso-hover="2527">process</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="168">line</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.132" data-verso-hover="2539">h</span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><p>When run with this input:</p><div class="example-file"><code>stdin</code><code class="line">Here is input.</code></div><p>the program emits:</p><div class="example-file"><code>stdout</code><code class="line"> ere is input.</code></div><p>with an empty standard error output:</p><div class="example-file"><code>stderr</code><code class="empty">&lt;empty&gt;</code></div><p>This version of the program retains a reference to the original string, which necessitates copying the string in the call to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-String.set" data-verso-hover="2540">String.set</span></code>.
+This fact is visible in its standard error output.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-process" data-verso-hover="2527">process</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-12">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="2528">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2529">startPos</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≠_»-32">≠</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___endPos" title="Documentation for String.endPos"><span class="const token" data-binding="const-String.endPos" data-verso-hover="2530">endPos</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-27">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-61">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="5">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="7">Unit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-71">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-74">do</span></a><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="8">IO.println</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-90">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-91">(</span><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2526">dbgTraceIfShared</span></a><span class="inter-text"> </span><span class="literal string token" data-binding data-verso-hover="2531">"String update"</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-91">)</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2529">startPos</span></a><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___Pos___set" title="Documentation for String.Pos.set"><span class="const token" data-binding="const-String.Pos.set" data-verso-hover="2532">set</span></a><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="2533">' '</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="2528">h</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-90">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-151">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-main" data-verso-hover="2536" id="main">main</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-160">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="5">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="7">Unit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-170">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-173">do</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-178">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.138" data-verso-hover="168">line</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-182">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-190">(</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.nestedAction-191">←</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-195">(</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.nestedAction-196">←</span><span class="inter-text"> </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdin" title="Documentation for IO.getStdin"><span class="const token" data-binding="const-IO.getStdin" data-verso-hover="2537">IO.getStdin</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-195">)</span><span class="built-in delim token" data-binding>.</span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk" title="Documentation for IO.FS.Stream.getLine"><span class="const token" data-binding="const-IO.FS.Stream.getLine" data-verso-hover="2538">getLine</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-190">)</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___trimAscii" title="Documentation for String.trimAscii"><span class="const token" data-binding="const-String.trimAscii" data-verso-hover="2539">trimAscii</span></a><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___Slice___copy" title="Documentation for String.Slice.copy"><span class="const token" data-binding="const-String.Slice.copy" data-verso-hover="2540">copy</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-239">if</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.158" data-verso-hover="2541">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIfProp-242">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.138" data-verso-hover="168">line</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2531">startPos</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≠_»-246">≠</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.138" data-verso-hover="168">line</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___endPos" title="Documentation for String.endPos"><span class="const token" data-binding="const-String.endPos" data-verso-hover="2532">endPos</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-239">then</span><span class="inter-text">
-    </span><span class="const token" data-binding="const-process" data-verso-hover="2529">process</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.138" data-verso-hover="168">line</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.158" data-verso-hover="2541">h</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="8">IO.println</span></a><span class="inter-text"> </span><span class="literal string token" data-binding data-verso-hover="2543">"Original input:"</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="8">IO.println</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.138" data-verso-hover="168">line</span><span class="inter-text">
-</span><span class="unknown token" data-binding></span></code><p>When run with this input:</p><div class="example-file"><code>stdin</code><code class="line">Here is input.</code></div><p>the program emits:</p><div class="example-file"><code>stdout</code><code class="line"> ere is input.</code><code class="line">Original input:</code><code class="line">Here is input.</code></div><p>In its standard error, the message passed to <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2528">dbgTraceIfShared</span></a></code> is visible.</p><div class="example-file"><code>stderr</code><code class="line">shared RC String update</code></div></div></details></section><section><h2 id="The-Lean-Language-Reference--Run-Time-Code--Reference-Counting--Compiler-IR">12.2.2. Compiler IR<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Run-Time-Code--Reference-Counting--Compiler-IR" title="Permalink">🔗</a></span></h2><p>The compiler option <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#trace___compiler___ir___result" title="Documentation for option trace.compiler.ir.result"><span class="option token" data-binding="option-trace.compiler.ir.result" data-verso-hover="2544">trace.compiler.ir.result</span></a></code> can be used to inspect the compiler's intermediate representation (IR) for a function.
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-151">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-main" data-verso-hover="2534" id="main">main</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-160">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="5">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="7">Unit</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-170">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-173">do</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-178">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="168">line</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-182">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-190">(</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.nestedAction-191">←</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-195">(</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.nestedAction-196">←</span><span class="inter-text"> </span><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdin" title="Documentation for IO.getStdin"><span class="const token" data-binding="const-IO.getStdin" data-verso-hover="2535">IO.getStdin</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-195">)</span><span class="built-in delim token" data-binding>.</span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk" title="Documentation for IO.FS.Stream.getLine"><span class="const token" data-binding="const-IO.FS.Stream.getLine" data-verso-hover="2536">getLine</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-190">)</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___trimAscii" title="Documentation for String.trimAscii"><span class="const token" data-binding="const-String.trimAscii" data-verso-hover="2537">trimAscii</span></a><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___Slice___copy" title="Documentation for String.Slice.copy"><span class="const token" data-binding="const-String.Slice.copy" data-verso-hover="2538">copy</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-239">if</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.135" data-verso-hover="2539">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.doIfProp-242">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="168">line</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___startPos" title="Documentation for String.startPos"><span class="const token" data-binding="const-String.startPos" data-verso-hover="2529">startPos</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_≠_»-246">≠</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="168">line</span><span class="built-in delim token" data-binding>.</span><a href="Basic-Types/Strings/#String___endPos" title="Documentation for String.endPos"><span class="const token" data-binding="const-String.endPos" data-verso-hover="2530">endPos</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-239">then</span><span class="inter-text">
+    </span><span class="const token" data-binding="const-process" data-verso-hover="2527">process</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="168">line</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.135" data-verso-hover="2539">h</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="8">IO.println</span></a><span class="inter-text"> </span><span class="literal string token" data-binding data-verso-hover="2541">"Original input:"</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="8">IO.println</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.115" data-verso-hover="168">line</span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><p>When run with this input:</p><div class="example-file"><code>stdin</code><code class="line">Here is input.</code></div><p>the program emits:</p><div class="example-file"><code>stdout</code><code class="line"> ere is input.</code><code class="line">Original input:</code><code class="line">Here is input.</code></div><p>In its standard error, the message passed to <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#dbgTraceIfShared" title="Documentation for dbgTraceIfShared"><span class="const token" data-binding="const-dbgTraceIfShared" data-verso-hover="2526">dbgTraceIfShared</span></a></code> is visible.</p><div class="example-file"><code>stderr</code><code class="line">shared RC String update</code></div></div></details></section><section><h2 id="The-Lean-Language-Reference--Run-Time-Code--Reference-Counting--Compiler-IR">12.2.2. Compiler IR<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Run-Time-Code--Reference-Counting--Compiler-IR" title="Permalink">🔗</a></span></h2><p>The compiler option <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#trace___compiler___ir___result" title="Documentation for option trace.compiler.ir.result"><span class="option token" data-binding="option-trace.compiler.ir.result" data-verso-hover="2542">trace.compiler.ir.result</span></a></code> can be used to inspect the compiler's intermediate representation (IR) for a function.
 In this intermediate representation, reference counting, allocation, and reuse are explicit:</p><ul><li><p>The <code>isShared</code> operator checks whether a reference count is <code>1</code>.</p></li><li><p><code>ctor_</code><code class="math inline">n</code> allocates the <code class="math inline">n</code>th constructor of a type.</p></li><li><p><code>proj_</code><code class="math inline">n</code> retrieves the <code class="math inline">n</code>th field from a constructor value.</p></li><li><p><code>set </code><code class="math inline">x</code>﻿<code>[</code><code class="math inline">n</code>﻿<code>]</code> mutates the <code class="math inline">n</code>th field of the constructor in <code class="math inline">x</code>.</p></li><li><p><code>ret </code><code class="math inline">x</code> returns the value in <code class="math inline">x</code>.</p></li></ul><p>The specifics of reference count manipulations can depend on the results of optimization passes such as inlining.
 While the vast majority of Lean code doesn't require this kind of attention to achieve good performance, knowing how to diagnose unique reference issues can be very important when writing performance-critical code.</p><div class="namedocs" id="trace___compiler___ir___result"><span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc.option&amp;name=trace.compiler.ir.result" title="Permalink">🔗</a></span><span class="label">option</span><pre class="signature hl lean block">trace.compiler.ir.result</pre><div class="text"><p>Default value: <code class="hl lean inline"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="45">false</span></a></code></p><p>enable/disable tracing for the given module and submodules</p></div></div><details class="example" id="Reference-Counts-in-IR"><summary class="description">Reference Counts in IR</summary><div class="example-content"><p>Compiler IR can be used to observe when reference counts are incremented, which can help diagnose situations when a value is expected to have a unique incoming reference, but is in fact shared.
-Here, <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process" data-verso-hover="2545">process</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process___-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process'" data-verso-hover="2546">process'</span></a></code> each take a string as a parameter and modify it with <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-String.set" data-verso-hover="2542">String.set</span></code>, returning a pair of strings.
-While <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process" data-verso-hover="2545">process</span></a></code> returns a constant string as the second element of the pair, <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process___-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process'" data-verso-hover="2546">process'</span></a></code> returns the original string.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-10252" data-verso-hover="103">set_option</span><span class="inter-text"> </span><a href="Run-Time-Code/Reference-Counting/#trace___compiler___ir___result" title="Documentation for option trace.compiler.ir.result"><span class="option token" data-binding="option-trace.compiler.ir.result" data-verso-hover="2544">trace.compiler.ir.result</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-10252" data-verso-hover="103">true</span><span class="inter-text">
-</span><span class="unknown token" data-binding></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-10318">def</span><span class="inter-text"> </span><span class="has-info information" data-verso-hover="2545"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="trace"><span class="trace-class">[Compiler.IR]</span> <span class="text">[result]
+Here, <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process" data-verso-hover="2543">process</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process___-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process'" data-verso-hover="2544">process'</span></a></code> each take a string as a parameter and modify it with <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-String.set" data-verso-hover="2540">String.set</span></code>, returning a pair of strings.
+While <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process" data-verso-hover="2543">process</span></a></code> returns a constant string as the second element of the pair, <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process___-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process'" data-verso-hover="2544">process'</span></a></code> returns the original string.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-10252" data-verso-hover="103">set_option</span><span class="inter-text"> </span><a href="Run-Time-Code/Reference-Counting/#trace___compiler___ir___result" title="Documentation for option trace.compiler.ir.result"><span class="option token" data-binding="option-trace.compiler.ir.result" data-verso-hover="2542">trace.compiler.ir.result</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-10252" data-verso-hover="103">true</span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-10318">def</span><span class="inter-text"> </span><span class="has-info information" data-verso-hover="2543"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="trace"><span class="trace-class">[Compiler.IR]</span> <span class="text">[result]
     def process._closed_0 : obj :=
       let x_1 : obj := "";
       ret x_1
@@ -3063,10 +3141,10 @@ While <code class="hl lean inline" data-lean-context="examples"><a href="Run-Tim
       inc x_5;
       let x_6 : obj := ctor_0[Prod.mk] x_4 x_5;
       ret x_6</span></span></code></span></span><span class="const token" data-binding="const-process" id="process-_LPAR_in-Reference-Counts-in-IR_RPAR_">process</span></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10330">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10330">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10330">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-10345">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_×_»-10347">×</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-10364">:=</span><span class="inter-text">
-  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-10369">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><span class="has-info warning" data-verso-hover="2542"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">`</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-String.set" data-verso-hover="2542">String.set</span><span class="inter-text"></span></span><span class="text">` has been deprecated</span><span class="text">: Use `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___Pos___Raw___set" title="Documentation for String.Pos.Raw.set"><span class="const token" data-binding="const-String.Pos.Raw.set" data-verso-hover="2547">String.Pos.Raw.set</span></a><span class="inter-text"></span></span><span class="text">` instead</span><span class="text">
+  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-10369">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><span class="has-info warning" data-verso-hover="2540"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">`</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-String.set" data-verso-hover="2540">String.set</span><span class="inter-text"></span></span><span class="text">` has been deprecated</span><span class="text">: Use `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___Pos___Raw___set" title="Documentation for String.Pos.Raw.set"><span class="const token" data-binding="const-String.Pos.Raw.set" data-verso-hover="2545">String.Pos.Raw.set</span></a><span class="inter-text"></span></span><span class="text">` instead</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">The updated constant is in a different namespace. Dot notation may need to be changed</span><span class="text"> (e.g., from `x.</span><span class="text">set</span><span class="text">` to `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___Pos___Raw___set" title="Documentation for String.Pos.Raw.set"><span class="const token" data-binding="const-String.Pos.Raw.set" data-verso-hover="2547">String.Pos.Raw.set</span></a><span class="inter-text"></span></span><span class="text"> x`)</span><span class="text">.</span></code></span></span><span class="const token" data-binding="const-String.set">set</span></span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="2548">0</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="2535">' '</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-10369">,</span><span class="inter-text"> </span><span class="literal string token" data-binding data-verso-hover="224">""</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-10369">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-10414">def</span><span class="inter-text"> </span><span class="has-info information" data-verso-hover="2546"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="trace"><span class="trace-class">[Compiler.IR]</span> <span class="text">[result]
+</span><span class="text">Note: </span><span class="text">The updated constant is in a different namespace. Dot notation may need to be changed</span><span class="text"> (e.g., from `x.</span><span class="text">set</span><span class="text">` to `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___Pos___Raw___set" title="Documentation for String.Pos.Raw.set"><span class="const token" data-binding="const-String.Pos.Raw.set" data-verso-hover="2545">String.Pos.Raw.set</span></a><span class="inter-text"></span></span><span class="text"> x`)</span><span class="text">.</span><span class="text"></span></code></span></span><span class="const token" data-binding="const-String.set">set</span></span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="2546">0</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="2533">' '</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-10369">,</span><span class="inter-text"> </span><span class="literal string token" data-binding data-verso-hover="224">""</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-10369">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-10414">def</span><span class="inter-text"> </span><span class="has-info information" data-verso-hover="2544"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="trace"><span class="trace-class">[Compiler.IR]</span> <span class="text">[result]
     def process' (x_1 : obj) : obj :=
       let x_2 : tagged := 0;
       let x_3 : u32 := 32;
@@ -3074,11 +3152,11 @@ While <code class="hl lean inline" data-lean-context="examples"><a href="Run-Tim
       let x_4 : obj := String.set x_1 x_2 x_3;
       let x_5 : obj := ctor_0[Prod.mk] x_4 x_1;
       ret x_5</span></span></code></span></span><span class="const token" data-binding="const-process'" id="process___-_LPAR_in-Reference-Counts-in-IR_RPAR_">process'</span></span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10427">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10427">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-10427">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-10442">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_×_»-10444">×</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="19">String</span></a><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-10460">:=</span><span class="inter-text">
-  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-10465">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><span class="has-info warning" data-verso-hover="2542"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">`</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-String.set" data-verso-hover="2542">String.set</span><span class="inter-text"></span></span><span class="text">` has been deprecated</span><span class="text">: Use `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___Pos___Raw___set" title="Documentation for String.Pos.Raw.set"><span class="const token" data-binding="const-String.Pos.Raw.set" data-verso-hover="2547">String.Pos.Raw.set</span></a><span class="inter-text"></span></span><span class="text">` instead</span><span class="text">
+  </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-10465">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="built-in delim token" data-binding>.</span><span class="has-info warning" data-verso-hover="2540"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">`</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-String.set" data-verso-hover="2540">String.set</span><span class="inter-text"></span></span><span class="text">` has been deprecated</span><span class="text">: Use `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___Pos___Raw___set" title="Documentation for String.Pos.Raw.set"><span class="const token" data-binding="const-String.Pos.Raw.set" data-verso-hover="2545">String.Pos.Raw.set</span></a><span class="inter-text"></span></span><span class="text">` instead</span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">The updated constant is in a different namespace. Dot notation may need to be changed</span><span class="text"> (e.g., from `x.</span><span class="text">set</span><span class="text">` to `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___Pos___Raw___set" title="Documentation for String.Pos.Raw.set"><span class="const token" data-binding="const-String.Pos.Raw.set" data-verso-hover="2547">String.Pos.Raw.set</span></a><span class="inter-text"></span></span><span class="text"> x`)</span><span class="text">.</span></code></span></span><span class="const token" data-binding="const-String.set">set</span></span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="2548">0</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="2535">' '</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-10465">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-10465">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding></span></code><p>The IR for <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process" data-verso-hover="2545">process</span></a></code> includes no <code>inc</code> or <code>dec</code> instructions.
-If the incoming string <code>x_1</code> is a unique reference, then it is still a unique reference when passed to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-String.set" data-verso-hover="2542">String.set</span></code>, which can then use in-place modification:</p><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="trace"><span class="trace-class">[Compiler.IR]</span> <span class="text">[result]
+</span><span class="text">Note: </span><span class="text">The updated constant is in a different namespace. Dot notation may need to be changed</span><span class="text"> (e.g., from `x.</span><span class="text">set</span><span class="text">` to `</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___Pos___Raw___set" title="Documentation for String.Pos.Raw.set"><span class="const token" data-binding="const-String.Pos.Raw.set" data-verso-hover="2545">String.Pos.Raw.set</span></a><span class="inter-text"></span></span><span class="text"> x`)</span><span class="text">.</span><span class="text"></span></code></span></span><span class="const token" data-binding="const-String.set">set</span></span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="2546">0</span><span class="inter-text"> </span><span class="literal char token" data-binding data-verso-hover="2533">' '</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-10465">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="168">str</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-10465">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><p>The IR for <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process" data-verso-hover="2543">process</span></a></code> includes no <code>inc</code> or <code>dec</code> instructions.
+If the incoming string <code>x_1</code> is a unique reference, then it is still a unique reference when passed to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-String.set" data-verso-hover="2540">String.set</span></code>, which can then use in-place modification:</p><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="trace"><span class="trace-class">[Compiler.IR]</span> <span class="text">[result]
     def process._closed_0 : obj :=
       let x_1 : obj := "";
       ret x_1
@@ -3089,7 +3167,7 @@ If the incoming string <code>x_1</code> is a unique reference, then it is still 
       let x_5 : obj := process._closed_0;
       inc x_5;
       let x_6 : obj := ctor_0[Prod.mk] x_4 x_5;
-      ret x_6</span></span></span></pre><p>The IR for <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process___-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process'" data-verso-hover="2546">process'</span></a></code>, on the other hand, increments the reference count of the string just before calling <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-String.set" data-verso-hover="2542">String.set</span></code>.
+      ret x_6</span></span></span></pre><p>The IR for <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#process___-_LPAR_in-Reference-Counts-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-process'" data-verso-hover="2544">process'</span></a></code>, on the other hand, increments the reference count of the string just before calling <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-String.set" data-verso-hover="2540">String.set</span></code>.
 Thus, the modified string <code>x_4</code> is a copy, regardless of whether the original reference to <code>x_1</code> is unique:</p><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="trace"><span class="trace-class">[Compiler.IR]</span> <span class="text">[result]
     def process' (x_1 : obj) : obj :=
       let x_2 : tagged := 0;
@@ -3097,10 +3175,10 @@ Thus, the modified string <code>x_4</code> is a copy, regardless of whether the 
       inc x_1;
       let x_4 : obj := String.set x_1 x_2 x_3;
       let x_5 : obj := ctor_0[Prod.mk] x_4 x_1;
-      ret x_5</span></span></span></pre><div class="live-link"><a href="javascript:openLiveLink(&quot;M4UwLg+g9gDmCWUB2ACMAnAhgYxAOmygFsZ4AbEdPeK9EYAVzLDXQZACgOATEAMxQx0UXMGAoAFMAwoAXCgDKGeEgDmASjmLlalAHXt6FarkBeDiknSqoFgAYUAcicAaFACJ36rrwFCR9MDOUjLySkZqmmE6JgbhxrLmliE24CgOzo5u1upAA&quot;)">Live ↪</a></div></div></details><details class="example" id="Memory-Reuse-in-IR"><summary class="description">Memory Reuse in IR</summary><div class="example-content"><p>The function <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#discardElems-_LPAR_in-Memory-Reuse-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-discardElems" data-verso-hover="2549">discardElems</span></a></code> is a simplified version of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___map" title="Documentation for List.map"><span class="const token" data-binding="const-List.map" data-verso-hover="189">List.map</span></a></code> that replaces every element in a list with <code class="hl lean inline" data-lean-context="examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-11774">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-11774">)</span></code>.
-Inspecting its intermediate representation demonstrates that it will reuse the list's memory when its reference is unique.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-11934" data-verso-hover="103">set_option</span><span class="inter-text"> </span><a href="Run-Time-Code/Reference-Counting/#trace___compiler___ir___result" title="Documentation for option trace.compiler.ir.result"><span class="option token" data-binding="option-trace.compiler.ir.result" data-verso-hover="2544">trace.compiler.ir.result</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-11934" data-verso-hover="103">true</span><span class="inter-text">
+      ret x_5</span></span></span></pre><div class="live-link"><a href="javascript:openLiveLink(&quot;M4UwLg+g9gDmCWUB2ACMAnAhgYxAOmygFsZ4AbEdPeK9EYAVzLDXQZACgOATEAMxQx0UXMGAoAFMAwoAXCgDKGeEgDmASjmLlalAHXt6FarkBeDiknSqoFgAYUAcicAaFACJ36rrwFCR9MDOUjLySkZqmmE6JgbhxrLmliE24CgOzo5u1upAA&quot;)">Live ↪</a></div></div></details><details class="example" id="Memory-Reuse-in-IR"><summary class="description">Memory Reuse in IR</summary><div class="example-content"><p>The function <code class="hl lean inline" data-lean-context="examples"><a href="Run-Time-Code/Reference-Counting/#discardElems-_LPAR_in-Memory-Reuse-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-discardElems" data-verso-hover="2547">discardElems</span></a></code> is a simplified version of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___map" title="Documentation for List.map"><span class="const token" data-binding="const-List.map" data-verso-hover="189">List.map</span></a></code> that replaces every element in a list with <code class="hl lean inline" data-lean-context="examples"><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-11774">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-11774">)</span></code>.
+Inspecting its intermediate representation demonstrates that it will reuse the list's memory when its reference is unique.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-11934" data-verso-hover="103">set_option</span><span class="inter-text"> </span><a href="Run-Time-Code/Reference-Counting/#trace___compiler___ir___result" title="Documentation for option trace.compiler.ir.result"><span class="option token" data-binding="option-trace.compiler.ir.result" data-verso-hover="2542">trace.compiler.ir.result</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-11934" data-verso-hover="103">true</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-11976">def</span><span class="inter-text"> </span><span class="has-info information" data-verso-hover="2549"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="trace"><span class="trace-class">[Compiler.IR]</span> <span class="text">[result]
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-11976">def</span><span class="inter-text"> </span><span class="has-info information" data-verso-hover="2547"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="trace"><span class="trace-class">[Compiler.IR]</span> <span class="text">[result]
     def discardElems._redArg (x_1 : tobj) : tobj :=
       case x_1 : tobj of
       List.nil →
@@ -3140,7 +3218,7 @@ Inspecting its intermediate representation demonstrates that it will reuse the l
 </span><span class="text">Hint: </span><span class="text">The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:</span><span class="text"></span><span class="text"></span><span class="text">
   </span><span class="text"></span><span class="text">[apply]</span><span class="text"> </span><span class="text"></span><span class="text">_x</span><span class="text"></span><span class="text">
 </span><span class="text">
-</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.49">x</span></span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-12034">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-12019">=&gt;</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12045">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-12045">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-12045">::</span><span class="inter-text"> </span><a href="Run-Time-Code/Reference-Counting/#discardElems-_LPAR_in-Memory-Reuse-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-discardElems" data-verso-hover="2549">discardElems</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50" data-verso-hover="57">xs</span><span class="inter-text">
+</span><span class="text">Note: </span><span class="text">This linter can be disabled with `set_option </span><span class="text">linter.unusedVariables</span><span class="text"> false`</span></code></span></span><span class="var token" data-binding="var-_uniq.49">x</span></span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-12034">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50" data-verso-hover="57">xs</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.matchAlts-12019">=&gt;</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-12045">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-12045">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_::_»-12045">::</span><span class="inter-text"> </span><a href="Run-Time-Code/Reference-Counting/#discardElems-_LPAR_in-Memory-Reuse-in-IR_RPAR_" title="Definition of example"><span class="const token" data-binding="const-discardElems" data-verso-hover="2547">discardElems</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.50" data-verso-hover="57">xs</span><span class="inter-text">
 </span><span class="unknown token" data-binding></span></code><p>This emits the following IR:</p><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="trace"><span class="trace-class">[Compiler.IR]</span> <span class="text">[result]
     def discardElems._redArg (x_1 : tobj) : tobj :=
       case x_1 : tobj of

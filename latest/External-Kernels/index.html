@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,43 +3036,6 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
@@ -2984,7 +3062,7 @@ An exported <code>.ndjson</code> file will begin with an <a class="export-type" 
     <span class="brace">}</span>
   <span class="brace">}</span>
 <span class="brace">}</span>
-</pre></figure><p>The metadata object is followed by a sequence of primitives with integer tags (<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Name" data-verso-hover="2006">Name</span></code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Level" data-verso-hover="10116">Level</span></code>, or <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3009">Expr</span></code>) and declarations (<a class="export-type" href="External-Kernels/#Axiom">axiom</a>, <a class="export-type" href="External-Kernels/#Definition">definition</a>, <a class="export-type" href="External-Kernels/#Theorem">theorem</a>, <a class="export-type" href="External-Kernels/#Opaque">opaque</a>, <a class="export-type" href="External-Kernels/#Quotient-next">quot</a>, <a class="export-type" href="External-Kernels/#Inductive-Declaration">inductive</a> including <a class="export-type" href="External-Kernels/#ConstructorVal">constructor</a> and <a class="export-type" href="External-Kernels/#RecursorVal">recursor</a>), where related elements of an inductive or mutual inductive declaration (the inductive specifications, constructors, and recursors) are grouped together.</p><p>The export format contains information that is redundant and would likely be ignored or only validated by a full external checker (such as the types of recursors).
+</pre></figure><p>The metadata object is followed by a sequence of primitives with integer tags (<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Name" data-verso-hover="2004">Name</span></code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Level" data-verso-hover="10073">Level</span></code>, or <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3008">Expr</span></code>) and declarations (<a class="export-type" href="External-Kernels/#Axiom">axiom</a>, <a class="export-type" href="External-Kernels/#Definition">definition</a>, <a class="export-type" href="External-Kernels/#Theorem">theorem</a>, <a class="export-type" href="External-Kernels/#Opaque">opaque</a>, <a class="export-type" href="External-Kernels/#Quotient-next">quot</a>, <a class="export-type" href="External-Kernels/#Inductive-Declaration">inductive</a> including <a class="export-type" href="External-Kernels/#ConstructorVal">constructor</a> and <a class="export-type" href="External-Kernels/#RecursorVal">recursor</a>), where related elements of an inductive or mutual inductive declaration (the inductive specifications, constructors, and recursors) are grouped together.</p><p>The export format contains information that is redundant and would likely be ignored or only validated by a full external checker (such as the types of recursors).
 These are included for the benefit of other tools that want all constants with their types (e.g. dependency analysis tools).</p><p>The construction of these elements is as described below.
 Line breaks are included for readability; note that the NDJSON format requires these JSON objects to be rendered without any line breaks.</p><section><h3 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Indices">27.1.1. Indices<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Indices" title="Permalink">🔗</a></span></h3><div class="paragraph"><p>The export format uses explicit indices to refer to names, levels, and expressions.
 Each kind of object occupies its own table, and indices may be reused between tables.
@@ -2995,8 +3073,8 @@ Index 0 refers to level 0 and is predefined.</p></dd><dt><span class="export-typ
 There are no predefined values.</p></dd><dt><span class="export-type" id="NameIdxDef"><code class="export-format"><span class="type">NameIdxDef</span></code></span></dt><dd><p>A <code class="export-format"><span class="type"><a href="External-Kernels/#NameIdx">NameIdx</a></span></code> defined by this line</p></dd><dt><span class="export-type" id="LevelIdxDef"><code class="export-format"><span class="type">LevelIdxDef</span></code></span></dt><dd><p>A <code class="export-format"><span class="type"><a href="External-Kernels/#LevelIdx">LevelIdx</a></span></code> defined by this line</p></dd><dt><span class="export-type" id="ExprIdxDef"><code class="export-format"><span class="type">ExprIdxDef</span></code></span></dt><dd><p>A <code class="export-format"><span class="type"><a href="External-Kernels/#ExprIdx">ExprIdx</a></span></code> defined by this line</p></dd></dl><p>If an index is defined more than once, the kernel should reject the code.
 Every definition of an index must precede all uses; if an undefined index is encountered, the kernel should reject the code.</p></div><p>Other integer fields represent integer values.
 They may be de Bruijn indices (<code class="export-format key">"bvar"</code>), numeric name components (<code class="export-format key">"i"</code>), field indices (<code class="export-format key">"idx"</code>), definition heights (<code class="export-format key">"regular"</code>), constructor positions (<code class="export-format key">"cidx"</code>), or counts (<code class="export-format key">"numParams"</code>, <code class="export-format key">"numIndices"</code>, <code class="export-format key">"numNested"</code>, <code class="export-format key">"numFields"</code>, <code class="export-format key">"numMotives"</code>, <code class="export-format key">"numMinors"</code>, <code class="export-format key">"nfields"</code>).
-Natural number literals are encoded as JSON string literals instead of JSON numbers to reduce the risk of parsers truncating values at limits such as <code class="math inline">2^{53}</code>.</p></section><section><h3 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Names">27.1.2. Names<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Names" title="Permalink">🔗</a></span></h3><p>Names have two formats that correspond to the constructors of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Name" data-verso-hover="2006">Lean.Name</span></code>.
-Index 0 is predefined to refer to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Name.anonymous" data-verso-hover="9898">Lean.Name.anonymous</span></code>.</p><figure class="export-format" id="Name___str"><figcaption>Name.str</figcaption><pre class="export-format"><span class="brace">{</span>
+Natural number literals are encoded as JSON string literals instead of JSON numbers to reduce the risk of parsers truncating values at limits such as <code class="math inline">2^{53}</code>.</p></section><section><h3 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Names">27.1.2. Names<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Names" title="Permalink">🔗</a></span></h3><p>Names have two formats that correspond to the constructors of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Name" data-verso-hover="2004">Lean.Name</span></code>.
+Index 0 is predefined to refer to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Name.anonymous" data-verso-hover="9854">Lean.Name.anonymous</span></code>.</p><figure class="export-format" id="Name___str"><figcaption>Name.str</figcaption><pre class="export-format"><span class="brace">{</span>
   <span class="key">"str"</span><span class="delim">:</span> <span class="brace">{</span>
     <span class="key">"pre"</span><span class="delim">:</span> <span class="type"><a href="External-Kernels/#NameIdx">NameIdx</a></span><span class="delim">,</span>
     <span class="key">"str"</span><span class="delim">:</span> <span class="type">string</span>
@@ -3010,8 +3088,8 @@ Index 0 is predefined to refer to <code class="hl lean inline" data-lean-context
   <span class="brace">}</span><span class="delim">,</span>
   <span class="key">"in"</span><span class="delim">:</span> <span class="type"><a href="External-Kernels/#NameIdxDef">NameIdxDef</a></span>
 <span class="brace">}</span>
-</pre></figure></section><section><h3 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Levels">27.1.3. Levels<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Levels" title="Permalink">🔗</a></span></h3><p><a class="technical-term" href="The-Type-System/Universes/#--tech-term-level">Universe levels</a> have four formats that correspond to the constructors of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Level" data-verso-hover="10116">Lean.Level</span></code>.
-Index 0 is predefined to refer to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Level.zero" data-verso-hover="10872">Lean.Level.zero</span></code> and is not otherwise represented.</p><figure class="export-format" id="Level___succ"><figcaption>Level.succ</figcaption><pre class="export-format"><span class="brace">{</span>
+</pre></figure></section><section><h3 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Levels">27.1.3. Levels<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Levels" title="Permalink">🔗</a></span></h3><p><a class="technical-term" href="The-Type-System/Universes/#--tech-term-level">Universe levels</a> have four formats that correspond to the constructors of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Level" data-verso-hover="10073">Lean.Level</span></code>.
+Index 0 is predefined to refer to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Level.zero" data-verso-hover="10836">Lean.Level.zero</span></code> and is not otherwise represented.</p><figure class="export-format" id="Level___succ"><figcaption>Level.succ</figcaption><pre class="export-format"><span class="brace">{</span>
   <span class="key">"succ"</span><span class="delim">:</span> <span class="type"><a href="External-Kernels/#LevelIdx">LevelIdx</a></span><span class="delim">,</span>
   <span class="key">"il"</span><span class="delim">:</span> <span class="type"><a href="External-Kernels/#LevelIdxDef">LevelIdxDef</a></span>
 <span class="brace">}</span>
@@ -3027,7 +3105,7 @@ Index 0 is predefined to refer to <code class="hl lean inline" data-lean-context
   <span class="key">"param"</span><span class="delim">:</span> <span class="type"><a href="External-Kernels/#NameIdx">NameIdx</a></span><span class="delim">,</span>
   <span class="key">"il"</span><span class="delim">:</span> <span class="type"><a href="External-Kernels/#LevelIdxDef">LevelIdxDef</a></span>
 <span class="brace">}</span>
-</pre></figure></section><section><h3 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Expressions">27.1.4. Expressions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Expressions" title="Permalink">🔗</a></span></h3><p>Each constructor of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3009">Lean.Expr</span></code> that may occur in elaborated code has a corresponding JSON representation.
+</pre></figure></section><section><h3 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Expressions">27.1.4. Expressions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Expressions" title="Permalink">🔗</a></span></h3><p>Each constructor of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3008">Lean.Expr</span></code> that may occur in elaborated code has a corresponding JSON representation.
 Free variables and metavariables do not appear in the export.
 There are no predefined expressions.</p><figure class="export-format" id="Expr___bvar"><figcaption>Expr.bvar</figcaption><pre class="export-format"><span class="brace">{</span>
   <span class="key">"bvar"</span><span class="delim">:</span> <span class="type">integer</span><span class="delim">,</span>
@@ -3143,7 +3221,7 @@ In this case, there is only a single representation.</p><section><h4 id="The-Lea
     <span class="key">"all"</span><span class="delim">:</span> <span class="type">Array</span><span class="angle">&lt;</span><span class="type"><a href="External-Kernels/#NameIdx">NameIdx</a></span><span class="angle">&gt;</span>
   <span class="brace">}</span>
 <span class="brace">}</span>
-</pre></figure></section><section><h4 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Declarations--Quotients">27.1.5.5. Quotients<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Declarations--Quotients" title="Permalink">🔗</a></span></h4><p>The official Lean kernel uses the fieldless constructor <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Declaration.quotDecl" data-verso-hover="10873">Lean.Declaration.quotDecl</span></code> as the input to declare the quotient declarations.
+</pre></figure></section><section><h4 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Declarations--Quotients">27.1.5.5. Quotients<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Declarations--Quotients" title="Permalink">🔗</a></span></h4><p>The official Lean kernel uses the fieldless constructor <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Declaration.quotDecl" data-verso-hover="10837">Lean.Declaration.quotDecl</span></code> as the input to declare the quotient declarations.
 It then adds the four declarations that make up the quotient package to the environment.
 The export format includes the data of these generated declarations for convenience.</p><figure class="export-format" id="Quotient-next"><figcaption>Quotient</figcaption><pre class="export-format"><span class="brace">{</span>
   <span class="key">"quot"</span><span class="delim">:</span> <span class="brace">{</span>
@@ -3153,8 +3231,8 @@ The export format includes the data of these generated declarations for convenie
     <span class="key">"kind"</span><span class="delim">:</span> <span class="lit">"type"</span> <span class="alt">|</span> <span class="lit">"ctor"</span> <span class="alt">|</span> <span class="lit">"lift"</span> <span class="alt">|</span> <span class="lit">"ind"</span>
   <span class="brace">}</span>
 <span class="brace">}</span>
-</pre></figure></section><section><h4 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Declarations--Inductive-Declaration___">27.1.5.6. Inductive Declaration:<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Declarations--Inductive-Declaration___" title="Permalink">🔗</a></span></h4><p>The official Lean kernel expects a <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Declaration.inductDecl" data-verso-hover="10874">Lean.Declaration.inductDecl</span></code>, which contains a (mutual) group of inductive declarations with their constructors.
-From that the kernel derives the <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-recursor">recursors</a> and informational fields like <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.InductiveVal.isRec" data-verso-hover="10875">isRec</span></code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.InductiveVal.isReflexive" data-verso-hover="10876">isReflexive</span></code> or <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.ConstructorVal.cidx" data-verso-hover="10877">cidx</span></code>.
+</pre></figure></section><section><h4 id="The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Declarations--Inductive-Declaration___">27.1.5.6. Inductive Declaration:<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--External-Kernels--Lean-Export-Format--Declarations--Inductive-Declaration___" title="Permalink">🔗</a></span></h4><p>The official Lean kernel expects a <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Declaration.inductDecl" data-verso-hover="10838">Lean.Declaration.inductDecl</span></code>, which contains a (mutual) group of inductive declarations with their constructors.
+From that the kernel derives the <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-recursor">recursors</a> and informational fields like <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.InductiveVal.isRec" data-verso-hover="10839">isRec</span></code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.InductiveVal.isReflexive" data-verso-hover="10840">isReflexive</span></code> or <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.ConstructorVal.cidx" data-verso-hover="10841">cidx</span></code>.
 The export format includes the data of these generated declarations for convenience.
 <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-___-reduction">ι-reductions</a> are specified by <code class="export-format"><span class="type"><a href="External-Kernels/#RecursorRule">RecursorRule</a></span></code> entries.
 Independent kernels may either trust the included derived recursor information or regenerate and check it for extra assurance.</p><figure class="export-format" id="Inductive-Declaration"><figcaption>Inductive Declaration</figcaption><pre class="export-format"><span class="brace">{</span>

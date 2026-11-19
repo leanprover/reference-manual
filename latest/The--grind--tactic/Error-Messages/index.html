@@ -1,11 +1,18 @@
-<!-- Generated from commit 496fa422a51fb9e721b34d08fa5f5c340f54767c at 2026-11-17T16:09:40Z -->
+<!-- Generated from commit 02e54046aa0aa205b77360b346af626b187ee608 at 2026-11-19T18:02:53Z -->
 <!DOCTYPE html>
-<html><head><script>(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()</script><script>// Enable TypeScript checking.
+<html><head><script>(function () {
+    const {
+        protocol: proto,
+        host: hostName,
+        pathname: path,
+        search: srch,
+        hash: hsh,
+    } = window.location;
+    if (!(path.endsWith("/") || path.endsWith(".html"))) {
+        window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+    }
+})();
+</script><script>// Enable TypeScript checking.
 // @ts-check
 
 // Applies a saved table-of-contents width before the first paint.
@@ -2448,7 +2455,397 @@ a.technical-term:hover {
 .c .type { font-weight: 600; }
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
-</style><script>function openDetailsForHashTarget() {
+</style><style>
+.namedocs.warn { border-color: #cc3333; }
+.namedocs.warn > .label { border-color: #cc3333; color: #a02020; }
+.namedocs.warn > .text { border-top: none; }
+</style><script>window.versoLoadDocData = () => (fetch("-verso-docs.json").then((resp) => resp.json()));
+window.onload = async () => {
+    /**
+     * @param {Element} tactic
+     * @returns {HTMLInputElement | null}
+     */
+    function tacticToggle(tactic) {
+        const toggle = tactic.querySelector(":scope > input.tactic-toggle");
+        return toggle instanceof HTMLInputElement ? toggle : null;
+    }
+
+    // Don't show hovers inside of closed tactic states
+    /** @param {Element} elem */
+    function blockedByTactic(elem) {
+        let parent = elem.parentElement;
+        while (parent) {
+            if (parent.classList.contains("tactic")) {
+                const toggle = tacticToggle(parent);
+                if (toggle) {
+                    return !toggle.checked;
+                }
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
+    // The innermost element under the pointer, used to show only the most specific hover
+    /** @type {Element | null} */
+    let hoverTarget = null;
+    document.addEventListener(
+        "mouseover",
+        (e) => {
+            hoverTarget = e.target instanceof Element ? e.target : null;
+        },
+        true,
+    );
+
+    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
+    /** @type {Set<HTMLElement>} */
+    const visibleTippies = new Set();
+    /** @param {Element} elem */
+    function blockedByTippy(elem) {
+        for (const ref of visibleTippies) {
+            if (!ref.contains(elem) && !elem.contains(ref)) return true;
+        }
+        return false;
+    }
+
+    // Whether the element's tooltip would have content to show. Content nested in a
+    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
+    // not a tippy instance is currently attached to it.
+    /** @param {HTMLElement} el */
+    function showsContent(el) {
+        if (!el._tippy) return false;
+        if (el.classList.contains("tactic")) {
+            const toggle = tacticToggle(el);
+            return !!toggle && !toggle.checked;
+        }
+        return (
+            (!!el.querySelector(".hover-info") || "versoHover" in el.dataset) &&
+            !blockedByTactic(el)
+        );
+    }
+
+    // The nearest enclosing element whose tooltip has content
+    /**
+     * @param {Element | null} el
+     * @returns {HTMLElement | null}
+     */
+    function innermostShowable(el) {
+        while (el) {
+            if (el instanceof HTMLElement && showsContent(el)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    /** @type {Map<string, Element[]>} */
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    /** @type {Element[]} */
+    let highlightedTokens = [];
+    /**
+     * @param {string | undefined} context
+     * @param {string} binding
+     */
+    function getBindingTokens(context, binding) {
+        const key = `${context}\0${binding}`;
+        let tokens = bindingCache.get(key);
+        if (!tokens) {
+            tokens = [];
+            for (const example of document.querySelectorAll(".hl.lean")) {
+                if (example instanceof HTMLElement && example.dataset["leanContext"] === context) {
+                    for (const tok of example.querySelectorAll(
+                        `.token[data-binding="${CSS.escape(binding)}"]`,
+                    )) {
+                        tokens.push(tok);
+                    }
+                }
+            }
+            bindingCache.set(key, tokens);
+        }
+        return tokens;
+    }
+    /**
+     * @param {Event} event
+     * @returns {HTMLElement | null}
+     */
+    function eventToken(event) {
+        const token = event.target instanceof Element ? event.target.closest(".token") : null;
+        return token instanceof HTMLElement ? token : null;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+        if (!(container instanceof HTMLElement)) continue;
+        container.addEventListener("mouseover", (event) => {
+            const c = eventToken(event);
+            const binding = c?.dataset["binding"];
+            if (!c || !binding || !container.contains(c)) return;
+            if (blockedByTactic(c)) return;
+            const tokens = getBindingTokens(container.dataset["leanContext"], binding);
+            for (const tok of tokens) {
+                tok.classList.add("binding-hl");
+            }
+            highlightedTokens = tokens;
+        });
+        container.addEventListener("mouseout", (event) => {
+            const c = eventToken(event);
+            if (!c || !container.contains(c)) return;
+            for (const tok of highlightedTokens) {
+                tok.classList.remove("binding-hl");
+            }
+            highlightedTokens = [];
+        });
+    }
+    // Add hovers
+    const versoDocData = await window.versoLoadDocData();
+
+    /** @param {Element} element */
+    function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+            const tippyInstance = parent._tippy;
+            if (tippyInstance) {
+                tippyInstance.hide();
+            }
+            parent = parent.parentElement;
+        }
+    }
+
+    /** @param {Element} element */
+    function hideDescendantTooltips(element) {
+        for (const ref of visibleTippies) {
+            if (ref !== element && element.contains(ref)) {
+                ref._tippy?.hide();
+            }
+        }
+    }
+
+    // Renders the documentation for a hover ID from the doc table
+    /** @param {string} hoverId */
+    function docHoverContent(hoverId) {
+        const info = document.createElement("span");
+        info.className = "hover-info";
+        info.style.display = "block";
+        const data = versoDocData[hoverId];
+        if (data) {
+            /* Verso generated the HTML from the Markdown at site build time. */
+            const parsed = new DOMParser().parseFromString(data, "text/html");
+            info.append(...parsed.body.childNodes);
+            if (typeof versoRenderMath === "function") versoRenderMath(info);
+        } else {
+            info.textContent = `Failed to load doc ID: ${hoverId}`;
+        }
+        return info;
+    }
+
+    /** @type {TippyProps} */
+    const defaultTippyProps = {
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: "initial",
+        onShow(inst) {
+            const ref = inst.reference;
+            if (ref.className === "tactic") {
+                const toggle = tacticToggle(ref);
+                if (toggle && toggle.checked) {
+                    return false;
+                }
+            } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
+                if (blockedByTactic(ref)) {
+                    return false;
+                }
+            } else {
+                // Nothing to show here!
+                return false;
+            }
+            // Show only the most specific hover under the pointer
+            if (
+                hoverTarget &&
+                ref.contains(hoverTarget) &&
+                innermostShowable(hoverTarget) !== ref
+            ) {
+                return false;
+            }
+            hideParentTooltips(ref);
+            hideDescendantTooltips(ref);
+            return !blockedByTippy(ref);
+        },
+        onShown(inst) {
+            visibleTippies.add(inst.reference);
+        },
+        onHidden(inst) {
+            visibleTippies.delete(inst.reference);
+        },
+        content(tgt) {
+            const content = document.createElement("span");
+            if (tgt.className === "tactic") {
+                const state = tgt.querySelector(":scope > .tactic-state")?.cloneNode(true);
+                if (state instanceof HTMLElement) {
+                    state.style.display = "block";
+                    content.appendChild(state);
+                }
+                content.style.display = "block";
+                content.className = "hl lean popup";
+            } else {
+                content.className = "hl lean";
+                content.style.display = "block";
+                content.style.maxHeight = "300px";
+                content.style.overflowY = "auto";
+                content.style.overflowX = "hidden";
+                // Messages come from the inline hover-info; documentation comes from the doc
+                // table. An element with both (a message span sharing a documented token's
+                // extent) shows both in one tooltip.
+                const hoverId = tgt.dataset["versoHover"];
+                const hoverInfo = tgt.querySelector(".hover-info");
+                if (hoverInfo) {
+                    content.appendChild(hoverInfo.cloneNode(true));
+                }
+                if (hoverId) {
+                    content.appendChild(docHoverContent(hoverId));
+                }
+                if (hoverInfo && hoverId) {
+                    content.classList.add("mixed");
+                }
+                const extraLinks =
+                    tgt.dataset["versoLinks"] || tgt.parentElement?.dataset["versoLinks"];
+                if (extraLinks) {
+                    try {
+                        /** @type {{href: string, long: string, short: string}[]} */
+                        const extras = JSON.parse(extraLinks);
+                        const links = document.createElement("ul");
+                        links.className = "extra-doc-links";
+                        extras.forEach((l) => {
+                            const li = document.createElement("li");
+                            const a = document.createElement("a");
+                            a.href = l.href;
+                            a.title = l.long;
+                            a.textContent = l.short;
+                            li.appendChild(a);
+                            links.appendChild(li);
+                        });
+                        content.appendChild(links);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+            return content;
+        },
+    };
+
+    document
+        .querySelectorAll(
+            ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort",
+        )
+        .forEach((element) => {
+            element.setAttribute("data-tippy-theme", "lean");
+        });
+    document.querySelectorAll(".hl.lean .has-info.warning").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "warning message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.information").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "info message");
+    });
+    document.querySelectorAll(".hl.lean .has-info.error").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "error message");
+    });
+    document.querySelectorAll(".hl.lean .tactic").forEach((element) => {
+        element.setAttribute("data-tippy-theme", "tactic");
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    /** @type {Set<Element>} */
+    const closedTactics = new Set();
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    /** @param {Element} el */
+    function isInsideClosedTactic(el) {
+        const tactic = el.closest(".tactic");
+        return tactic !== null && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector =
+        ".hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort";
+    tippy(
+        Array.from(document.querySelectorAll(tokenSelector)).filter(
+            (el) => !isInsideClosedTactic(el),
+        ),
+        defaultTippyProps,
+    );
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector =
+        ".const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort";
+    document.querySelectorAll(".hl.lean .tactic").forEach((tactic) => {
+        const toggle = tacticToggle(tactic);
+        if (toggle)
+            toggle.addEventListener("change", () => {
+                if (toggle.checked) {
+                    closedTactics.delete(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (!el._tippy) {
+                            tippy(el, defaultTippyProps);
+                        }
+                    });
+                } else {
+                    closedTactics.add(tactic);
+                    tactic.querySelectorAll(tacticTippySelector).forEach((el) => {
+                        if (el._tippy) el._tippy.destroy();
+                    });
+                }
+                // The toggle changes which element's tooltip belongs to the pointer's position,
+                // but the pointer stays put, so no hover event announces the change. Show the
+                // right tooltip once the click that flipped the toggle has hidden the old one.
+                setTimeout(() => {
+                    if (hoverTarget && hoverTarget.isConnected) {
+                        const showable = innermostShowable(hoverTarget);
+                        if (showable && showable._tippy) showable._tippy.show();
+                    }
+                }, 0);
+            });
+    });
+};
+</script><script>(() => {
+    const setupHover = () => {
+        document.querySelectorAll(".marginalia-reference").forEach((reference) => {
+            const noteId = reference.querySelector("[aria-details]")?.getAttribute("aria-details");
+            const note = noteId ? document.getElementById(noteId) : null;
+            if (!note) return;
+
+            const highlight = () => {
+                reference.classList.add("marginalia-highlight");
+                note.classList.add("marginalia-highlight");
+            };
+            const unhighlight = () => {
+                reference.classList.remove("marginalia-highlight");
+                note.classList.remove("marginalia-highlight");
+            };
+            reference.addEventListener("pointerenter", highlight);
+            reference.addEventListener("pointerleave", unhighlight);
+            note.addEventListener("pointerenter", highlight);
+            note.addEventListener("pointerleave", unhighlight);
+        });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupHover, { once: true });
+    } else {
+        setupHover();
+    }
+
+    const mobile = matchMedia("(width <= 700px)");
+    mobile.addEventListener("change", (event) => {
+        if (!event.matches) {
+            document.querySelectorAll(".marginalia-note:popover-open").forEach((note) => {
+                if (note instanceof HTMLElement) note.hidePopover();
+            });
+        }
+    });
+})();
+</script><script>function openDetailsForHashTarget() {
   // Get the current hash from the URL
   const hash = window.location.hash;
 
@@ -2569,288 +2966,6 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
 });
 </script><script>
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && "classList" in parent) {
-        if (parent.classList.contains("tactic")) {
-          const toggle = parent.querySelector(":scope > input.tactic-toggle");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + "\0" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(".hl.lean")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(".hl.lean")) {
-      container.addEventListener("mouseover", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add("binding-hl");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener("mouseout", (event) => {
-        const c = event.target.closest(".token");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove("binding-hl");
-        }
-        highlightedTokens = [];
-      });
-    }
-    // Add hovers
-    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        /* Verso generated the HTML from the Markdown at site build time. */
-        const parsed = new DOMParser().parseFromString(data, 'text/html');
-        info.append(...parsed.body.childNodes);
-        if (typeof versoRenderMath === 'function') versoRenderMath(info);
-      } else {
-        info.textContent = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: "click",
-      // */
-      /* theme: "lean", */
-      maxWidth: "none",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(":scope > input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(".hover-info") || "versoHover" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement("span");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-        } else {
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = l['href'];
-                a.title = l.long;
-                a.textContent = l.short;
-                li.appendChild(a);
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-</script><script>
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -2921,47 +3036,30 @@ window.addEventListener("load", () => {
     }
   });
 });
-</script><script>
-(() => {
-  const setupHover = () => {
-    document.querySelectorAll(".marginalia-reference").forEach(reference => {
-      const marker = reference.querySelector("[aria-details]");
-      const note = marker && document.getElementById(marker.getAttribute("aria-details"));
-      if (!note) return;
-
-      const highlight = () => {
-        reference.classList.add("marginalia-highlight");
-        note.classList.add("marginalia-highlight");
-      };
-      const unhighlight = () => {
-        reference.classList.remove("marginalia-highlight");
-        note.classList.remove("marginalia-highlight");
-      };
-      reference.addEventListener("pointerenter", highlight);
-      reference.addEventListener("pointerleave", unhighlight);
-      note.addEventListener("pointerenter", highlight);
-      note.addEventListener("pointerleave", unhighlight);
-    });
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupHover, {once: true});
-  } else {
-    setupHover();
-  }
-
-  const mobile = matchMedia("(width <= 700px)");
-  mobile.addEventListener("change", event => {
-    if (!event.matches) {
-      document.querySelectorAll(".marginalia-note:popover-open")
-        .forEach(note => note.hidePopover());
-    }
-  });
-})();
 </script><script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script><script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
-    </script><script src="static/metadata.js"></script><script src="static/print.js"></script><link rel="stylesheet" href="static/colors.css"/><link rel="stylesheet" href="static/theme.css"/><link rel="stylesheet" href="static/print.css"/><link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css"/><link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css"/><link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css"/><link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css"/></head><body><header><div class="header-logo-wrapper"><a href id="logo"><img src="static/lean_logo.svg"/></a></div><div class="header-title-wrapper"><a href class="header-title"><h1>The Lean Language Reference</h1></a></div></header><label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc"><div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div><nav id="toc"><input type="checkbox" id="toggle-toc"/><div class="first"><a href class="toc-title"><h1>The Lean Language Reference</h1></a><div class="split-tocs"><div class="split-toc book"><div class="title"><label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"/></label><span class>Table of Contents</span></div><table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="current numbered"><td class="num">16.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--vcgen--tactic/#vcgen-tactic">The <code>vcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">25.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="numbered"><td class="num">26.</td><td><a href="Linters-and-Code-Quality/#linters">Linters and Code Quality</a></td></tr><tr class="numbered"><td class="num">27.</td><td><a href="External-Kernels/#external-kernels">External Kernels</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div><div class="split-toc"><div class="title"><label for="--verso-manual-toc-grind-tactic" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-grind-tactic" checked="checked"/></label><span class="number">16.</span> <span class><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></span></div><table><tr class="current numbered"><td class="num">16.1.</td><td><a href="The--grind--tactic/Error-Messages/#grind-errors">Error Messages</a></td></tr><tr class="numbered"><td class="num">16.2.</td><td><a href="The--grind--tactic/Minimizing--grind--calls/#grind-minimizing">Minimizing <code>grind</code> calls</a></td></tr><tr class="numbered"><td class="num">16.3.</td><td><a href="The--grind--tactic/Local-Definitions/#The-Lean-Language-Reference--The--grind--tactic--Local-Definitions">Local Definitions</a></td></tr><tr class="numbered"><td class="num">16.4.</td><td><a href="The--grind--tactic/Congruence-Closure/#congruence-closure">Congruence Closure</a></td></tr><tr class="numbered"><td class="num">16.5.</td><td><a href="The--grind--tactic/Constraint-Propagation/#grind-propagation">Constraint Propagation</a></td></tr><tr class="numbered"><td class="num">16.6.</td><td><a href="The--grind--tactic/Case-Analysis/#grind-split">Case Analysis</a></td></tr><tr class="numbered"><td class="num">16.7.</td><td><a href="The--grind--tactic/E___matching/#e-matching">E‑matching</a></td></tr><tr class="numbered"><td class="num">16.8.</td><td><a href="The--grind--tactic/Associativity-and-Commutativity/#grind-ac">Associativity and Commutativity</a></td></tr><tr class="numbered"><td class="num">16.9.</td><td><a href="The--grind--tactic/Linear-Integer-Arithmetic/#cutsat">Linear Integer Arithmetic</a></td></tr><tr class="numbered"><td class="num">16.10.</td><td><a href="The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/#grind-ring">Algebraic Solver (Commutative Rings, Fields)</a></td></tr><tr class="numbered"><td class="num">16.11.</td><td><a href="The--grind--tactic/Linear-Arithmetic-Solver/#grind-linarith">Linear Arithmetic Solver</a></td></tr><tr class="numbered"><td class="num">16.12.</td><td><a href="The--grind--tactic/Annotating-Libraries-for--grind/#grind-annotation">Annotating Libraries for <code>grind</code></a></td></tr><tr class="numbered"><td class="num">16.13.</td><td><a href="The--grind--tactic/Interactive-Mode/#grind-interactive">Interactive Mode</a></td></tr><tr class="numbered"><td class="num">16.14.</td><td><a href="The--grind--tactic/Reducibility/#The-Lean-Language-Reference--The--grind--tactic--Reducibility">Reducibility</a></td></tr><tr class="numbered"><td class="num">16.15.</td><td><a href="The--grind--tactic/Homomorphism-Annotations/#grind-hom">Homomorphism Annotations</a></td></tr><tr class="numbered"><td class="num">16.16.</td><td><a href="The--grind--tactic/Bigger-Examples/#grind-bigger-examples">Bigger Examples</a></td></tr></table></div><div class="split-toc"><div class="title"><span class="no-toggle"></span><span class="number">16.1.</span> <span class="current"><a href="The--grind--tactic/Error-Messages/#grind-errors">Error Messages</a></span></div></div></div></div><div class="last"><ul id="meta-links"><li><a href="https://github.com/leanprover/reference-manual">Source Code</a></li><li><a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li></ul></div></nav><div class="toc-resize-handle"></div><main><div class="content-wrapper"><nav class="prev-next-buttons"><a class="local-button active" href="The--grind--tactic/#grind-tactic" rel="prev" title="16. The grind tactic"><span class="arrow">←</span><span class="where">16. The grind tactic</span></a><a class="local-button active" href="The--grind--tactic/Minimizing--grind--calls/#grind-minimizing" rel="next" title="16.2. Minimizing grind calls"><span class="where">16.2. Minimizing grind calls</span><span class="arrow">→</span></a></nav><section><h1 id="grind-errors">16.1. Error Messages<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=grind-errors" title="Permalink">🔗</a></span></h1><p>When <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="3">grind</span></a></code> fails, it prints the remaining subgoal followed by all the information returned by its subsystems—the contents of the “shared whiteboard.”
+    </script><script src="static/metadata.js"></script><script src="static/print.js"></script><link rel="stylesheet" href="static/colors.css"/><link rel="stylesheet" href="static/theme.css"/><link rel="stylesheet" href="static/print.css"/><link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css"/><link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css"/><link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css"/><link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css"/></head><body><header><div class="header-logo-wrapper"><a href id="logo"><img src="static/lean_logo.svg"/></a></div><div class="header-title-wrapper"><a href class="header-title"><h1>The Lean Language Reference</h1></a></div></header><label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc"><div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div><nav id="toc"><input type="checkbox" id="toggle-toc"/><div class="first"><a href class="toc-title"><h1>The Lean Language Reference</h1></a><div class="split-tocs"><div class="split-toc book"><div class="title"><label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"/></label><span class>Table of Contents</span></div><table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="current numbered"><td class="num">16.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--vcgen--tactic/#vcgen-tactic">The <code>vcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">25.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="numbered"><td class="num">26.</td><td><a href="Linters-and-Code-Quality/#linters">Linters and Code Quality</a></td></tr><tr class="numbered"><td class="num">27.</td><td><a href="External-Kernels/#external-kernels">External Kernels</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"></td><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div><div class="split-toc"><div class="title"><label for="--verso-manual-toc-grind-tactic" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-grind-tactic" checked="checked"/></label><span class="number">16.</span> <span class><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></span></div><table><tr class="current numbered"><td class="num">16.1.</td><td><a href="The--grind--tactic/Error-Messages/#grind-errors">Error Messages</a></td></tr><tr class="numbered"><td class="num">16.2.</td><td><a href="The--grind--tactic/Minimizing--grind--calls/#grind-minimizing">Minimizing <code>grind</code> calls</a></td></tr><tr class="numbered"><td class="num">16.3.</td><td><a href="The--grind--tactic/Local-Definitions/#The-Lean-Language-Reference--The--grind--tactic--Local-Definitions">Local Definitions</a></td></tr><tr class="numbered"><td class="num">16.4.</td><td><a href="The--grind--tactic/Congruence-Closure/#congruence-closure">Congruence Closure</a></td></tr><tr class="numbered"><td class="num">16.5.</td><td><a href="The--grind--tactic/Constraint-Propagation/#grind-propagation">Constraint Propagation</a></td></tr><tr class="numbered"><td class="num">16.6.</td><td><a href="The--grind--tactic/Case-Analysis/#grind-split">Case Analysis</a></td></tr><tr class="numbered"><td class="num">16.7.</td><td><a href="The--grind--tactic/E___matching/#e-matching">E‑matching</a></td></tr><tr class="numbered"><td class="num">16.8.</td><td><a href="The--grind--tactic/Associativity-and-Commutativity/#grind-ac">Associativity and Commutativity</a></td></tr><tr class="numbered"><td class="num">16.9.</td><td><a href="The--grind--tactic/Linear-Integer-Arithmetic/#cutsat">Linear Integer Arithmetic</a></td></tr><tr class="numbered"><td class="num">16.10.</td><td><a href="The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/#grind-ring">Algebraic Solver (Commutative Rings, Fields)</a></td></tr><tr class="numbered"><td class="num">16.11.</td><td><a href="The--grind--tactic/Linear-Arithmetic-Solver/#grind-linarith">Linear Arithmetic Solver</a></td></tr><tr class="numbered"><td class="num">16.12.</td><td><a href="The--grind--tactic/Annotating-Libraries-for--grind/#grind-annotation">Annotating Libraries for <code>grind</code></a></td></tr><tr class="numbered"><td class="num">16.13.</td><td><a href="The--grind--tactic/Interactive-Mode/#grind-interactive">Interactive Mode</a></td></tr><tr class="numbered"><td class="num">16.14.</td><td><a href="The--grind--tactic/Reducibility/#The-Lean-Language-Reference--The--grind--tactic--Reducibility">Reducibility</a></td></tr><tr class="numbered"><td class="num">16.15.</td><td><a href="The--grind--tactic/Homomorphism-Annotations/#grind-hom">Homomorphism Annotations</a></td></tr><tr class="numbered"><td class="num">16.16.</td><td><a href="The--grind--tactic/Bigger-Examples/#grind-bigger-examples">Bigger Examples</a></td></tr></table></div><div class="split-toc"><div class="title"><span class="no-toggle"></span><span class="number">16.1.</span> <span class="current"><a href="The--grind--tactic/Error-Messages/#grind-errors">Error Messages</a></span></div></div></div></div><div class="last"><ul id="meta-links"><li><a href="https://github.com/leanprover/reference-manual">Source Code</a></li><li><a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li></ul></div></nav><div class="toc-resize-handle"></div><main><div class="content-wrapper"><nav class="prev-next-buttons"><a class="local-button active" href="The--grind--tactic/#grind-tactic" rel="prev" title="16. The grind tactic"><span class="arrow">←</span><span class="where">16. The grind tactic</span></a><a class="local-button active" href="The--grind--tactic/Minimizing--grind--calls/#grind-minimizing" rel="next" title="16.2. Minimizing grind calls"><span class="where">16.2. Minimizing grind calls</span><span class="arrow">→</span></a></nav><section><h1 id="grind-errors">16.1. Error Messages<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=grind-errors" title="Permalink">🔗</a></span></h1><p>When <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="3">grind</span></a></code> fails, its error message reports any search thresholds that were reached on the way.
+This is typically not enough information to diagnose why <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="3">grind</span></a></code> failed, however.
+Enabling the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Grind.Config.verbose" data-verso-hover="3222">verbose</span></code> flag causes the error message to show the subgoal that could not be solved, along with all the information returned by <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="3">grind</span></a></code>'s subsystems—the contents of the “shared whiteboard.”
 In particular, it presents equivalence classes of terms that it has determined to be equal.
 The two largest classes are shown as <code>True propositions</code> and <code>False propositions</code>, listing every literal currently known to be provable or refutable.
-Inspect these lists to spot missing facts or contradictory assumptions.</p></section><nav class="prev-next-buttons"><a class="local-button active" href="The--grind--tactic/#grind-tactic" rel="prev" title="16. The grind tactic"><span class="arrow">←</span><span class="where">16. The grind tactic</span></a><a class="local-button active" href="The--grind--tactic/Minimizing--grind--calls/#grind-minimizing" rel="next" title="16.2. Minimizing grind calls"><span class="where">16.2. Minimizing grind calls</span><span class="arrow">→</span></a></nav></div></main></div></body></html>
+Inspect these lists to spot missing facts or contradictory assumptions.</p><details class="example" id="Verbose-Failure-Messages"><summary class="description">Verbose Failure Messages</summary><div class="example-content"><p>This example uses <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="3">grind</span></a></code> in a situation where there is not sufficient information for it to prove the theorem.</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-6403">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6411">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6411">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-6416">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6411">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6429">(</span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="3223">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6429">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">0</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-6434">=</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6429">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6443">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-6445">=</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-6453">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-11981200356346988948-6456-6458-1279"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-6456" data-verso-hover="15">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-11981200356346988948-6456-6458-1279"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.29" data-verso-hover="3223">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">`</span><span class="text">grind</span><span class="text">` has failed</span><span class="text"></span><span class="text">, use `+verbose` to obtain diagnostic information</span></code></span></span><span class="tactic"><label for="tactic-state-7-6461-6466-1281"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.grind-6461" data-verso-hover="3">grind</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-6461-6466-1281"/><span class="tactic-state">All goals completed! 🐙</span></span></span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><p>The resulting error message includes almost no information:</p><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">`</span><span class="text">grind</span><span class="text">` has failed</span><span class="text"></span><span class="text">, use `+verbose` to obtain diagnostic information</span></span></pre><p>Enabling the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Grind.Config.verbose" data-verso-hover="3222">verbose</span></code> flag makes the error message much more informative:</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-6771">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6779">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6779">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-6784">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6779">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6797">(</span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="3223">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6797">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">0</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-6802">=</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-6797">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-6811">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-6813">=</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-6821">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-11981200356346988948-6824-6826-1282"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-6824" data-verso-hover="15">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-11981200356346988948-6824-6826-1282"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.29" data-verso-hover="3223">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">`</span><span class="text">grind</span><span class="text">` failed</span><span class="text">
+</span><span class="text"></span><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-1285" checked="checked"/><span for="--verso-unique-1285" class="goal-name">grind</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="1146">f</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.54" data-verso-hover="3223">h</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.82" data-verso-hover="3225">h_1</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="814">¬</span></a><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="14">False</span></a><span class="inter-text"></span></span></span></span></span><span class="text"></span><span class="text">
+</span><span class="text"></span><details class="trace" role="group" open="open"><summary><span class="trace-class">[grind]</span> <span class="text">Goal diagnostics</span></summary><ul class="trace-children"><li><details class="trace" role="group"><summary><span class="trace-class">[facts]</span> <span class="text">Asserted facts</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="inter-text"></span><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="814">¬</span></a><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[eqc]</span> <span class="text">False propositions</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[eqc]</span> <span class="text">Equivalence classes</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[eqc]</span> <span class="text">{</span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding>1</span><span class="inter-text"></span></span><span class="text">}</span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[cutsat]</span> <span class="text">Assignment satisfying linear constraints</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></span><span class="text"> := </span><span class="text">1</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span><span class="text"> := </span><span class="text">2</span></span></li></ul></details></li></ul></details></code></span></span><span class="tactic"><label for="tactic-state-7-6829-6843-1284"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.grind-6829" data-verso-hover="3">grind</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.posConfigItem-6835">+</span><span class="const token" data-binding="const-Lean.Grind.Config.verbose" data-verso-hover="3224">verbose</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-6829-6843-1284"/><span class="tactic-state">All goals completed! 🐙</span></span></span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">`</span><span class="text">grind</span><span class="text">` failed</span><span class="text">
+</span><span class="text"></span><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-1286" checked="checked"/><span for="--verso-unique-1286" class="goal-name">grind</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="1146">f</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.54" data-verso-hover="3223">h</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.82" data-verso-hover="3225">h_1</span></span><span class="colon">:</span><span class="type"><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="814">¬</span></a><span class="var token" data-binding="var-_uniq.53" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="14">False</span></a></span></span></span></span><span class="text"></span><span class="text">
+</span><span class="text"></span><details class="trace" role="group" open="open"><summary><span class="trace-class">[grind]</span> <span class="text">Goal diagnostics</span></summary><ul class="trace-children"><li><details class="trace" role="group"><summary><span class="trace-class">[facts]</span> <span class="text">Asserted facts</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="814">¬</span></a><span class="var token" data-binding="var-_uniq.53" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li></ul></details></li><li><details class="trace" role="group" open="open"><summary><span class="trace-class">[eqc]</span> <span class="text">False propositions</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li></ul></details></li><li><details class="trace" role="group" open="open"><summary><span class="trace-class">[eqc]</span> <span class="text">Equivalence classes</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[eqc]</span> <span class="text">{</span><span class="highlighted"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="unknown token" data-binding>1</span></span><span class="text">}</span></span></li></ul></details></li><li><details class="trace" role="group" open="open"><summary><span class="trace-class">[cutsat]</span> <span class="text">Assignment satisfying linear constraints</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></span><span class="text"> := </span><span class="text">1</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span><span class="text"> := </span><span class="text">2</span></span></li></ul></details></li></ul></details></span></pre></div></details><details class="example" id="Threshold-Messages"><summary class="description">Threshold Messages</summary><div class="example-content"><p>This attempted proof leads to an infinite chain of instantiates of the hypothesis:</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-7422">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7430">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7430">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-7435">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7430">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7448">(</span><span class="var token" data-binding="var-_uniq.63" data-verso-hover="3226">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7448">:</span><span class="inter-text"> </span><span class="unknown token" data-binding>∀</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="12">n</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.forall-7453">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-7460">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-7468">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-7469">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-7468">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7448">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-7477">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">0</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-7479">=</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-7487">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7765274713410311133-7490-7492-1287"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-7490" data-verso-hover="15">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7765274713410311133-7490-7492-1287"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.63" data-verso-hover="3226">h</span></span><span class="colon">:</span><span class="type"><span class="unknown token" data-binding>∀</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>),</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">`</span><span class="text">grind</span><span class="text">` has failed</span><span class="text"> after reaching the threshold </span><span class="text">`(</span><span class="text">ematch</span><span class="text"> := </span><span class="text">5</span><span class="text">)`</span><span class="text">, use `+verbose` to obtain diagnostic information</span></code></span></span><span class="tactic"><label for="tactic-state-7-7495-7500-1289"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.grind-7495" data-verso-hover="3">grind</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-7495-7500-1289"/><span class="tactic-state">All goals completed! 🐙</span></span></span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><p><code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding data-verso-hover="3">grind</span></a></code> fails after too much <a href="The--grind--tactic/E___matching/#e-matching">E-matching</a>:</p><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">`</span><span class="text">grind</span><span class="text">` has failed</span><span class="text"> after reaching the threshold </span><span class="text">`(</span><span class="text">ematch</span><span class="text"> := </span><span class="text">5</span><span class="text">)`</span><span class="text">, use `+verbose` to obtain diagnostic information</span></span></pre><p>To see which hypothesis reached the limit, add the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Grind.Config.verbose" data-verso-hover="3222">verbose</span></code> flag:</p><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-7855">example</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7863">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7863">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Term.arrow-7868">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7863">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7881">(</span><span class="var token" data-binding="var-_uniq.63" data-verso-hover="3226">h</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7881">:</span><span class="inter-text"> </span><span class="unknown token" data-binding>∀</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="12">n</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.forall-7886">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-7893">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-7901">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_+_»-7902">+</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-7901">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-7881">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-7910">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">0</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-7912">=</span><span class="inter-text"> </span><span class="literal number token" data-binding data-verso-hover="12">1</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-7920">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7765274713410311133-7923-7925-1290"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-7923" data-verso-hover="15">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7765274713410311133-7923-7925-1290"/><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.63" data-verso-hover="3226">h</span></span><span class="colon">:</span><span class="type"><span class="unknown token" data-binding>∀</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>),</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_subverso_delab.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">`</span><span class="text">grind</span><span class="text">` failed</span><span class="text">
+</span><span class="text"></span><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-1293" checked="checked"/><span for="--verso-unique-1293" class="goal-name">grind</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.88" data-verso-hover="3226">h</span></span><span class="colon">:</span><span class="type"><span class="unknown token" data-binding>∀</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_diag.2" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>),</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_diag.2" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_diag.2" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.178" data-verso-hover="3227">h_1</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="814">¬</span></a><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="14">False</span></a><span class="inter-text"></span></span></span></span></span><span class="text"></span><span class="text">
+</span><span class="text"></span><details class="trace" role="group" open="open"><summary><span class="trace-class">[grind]</span> <span class="text">Goal diagnostics</span></summary><ul class="trace-children"><li><details class="trace" role="group"><summary><span class="trace-class">[facts]</span> <span class="text">Asserted facts</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="unknown token" data-binding>∀</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>),</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="inter-text"></span><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="814">¬</span></a><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>2</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>3</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>4</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>4</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>5</span></span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[eqc]</span> <span class="text">True propositions</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="unknown token" data-binding>∀</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>),</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[eqc]</span> <span class="text">False propositions</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[eqc]</span> <span class="text">Equivalence classes</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[eqc]</span> <span class="text">{</span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>2</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>3</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>4</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>5</span></span><span class="text">}</span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[ematch]</span> <span class="text">E-matching patterns</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[thm]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.63" data-verso-hover="3226">h</span><span class="inter-text"></span></span><span class="text">: </span><span class="text">[</span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"></span></span><span class="text"> </span><span class="text">#</span><span class="text">0</span><span class="text">]</span></span></li><li><span class="trace"><span class="trace-class">[thm]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.63" data-verso-hover="3226">h</span><span class="inter-text"></span></span><span class="text">: </span><span class="text">[</span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"></span></span><span class="text"> </span><span class="text">(</span><span class="highlighted"><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">@</span></a><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">HAdd.hAdd</span></a></span><span class="text"> </span><span class="text">`[</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span><span class="text">]</span><span class="text"> </span><span class="text">`[</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span><span class="text">]</span><span class="text"> </span><span class="text">`[</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"></span></span><span class="text">]</span><span class="text"> </span><span class="text">`[</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-instHAdd" data-verso-hover="122">instHAdd</span><span class="inter-text"></span></span><span class="text">]</span><span class="text"> </span><span class="text">#</span><span class="text">0</span><span class="text"> </span><span class="text">`[</span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding>1</span><span class="inter-text"></span></span><span class="text">]</span><span class="text">)</span><span class="text">]</span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[cutsat]</span> <span class="text">Assignment satisfying linear constraints</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></span><span class="text"> := </span><span class="text">6</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span><span class="text"> := </span><span class="text">6</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>2</span></span><span class="text"> := </span><span class="text">6</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>3</span></span><span class="text"> := </span><span class="text">6</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>4</span></span><span class="text"> := </span><span class="text">6</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>5</span></span><span class="text"> := </span><span class="text">6</span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[limits]</span> <span class="text">Thresholds reached</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[limit]</span> <span class="text">maximum </span><span class="text">number of E-matching rounds</span><span class="text"> has been reached, threshold: </span><span class="text">`(</span><span class="text">ematch</span><span class="text"> := </span><span class="text">5</span><span class="text">)`</span></span></li></ul></details></li></ul></details><span class="text"></span><span class="text">
+</span><span class="text"></span><details class="trace" role="group"><summary><span class="trace-class">[grind]</span> <span class="text">Diagnostics</span></summary><ul class="trace-children"><li><details class="trace" role="group"><summary><span class="trace-class">[ematch]</span> <span class="text">E-matching Diagnostics</span></summary><ul class="trace-children"><li><details class="trace" role="group"><summary><span class="trace-class">[thm]</span> <span class="text">Theorem Instance Count</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[thm]</span> <span class="text">h</span><span class="text"> ↦ </span><span class="text">5</span></span></li></ul></details></li></ul></details></li></ul></details></code></span></span><span class="tactic"><label for="tactic-state-7-7928-7942-1292"><a href="Tactic-Proofs/Tactic-Reference/#grind" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.grind-7928" data-verso-hover="3">grind</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-Lean.Parser.Tactic.posConfigItem-7934">+</span><span class="const token" data-binding="const-Lean.Grind.Config.verbose" data-verso-hover="3224">verbose</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-7928-7942-1292"/><span class="tactic-state">All goals completed! 🐙</span></span></span><span class="inter-text">
+</span><span class="unknown token" data-binding></span></code><p>The resulting message demonstrates that <code>h</code> is instantiated five times:</p><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">`</span><span class="text">grind</span><span class="text">` failed</span><span class="text">
+</span><span class="text"></span><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-1294" checked="checked"/><span for="--verso-unique-1294" class="goal-name">grind</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.88" data-verso-hover="3226">h</span></span><span class="colon">:</span><span class="type"><span class="unknown token" data-binding>∀</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_diag.2" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>),</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_diag.2" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_diag.2" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.178" data-verso-hover="3227">h_1</span></span><span class="colon">:</span><span class="type"><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="814">¬</span></a><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="14">False</span></a></span></span></span></span><span class="text"></span><span class="text">
+</span><span class="text"></span><details class="trace" role="group" open="open"><summary><span class="trace-class">[grind]</span> <span class="text">Goal diagnostics</span></summary><ul class="trace-children"><li><details class="trace" role="group"><summary><span class="trace-class">[facts]</span> <span class="text">Asserted facts</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="unknown token" data-binding>∀</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>),</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="814">¬</span></a><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>2</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>3</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>3</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>4</span></span></span></li><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>4</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>5</span></span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[eqc]</span> <span class="text">True propositions</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="unknown token" data-binding>∀</span><span class="inter-text"> </span><span class="unknown token" data-binding>(</span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><span class="unknown token" data-binding>:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a><span class="unknown token" data-binding>),</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">(</span></a><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="12">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">)</span></a></span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[eqc]</span> <span class="text">False propositions</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[prop]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="23">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[eqc]</span> <span class="text">Equivalence classes</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[eqc]</span> <span class="text">{</span><span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>2</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>3</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>4</span></span><span class="text">,</span><span class="text"> </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>5</span></span><span class="text">}</span></span></li></ul></details></li><li><details class="trace" role="group" open="open"><summary><span class="trace-class">[ematch]</span> <span class="text">E-matching patterns</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[thm]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.88" data-verso-hover="3226">h</span></span><span class="text">: </span><span class="text">[</span><span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span></span><span class="text"> </span><span class="text">#</span><span class="text">0</span><span class="text">]</span></span></li><li><span class="trace"><span class="trace-class">[thm]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.88" data-verso-hover="3226">h</span></span><span class="text">: </span><span class="text">[</span><span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span></span><span class="text"> </span><span class="text">(</span><span class="highlighted"><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">@</span></a><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="22">HAdd.hAdd</span></a></span><span class="text"> </span><span class="text">`[</span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span><span class="text">]</span><span class="text"> </span><span class="text">`[</span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span><span class="text">]</span><span class="text"> </span><span class="text">`[</span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="20">Nat</span></a></span><span class="text">]</span><span class="text"> </span><span class="text">`[</span><span class="highlighted"><span class="const token" data-binding="const-instHAdd" data-verso-hover="122">instHAdd</span></span><span class="text">]</span><span class="text"> </span><span class="text">#</span><span class="text">0</span><span class="text"> </span><span class="text">`[</span><span class="highlighted"><span class="unknown token" data-binding>1</span></span><span class="text">]</span><span class="text">)</span><span class="text">]</span></span></li></ul></details></li><li><details class="trace" role="group"><summary><span class="trace-class">[cutsat]</span> <span class="text">Assignment satisfying linear constraints</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>0</span></span><span class="text"> := </span><span class="text">6</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>1</span></span><span class="text"> := </span><span class="text">6</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>2</span></span><span class="text"> := </span><span class="text">6</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>3</span></span><span class="text"> := </span><span class="text">6</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>4</span></span><span class="text"> := </span><span class="text">6</span></span></li><li><span class="trace"><span class="trace-class">[assign]</span> <span class="highlighted"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="1146">f</span><span class="inter-text"> </span><span class="unknown token" data-binding>5</span></span><span class="text"> := </span><span class="text">6</span></span></li></ul></details></li><li><details class="trace" role="group" open="open"><summary><span class="trace-class">[limits]</span> <span class="text">Thresholds reached</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[limit]</span> <span class="text">maximum </span><span class="text">number of E-matching rounds</span><span class="text"> has been reached, threshold: </span><span class="text">`(</span><span class="text">ematch</span><span class="text"> := </span><span class="text">5</span><span class="text">)`</span></span></li></ul></details></li></ul></details><span class="text"></span><span class="text">
+</span><span class="text"></span><details class="trace" role="group" open="open"><summary><span class="trace-class">[grind]</span> <span class="text">Diagnostics</span></summary><ul class="trace-children"><li><details class="trace" role="group" open="open"><summary><span class="trace-class">[ematch]</span> <span class="text">E-matching Diagnostics</span></summary><ul class="trace-children"><li><details class="trace" role="group" open="open"><summary><span class="trace-class">[thm]</span> <span class="text">Theorem Instance Count</span></summary><ul class="trace-children"><li><span class="trace"><span class="trace-class">[thm]</span> <span class="text">h</span><span class="text"> ↦ </span><span class="text">5</span></span></li></ul></details></li></ul></details></li></ul></details></span></pre></div></details></section><nav class="prev-next-buttons"><a class="local-button active" href="The--grind--tactic/#grind-tactic" rel="prev" title="16. The grind tactic"><span class="arrow">←</span><span class="where">16. The grind tactic</span></a><a class="local-button active" href="The--grind--tactic/Minimizing--grind--calls/#grind-minimizing" rel="next" title="16.2. Minimizing grind calls"><span class="where">16.2. Minimizing grind calls</span><span class="arrow">→</span></a></nav></div></main></div></body></html>
