@@ -365,7 +365,10 @@ where
         {name := n, «open» := false, title := config.title}
       else config
     let altStr ← parserInputString str
-    let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
+    let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))}
+      -- Grammars are parsed as if inside a quotation
+      -- so that parsers that only accept antiquotations in quotations work.
+      (incQuotDepth (parserOfStack 0))
     let scope := (← Verso.Genre.Manual.InlineLean.Scopes.getScopes).head!
 
     withOpenedNamespace `Manual.FreeSyntax <| withOpenedNamespaces config.namespaces <| do
