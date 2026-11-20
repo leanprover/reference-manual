@@ -3,15 +3,36 @@ name: Format JS/CSS/HTML and Markdown
 on:
     workflow_dispatch:
 
+permissions:
+    contents: read
+
 jobs:
     ensure-format:
         runs-on: ubuntu-latest
+        permissions:
+            contents: write # This allows pushing the formatted code
         steps:
             - name: Checkout
-              uses: actions/checkout@v5
-            - name: Format with prettier
-              uses: creyD/prettier_action@v4.6
+              uses: actions/checkout@v7.0.1
+
+            - uses: actions/setup-node@v7.1.0
               with:
-                  prettier_options: "--write ."
-                  commit_message: "Run the Prettier code formatter"
-                  prettier_version: 3.7.4
+                  node-version: "lts/*"
+                  cache: npm
+
+            - run: npm ci
+
+            - name: Format with prettier
+              run: npx --no-install prettier --write .
+
+            - name: Commit and push
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git add -A
+                  if git diff --cached --quiet; then
+                      echo "No formatting changes needed"
+                  else
+                      git commit -m "Run the Prettier code formatter"
+                      git push
+                  fi

@@ -67,22 +67,23 @@ fi
 
 # Set up output locations based on draft mode
 if [ -n "$DRAFT_FLAG" ]; then
-  MANUAL_OUTPUT_FLAG="--output _out/draft"
+  MANUAL_FLAGS=(--output _out/draft "$DRAFT_FLAG")
   REF_SOURCE="_out/draft/html-multi"
 else
-  MANUAL_OUTPUT_FLAG=""
+  MANUAL_FLAGS=()
   REF_SOURCE="_out/html-multi"
 fi
 
-# Generate the manual and tutorials
-echo "Running generate-manual with args --depth 2 --verbose --delay-html-multi multi.json --remote-config $REF_REMOTE_CONFIG --with-word-count words.txt $MANUAL_OUTPUT_FLAG $DRAFT_FLAG"
-lake --quiet exe generate-manual --depth 2 --verbose --delay-html-multi multi.json --remote-config "$REF_REMOTE_CONFIG" --with-word-count "words.txt" $MANUAL_OUTPUT_FLAG $DRAFT_FLAG
+# Generate the manual and tutorials. The expansion of MANUAL_FLAGS also works
+# when the array is empty and bash is older than 4.4.
+echo "Running generate-manual with args --depth 2 --verbose --delay-html-multi multi.json --remote-config $REF_REMOTE_CONFIG --with-word-count words.txt ${MANUAL_FLAGS[*]-}"
+lake --quiet exe generate-manual --depth 2 --verbose --delay-html-multi multi.json --remote-config "$REF_REMOTE_CONFIG" --with-word-count "words.txt" ${MANUAL_FLAGS[@]+"${MANUAL_FLAGS[@]}"}
 
 echo "Running generate-tutorials with args --verbose --delay tutorials.json --remote-config $TUT_REMOTE_CONFIG"
 lake --quiet exe generate-tutorials --verbose --delay tutorials.json --remote-config "$TUT_REMOTE_CONFIG"
 
-echo "Running generate-manual with args --verbose --resume-html-multi multi.json --remote-config $REF_REMOTE_CONFIG $MANUAL_OUTPUT_FLAG $DRAFT_FLAG"
-lake --quiet exe generate-manual --verbose --resume-html-multi multi.json --remote-config "$REF_REMOTE_CONFIG" $MANUAL_OUTPUT_FLAG $DRAFT_FLAG
+echo "Running generate-manual with args --verbose --resume-html-multi multi.json --remote-config $REF_REMOTE_CONFIG ${MANUAL_FLAGS[*]-}"
+lake --quiet exe generate-manual --verbose --resume-html-multi multi.json --remote-config "$REF_REMOTE_CONFIG" ${MANUAL_FLAGS[@]+"${MANUAL_FLAGS[@]}"}
 
 echo "Running generate-tutorials with args --verbose --resume tutorials.json --remote-config $TUT_REMOTE_CONFIG"
 lake --quiet exe generate-tutorials --verbose --resume tutorials.json --remote-config "$TUT_REMOTE_CONFIG"

@@ -97,9 +97,9 @@ actions = get_code_actions(diagnostics)
 print(f"Found {len(actions)} code actions")
 
 # Filter actions
-unused_actions = [a for a in actions if 'unused' in a.diagnostic.message]
-remove_actions = [a for a in actions if 'Remove' in a.title]
-foo_file_actions = [a for a in actions if 'Foo.lean' in str(a.diagnostic.file)]
+unused_actions = [a for a in actions if "unused" in a.diagnostic.message]
+remove_actions = [a for a in actions if "Remove" in a.title]
+foo_file_actions = [a for a in actions if "Foo.lean" in str(a.diagnostic.file)]
 
 # Step 4: Apply actions (dry-run by default)
 results = apply_code_actions(remove_actions, dry_run=True)
@@ -171,7 +171,7 @@ diagnostics = get_diagnostics()
 actions = get_code_actions(diagnostics)
 
 # Filter and continue working - client is still alive
-unused_diags = [d for d in diagnostics if 'unused' in d.message]
+unused_diags = [d for d in diagnostics if "unused" in d.message]
 more_actions = get_code_actions(unused_diags)
 
 # You can call the same diagnostic multiple times - it works correctly
@@ -217,6 +217,7 @@ automatically on exit.
 
 ```python
 from fix_diagnostics import lsp_start, get_diagnostics
+
 lsp_start()
 diagnostics = get_diagnostics()  # Reuses the global client
 ```
@@ -233,6 +234,7 @@ useful for restarting the server.
 
 ```python
 from fix_diagnostics import lsp_start, lsp_stop
+
 lsp_start()
 # ... do work
 lsp_stop()  # Explicitly stop
@@ -291,15 +293,15 @@ Apply code actions to files.
 ```python
 @dataclass
 class Diagnostic:
-    file: Path          # File containing the diagnostic
-    line: int           # Line number (0-based, LSP protocol)
-    col: int            # Column number (0-based, UTF-16 offset, LSP protocol)
-    severity: int       # 1=Error, 2=Warning, 3=Info, 4=Hint
-    message: str        # Diagnostic message
-    code: Optional[str] # Diagnostic code
-    source: Optional[str] # Source (e.g., "Lean", linter name)
-    range: LspRange     # Full LSP range structure (with UTF-16 offsets)
-    range_size: int     # Size in codepoints (Python characters)
+    file: Path  # File containing the diagnostic
+    line: int  # Line number (0-based, LSP protocol)
+    col: int  # Column number (0-based, UTF-16 offset, LSP protocol)
+    severity: int  # 1=Error, 2=Warning, 3=Info, 4=Hint
+    message: str  # Diagnostic message
+    code: Optional[str]  # Diagnostic code
+    source: Optional[str]  # Source (e.g., "Lean", linter name)
+    range: LspRange  # Full LSP range structure (with UTF-16 offsets)
+    range_size: int  # Size in codepoints (Python characters)
 ```
 
 #### `CodeAction`
@@ -307,11 +309,11 @@ class Diagnostic:
 ```python
 @dataclass
 class CodeAction:
-    title: str          # Human-readable action title
-    kind: Optional[str] # Action kind (e.g., "quickfix")
-    edit: dict          # LSP WorkspaceEdit (with UTF-16 offsets)
-    diagnostic: Diagnostic # Back-pointer to diagnostic
-    edit_size: int      # Magnitude of edit in codepoints (Python characters)
+    title: str  # Human-readable action title
+    kind: Optional[str]  # Action kind (e.g., "quickfix")
+    edit: dict  # LSP WorkspaceEdit (with UTF-16 offsets)
+    diagnostic: Diagnostic  # Back-pointer to diagnostic
+    edit_size: int  # Magnitude of edit in codepoints (Python characters)
 ```
 
 #### `ApplyResult`
@@ -319,10 +321,10 @@ class CodeAction:
 ```python
 @dataclass
 class ApplyResult:
-    success: bool       # Whether action was applied successfully
+    success: bool  # Whether action was applied successfully
     action: CodeAction  # The code action that was applied
-    diff: str           # Unified diff showing changes
-    error: Optional[str] # Error message if success=False
+    diff: str  # Unified diff showing changes
+    error: Optional[str]  # Error message if success=False
 ```
 
 ### LSP Client
@@ -435,7 +437,8 @@ small_edits = [a for a in actions if a.edit_size < 5]
 
 # Filter to actions that change less than 5% of the diagnostic's range
 small_percentage_edits = [
-    a for a in actions
+    a
+    for a in actions
     if a.diagnostic.range_size > 0 and a.edit_size / a.diagnostic.range_size < 0.05
 ]
 
@@ -464,7 +467,7 @@ max_iterations = 5
 for i in range(max_iterations):
     # Get current diagnostics
     diagnostics = get_diagnostics()
-    unused = [d for d in diagnostics if 'unused' in d.message]
+    unused = [d for d in diagnostics if "unused" in d.message]
 
     if not unused:
         print(f"All unused variables fixed after {i} iterations!")
@@ -472,14 +475,14 @@ for i in range(max_iterations):
 
     # Get and apply fixes
     actions = get_code_actions(unused)
-    remove = [a for a in actions if 'Remove' in a.title]
+    remove = [a for a in actions if "Remove" in a.title]
 
     if not remove:
         print(f"No more remove actions available")
         break
 
     results = apply_code_actions(remove, dry_run=False)
-    print(f"Iteration {i+1}: applied {sum(r.success for r in results)} fixes")
+    print(f"Iteration {i + 1}: applied {sum(r.success for r in results)} fixes")
 ```
 
 ## How It Works

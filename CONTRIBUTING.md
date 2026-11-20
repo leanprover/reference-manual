@@ -235,6 +235,35 @@ Now, run `vale`:
 $ vale html-vale
 ```
 
+### Code Checks
+
+Each pull request also runs these checks on the code outside of the
+Lean sources. Run them locally before pushing, after `npm ci` has
+installed the JavaScript tools:
+
+- Prettier formats the JavaScript, CSS, HTML, and Markdown:
+  `npx --no-install prettier --check .`. The command
+  `npx --no-install prettier --write .` fixes the formatting.
+- ESLint checks the JavaScript in `static/`: `npm run lint`.
+- TypeScript type-checks the same JavaScript:
+  `npx --no-install tsc --noEmit -p jsconfig.json`.
+- Ruff formats the Python code: `uvx ruff@0.17.6 format --check .`.
+  The version is the one that `ruff.toml` requires, and
+  `uvx ruff@0.17.6 format .` fixes the formatting.
+- ShellCheck checks the shell scripts, such as `generate-html.sh` and
+  the scripts in `scripts/` and `deploy/`: `shellcheck <file>`.
+- actionlint checks the GitHub workflows: `actionlint`. Locally, use
+  the fork [kjanat/actionlint](https://github.com/kjanat/actionlint),
+  which knows the parallel steps in `ci.yml`.
+- `gh actions-lock --verify` checks that
+  `.github/workflows/actions.lock` matches the workflows. After a
+  change to the actions that a workflow uses, `gh actions-lock`
+  updates the file. It needs the `gh` extension
+  `github/gh-actions-lock`.
+
+Someone with write access can comment `!prettier` on a pull request to
+have Prettier format it and push the result.
+
 ### Deployments from PRs
 
 To enable contributions from external forks while allowing HTML

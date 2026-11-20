@@ -11,22 +11,35 @@ on:
 
     workflow_dispatch:
 
+permissions:
+    contents: read
+
 jobs:
+    # Both jobs act on a run of "Apply Overlays" only when it succeeded and was started in this
+    # repository by a push, by another workflow, or by hand.
     deploy:
         name: Deploy release branch to hosting
         runs-on: ubuntu-latest
-        if:
-            ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion ==
-            'success' }}
+        if: >
+            github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion ==
+            'success' && contains(fromJSON('["push", "workflow_run", "workflow_dispatch"]'),
+            github.event.workflow_run.event) && github.event.workflow_run.head_repository.full_name
+            == github.repository)
+        # The Netlify step records a GitHub deployment and a commit status.
+        permissions:
+            contents: read
+            deployments: write
+            statuses: write
         steps:
             - name: Checkout postdeploy branch
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7.0.1
               with:
                   ref: "postdeploy"
+                  persist-credentials: false
 
             - name: Upload the current state of the postdeploy branch
               id: deploy-release
-              uses: nwtgck/actions-netlify@v2.0
+              uses: nwtgck/actions-netlify@v4.0.0
               with:
                   publish-dir: "."
                   production-branch: postdeploy
@@ -45,17 +58,25 @@ jobs:
     deploy-tutorials:
         name: Deploy tutorials release branch to hosting
         runs-on: ubuntu-latest
-        if:
-            ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion ==
-            'success' }}
+        if: >
+            github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion ==
+            'success' && contains(fromJSON('["push", "workflow_run", "workflow_dispatch"]'),
+            github.event.workflow_run.event) && github.event.workflow_run.head_repository.full_name
+            == github.repository)
+        # The Netlify step records a GitHub deployment and a commit status.
+        permissions:
+            contents: read
+            deployments: write
+            statuses: write
         steps:
             - name: Checkout postdeploy-tutorials branch
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7.0.1
               with:
                   ref: "postdeploy-tutorials"
+                  persist-credentials: false
 
             - name: Upload the current state of the postdeploy-tutorials branch
-              uses: nwtgck/actions-netlify@v2.0
+              uses: nwtgck/actions-netlify@v4.0.0
               with:
                   publish-dir: "."
                   production-branch: postdeploy-tutorials

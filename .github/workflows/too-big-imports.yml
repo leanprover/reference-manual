@@ -2,12 +2,17 @@ name: Check for too-big Lean imports
 
 on: [pull_request, merge_group]
 
+permissions:
+    contents: read
+
 jobs:
     check-lean-files:
         name: "Check for import Lean"
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7.0.1
+              with:
+                  persist-credentials: false
 
             - name: Don't 'import Lean', use precise imports
               run: |

@@ -1,10 +1,18 @@
 import sys
 import json
 
-def annotate_source(file_path, message, start_line=None, start_column=None, end_line=None, end_column=None):
+
+def annotate_source(
+    file_path,
+    message,
+    start_line=None,
+    start_column=None,
+    end_line=None,
+    end_column=None,
+):
     """Annotates a file with a message, highlighting the specified span."""
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             lines = f.readlines()
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
@@ -23,7 +31,7 @@ def annotate_source(file_path, message, start_line=None, start_column=None, end_
     pos = f"{file_path}"
     if start_line is not None:
         if end_line != start_line:
-            pos += f":{start_line}-{end-line}"
+            pos += f":{start_line}-{end - line}"
         else:
             pos += f":{start_line}"
         if start_column is not None:
@@ -39,14 +47,11 @@ def annotate_source(file_path, message, start_line=None, start_column=None, end_
         print(f"  \033[1m{message}\033[0m\n")
         return
 
-
     # Display a few lines of context before the highlighted span
     context_lines_before = 2
     context_lines_after = 2
     start_display = max(0, start_line - 1 - context_lines_before)
     end_display = min(len(lines), end_line + context_lines_after)
-
-
 
     for i in range(start_display, end_display):
         line_number = i + 1
@@ -57,21 +62,27 @@ def annotate_source(file_path, message, start_line=None, start_column=None, end_
             if line_number == start_line and line_number == end_line:
                 # Single line range
                 highlighted = (
-                    line_content[:start_column - 1] +
-                    "\033[91m" + line_content[start_column - 1:end_column] + "\033[0m" +
-                    line_content[end_column:]
+                    line_content[: start_column - 1]
+                    + "\033[91m"
+                    + line_content[start_column - 1 : end_column]
+                    + "\033[0m"
+                    + line_content[end_column:]
                 )
             elif line_number == start_line:
                 # Start line of multi-line range
                 highlighted = (
-                    line_content[:start_column - 1] +
-                    "\033[91m" + line_content[start_column - 1:] + "\033[0m"
+                    line_content[: start_column - 1]
+                    + "\033[91m"
+                    + line_content[start_column - 1 :]
+                    + "\033[0m"
                 )
             elif line_number == end_line:
                 # End line of multi-line range
                 highlighted = (
-                    "\033[91m" + line_content[:end_column] + "\033[0m" +
-                    line_content[end_column:]
+                    "\033[91m"
+                    + line_content[:end_column]
+                    + "\033[0m"
+                    + line_content[end_column:]
                 )
             else:
                 # Entire line within the range
@@ -83,6 +94,7 @@ def annotate_source(file_path, message, start_line=None, start_column=None, end_
     # Display the error message below the highlighted span
     print("\n" + " " * (start_column + 6) + "\033[91m^\033[0m")
     print(" " * (start_column + 6) + f"\033[1m{message}\033[0m\n")
+
 
 # Example usage:
 # Single position: annotate_source("example.html", "Syntax error here", 10, 5)
@@ -99,14 +111,16 @@ if __name__ == "__main__":
     if isinstance(data, dict):
         for file in data:
             for feedback in data[file]:
-                line = feedback['Line']
-                (c1, c2) = feedback['Span']
-                message = feedback['Message']
-                severity = feedback['Severity']
-                check = feedback['Check']
+                line = feedback["Line"]
+                (c1, c2) = feedback["Span"]
+                message = feedback["Message"]
+                severity = feedback["Severity"]
+                check = feedback["Check"]
                 if line == 1 and c1 == 1 and c2 == 1:
-                    annotate_source(file, f'[{severity}] {check}: {message}')
+                    annotate_source(file, f"[{severity}] {check}: {message}")
                 else:
-                    annotate_source(file, f'[{severity}] {check}: {message}', line, c1, line, c2)
+                    annotate_source(
+                        file, f"[{severity}] {check}: {message}", line, c1, line, c2
+                    )
     else:
         print(f"Skipping non-object JSON value: {json_obj}", file=sys.stderr)
