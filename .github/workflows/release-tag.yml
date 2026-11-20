@@ -5,6 +5,9 @@ on:
         tags:
             - "v*" # Trigger on tags that start with 'v'
 
+permissions:
+    contents: read
+
 jobs:
     deploy:
         runs-on: ubuntu-latest
@@ -12,12 +15,12 @@ jobs:
             contents: write # This allows pushing to the repository
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7.0.1
               with:
                   fetch-depth: 0 # Fetch all history for all tags and branches
 
             - name: Set up Python
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v7.1.0
               with:
                   python-version: "3.10"
 
@@ -26,7 +29,7 @@ jobs:
               run: |
                   # Remove 'v' prefix from tag name
                   VERSION=${GITHUB_REF#refs/tags/v}
-                  echo "VERSION=$VERSION" >> $GITHUB_ENV
+                  echo "VERSION=$VERSION" >> "$GITHUB_ENV"
                   echo "Version extracted: $VERSION"
 
             - name: Configure Git
@@ -52,7 +55,7 @@ jobs:
                   lean --version
 
             - name: Cache .lake
-              uses: actions/cache/restore@v4
+              uses: actions/cache/restore@v6.1.0
               with:
                   path: .lake
                   key:
@@ -70,7 +73,7 @@ jobs:
                   ./deploy/build.sh
 
             - name: Save cache for .lake
-              uses: actions/cache/save@v4
+              uses: actions/cache/save@v6.1.0
               with:
                   path: |
                       .lake/packages

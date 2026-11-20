@@ -44,13 +44,17 @@ def highlight_inline_diff(old: str, new: str) -> Tuple[str, str]:
             new_parts.append(new[j1:j2])
         elif tag == "replace":
             # Changed - use reverse video for visibility (works for all chars including whitespace)
-            old_parts.append(f"{Colors.RED}{Colors.REVERSE}{old[i1:i2]}{Colors.RESET}{Colors.RED}")
+            old_parts.append(
+                f"{Colors.RED}{Colors.REVERSE}{old[i1:i2]}{Colors.RESET}{Colors.RED}"
+            )
             new_parts.append(
                 f"{Colors.GREEN}{Colors.REVERSE}{new[j1:j2]}{Colors.RESET}{Colors.GREEN}"
             )
         elif tag == "delete":
             # Only in old - use reverse video
-            old_parts.append(f"{Colors.RED}{Colors.REVERSE}{old[i1:i2]}{Colors.RESET}{Colors.RED}")
+            old_parts.append(
+                f"{Colors.RED}{Colors.REVERSE}{old[i1:i2]}{Colors.RESET}{Colors.RED}"
+            )
         elif tag == "insert":
             # Only in new - use reverse video
             new_parts.append(

@@ -12,13 +12,18 @@ on:
 env:
     TARGET_BRANCH: nightly-testing
 
+permissions:
+    contents: read
+
 jobs:
     merge-to-nightly:
         runs-on: nscloud-ubuntu-22.04-amd64-8x16
         if: github.repository == 'leanprover/reference-manual'
+        permissions:
+            contents: write # This allows pushing to nightly-testing
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7.0.1
               with:
                   ref: ${{ env.TARGET_BRANCH }}
                   fetch-depth: 0

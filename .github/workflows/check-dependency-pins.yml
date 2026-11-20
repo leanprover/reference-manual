@@ -9,12 +9,17 @@ on:
         branches: [main]
     merge_group:
 
+permissions:
+    contents: read
+
 jobs:
     check-dependency-pins:
         name: "Check dependency pins"
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7.0.1
+              with:
+                  persist-credentials: false
 
             - name: Determine target branch
               id: target

@@ -39,8 +39,12 @@ class LspClient:
             bufsize=0,  # Unbuffered
         )
         self.msg_id = 0
-        self.pending_requests: Dict[int, "queue.Queue[Dict[str, Any]]"] = {}  # msg_id → response queue
-        self.diagnostics_by_uri: Dict[str, List[Dict[str, Any]]] = {}  # uri → list of diagnostics
+        self.pending_requests: Dict[
+            int, "queue.Queue[Dict[str, Any]]"
+        ] = {}  # msg_id → response queue
+        self.diagnostics_by_uri: Dict[
+            str, List[Dict[str, Any]]
+        ] = {}  # uri → list of diagnostics
         self.file_progress: Dict[str, bool] = {}  # uri → processing status (True/False)
         self.shutdown_flag = False
         self.initialized = False
@@ -129,7 +133,9 @@ class LspClient:
         self.process.stdin.write(header + body)
         self.process.stdin.flush()
 
-    def send_request(self, method: str, params: Dict[str, Any], timeout: int = 30) -> Any:
+    def send_request(
+        self, method: str, params: Dict[str, Any], timeout: int = 30
+    ) -> Any:
         """Send request and wait for response."""
         self.msg_id += 1
         msg_id = self.msg_id
@@ -184,9 +190,7 @@ class LspClient:
                         }
                     }
                 },
-                "initializationOptions": {
-                    "hasWidgets": True
-                },
+                "initializationOptions": {"hasWidgets": True},
             },
         )
 
@@ -357,7 +361,9 @@ class LspClient:
         # Send a keepalive request to prevent session timeout
         # Lean RPC keepalive is done via $/lean/rpc/keepAlive
         try:
-            self.send_request("$/lean/rpc/keepAlive", {"sessionId": session_id}, timeout=5)
+            self.send_request(
+                "$/lean/rpc/keepAlive", {"sessionId": session_id}, timeout=5
+            )
         except Exception:
             # Keepalive failures are not critical - session might already be alive
             pass

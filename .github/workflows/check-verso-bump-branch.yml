@@ -11,6 +11,9 @@ on:
         branches: [nightly-testing]
     workflow_dispatch:
 
+permissions:
+    contents: read
+
 jobs:
     check-verso-bump-branch:
         name: "Check Verso bump branch"
@@ -23,7 +26,9 @@ jobs:
                   ./elan-init -y --default-toolchain none
                   echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7.0.1
+              with:
+                  persist-credentials: false
 
             - name: Check Verso bump branch
               run: |

@@ -39,7 +39,7 @@ while IFS= read -r zip; do
             echo "Using toolchain: $toolchain"
             echo "$toolchain" > "$project_dir/lean-toolchain"
         fi
-        pushd "$project_dir" > /dev/null
+        pushd "$project_dir" > /dev/null || exit 1
         if lake build 2>&1; then
             echo "Build succeeded"
             ((successes++))
@@ -47,7 +47,7 @@ while IFS= read -r zip; do
             echo "Build failed"
             ((failures++))
         fi
-        popd > /dev/null
+        popd > /dev/null || exit 1
     fi
 
     rm -rf "$tmpdir"

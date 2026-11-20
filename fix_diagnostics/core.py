@@ -175,7 +175,7 @@ def _calculate_edit_magnitude(old_text: str, new_text: str) -> int:
     magnitude = 0
 
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-        if tag in ('replace', 'delete', 'insert'):
+        if tag in ("replace", "delete", "insert"):
             magnitude += max(i2 - i1, j2 - j1)
 
     return magnitude
@@ -406,23 +406,23 @@ def _extract_widget_edits(message: Dict[str, Any]) -> List[Dict[str, Any]]:
         List of dicts with 'title', 'suggestion', and 'range' for each widget edit
     """
     edits = []
-    append_items = message.get('append', [])
+    append_items = message.get("append", [])
 
     for item in append_items:
-        tags = item.get('tag', [])
+        tags = item.get("tag", [])
         for tag in tags:
-            if 'widget' not in tag:
+            if "widget" not in tag:
                 continue
 
-            widget = tag['widget']
-            wi = widget.get('wi', {})
-            widget_id = wi.get('id')
-            props = wi.get('props', {})
+            widget = tag["widget"]
+            wi = widget.get("wi", {})
+            widget_id = wi.get("id")
+            props = wi.get("props", {})
 
             # Handle tryThisDiffWidget - the common "Try this:" suggestion widget
-            if widget_id == 'Lean.Meta.Hint.tryThisDiffWidget':
-                suggestion = props.get('suggestion')
-                edit_range = props.get('range')
+            if widget_id == "Lean.Meta.Hint.tryThisDiffWidget":
+                suggestion = props.get("suggestion")
+                edit_range = props.get("range")
 
                 if suggestion is not None and edit_range is not None:
                     # Create a descriptive title
@@ -431,11 +431,13 @@ def _extract_widget_edits(message: Dict[str, Any]) -> List[Dict[str, Any]]:
                     else:
                         title = f"Replace with suggested text ({len(suggestion)} chars)"
 
-                    edits.append({
-                        'title': title,
-                        'suggestion': suggestion,
-                        'range': edit_range,
-                    })
+                    edits.append(
+                        {
+                            "title": title,
+                            "suggestion": suggestion,
+                            "range": edit_range,
+                        }
+                    )
 
     return edits
 
@@ -513,12 +515,14 @@ def get_code_actions(
                 interactive_diags = lsp_client.get_interactive_diagnostics(file_path)
                 for int_diag in interactive_diags:
                     pos = (
-                        int_diag['range']['start']['line'],
-                        int_diag['range']['start']['character'],
+                        int_diag["range"]["start"]["line"],
+                        int_diag["range"]["start"]["character"],
                     )
                     interactive_diags_by_position[pos] = int_diag
             except Exception as e:
-                print(f"Warning: Could not get interactive diagnostics for {file_path}: {e}")
+                print(
+                    f"Warning: Could not get interactive diagnostics for {file_path}: {e}"
+                )
 
             # Query code actions for each diagnostic
             for diag in file_diags:
@@ -526,18 +530,18 @@ def get_code_actions(
                 pos = (diag.line, diag.col)
                 if pos in interactive_diags_by_position:
                     int_diag = interactive_diags_by_position[pos]
-                    message = int_diag.get('message', {})
+                    message = int_diag.get("message", {})
                     widget_edits = _extract_widget_edits(message)
 
                     for widget_edit in widget_edits:
                         # Create WorkspaceEdit from widget suggestion
                         file_uri = file_path.absolute().as_uri()
                         edit = {
-                            'changes': {
+                            "changes": {
                                 file_uri: [
                                     {
-                                        'range': widget_edit['range'],
-                                        'newText': widget_edit['suggestion'],
+                                        "range": widget_edit["range"],
+                                        "newText": widget_edit["suggestion"],
                                     }
                                 ]
                             }
@@ -547,8 +551,8 @@ def get_code_actions(
                         edit_size = _calculate_edit_size(edit, file_path)
 
                         action = CodeAction(
-                            title=widget_edit['title'],
-                            kind='quickfix',
+                            title=widget_edit["title"],
+                            kind="quickfix",
                             edit=edit,
                             diagnostic=diag,
                             edit_size=edit_size,
@@ -708,7 +712,9 @@ def _apply_edit(content: str, edit: Dict[str, Any], file_path: Path) -> str:
                     start_cp = _utf16_offset_to_codepoint(first_line, start_utf16)
                     last_line = lines[end_line]
                     end_cp = _utf16_offset_to_codepoint(last_line, end_utf16)
-                    lines[start_line : end_line + 1] = [first_line[:start_cp] + new_text + last_line[end_cp:]]
+                    lines[start_line : end_line + 1] = [
+                        first_line[:start_cp] + new_text + last_line[end_cp:]
+                    ]
 
         return "".join(lines)
 
@@ -751,15 +757,23 @@ def _apply_edit(content: str, edit: Dict[str, Any], file_path: Path) -> str:
                                 line = lines[start_line]
                                 start_cp = _utf16_offset_to_codepoint(line, start_utf16)
                                 end_cp = _utf16_offset_to_codepoint(line, end_utf16)
-                                lines[start_line] = line[:start_cp] + new_text + line[end_cp:]
+                                lines[start_line] = (
+                                    line[:start_cp] + new_text + line[end_cp:]
+                                )
                         else:
                             if start_line < len(lines) and end_line < len(lines):
                                 first_line = lines[start_line]
-                                start_cp = _utf16_offset_to_codepoint(first_line, start_utf16)
+                                start_cp = _utf16_offset_to_codepoint(
+                                    first_line, start_utf16
+                                )
                                 last_line = lines[end_line]
-                                end_cp = _utf16_offset_to_codepoint(last_line, end_utf16)
+                                end_cp = _utf16_offset_to_codepoint(
+                                    last_line, end_utf16
+                                )
                                 lines[start_line : end_line + 1] = [
-                                    first_line[:start_cp] + new_text + last_line[end_cp:]
+                                    first_line[:start_cp]
+                                    + new_text
+                                    + last_line[end_cp:]
                                 ]
 
                     return "".join(lines)

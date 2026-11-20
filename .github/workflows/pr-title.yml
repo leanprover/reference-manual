@@ -5,13 +5,16 @@ on:
     pull_request:
         types: [opened, synchronize, reopened, edited]
 
+permissions:
+    contents: read
+
 jobs:
     check-pr-title:
         name: "Check PR title"
         runs-on: ubuntu-latest
         steps:
             - name: "Check PR title"
-              uses: actions/github-script@v7
+              uses: actions/github-script@v9.0.0
               with:
                   script: |
                       const msg = context.payload.pull_request? context.payload.pull_request.title : context.payload.merge_group.head_commit.message;

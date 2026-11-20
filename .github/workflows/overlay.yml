@@ -20,17 +20,25 @@ on:
 
     workflow_dispatch:
 
+permissions:
+    contents: read
+
 jobs:
     apply-overlays:
         runs-on: ubuntu-latest
+        # The job acts on a run of "Deploy Tagged Version" only when a push to this repository
+        # started that run.
+        if: >
+            github.event_name != 'workflow_run' || (github.event.workflow_run.event == 'push' &&
+            github.event.workflow_run.head_repository.full_name == github.repository)
         permissions:
             contents: write # This allows pushing to the repository
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7.0.1
 
             - name: Set up Python
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v7.1.0
               with:
                   python-version: "3.10"
 
