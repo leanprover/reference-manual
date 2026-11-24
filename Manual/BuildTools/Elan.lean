@@ -79,6 +79,11 @@ If specified, an origin should precede the channel, with a colon, so `stable` is
 When installing nightly releases, `-nightly` is appended to the origin, so `leanprover/lean4:nightly-2025-03-25` consults the [`leanprover/lean4-nightly`](https://github.com/leanprover/lean4-nightly/releases) repository to download releases.
 Origins are not used for custom toolchain names.
 
+If the {envVar +def}`GH_TOKEN` or {envVar +def}`GITHUB_TOKEN` environment variable is set, Elan uses its value as a GitHub access token when it looks up or installs toolchains from origins other than the default.
+A token is required to access origins that are private repositories.
+Using a token also avoids the rate limits that GitHub applies to unauthenticated requests.
+If both variables are set, then {envVar}`GH_TOKEN` takes precedence.
+
 ## Determining the Current Toolchain
 %%%
 tag := "elan-toolchain-config"
@@ -299,7 +304,10 @@ DISCUSSION:
     the toolchain is downloaded from the archive for that date.
     'origin' can be used to refer to custom forks of Lean on Github;
     the default is 'leanprover/lean4'. For nightly versions, '-nightly'
-    is appended to the value of 'origin'.
+    is appended to the value of 'origin'. If the environment variable
+    'GH_TOKEN' (or 'GITHUB_TOKEN') is set to a GitHub access token, it
+    is used for accessing such forks, which is required for forks in
+    private repositories.
 
     elan can also manage symlinked local toolchain builds, which are
     often used to for developing Lean itself. For more information see
@@ -653,7 +661,7 @@ DISCUSSION:
         $ elan completions bash > /etc/bash_completion.d/elan.bash-completion
 
     This installs the completion script. You may have to log out and
-    log back in to your shell session for the changes to take affect.
+    log back in to your shell session for the changes to take effect.
 
     BASH (macOS/Homebrew):
 
@@ -670,7 +678,7 @@ DISCUSSION:
         $ elan completions fish > ~/.config/fish/completions/elan.fish
 
     This installs the completion script. You may have to log out and
-    log back in to your shell session for the changes to take affect.
+    log back in to your shell session for the changes to take effect.
 
     ZSH:
 
@@ -700,7 +708,7 @@ DISCUSSION:
 
         $ exec zsh
 
-    for the new completions to take affect.
+    for the new completions to take effect.
 
     CUSTOM LOCATIONS:
 

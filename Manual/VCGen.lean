@@ -96,7 +96,7 @@ The workflow of {tactic}`vcgen` consists of the following:
 1. Programs are re-interpreted according to a {tech}[predicate transformer semantics].
    An instance of {name}`WP` for the program type determines the interpretation.
    The program type can be a monadic computation, such as a {keywordOf Lean.Parser.Term.do}`do`-block in {lean}`StateM Nat`.
-   Non-monadic types, such as the syntax trees of a small imperative langauge, are also supported.
+   Non-monadic types, such as the syntax trees of a small imperative language, are also supported.
    Each program is interpreted as a mapping from arbitrary {tech}[postconditions] to the {tech}[weakest precondition] that would ensure the postcondition.
    This step is invisible to most users, but library authors who want to enable their program types to work with {tactic}`vcgen` need to understand it.
 2. Programs are composed from smaller programs.
@@ -311,9 +311,9 @@ A predicate transformer is a function from postconditions into assertions that d
 variable {x y : PredTrans Pred EPred α} {post post' : α → Pred} {epost epost' : EPred}
 ```
 The partial order on predicate transformers is inherited pointwise from the assertion lattice: {lean}`x ⊑ y` when {lean}`x.apply post epost ⊑ y.apply post epost` for all {lean}`post` and {lean}`epost`.
-Every predicate transformer that a {name}`WP` instance produces is {deftech}_monotone_: if {lean}`post ⊑ post'` and {lean}`epost ⊑ epost'`, then {lean}`x.apply post epost ⊑ x.apply post' epost'`.
+Every predicate transformer is {deftech}_monotone_: if {lean}`post ⊑ post'` and {lean}`epost ⊑ epost'`, then {lean}`x.apply post epost ⊑ x.apply post' epost'`.
 
-{docstring Lean.Order.PredTrans.Monotone}
+{docstring Lean.Order.PredTrans.apply_mono}
 :::
 
 Predicate transformers form a monad.
@@ -391,8 +391,9 @@ instance : Monad Identity where
   bind x f := f x.run
 
 instance : WP (Identity α) α Prop EStack⟨⟩ where
-  wpTrans x := ⟨fun post _ => post x.run⟩
-  wp_trans_monotone x := fun _ _ _ _ _ hpost => hpost x.run
+  trans x := PredTrans.mk
+    (apply := fun post _ => post x.run)
+    (apply_mono := fun hpost _ => hpost x.run)
 
 theorem Identity.of_run_eq_wp {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop)
@@ -441,8 +442,8 @@ The issue can be resolved by adding a suitable instance:
 ```lean
 instance : WPMonad Identity Prop EStack⟨⟩ where
   toWP _ := inferInstance
-  pure_le_wp_pure _ _ _ := PartialOrder.rel_refl
-  bind_le_wp_bind _ _ _ _ := PartialOrder.rel_refl
+  pure_le_wp_pure _ _ _ := by simp [wp, WP.trans, pure]
+  bind_le_wp_bind _ _ _ _ := by simp [wp, WP.trans, bind]
 ```
 With this instance, and a suitable invariant, {tactic}`vcgen` and the {tactic}`grind`-mode {ref "grind-interactive"}[tactic] {grindTactic}`finish` can prove the theorem.
 ```lean
@@ -626,7 +627,7 @@ Generation proceeds as follows:
 1. The goal is brought into the form of an entailment {lean}`P ⊑ R` between assertions.
    Binders are introduced, {tech}[Hoare triples] are unfolded to {lean}`P ⊑ wp e Q E`, and goals of the form {lean}`wp e Q E` become {lean}`⊤ ⊑ wp e Q E`.
 2. The precondition {lean}`P` is moved into the local context: a pure assertion {lean (type := "Pred")}`⌜φ⌝` becomes a hypothesis {lean}`φ`, an {ref "vcgen-assertion-lattices"}[existential] {name Lean.Order.iSup}`⨆` becomes a variable, and the arguments of a state predicate become variables.
-3. The assertion {lean}`R` is recursively decomposed into goals based on its connectives: meets {name Lean.Order.meet}`⊓` are split into one goal per conjunct, the antecedents of {name Lean.Order.himp}`⇨` are mvoed into the precondition, pure assertions {lean (type := "Pred")}`⌜φ⌝` are transformed into the proposition {lean}`φ`, and {name Lean.Order.top}`⊤` goals are closed immediately.
+3. The assertion {lean}`R` is recursively decomposed into goals based on its connectives: meets {name Lean.Order.meet}`⊓` are split into one goal per conjunct, the antecedents of {name Lean.Order.himp}`⇨` are moved into the precondition, pure assertions {lean (type := "Pred")}`⌜φ⌝` are transformed into the proposition {lean}`φ`, and {name Lean.Order.top}`⊤` goals are closed immediately.
 4. If {lean}`R` is {lean}`wp e Q E`, then the program {lean}`e` is decomposed:
    1. A {keywordOf Lean.Parser.Term.«let»}`let`-binding is introduced, becoming a hypothesis.
    2. An application of an {tech}[auxiliary matching function] whose {tech (key := "match discriminant")}[discriminant] is a constructor application is reduced; any other conditional or match is split into one goal per branch.
@@ -778,11 +779,9 @@ This operator was designed to model state monads, but {name}`LogM` can be seen a
 This appending is visible in the body of the instance, where the initial state and the log that resulted from the action are appended:
 ```lean
 instance : WP (LogM β α) α (Array β → Prop) EStack⟨⟩ where
-  wpTrans
+  trans
     | { log, value } =>
       PredTrans.pushArg (fun s => pure (value, s ++ log))
-  wp_trans_monotone x := fun _ _ _ _ _ hpost s =>
-    hpost x.value (s ++ x.log)
 ```
 
 The {name}`WPMonad` instance also benefits from the conceptual model as a state monad and admits very short proofs:

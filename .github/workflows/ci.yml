@@ -19,6 +19,9 @@ jobs:
     build:
         name: Build site and generate HTML
         runs-on: nscloud-ubuntu-22.04-amd64-8x16
+        env:
+            VALE_VERSION: "3.21.0"
+            VALE_SHA256: "96997d19a4ca6981673b0d4c5ca7f3ede4a9f97964a96edc29fba9e28a328336"
 
         steps:
             - name: Display usage limits
@@ -28,17 +31,23 @@ jobs:
             - name: Install elan
               run: |
                   set -o pipefail
-                  curl -sSfL https://github.com/leanprover/elan/releases/download/v4.2.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+                  curl -sSfL https://github.com/leanprover/elan/releases/download/v4.4.0/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
                   ./elan-init -y --default-toolchain none
                   echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
             - uses: actions/checkout@v4
 
+            # The toolchain download, the cache restoration, and the Python
+            # and Node setup run at the same time.
             - name: Lean Version
+              id: lean-version
+              background: true
               run: |
                   lean --version
 
             - name: Cache .lake
+              id: restore-cache
+              background: true
               uses: actions/cache/restore@v4
               with:
                   path: |
@@ -55,6 +64,67 @@ jobs:
                       ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}
                       ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
                       ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-
+
+            - name: Set up Python
+              id: setup-python
+              background: true
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.10"
+
+            - name: Set up Node
+              id: setup-node
+              background: true
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "lts/*"
+                  cache: npm
+
+            - name: Wait for setup
+              wait: [lean-version, restore-cache, setup-python, setup-node]
+
+            # The cache holds the Vale binary and the virtual environment
+            # that the HTML preprocessor runs in.
+            - name: Cache prose linter
+              uses: actions/cache@v4
+              with:
+                  path: ${{ runner.temp }}/vale
+                  key:
+                      vale-${{ runner.os }}-${{ env.VALE_VERSION }}-py${{
+                      steps.setup-python.outputs.python-version }}-${{
+                      hashFiles('.vale/scripts/requirements.txt') }}
+
+            # The tool installations run in the background during the build.
+            - name: Install LinkChecker
+              id: install-linkchecker
+              background: true
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install linkchecker
+
+            - name: Install prose linter
+              id: install-vale
+              background: true
+              run: |
+                  set -euo pipefail
+                  if [ -x "$RUNNER_TEMP/vale/vale" ] && [ -x "$RUNNER_TEMP/vale/venv/bin/python" ]; then
+                      echo "Using the cached prose linter"
+                      exit 0
+                  fi
+                  tarball="vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
+                  curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
+                      -o "$RUNNER_TEMP/$tarball" \
+                      "https://github.com/vale-cli/vale/releases/download/v${VALE_VERSION}/$tarball"
+                  echo "$VALE_SHA256  $RUNNER_TEMP/$tarball" | sha256sum --check
+                  mkdir -p "$RUNNER_TEMP/vale"
+                  tar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP/vale" vale
+                  python -m venv "$RUNNER_TEMP/vale/venv"
+                  "$RUNNER_TEMP/vale/venv/bin/pip" install -r .vale/scripts/requirements.txt
+
+            - name: Install TypeScript
+              id: install-npm
+              background: true
+              run: npm ci
 
             - name: Build
               run: |
@@ -106,6 +176,8 @@ jobs:
                   fi
 
             - name: Save cache for .lake
+              id: save-cache
+              background: true
               uses: actions/cache/save@v4
               with:
                   path: |
@@ -130,11 +202,20 @@ jobs:
                   VERSION=${GITHUB_REF#refs/tags/v}
                   ./generate-html.sh --mode production --version "$VERSION"
 
+            - name: Wait for tool installations
+              wait: [install-linkchecker, install-vale, install-npm]
+
+            # The checks run in the background. The final step of the job
+            # waits for them and fails if any of them failed.
             - name: Check Manual Examples are Isolated
+              id: check-examples
+              background: true
               run: |
                   scripts/check-examples-isolated.sh
 
             - name: Verify tutorial project zip files build
+              id: check-zips
+              background: true
               if: github.event_name != 'release'
               run: |
                   # On Linux, some nightly toolchains currently report a version string that
@@ -147,6 +228,33 @@ jobs:
                   else
                       scripts/check-tutorial-zips.sh
                   fi
+
+            - name: Run LinkChecker (local links only)
+              id: check-links
+              background: true
+              if: github.event_name == 'push' || github.event_name == 'pull_request'
+              run: |
+                  linkchecker --config=.linkchecker/linkcheckerrc './_out/html-multi/'
+
+            # The HTML needs preprocessing to work well with Vale. The
+            # preprocessed copy is written outside of _out, which keeps it
+            # out of the HTML artifact.
+            - name: Prose linter
+              id: prose-lint
+              background: true
+              run: |
+                  set -o pipefail
+                  "$RUNNER_TEMP/vale/venv/bin/python" .vale/scripts/rewrite_html.py \
+                      _out/html-multi "$RUNNER_TEMP/html-vale"
+                  "$RUNNER_TEMP/vale/vale" --output JSON "$RUNNER_TEMP/html-vale/" \
+                      | python .vale/scripts/report.py
+
+            - name: Type check the search bar code
+              id: type-check-js
+              background: true
+              run: |
+                  cd _out/html-multi/-verso-search
+                  npx tsc --noEmit -p jsconfig.json
 
             - name: Generate proofreading HTML
               if: github.event_name == 'pull_request'
@@ -186,35 +294,8 @@ jobs:
                   cat words.txt >> $GITHUB_STEP_SUMMARY
                   echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-            - name: Set up Python for link checker
-              if: github.event_name == 'push' || github.event_name == 'pull_request'
-              uses: actions/setup-python@v4
-              with:
-                  python-version: "3.10"
-
-            - name: Install LinkChecker
-              if: github.event_name == 'push' || github.event_name == 'pull_request'
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install linkchecker
-
-            - name: Run LinkChecker (local links only)
-              if: github.event_name == 'push' || github.event_name == 'pull_request'
-              run: |
-                  linkchecker --config=.linkchecker/linkcheckerrc './_out/html-multi/'
-
-            # This saved number is used by a workflow_run trigger. It
-            # manages labels that indicate the status of the built HTML.
-            - name: Save PR number
-              if: github.event_name == 'pull_request'
-              run: |
-                  mkdir -p ./pr
-                  echo ${{ github.event.number }} > ./pr/NR
-            - uses: actions/upload-artifact@v4
-              if: github.event_name == 'pull_request'
-              with:
-                  name: pr
-                  path: pr/
+            - name: Wait for checks
+              wait-all:
 
     deploy:
         name: Deploy release
@@ -322,71 +403,3 @@ jobs:
               continue-on-error: true
               with:
                   arguments: --skip-file .skip-link-check -e ${{ needs.deploy.outputs.ref-url }}
-
-    prose-lint:
-        name: Check prose
-        runs-on: ubuntu-latest
-        needs: [build]
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Get generated HTML from artifact storage
-              uses: actions/download-artifact@v4
-              with:
-                  name: "html"
-                  path: "_out/"
-
-            - name: Install prose linter
-              env:
-                  VALE_VERSION: "3.21.0"
-                  VALE_SHA256: "96997d19a4ca6981673b0d4c5ca7f3ede4a9f97964a96edc29fba9e28a328336"
-              run: |
-                  set -euo pipefail
-                  tarball="vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
-                  curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
-                      -o "$RUNNER_TEMP/$tarball" \
-                      "https://github.com/vale-cli/vale/releases/download/v${VALE_VERSION}/$tarball"
-                  echo "$VALE_SHA256  $RUNNER_TEMP/$tarball" | sha256sum --check
-                  mkdir -p "$RUNNER_TEMP/vale"
-                  tar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP/vale" vale
-                  echo "$RUNNER_TEMP/vale" >> "$GITHUB_PATH"
-
-            - name: Preprocess HTML for prose linter
-              run: |
-                  # First the HTML needs preprocessing to work well with Vale
-                  pushd _out
-                  python3 -m venv venv
-                  . venv/bin/activate
-                  pip install beautifulsoup4
-                  python ../.vale/scripts/rewrite_html.py html-multi html-vale
-                  popd
-
-            - name: Prose linter
-              run: |
-                  set -o pipefail
-                  vale --output JSON _out/html-vale/ | python .vale/scripts/report.py
-
-    type-check-js:
-        name: Check search JS code with TypeScript
-        runs-on: ubuntu-latest
-        needs: [build]
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Get generated HTML from artifact storage
-              uses: actions/download-artifact@v4
-              with:
-                  name: "html"
-                  path: "_out/"
-
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: "lts/*"
-                  cache: npm
-
-            - run: npm ci
-
-            - name: Type check the search bar code
-              run: |
-                  cd _out/html-multi/-verso-search
-                  npx tsc --noEmit -p jsconfig.json

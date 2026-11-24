@@ -333,7 +333,7 @@ When attempting to prove that {lean}`∀ n, n ≥ 8 → (perhapsFactorial n).isN
 :::::
 
 :::example "Infix Operators, Defined Functions, and Unexpanders"
-When an operator does not expand to the application of a defiend function, no unexpander is generated.
+When an operator does not expand to the application of a defined function, no unexpander is generated.
 Here, the postfix interrobang expands to an anonymous function that takes a factorial if its argument is not too large.
 
 ```lean
