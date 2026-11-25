@@ -40,8 +40,8 @@ def constructionsOnConstructors : InProceedings where
 def cuttingToTheChase : InProceedings where
   title := inlines!"Cutting to the Chase: Solving Linear Integer Arithmetic"
   authors := #[inlines!"Dejan Jovanović", inlines!"Leonardo de Moura"]
-  year := 2013
-  booktitle := inlines!"Automated Deduction: CADE-23"
+  year := 2011
+  booktitle := inlines!"Automated Deduction: CADE 23"
   series := some (inlines!"LNCS 6803")
   url := "https://link.springer.com/chapter/10.1007/978-3-642-22438-6_26"
 
