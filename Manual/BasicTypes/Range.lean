@@ -415,7 +415,7 @@ instance : Std.PRange.UpwardEnumerable Day where
 :::
 
 Iteration also requires a proof that the implementation of {name Std.PRange.UpwardEnumerable.succ?}`succ?` is sensible.
-Its properties are expressed in terms of {name}`Std.PRange.UpwardEnumerable.succMany?`, which iterates the application of {name Std.PRange.UpwardEnumerable.succ?}`succ?` a certain number of times and has a default implementation in terms of {name}`Nat.repeat` and {name Std.PRange.UpwardEnumerable.succ?}`succ?`.
+Its properties are expressed in terms of {name}`Std.PRange.UpwardEnumerable.succMany?`, which iterates the application of {name Std.PRange.UpwardEnumerable.succ?}`succ?` a certain number of times and has a default implementation in terms of {name}`Nat.iterate` and {name Std.PRange.UpwardEnumerable.succ?}`succ?`.
 In particular, an instance of {name Std.PRange.LawfulUpwardEnumerable}`LawfulUpwardEnumerable` requires proofs that {name}`Std.PRange.UpwardEnumerable.succMany?` corresponds to the default implementation along with a proof that repeatedly applying the successor never yields the same element again.
 
 :::paragraph
@@ -425,13 +425,13 @@ While they could be written inline in the instance declaration, it's convenient 
 @[simp]
 theorem Day.succMany?_zero (d : Day) :
   Std.PRange.succMany? 0 d = some d := by
-  simp [Std.PRange.succMany?, Nat.repeat]
+  simp [Std.PRange.succMany?, Nat.iterate]
 
 @[simp]
 theorem Day.succMany?_add_one (n : Nat) (d : Day) :
     Std.PRange.succMany? (n + 1) d =
     (Std.PRange.succMany? n d).bind Std.PRange.succ? := by
-  simp [Std.PRange.succMany?, Nat.repeat, Std.PRange.succ?]
+  simp [Std.PRange.succMany?, Nat.iterate, Std.PRange.succ?]
 ```
 
 Proving that there are no cycles in successor uses a convenient helper lemma that calculates the number of successor steps between any two days.
@@ -446,7 +446,7 @@ theorem Day.succMany?_steps {d d' : Day} {steps} :
   match steps with
   | 0 | 1 | 2 | 3 | 4 | 5 | 6 =>
     cases d <;> cases d' <;>
-    simp_all +decide [Std.PRange.succMany?, Nat.repeat, Day.succ?]
+    simp_all +decide [Std.PRange.succMany?, Nat.iterate, Day.succ?]
   | n + 7 =>
     simp at h
     cases h' : (Std.PRange.succMany? n d) with

@@ -256,9 +256,9 @@ tag := "nat-api-iteration"
 Many iteration operators come in two versions: a structurally recursive version and a tail-recursive version.
 The structurally recursive version is typically easier to use in contexts where definitional equality is important, as it will compute when only some prefix of a natural number is known.
 
-{docstring Nat.repeat}
+{docstring Nat.iterate}
 
-{docstring Nat.repeatTR}
+{docstring Nat.iterateTR}
 
 {docstring Nat.fold}
 
