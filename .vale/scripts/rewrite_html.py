@@ -85,6 +85,14 @@ def process_html_file(filepath, output_filepath):
     for element in soup.find_all(class_="c"):
         element.decompose()
 
+    # Delete SVG diagrams.
+    for element in soup.find_all("svg"):
+        element.decompose()
+
+    # Delete Lean messages that are shown inline in code. They are output, not prose.
+    for element in soup.find_all(class_="hover-info"):
+        element.decompose()
+
     # Replace citations with their text
     for element in soup.find_all(class_="citation"):
         for inner in element.contents:
