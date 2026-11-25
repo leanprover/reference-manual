@@ -47,7 +47,7 @@ One way to determine the necessary syntax for a package entry is to add a tempor
 
 :::example "Making Remote Dependencies Local"
 
-Consider a use case where programs are being developed in a restricted enviroment without network access (e.g., for security reasons).
+Consider a use case where programs are being developed in a restricted environment without network access (e.g., for security reasons).
 The team wishes to compile a small tool written in Lean that depends on the [`@leanprover/Cli`](https://reservoir.lean-lang.org/@leanprover/Cli) library to provide a simple command-line interface.
 That tool's {tech}[manifest] thus looks something like this:
 

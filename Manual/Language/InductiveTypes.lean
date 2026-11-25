@@ -422,7 +422,7 @@ tag := "inductive-types-trivial-wrappers"
 %%%
 
 :::paragraph
-An inductive type is a {deftech}[trivial wrapper] if it has has exactly one constructor and that constructor has exactly one run-time relevant parameter.
+An inductive type is a {deftech}[trivial wrapper] if it has exactly one constructor and that constructor has exactly one run-time relevant parameter.
 Trivial wrappers are represented identically to their constructor's parameter in the following circumstances:
 
  * The inductive type is private.
@@ -444,8 +444,8 @@ Thus, subtypes impose no runtime overhead in compiled code, and are represented 
 :::
 
 :::example "Signed Integers"
-The signed integer types {lean}`Int8`, ..., {lean}`Int64`, {lean}`ISize` are structures with a single field that wraps the corresponding unsigned integer type.
-They are represented by the unsigned C types {C}`uint8_t`, ..., {C}`uint64_t`, {C}`size_t`, respectively, because they have a trivial structure.
+The signed integer types {lean}`Int8`, …, {lean}`Int64`, {lean}`ISize` are structures with a single field that wraps the corresponding unsigned integer type.
+They are represented by the unsigned C types {C}`uint8_t`, …, {C}`uint64_t`, {C}`size_t`, respectively, because they have a trivial structure.
 :::
 
 ## Other Inductive Types

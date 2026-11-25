@@ -210,7 +210,7 @@ the overall steps to get it working the first time:
 $ cd .vale/scripts
 $ python3 -m venv venv
 $ . ./venv/bin/activate # or the appropriate script for your shell, e.g. activate.fish
-$ pip install beautifulsoup4
+$ pip install -r requirements.txt
 ```
 
 After that, just run
@@ -242,11 +242,9 @@ previews, the CI does the following:
 
 1.  `ci.yml` builds the HTML for the pull request and saves it to
     artifact storage
-2.  `label-pr.yml` is triggered when `ci.yml` completes. It (re)labels
-    the PR with `HTML available` to indicate that the artifact was
-    built.
-3.  Whenever the label is added, `pr-deploy.yml` runs _in the context
-    of `main`_ with access to secrets. It can deploy the previews.
+2.  `pr-deploy.yml` is triggered when `ci.yml` completes. It runs _in
+    the context of `main`_ with access to secrets, and it deploys the
+    previews.
 
-The second two steps run the CI code on `main`, not the config from
-the PR.
+The second step runs the CI code on `main`, not the config from the
+PR.

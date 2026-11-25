@@ -220,44 +220,62 @@ This function is correct if it returns {name}`true` for every list that satisfie
 Just as it was in {name}`mySum`, the use of {keywordOf Lean.Parser.Term.do}`do`-notation and the {name}`Id` monad is an internal implementation detail of {name}`nodup`.
 Thus, the proof begins by using {name}`Id.of_run_eq_wp` to make the proof state amenable to {tactic}`vcgen`:
 ```lean
--- A future 4.36 release adds these annotations to the library.
-attribute [local grind norm]
-  Lean.Order.ofProp_prop_eq Lean.Order.meet_prop_eq_and
-  Lean.Order.join_prop_eq_or Lean.Order.iSup_prop_eq_exists
-
 theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
   generalize h : nodup l = r
   apply Id.of_run_eq_wp h
   vcgen invariants
-  · Invariant.withEarlyReturnNewDo
-      (onReturn := fun ret seen => ret = false ∧ ¬l.Nodup)
-      (onContinue := fun pref suff seen =>
-        (∀ x, x ∈ seen ↔ x ∈ pref) ∧ pref.Nodup)
+  · fun pref suff seen =>
+      (∀ x, x ∈ seen ↔ x ∈ pref) ∧ pref.Nodup
   with finish
 ```
 ::::
 
-
 :::paragraph
 ```lean -show
 section
-variable {l : List Int} {ret : Bool} {seen : Std.HashSet Int} {pref suff : List Int}
-axiom onReturn : Bool → Std.HashSet Int → Prop
-axiom onContinue : List Int → List Int → Std.HashSet Int → Prop
+variable {seen : Std.HashSet Int} {pref suff : List Int}
 ```
 The proof has the same structure as the one for {name}`mySum`: {tactic}`grind` discharges all verification conditions with its existing automation around {name}`List.Nodup`, and only the {tech (remote := "reference")}[loop invariant] differs.
-Since our loop has an {ref "early-return" (remote := "reference")}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturnNewDo`, which supports the {ref "do-elab" (remote := "reference")}[extensible `do`-notation elaborator].
-This function allows us to specify the invariant in two parts:
+Even though the loop has an {ref "early-return" (remote := "reference")}[early return], the invariant describes only the loop's mutable variables.
+It takes three arguments:
 
-* {lean}`onReturn ret seen` holds after the loop was left through an early return with value {lean}`ret`.
-  In case of {name}`nodup`, the only value that is ever returned is {name}`false`, in which case {name}`nodup` has decided there _is_ a duplicate in the list.
-* {lean}`onContinue pref suff seen` is the invariant that holds after each regular iteration.
-  As in {name}`mySum`, the list {lean}`pref` holds the elements that the loop has already visited and {lean}`suff` holds the elements that the loop has yet to visit.
-  The given example asserts that the set {lean}`seen` contains all the elements of previous loop iterations and asserts that there were no duplicates so far.
+* {lean}`pref` holds the elements that the loop has already visited, and {lean}`suff` holds the elements that the loop has yet to visit, as in {name}`mySum`.
+* {lean}`seen` is the set that the loop maintains.
+
+The invariant asserts that {lean}`seen` contains exactly the elements of {lean}`pref`, and that {lean}`pref` has no duplicates.
+
+The {keywordOf Lean.Parser.Term.doReturn}`return` of {name}`false` becomes a verification condition at the point of the return.
+There, {tactic}`vcgen` assumes the invariant and that the current element is in {lean}`seen`, and asks for the postcondition of {name}`nodup` with {name}`false` as the result.
+Because the current element is in {lean}`pref`, the list has a duplicate, so {tactic}`grind` can prove it.
 ```lean -show
 end
 ```
 :::
+
+```lean (name := nodupGoals) +error -show
+theorem nodup_goals (l : List Int) : nodup l ↔ l.Nodup := by
+  generalize h : nodup l = r
+  apply Id.of_run_eq_wp h
+  vcgen invariants
+  · fun pref suff seen =>
+      (∀ x, x ∈ seen ↔ x ∈ pref) ∧ pref.Nodup
+```
+
+```leanOutputGoal nodupGoals (goal := "vc3") -show
+case vc3
+l : List Int
+r : Bool
+h : nodup l = r
+seen : Std.HashSet Int := ∅
+pref✝ : List Int
+cur✝ : Int
+suff✝ : List Int
+_h✝ : ForIn.toList l = pref✝ ++ cur✝ :: suff✝
+b✝ : Std.HashSet Int
+a✝ : (∀ (x : Int), x ∈ b✝ ↔ x ∈ pref✝) ∧ pref✝.Nodup
+h✝ : cur✝ ∈ b✝
+⊢ False ↔ l.Nodup
+```
 
 :::paragraph
 Now consider the following direct (and excessively golfed) proof without {tactic}`vcgen`:
@@ -368,7 +386,7 @@ Hoare triples are the standard form of specifications for effectful programs, an
 ::::::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} [Monad m] {α σ ε : Type u} {Pred : Type u} {EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {P : Pred} {Q : α → Pred} {epost : EPred} {prog : m α} {c : Nat}
+variable {m : Type u → Type v} [Monad m] {α σ ε : Type u} {Pred : Type u} {EPred : Type u} [CompleteLattice Pred] [CompleteLattice EPred] [MonadicWP m Pred EPred] [MonadicWP.IsLaxDistrib m] {P : Pred} {Q : α → Pred} {epost : EPred} {prog : m α} {c : Nat}
 ```
 
 A {tech (remote := "reference")}_Hoare triple_ consists of a precondition, a statement, and a postcondition; it asserts that if the precondition holds, then the postcondition holds after running the statement.
@@ -582,12 +600,12 @@ The precondition of {name}`mkFresh_spec` binds only the state, and `⌜state.cou
 :::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type u} {prog : m α}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [CompleteLattice Pred] [CompleteLattice EPred] [MonadicWP m Pred EPred] [MonadicWP.IsLaxDistrib m] {α : Type u} {prog : m α}
 ```
 These proofs might not look much more exciting than when only a single monad was involved.
 However, under the radar of the user the proofs build on a cascade of specifications for {name}`MonadLift` instances.
-They also build on the {name}`WPMonad` instances of {name}`StateT` and {name}`ReaderT`, which make the specifications of {name Pure.pure}`pure` and {name Bind.bind}`bind` available in every layer.
-A {name}`WPMonad` instance requires only that the weakest precondition of {name Pure.pure}`pure` and {name Bind.bind}`bind` is at least as weak as the one that the predicate transformer monad computes.
+They also build on the {name}`MonadicWP` instances of {name}`StateT` and {name}`ReaderT`, which make the specifications of {name Pure.pure}`pure` and {name Bind.bind}`bind` available in every layer.
+A {name}`MonadicWP` instance requires only that the weakest precondition of {name Pure.pure}`pure` and {name Bind.bind}`bind` is at least as weak as the one that the predicate transformer monad computes.
 In other words, {name}`wp` is a lax morphism of ordered monads.
 
 :::
@@ -603,7 +621,7 @@ end Transformers
 ::::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {P : Pred} {α : Type u} {prog : m α} {Q' : α → Pred}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [CompleteLattice Pred] [CompleteLattice EPred] [MonadicWP m Pred EPred] [MonadicWP.IsLaxDistrib m] {P : Pred} {α : Type u} {prog : m α} {Q' : α → Pred}
 ```
 
 If {keyword}`let mut` is the {keywordOf Lean.Parser.Term.do}`do`-equivalent of {name}`StateT`, then early {keywordOf Lean.Parser.Term.doReturn}`return` is the equivalent of {name}`ExceptT`.
@@ -721,7 +739,7 @@ end Exceptions
 :::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type} {σ ε : Type}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [CompleteLattice Pred] [CompleteLattice EPred] [MonadicWP m Pred EPred] [MonadicWP.IsLaxDistrib m] {α : Type} {σ ε : Type}
 ```
 
 A {lean}`StateT σ` layer turns the assertion type `Pred` into `σ → Pred` and leaves the exception postcondition type unchanged.
@@ -734,18 +752,18 @@ The {name}`WP` instance for {lean}`EStateM ε σ` uses assertions of type `σ �
 
 The {tactic}`vcgen` framework is designed to be extensible.
 None of the monads presented so far have in any way been hard-coded into {tactic}`vcgen`.
-Rather, {tactic}`vcgen` relies on instances of the {name}`WP` and {name}`WPMonad` type classes and user-provided specifications to generate {tech (remote := "reference")}[verification conditions].
-Every program type needs a {name}`WP` instance, and a monad additionally needs a {name}`WPMonad` instance.
+Rather, {tactic}`vcgen` relies on instances of the {name}`WP` and {name}`MonadicWP` type classes and user-provided specifications to generate {tech (remote := "reference")}[verification conditions].
+Every program type needs a {name}`WP` instance, and a monad additionally needs a {name}`MonadicWP` instance.
 This section develops both for a custom monad.
 
 :::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [Assertion Pred] [Assertion EPred] {α : Type u}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [CompleteLattice Pred] [CompleteLattice EPred] {α : Type u}
 ```
 
 The {name}`WP` instance defines the weakest precondition interpretation of a monad {lean}`m` into predicate transformers {lean}`PredTrans Pred EPred α`,
-and the matching {name}`WPMonad` instance asserts that this translation is sound for {name Pure.pure}`pure` and {name Bind.bind}`bind`.
+and the matching {name}`MonadicWP` instance asserts that this translation is sound for {name Pure.pure}`pure` and {name Bind.bind}`bind`.
 :::
 
 :::::paragraph
@@ -784,7 +802,7 @@ instance Result.instLawfulMonad : LawfulMonad Result := by
 There are both {inst}`Monad Result` and {inst}`LawfulMonad Result` instances.
 Supporting this monad in {tactic}`vcgen` is a matter of:
 
-1. Adding {name}`WP` and {name}`WPMonad` instances for {name}`Result`
+1. Adding {name}`WP` and {name}`MonadicWP` instances for {name}`Result`
 2. Registering specification lemmas for the translation of basic Rust primitives such as addition etc.
 :::
 
@@ -806,25 +824,30 @@ Each case of {name}`Result` determines the precondition directly:
 ::::
 ```lean
 instance : WP (Result α) α Prop (Error → Prop) where
-  trans
-    | .ok v => ⟨fun post _ => post v⟩
-    | .fail e => ⟨fun _ epost => epost e⟩
-    | .div => ⟨fun _ _ => False⟩
-  trans_monotone x := by
-    intro post post' epost epost' hepost hpost
-    cases x <;> simp_all [PartialOrder.rel]
+  trans x := PredTrans.mk
+    (apply := fun post epost =>
+      match x with
+      | .ok v => post v
+      | .fail e => epost e
+      | .div => False)
+    (apply_mono := fun hpost hepost => by
+      cases x <;> simp_all [PartialOrder.rel])
 ```
 :::::
 
 :::paragraph
-The {name}`WPMonad` instance proves that this interpretation is sound for {name Pure.pure}`pure` and {name Bind.bind}`bind`, in its fields {name}`WPMonad.pure_le_wp_pure` and {name}`WPMonad.bind_le_wp_bind`.
+The {name}`MonadicWP` instance makes this interpretation the one that {tactic}`vcgen` uses for every type that {name}`Result` is applied to.
+The separate {name}`MonadicWP.IsLaxDistrib` instance proves that it is sound for {name Pure.pure}`pure` and {name Bind.bind}`bind`, in its fields {name}`MonadicWP.IsLaxDistrib.pure_le` and {name}`MonadicWP.IsLaxDistrib.bind_le`.
 For {name}`bind`, both the definition of {name}`wp` and the definition of {name}`bind` need to be unfolded to expose the nested {keyword}`match` structure that a case split and {tactic}`simp` make short work of.
 ```lean
-instance Result.instWPMonad : WPMonad Result Prop (Error → Prop) where
+instance Result.instMonadicWP :
+    MonadicWP Result Prop (Error → Prop) where
   toWP _ := inferInstance
-  pure_le_wp_pure x post epost := PartialOrder.rel_refl
-  bind_le_wp_bind x f post epost := by
-    cases x <;> simp [wp, WP.trans, bind, PartialOrder.rel]
+
+instance : MonadicWP.IsLaxDistrib Result where
+  pure_le x := fun post epost => by simp [WP.trans, pure]
+  bind_le x f := fun post epost => by
+    cases x <;> simp [WP.trans, bind, PartialOrder.rel]
 ```
 :::
 
@@ -874,7 +897,7 @@ There are two relevant specification lemmas to register:
 theorem Result.throw_spec {α} {post : α → Prop}
     {epost : Error → Prop} (e : Error) :
     ⦃epost e⦄ throw (m := Result) (α := α) e ⦃post; epost⦄ :=
-  ⟨PartialOrder.rel_refl⟩
+  ⟨by simp [wp, WP.trans, throw]⟩
 
 @[spec]
 theorem addOp_ok_spec {x y} (h : x.toNat + y.toNat < UInt32.size) :
