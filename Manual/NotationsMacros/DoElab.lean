@@ -517,7 +517,7 @@ The body's normal fallthrough, {keywordOf Lean.Parser.Term.doBreak}`break`, and 
 @[doElem_control_info doOnce]
 def inferOnce : ControlInfoHandler := fun stx => do
   let `(doElem| once $body) := stx | throwUnsupportedSyntax
-  let bodyInfo ← InferControlInfo.ofSeq body
+  let bodyInfo ← inferControlInfoSeq body
   let exits :=
     bodyInfo.numRegularExits > 0 ||
     bodyInfo.breaks ||
@@ -539,7 +539,8 @@ It computes this count from the body directly, since the value reported by the c
 def elabOnce : DoElab := fun stx dec => do
   let `(doElem| once $body) := stx | throwUnsupportedSyntax
   let dec ← dec.ensureUnit
-  let bodyInfo ← InferControlInfo.ofSeq body
+  let cache := (← read).controlInfoCache
+  let bodyInfo ← inferControlInfoSeq body cache
   let numRegularExits :=
     bodyInfo.numRegularExits +
     (if bodyInfo.breaks then 2 else 0) +
@@ -609,7 +610,24 @@ Generally speaking, control information should be computed using {name Lean.Elab
 
 {docstring Lean.Elab.Do.inferControlInfoSeq +allowMissing}
 
+Control information should be cached.
+Nested {keywordOf Lean.Parser.Term.do}`do`-elements, such as {keywordOf Lean.Parser.Term.doIf}`if` or {keywordOf Lean.Parser.Term.doFor}`for`, need to infer the control information of their contents.
+These inner {keywordOf Lean.Parser.Term.do}`do`-elements in turn need to infer the control information for _their_ contents.
+Caching this information prevents needless recomputation, which can lead to elaboration taking quadratic time.
+
+Every {keywordOf Lean.Parser.Term.do}`do` block has an associated {name Lean.Elab.Do.ControlInfoCache}`ControlInfoCache` that maps sequences of {keywordOf Lean.Parser.Term.do}`do`-elements to their inferred {name Lean.Elab.Do.ControlInfo}`ControlInfo`.
+This is part of the context in {name Lean.Elab.Do.DoElabM}`DoElabM`, accessible via {name Lean.Elab.Do.Context.controlInfoCache}`Context.controlInfoCache`.
+Even though the cache parameters to {name Lean.Elab.Do.inferControlInfoSeq}`inferControlInfoSeq` and {name Lean.Elab.Do.inferControlInfoElem}`inferControlInfoElem` are optional, elaborators should always pass the cache from the {keywordOf Lean.Parser.Term.do}`do` block's elaboration context.
+Custom handlers don't participate in caching.
+
+
+{docstring Lean.Elab.Do.ControlInfoCache +allowMissing}
+
+{docstring Lean.Elab.Do.ControlInfoCache.new +allowMissing}
+
 In some advanced cases, one of the functions in {namespace}`Lean.Elab.Do.InferControlInfo` may be necessary:
+
+{docstring Lean.Elab.Do.InferControlInfo.InferM +allowMissing}
 
 {docstring Lean.Elab.Do.InferControlInfo.ofElem +allowMissing}
 
@@ -814,7 +832,7 @@ Because this new syntax contains a sequence of {keywordOf Lean.Parser.Term.do}`d
 def inferLocally : ControlInfoHandler := fun stx => do
   let `(doElem| locally $_:ident => $_ do $seq) := stx
     | throwUnsupportedSyntax
-  InferControlInfo.ofSeq seq
+  inferControlInfoSeq seq
 ```
 
 The actual elaborator starts by computing the control information for the body, and then derives a control lifter from the control information and the original continuation.
@@ -825,7 +843,9 @@ Finally, the control lifter is used once again to reconstruct a suitable continu
 @[doElem_elab doLocally] def elabDoLocally : DoElab := fun stx dec => do
   let `(doElem| locally $x:ident => $e do $seq) := stx
     | throwUnsupportedSyntax
-  let lifter ← EffectForwarder.ofCont (← inferControlInfoElem stx) dec
+  let cache := (← read).controlInfoCache
+  let info ← inferControlInfoElem stx cache
+  let lifter ← EffectForwarder.ofCont info dec
   let body ← lifter.lift (elabDoSeq seq)
   let ρ ← Meta.mkFreshExprMVar (mkSort (.succ (← read).monadInfo.u))
   let f ← Term.elabTermEnsuringType (← `(fun $x => $e)) (← mkArrow ρ ρ)

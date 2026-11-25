@@ -53,6 +53,7 @@ public import Manual.Meta.LakeToml.Highlight
 public import Manual.Meta.LakeToml.Table
 public import Manual.Meta.LakeToml.Toml
 public import Manual.Meta.Lean
+public import Manual.Meta.LeanOutputGoal
 public import Manual.Meta.LexedText
 public import Manual.Meta.LexedText.Basic
 public import Manual.Meta.ListBullet

@@ -315,47 +315,7 @@ right_2 : a_2 ∈ m.indices.erase a
     [prop] (((m.indices.erase a).insert (m.keys.back ⋯) i).contains a_2 = true) =
           (m.keys.back ⋯ = a_2 ∨ (m.indices.erase a).contains a_2 = true)
     [prop] (m.indices.contains a_2 = true) = (a_2 ∈ m.indices)
-    [prop] (a_2 ∈ m.indices) = (a_2 ∈ m)
-    [prop] ((m.indices.erase a).contains a_2 = true) = ((!a == a_2) = true ∧ m.indices.contains a_2 = true)
-    [prop] -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 ≤ 0
-    [prop] (m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2
-    [prop] ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
-    [prop] (m.keys.set i (m.keys.back ⋯) ⋯).size ≤ i_2 → (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]? = none
-    [prop] ∀ (h_9 : i_2 + 1 ≤ (m.keys.set i (m.keys.back ⋯) ⋯).size),
-          (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]? = some (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]
-    [prop] (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]? = if i = i_2 then some (m.keys.back ⋯) else m.keys[i_2]?
-    [prop] (m.keys[i]? = some (m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]) =
-          (m.indices[(m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]]? = some i)
-    [prop] (m.keys[i]? = some m.keys[i_2]) = (m.indices[m.keys[i_2]]? = some i)
-    [prop] (m.keys[i_2]? = some m.keys[i_2]) = (m.indices[m.keys[i_2]]? = some i_2)
-    [prop] (m.keys[i_2]? = some (m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]) =
-          (m.indices[(m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]]? = some i_2)
-    [prop] (m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2] = if i = i_2 then m.keys.back ⋯ else m.keys.pop[i_2]
-    [prop] (m.keys.set i (m.keys.back ⋯) ⋯).pop[i_2] = (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]
-    [prop] ¬m.keys[i_2] ∈ m.indices → m.indices[m.keys[i_2]]? = none
-    [prop] ∀ (h_9 : m.keys[i_2] ∈ m.indices), m.indices[m.keys[i_2]]? = some m.indices[m.keys[i_2]]
-    [prop] (m.keys[m.indices[a]]? = some m.keys[i_2]) = (m.indices[m.keys[i_2]]? = some m.indices[a])
-    [prop] (m.keys.set i (m.keys.back ⋯) ⋯)[i_2] = if i = i_2 then m.keys.back ⋯ else m.keys[i_2]
-    [prop] (m.indices.contains m.keys[i_2] = true) = (m.keys[i_2] ∈ m.indices)
-    [prop] (m.keys[i_2] ∈ m.indices) = (m.keys[i_2] ∈ m)
-    [prop] (m.keys[m.indices[m.keys[i_2]]]? = some m.keys[i_2]) =
-          (m.indices[m.keys[i_2]]? = some m.indices[m.keys[i_2]])
-    [prop] (m.keys[m.indices[m.keys[i_2]]]? = some a_2) = (m.indices[a_2]? = some m.indices[m.keys[i_2]])
-    [prop] (m.keys[m.indices[m.keys[i_2]]]? = some a) = (m.indices[a]? = some m.indices[m.keys[i_2]])
-    [prop] ∀ (h_9 : m.keys[i_2] ∈ m), m.indices[m.keys[i_2]] + 1 ≤ m.size
-    [prop] ¬i = i_2
-    [prop] m.keys.pop.size ≤ i_2 → m.keys.pop[i_2]? = none
-    [prop] ∀ (h : i_2 + 1 ≤ m.keys.pop.size), m.keys.pop[i_2]? = some m.keys.pop[i_2]
-    [prop] m.keys.pop[i_2]? = if i_2 + 1 ≤ m.keys.size - 1 then m.keys[i_2]? else none
-    [prop] m.keys.pop[i_2] = m.keys[i_2]
-    [prop] ¬m.keys[i_2]? = some a
-    [prop] ¬m.indices[a]? = some i_2
-    [prop] (m.keys.back ⋯ == a_2) = true
-    [prop] ((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2] =
-          if h₂ : (m.keys.back ⋯ == a_2) = true then i else (m.indices.erase a)[a_2]
-    [prop] i + 1 ≤ m.keys.pop.size
-    [prop] (m.indices.erase a).contains a_2 = true
-    [prop] a_2 ∈ m.indices.erase a
+    36 more entries... (increase `maxTraceChildren` to see more)
   [eqc] True propositions
     [prop] ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
     [prop] LawfulBEq α
@@ -416,78 +376,7 @@ right_2 : a_2 ∈ m.indices.erase a
     [prop] m.keys[i]? = some m.keys[i]
     [prop] m.keys[i_2]? = some a_2
     [prop] m.keys[i_2]? = some (m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]
-    [prop] m.keys[i_2]? = some m.keys[i_2]
-    [prop] m.keys[m.indices[a]]? = some a
-    [prop] i + 1 ≤ m.keys.pop.size
-    [prop] i + 1 ≤ m.keys.size
-    [prop] i_2 + 1 ≤ m.keys.pop.size
-    [prop] i_2 + 1 ≤ m.keys.size
-    [prop] i_2 + 1 ≤ (m.keys.set i (m.keys.back ⋯) ⋯).size - 1
-    [prop] i_2 + 1 ≤ m.keys.size - 1
-    [prop] m.indices[a] + 1 ≤ m.size
-    [prop] i_2 < (m.keys.set i (m.keys.back ⋯) ⋯).pop.size
-    [prop] i_2 < m.keys.pop.size
-    [prop] i_2 < m.keys.size
-    [prop] a_2 ∈ m.indices.erase a
-    [prop] a ∈ m
-    [prop] m.keys.pop.size ≤ i_2 → m.keys.pop[i_2]? = none
-    [prop] m.keys.size ≤ i → m.keys[i]? = none
-    [prop] m.keys.size ≤ i_2 → m.keys[i_2]? = none
-    [prop] ∀ (h_9 : i + 1 ≤ m.keys.pop.size), m.keys.pop.set i (m.keys.back ⋯) ⋯ = (m.keys.set i (m.keys.back ⋯) ⋯).pop
-    [prop] ∀ (h : i + 1 ≤ m.keys.size), m.keys[i]? = some m.keys[i]
-    [prop] ∀ (h : i_2 + 1 ≤ m.keys.pop.size), m.keys.pop[i_2]? = some m.keys.pop[i_2]
-    [prop] ∀ (h : i_2 + 1 ≤ m.keys.size), m.keys[i_2]? = some m.keys[i_2]
-    [prop] ∀ (h : a ∈ m), m.indices[a] + 1 ≤ m.size
-    [prop] (a == a_2) = false ∧ a_2 ∈ m.indices
-    [prop] m.keys.back ⋯ = a_2 ∨ (m.indices.erase a).contains a_2 = true
-    [prop] ((m.indices.erase a).contains a_2 = true) = (a_2 ∈ m.indices.erase a)
-    [prop] (((m.indices.erase a).insert (m.keys.back ⋯) i).contains a_2 = true) =
-          (m.keys.back ⋯ = a_2 ∨ (m.indices.erase a).contains a_2 = true)
-    [prop] (m.keys[i]? = some m.keys[i]) = (m.indices[m.keys[i]]? = some i)
-    [prop] (m.keys[i]? = some m.keys[i_2]) = (m.indices[m.keys[i_2]]? = some i)
-    [prop] (m.keys[i_2]? = some m.keys[i]) = (m.indices[m.keys[i]]? = some i_2)
-    [prop] (m.keys[i_2]? = some m.keys[i_2]) = (m.indices[m.keys[i_2]]? = some i_2)
-    [prop] (m.keys[m.indices[a]]? = some a_2) = (m.indices[a_2]? = some m.indices[a])
-    [prop] (a_2 ∈ m.indices.erase a) = ((a == a_2) = false ∧ a_2 ∈ m.indices)
-    [prop] (a == a_2) = false
-    [prop] (m.indices.erase a).contains a_2 = true
-    [prop] m.indices[a_2]? = some m.indices[a_2]
-    [prop] m.indices[m.keys[i]]? = some i
-    [prop] m.indices[m.keys[i_2]]? = some i_2
-    [prop] (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]? = some (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]
-    [prop] i_2 + 1 ≤ (m.keys.set i (m.keys.back ⋯) ⋯).size
-    [prop] i_2 < (m.keys.set i (m.keys.back ⋯) ⋯).size
-    [prop] a_2 ∈ m.indices
-    [prop] ¬a_2 ∈ m.indices → m.indices[a_2]? = none
-    [prop] (m.keys.set i (m.keys.back ⋯) ⋯).size ≤ i_2 → (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]? = none
-    [prop] ∀ (h_9 : i_2 + 1 ≤ (m.keys.set i (m.keys.back ⋯) ⋯).size),
-          (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]? = some (m.keys.set i (m.keys.back ⋯) ⋯)[i_2]
-    [prop] ∀ (h : a_2 ∈ m.indices), m.indices[a_2]? = some m.indices[a_2]
-    [prop] (!a == a_2) = true ∧ m.indices.contains a_2 = true
-    [prop] (m.indices.contains a_2 = true) = (a_2 ∈ m.indices)
-    [prop] ((m.indices.erase a).contains a_2 = true) = ((!a == a_2) = true ∧ m.indices.contains a_2 = true)
-    [prop] (m.keys[m.indices[a]]? = some m.keys[i_2]) = (m.indices[m.keys[i_2]]? = some m.indices[a])
-    [prop] (a_2 ∈ m.indices) = (a_2 ∈ m)
-    [prop] (!a == a_2) = true
-    [prop] m.indices.contains a_2 = true
-    [prop] m.indices[m.keys[i_2]]? = some m.indices[m.keys[i_2]]
-    [prop] m.keys[i_2] ∈ m.indices
-    [prop] a_2 ∈ m
-    [prop] ¬m.keys[i_2] ∈ m.indices → m.indices[m.keys[i_2]]? = none
-    [prop] ∀ (h_9 : m.keys[i_2] ∈ m.indices), m.indices[m.keys[i_2]]? = some m.indices[m.keys[i_2]]
-    [prop] (m.indices.contains m.keys[i_2] = true) = (m.keys[i_2] ∈ m.indices)
-    [prop] (m.keys[m.indices[m.keys[i_2]]]? = some a) = (m.indices[a]? = some m.indices[m.keys[i_2]])
-    [prop] (m.keys[m.indices[m.keys[i_2]]]? = some a_2) = (m.indices[a_2]? = some m.indices[m.keys[i_2]])
-    [prop] (m.keys[m.indices[m.keys[i_2]]]? = some m.keys[i_2]) =
-          (m.indices[m.keys[i_2]]? = some m.indices[m.keys[i_2]])
-    [prop] (m.keys[i_2] ∈ m.indices) = (m.keys[i_2] ∈ m)
-    [prop] m.indices.contains m.keys[i_2] = true
-    [prop] m.indices[a_2]? = some m.indices[m.keys[i_2]]
-    [prop] m.keys[m.indices[m.keys[i_2]]]? = some a_2
-    [prop] m.keys[m.indices[m.keys[i_2]]]? = some m.keys[i_2]
-    [prop] m.indices[m.keys[i_2]] + 1 ≤ m.size
-    [prop] m.keys[i_2] ∈ m
-    [prop] ∀ (h_9 : m.keys[i_2] ∈ m), m.indices[m.keys[i_2]] + 1 ≤ m.size
+    69 more entries... (increase `maxTraceChildren` to see more)
   [eqc] False propositions
     [prop] i = m.size - 1
     [prop] ((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
