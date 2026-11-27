@@ -170,6 +170,9 @@ Propositions have the following properties:
 {docstring propext}
 
 # Universes
+%%%
+tag := "universes-sorts"
+%%%
 
 Types are classified by {deftech}_universes_. {index}[universe]{margin}[Universes are also referred to as {deftech}_sorts_.]
 Each universe has a {deftech (key:="universe level")}_level_, {index (subterm := "of universe")}[level] which is a natural number.
