@@ -72,7 +72,7 @@ They are provided with a newline-delimited JSON file that contains all the terms
 tag := "export-format"
 %%%
 
-This section describes version 3.1.0 of the export format.
+This section describes version 3.2.0 of the export format.
 The export is [newline-delimited JSON](https://github.com/ndjson/ndjson-spec): there is one object per line, and objects do not themselves contain newline characters.
 An exported `.ndjson` file will begin with an {exportType "Initial metadata object"}[initial metadata object] which includes version info for the exporter, Lean, and export format:
 
@@ -106,7 +106,7 @@ Line breaks are included for readability; note that the NDJSON format requires t
 
 :::paragraph
 The export format uses explicit indices to refer to names, levels, and expressions.
-Each kind of object occupies its own table, and indices may be reused between tables.
+Each kind of object occupies its own table, and indices may be reused between tables. For each kind of object, the indices are used consecutively.
 Within a table, each index is unique.
 The spec uses the following types to describe natural numbers that refer to entries in the table:
 
@@ -404,7 +404,7 @@ The export format includes the data of these generated declarations for convenie
 ### Inductive Declaration:
 
 The official Lean kernel expects a {name}`Lean.Declaration.inductDecl`, which contains a (mutual) group of inductive declarations with their constructors.
-From that the kernel derives the {tech}[recursors] and informational fields like {name Lean.InductiveVal.isRec}`isRec`, {name Lean.InductiveVal.isReflexive}`isReflexive` or {name Lean.ConstructorVal.cidx}`cidx`.
+From that the kernel derives the {tech}[recursors] and informational fields like {name Lean.InductiveVal.isRec}`isRec`, {name Lean.InductiveVal.numNested}`numNested` or {name Lean.ConstructorVal.cidx}`cidx`.
 The export format includes the data of these generated declarations for convenience.
 {tech}[ι-reductions] are specified by {exportType}`RecursorRule` entries.
 Independent kernels may either trust the included derived recursor information or regenerate and check it for extra assurance.
@@ -431,7 +431,11 @@ Independent kernels may either trust the included derived recursor information o
   "numNested": integer,
   "isRec": boolean,
   "isUnsafe": boolean,
-  "isReflexive": boolean
+  "isImpredicative" : boolean,
+  "isK" : boolean,
+  "hasProjections" : boolean,
+  "hasEta" : boolean,
+  "hasLargeElim" : boolean
 }
 ```
 
